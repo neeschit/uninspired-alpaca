@@ -1,0 +1,19 @@
+{
+  "name": "alpaca-play",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "dependencies": {
+    "@alpacahq/alpaca-trade-api": "^1.0.3",
+    "dotenv": "^8.2.0"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "ava": "^2.4.0"
+  },
+  "scripts": {
+    "test": "ava"
+  }
+}
