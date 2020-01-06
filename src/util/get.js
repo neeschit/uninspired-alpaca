@@ -1,4 +1,4 @@
-export const get = url => {
+const get = url => {
   return new Promise((resolve, reject) => {
     https.get(url, response => {
       if (response.statusCode === 404) {
@@ -22,4 +22,8 @@ export const get = url => {
       });
     });
   });
+};
+
+module.exports = {
+  get
 };

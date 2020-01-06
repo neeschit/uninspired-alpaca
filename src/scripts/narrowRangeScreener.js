@@ -1,5 +1,5 @@
-import { getDayBars } from "../data/bars.js";
-import { readFileSync } from "fs";
+const { getDayBars } = require("../data/bars.js");
+const { readFileSync } = require("fs");
 
 const LARGE_CAPS = JSON.parse(readFileSync("./largecaps.json").toString());
 

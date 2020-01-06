@@ -1,14 +1,9 @@
-import { alpaca } from "../connection/alpaca.js";
-import { getTickerDetails } from "../connection/polygon.js";
+const { alpaca } = require("../connection/alpaca.js");
+const { getTickerDetails } = require("../connection/polygon.js");
 
-const allowedCountries = [
-  'usa',
-  'chn',
-  'hkg',
-  'can'
-]
+const allowedCountries = ["usa", "chn", "hkg", "can"];
 
-export const getAlpacaCompanies = async () => {
+const getAlpacaCompanies = async () => {
   const assets = await alpaca.getAssets({
     status: "active"
   });
@@ -16,7 +11,7 @@ export const getAlpacaCompanies = async () => {
   return assets;
 };
 
-export const getCompaniesByMarketCap = async marketcap => {
+const getCompaniesByMarketCap = async marketcap => {
   const companies = await getAlpacaCompanies();
 
   const filteredAssets = [];
@@ -31,15 +26,20 @@ export const getCompaniesByMarketCap = async marketcap => {
       const details = await getTickerDetails(companies[i].symbol);
 
       if (
-          details &&
-          details.marketcap > marketcap &&
-          allowedCountries.indexOf(details.country) !== -1 &&
-          details.type === 'CS'
+        details &&
+        details.marketcap > marketcap &&
+        allowedCountries.indexOf(details.country) !== -1 &&
+        details.type === "CS"
       ) {
-          filteredAssets.push(companies[i].symbol);
+        filteredAssets.push(companies[i].symbol);
       }
     } catch (e) {}
   }
 
   return filteredAssets;
+};
+
+module.exports = {
+  getAlpacaCompanies,
+  getCompaniesByMarketCap
 };
