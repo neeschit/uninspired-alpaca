@@ -4,19 +4,38 @@ const TrendType = {
   sideways: "sideways"
 };
 
-const trendIdentifer = barData => {
+const getRecentTrend = barData => {
   if (!barData || !barData.length) {
     throw new Error();
   }
 
-  let recentTrend = null;
-  let primaryUptrends = 0;
-  let secondaryUptrends = 0;
+  const { max, min } = barData.reduce((previousValue, currentValue) => {
+    let { max: prevMax, min: prevMin } = previousValue;
+    if (currentValue.h > prevMax) {
+      prevMax = currentValue.h;
+    }
+
+    if (currentValue.l < prevMin) {
+      prevMin = currentValue.l;
+    }
+
+    return {
+      max: prevMax,
+      min: prevMin
+    };
+  }, {
+    min: Number.MAX_SAFE_INTEGER,
+    max: Number.MIN_SAFE_INTEGER
+  });
+
+  const recentBars = barData.slice(-10).filter(d => d);
+
+  
 
   return TrendType.up;
 };
 
 module.exports = {
-  trendIdentifer,
+  getRecentTrend,
   TrendType
 };

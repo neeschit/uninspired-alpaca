@@ -1,16 +1,16 @@
 const test = require("ava");
-const { trendIdentifer, TrendType } = require("./trendIdentifier.js");
+const { getRecentTrend, TrendType } = require("./trendIdentifier.js");
 const uptrend = require("../fixtures/uptrend");
 const downtrend = require("../fixtures/downtrend");
 const { getDayBars } = require("../../data/bars.js");
 
 test("up trend", async t => {
-  const trend = trendIdentifer(uptrend);
+  const trend = getRecentTrend(uptrend);
   t.is(trend, TrendType.up);
 });
 
 test("down trend", async t => {
-  const trend = trendIdentifer(downtrend);
+  const trend = getRecentTrend(downtrend);
 
   t.is(trend, TrendType.down);
 });
