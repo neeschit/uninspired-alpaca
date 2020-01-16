@@ -43,8 +43,15 @@ Promise.all(barsFetched)
                 .filter(bar => {
                     return isToday(getDayForAlpacaTimestamp(bar.t));
                 })
-                .map(bar => Math.abs(bar.h - bar.l))
-                .filter(range => range);
+                .map(bar => {
+                    const range = Math.abs(bar.h - bar.l);
+
+                    if (!range) {
+                        return 0.35;
+                    }
+
+                    return range;
+                })
 
             const volume = stockBars.reduce((sum, bar) => {
                 if (!isToday(getDayForAlpacaTimestamp(bar.t))) return sum;
@@ -54,16 +61,30 @@ Promise.all(barsFetched)
 
             const symbolAverages = AVG_VOLUMES[symbol];
 
-            const minRange = ranges.reduce((previousMin, currVal) => {
+            const { previousMin: minRange, previousMax: maxRange } = ranges.reduce(({ previousMin, previousMax }, currVal) => {
                 if (currVal < previousMin) {
-                    return currVal;
+                    previousMin = currVal;
+                }
+                
+                if (currVal > previousMax) {
+                    previousMax = currVal;
                 }
 
-                return previousMin;
-            }, 100000);
+                return {
+                    previousMin,
+                    previousMax
+                };
+            }, {
+                previousMin: 10000,
+                previousMax: Number.MIN_SAFE_INTEGER
+            });
 
             const isHighVol = symbolAverages && volume > 2 * symbolAverages.averageVolume;
-            const narrowRange = ranges.slice(-3).every(range => range < 6 * minRange);
+            const rangeRatio = maxRange / minRange;
+
+            const threshold = 2;
+
+            const narrowRange = ranges.slice(-3).filter(range => range < maxRange / 6).length > threshold;
 
             /* if (isHighVol) {
                 console.log(symbol);
@@ -72,6 +93,7 @@ Promise.all(barsFetched)
             
             if (narrowRange) {
                 console.log(symbol);
+                console.log(count++);
             }
         });
     })
