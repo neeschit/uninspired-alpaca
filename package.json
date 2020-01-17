@@ -6,7 +6,8 @@
   "dependencies": {
     "@alpacahq/alpaca-trade-api": "^1.0.3",
     "date-fns": "^2.9.0",
-    "dotenv": "^8.2.0"
+    "dotenv": "^8.2.0",
+    "numjs": "^0.16.0"
   },
   "author": "",
   "license": "ISC",
