@@ -49,7 +49,7 @@ const getAverageDirectionalIndex = (bars, period = DEFAULT_DMI_PERIOD) => {
         return Math.abs(pVal - nVal) / Math.abs(pVal + nVal);
     });
 
-    const adx = getExponentialAverage(adxToBe, 14).map(v => v * 100);
+    const adx = getExponentialAverage(adxToBe, period).map(v => v * 100);
 
     return [adx, mappedPdx, mappedNdx];
 };
