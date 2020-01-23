@@ -1,9 +1,16 @@
 const test = require("ava");
 const uptrend = require("../pattern/fixtures/uptrend.js");
+const downtrend = require("../pattern/fixtures/downtrend.js");
 const { getAverageDirectionalIndex } = require("./adx.js");
 
-test("getAdx", t => {
+test("getAdx - uptrend", t => {
     const [adx, pdx, ndx] = getAverageDirectionalIndex(uptrend);
 
-    t.is(adx[adx.length - 1], 59.542563917980964);
+    t.is(adx[adx.length - 1], 42.45438184588078);
+});
+
+test("getAdx - downtrend", t => {
+    const [adx, pdx, ndx] = getAverageDirectionalIndex(downtrend);
+
+    t.is(adx[adx.length - 1], 33.29778261226684);
 });

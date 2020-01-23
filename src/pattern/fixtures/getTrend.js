@@ -8,6 +8,7 @@ const getTrend = (
     percentageIncrease = 10,
     step = 0
 ) => {
+    trend = JSON.parse(JSON.stringify(trend));
     const maxIncrement = start / percentageIncrease;
 
     if (!step) {

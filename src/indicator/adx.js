@@ -33,23 +33,23 @@ const getAverageDirectionalIndex = (bars, period = DEFAULT_DMI_PERIOD) => {
         [[], []]
     );
 
-    const mappedPdx = getExponentialAverage(pdx).map((v, index) => {
+    const mappedPdx = getExponentialAverage(pdx, 27).map((v, index) => {
         let volatilitySmoother = atr[index] / 100;
-        return v * volatilitySmoother;
+        return v / volatilitySmoother;
     });
-    const mappedNdx = getExponentialAverage(ndx).map((v, index) => {
+    const mappedNdx = getExponentialAverage(ndx, 27).map((v, index) => {
         let volatilitySmoother = atr[index] / 100;
-        return v * volatilitySmoother;
+        return v / volatilitySmoother;
     });
 
     const adxToBe = mappedPdx.map((pdxval, index) => {
         const pVal = pdxval;
         const nVal = mappedNdx[index];
 
-        return Math.abs(pVal - nVal) / Math.abs(pVal + nVal);
+        return Math.abs((pVal - nVal) / (pVal + nVal === 0 ? 1 : pVal + nVal));
     });
 
-    const adx = getExponentialAverage(adxToBe, period).map(v => v * 100);
+    const adx = getExponentialAverage(adxToBe, 27).map(v => v * 100);
 
     return [adx, mappedPdx, mappedNdx];
 };
