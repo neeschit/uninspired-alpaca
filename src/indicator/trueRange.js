@@ -1,3 +1,5 @@
+const { getExponentialAverage } = require("./average.js");
+
 const getTrueRange = bars => {
     if (!bars || !bars.length || !bars.length > 1) {
         throw new Error("check_yo_shiz");
@@ -10,6 +12,17 @@ const getTrueRange = bars => {
     return Math.max(currentDiff, highDiff, lowDiff);
 };
 
+const getAverageTrueRange = (bars, period = 14) => {
+    const tr = [];
+
+    for (let index = 0; index < bars.length - 1; index++) {
+        tr.push(getTrueRange(bars.slice(index, index + 2)));
+    }
+
+    return getExponentialAverage(tr, period);
+};
+
 module.exports = {
-    getTrueRange
+    getTrueRange,
+    getAverageTrueRange
 };
