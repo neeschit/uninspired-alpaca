@@ -4,10 +4,10 @@ const {
     TrendType,
     getOverallTrend
 } = require("./trendIdentifier.js");
-const perfectUptrend = require("../fixtures/perfectUptrend.js");
 const uptrend = require("../fixtures/uptrend.js");
 const downtrend = require("../fixtures/downtrend.js");
-const perfectDowntrend = require("../fixtures/perfectDowntrend.js");
+const perfectDowntrend = require("../fixtures/perfectDownTrend.js");
+const perfectUptrend = require("../fixtures/perfectUpTrend.js");
 const { getDayBars } = require("../../data/bars.js");
 
 test("up trend", async t => {
