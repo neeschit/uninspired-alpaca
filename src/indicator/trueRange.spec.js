@@ -71,7 +71,7 @@ test("true range - previos close in range", t => {
 });
 
 test("atr", t => {
-    const atr = getAverageTrueRange(fixtures);
+    const [atr] = getAverageTrueRange(fixtures);
     t.deepEqual(atr, [
         5.828000000000003,
         5.941600000000004,

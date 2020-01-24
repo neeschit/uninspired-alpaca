@@ -24,8 +24,8 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "intradayNarrowRangeScreener",
-            "program": "${workspaceFolder}/src/scripts/intradayNarrowRangeScreener.js",
+            "name": "narrowRangeScreener",
+            "program": "${workspaceFolder}/src/scripts/narrowRangeScreener.js",
             "skipFiles": ["<node_internals>/**"]
         }
     ]

@@ -1,5 +1,6 @@
 const { getDayBars } = require("../data/bars.js");
 const { readFileSync } = require("fs");
+const { getAverageTrueRange } = require("../indicator/trueRange.js");
 
 const LARGE_CAPS = JSON.parse(readFileSync("./largecaps.json").toString());
 
@@ -27,25 +28,55 @@ Promise.all(barsFetched)
 
         return Promise.resolve(bars);
     })
-    .then(bars => {
-        Object.keys(bars).map(symbol => {
-            const stockBars = bars[symbol];
+    .then(stocksBars => {
+        const rangeLists = [[], [], [], [], []];
+        Object.keys(stocksBars).map(symbol => {
+            const bars = stocksBars[symbol];
 
-            const ranges = stockBars
-                .slice(-25)
-                .map(bar => Math.abs(bar.h - bar.l));
+            const [atr, tr] = getAverageTrueRange(bars);
 
-            const minRange = ranges.reduce((previousMin, currVal) => {
-                if (currVal < previousMin) {
-                    return currVal;
+            let nr3 = Number.MAX_SAFE_INTEGER,
+                nr4 = Number.MAX_SAFE_INTEGER,
+                nr5 = Number.MAX_SAFE_INTEGER,
+                nr6 = Number.MAX_SAFE_INTEGER,
+                nr7 = Number.MAX_SAFE_INTEGER;
+
+            tr.slice(-7).map((range, index) => {
+                if (range < nr7) {
+                    nr7 = range;
+
+                    if (index > 0) {
+                        nr6 = range;
+                    }
+                    if (index > 1) {
+                        nr5 = range;
+                    }
+                    if (index > 2) {
+                        nr4 = range;
+                    }
+                    if (index > 3) {
+                        nr3 = range;
+                    }
                 }
+            });
 
-                return previousMin;
-            }, 100000);
-
-            if (ranges[ranges.length - 1] === minRange) {
-                console.log(symbol);
+            if (tr[tr.length - 1] <= nr7) {
+                rangeLists[4].push(symbol);
+            }
+            if (tr[tr.length - 1] <= nr6) {
+                rangeLists[3].push(symbol);
+            }
+            if (tr[tr.length - 1] <= nr5) {
+                rangeLists[2].push(symbol);
+            }
+            if (tr[tr.length - 1] <= nr4) {
+                rangeLists[1].push(symbol);
+            }
+            if (tr[tr.length - 1] <= nr3) {
+                rangeLists[0].push(symbol);
             }
         });
+        return rangeLists;
     })
+    .then(console.log)
     .catch(console.log);
