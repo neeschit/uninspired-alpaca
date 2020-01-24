@@ -1,6 +1,7 @@
 const { getDayBars } = require("../data/bars.js");
 const { readFileSync } = require("fs");
 const { getAverageTrueRange } = require("../indicator/trueRange.js");
+const { getAverageDirectionalIndex } = require("../indicator/adx.js");
 
 const LARGE_CAPS = JSON.parse(readFileSync("./largecaps.json").toString());
 
@@ -34,6 +35,7 @@ Promise.all(barsFetched)
             const bars = stocksBars[symbol];
 
             const [atr, tr] = getAverageTrueRange(bars);
+            /* const tr = bars.map(bar => bar.h - bar.l); */
 
             let nr3 = Number.MAX_SAFE_INTEGER,
                 nr4 = Number.MAX_SAFE_INTEGER,
@@ -76,7 +78,30 @@ Promise.all(barsFetched)
                 rangeLists[0].push(symbol);
             }
         });
-        return rangeLists;
+        return {
+            stocksBars,
+            lists: rangeLists
+        };
     })
-    .then(console.log)
+    .then(({ stocksBars, lists }) => {
+        const nr7 = lists[4];
+
+        nr7.forEach(symbol => {
+            const bars = stocksBars[symbol];
+            const [adx, pdx, ndx, atr] = getAverageDirectionalIndex(bars);
+
+            if (adx[adx.length - 1] > 30) {
+                console.log(symbol + " - " + atr[atr.length - 1]);
+            } else {
+                console.log(
+                    "weak - " +
+                        symbol +
+                        " - " +
+                        adx[adx.length - 1] +
+                        " - " +
+                        atr[atr.length - 1]
+                );
+            }
+        });
+    })
     .catch(console.log);
