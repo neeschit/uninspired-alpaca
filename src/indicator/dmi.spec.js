@@ -2,7 +2,6 @@ const test = require("ava");
 const { getDirectionalMovementIndex } = require("./dmi.js");
 
 test("dmi", t => {
-    console.log(fixtures.length);
     const [pdi, ndi] = getDirectionalMovementIndex(fixtures);
 
     t.is(true, true);
