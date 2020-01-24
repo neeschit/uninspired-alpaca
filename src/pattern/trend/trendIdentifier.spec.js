@@ -8,7 +8,7 @@ const uptrend = require("../fixtures/uptrend.js");
 const downtrend = require("../fixtures/downtrend.js");
 const perfectDowntrend = require("../fixtures/perfectDownTrend.js");
 const perfectUptrend = require("../fixtures/perfectUpTrend.js");
-const { getDayBars } = require("../../data/bars.js");
+/* const { getDayBars } = require("../../data/bars.js"); */
 
 test("up trend", async t => {
     const trend = getRecentTrend(perfectUptrend);
@@ -41,10 +41,11 @@ test("down trend - overall realistic", async t => {
     t.is(trend, TrendType.down);
 });
 
-const writeTestFixture = async (filename, symbol) => {
+/* const writeTestFixture = async (filename, symbol) => {
     const bars = await getDayBars([symbol]);
     require("fs").writeFileSync(
         "./src/pattern/fixtures/" + filename,
         JSON.stringify(bars[symbol])
     );
 };
+ */
