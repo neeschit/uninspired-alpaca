@@ -46,19 +46,18 @@ Promise.all(barsFetched)
             tr.slice(-7).map((range, index) => {
                 if (range < nr7) {
                     nr7 = range;
-
-                    if (index > 0) {
-                        nr6 = range;
-                    }
-                    if (index > 1) {
-                        nr5 = range;
-                    }
-                    if (index > 2) {
-                        nr4 = range;
-                    }
-                    if (index > 3) {
-                        nr3 = range;
-                    }
+                }
+                if (index > 0 && range < nr6) {
+                    nr6 = range;
+                }
+                if (index > 1 && range < nr5) {
+                    nr5 = range;
+                }
+                if (index > 2 && range < nr4) {
+                    nr4 = range;
+                }
+                if (index > 3 && range < nr3) {
+                    nr3 = range;
                 }
             });
 
@@ -84,23 +83,27 @@ Promise.all(barsFetched)
         };
     })
     .then(({ stocksBars, lists }) => {
-        const nr7 = lists[4];
+        const nr = lists[0];
 
-        nr7.forEach(symbol => {
+        nr.forEach(symbol => {
             const bars = stocksBars[symbol];
             const [adx, pdx, ndx, atr] = getAverageDirectionalIndex(bars);
 
-            if (adx[adx.length - 1] > 30) {
+            const chosenAdx = adx[adx.length - 1];
+
+            if (chosenAdx > 30) {
                 console.log(symbol + " - " + atr[atr.length - 1]);
             } else {
-                console.log(
-                    "weak - " +
-                        symbol +
-                        " - " +
-                        adx[adx.length - 1] +
-                        " - " +
-                        atr[atr.length - 1]
-                );
+                if (chosenAdx > 20) {
+                    console.log(
+                        "weak - " +
+                            symbol +
+                            " - " +
+                            chosenAdx +
+                            " - " +
+                            atr[atr.length - 1]
+                    );
+                }
             }
         });
     })
