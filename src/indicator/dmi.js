@@ -28,7 +28,7 @@ const getDirectionalMovementIndex = (bars, period = DEFAULT_DMI_PERIOD) => {
         [[], []]
     );
 
-    return [positiveDirectionalMovements, negativeDirectionalMovements];
+    return [positiveDirectionalMovements, negativeDirectionalMovements, bars];
 };
 
 module.exports = {

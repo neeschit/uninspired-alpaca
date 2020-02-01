@@ -83,7 +83,7 @@ Promise.all(barsFetched)
         };
     })
     .then(({ stocksBars, lists }) => {
-        const nr = lists[0];
+        const nr = lists[4];
 
         nr.forEach(symbol => {
             const bars = stocksBars[symbol];
@@ -93,17 +93,6 @@ Promise.all(barsFetched)
 
             if (chosenAdx > 30) {
                 console.log(symbol + " - " + atr[atr.length - 1]);
-            } else {
-                if (chosenAdx > 20) {
-                    console.log(
-                        "weak - " +
-                            symbol +
-                            " - " +
-                            chosenAdx +
-                            " - " +
-                            atr[atr.length - 1]
-                    );
-                }
             }
         });
     })
