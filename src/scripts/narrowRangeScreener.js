@@ -93,7 +93,7 @@ barsPromise
             const chosenAdx = adx[adx.length - 1];
 
             if (chosenAdx.value > 30) {
-                console.log(symbol + " - " + atr[atr.length - 1]);
+                console.log(symbol + " - " + atr[atr.length - 1].value);
             }
         });
     })
