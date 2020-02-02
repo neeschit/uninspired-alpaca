@@ -81,7 +81,9 @@ const isAboveThreshold = array => {
 const getOverallTrend = bars => {
     const [adx, pdx, ndx] = getAverageDirectionalIndex(bars);
 
-    if (adx[adx.length - 1] < 20) {
+    const lastBarAdx = adx[adx.length - 1];
+
+    if (lastBarAdx.value < 20) {
         return TrendType.sideways;
     }
 
