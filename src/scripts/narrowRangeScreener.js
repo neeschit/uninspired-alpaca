@@ -8,19 +8,20 @@ const LARGE_CAPS = JSON.parse(readFileSync("./largecaps.json").toString());
 const lookback = process.argv[2] && Number(process.argv[2]);
 
 let list = JSON.parse(JSON.stringify(LARGE_CAPS));
-
+/* 
 const barsFetched = [];
 
-while (list.length > 200) {
-    const barsPromise = getDayBars(list.slice(0, 200), 100, lookback);
+while (list.length > 200) { */
+const barsPromise = getDayBars(list, 100, lookback);
 
+/* 
     barsFetched.push(barsPromise);
-
     list = list.slice(200);
-}
+} */
 
-Promise.all(barsFetched)
+barsPromise
     .then(responses => {
+        console.log(responses.length);
         const bars = {};
 
         responses.map(response => {
@@ -91,7 +92,7 @@ Promise.all(barsFetched)
 
             const chosenAdx = adx[adx.length - 1];
 
-            if (chosenAdx > 30) {
+            if (chosenAdx.value > 30) {
                 console.log(symbol + " - " + atr[atr.length - 1]);
             }
         });

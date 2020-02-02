@@ -1,6 +1,6 @@
 const test = require("ava");
-const uptrend = require("../pattern/fixtures/uptrend.js");
-const downtrend = require("../pattern/fixtures/downtrend.js");
+const uptrend = require("../fixtures/uptrend.js");
+const downtrend = require("../fixtures/downtrend.js");
 const { getAverageDirectionalIndex } = require("./adx.js");
 
 test("getAdx - uptrend", t => {
