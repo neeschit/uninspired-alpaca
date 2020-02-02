@@ -15,7 +15,7 @@
     "ava": "^3.0.0"
   },
   "scripts": {
-    "test": "ava",
-    "test:watch": "ava --watch"
+    "test": "ava --watch",
+    "test:ci": "ava"
   }
 }

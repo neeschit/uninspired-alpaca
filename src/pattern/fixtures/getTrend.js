@@ -13,21 +13,36 @@ const getTrend = (
 
     if (!step) {
         step = maxIncrement / trend.length;
+        if (trendType === TrendType.down && step > 0) {
+            step = -step;
+        }
     }
 
-    const closingPrices = nj.arange(start, start + maxIncrement, step);
+    let iterationStep = step;
+
+    const closingPrices = trend.map((bar, index) => {
+        iterationStep =
+            trendType === TrendType.sideways ? -iterationStep : iterationStep;
+        return start + index * iterationStep + iterationStep;
+    });
+
     const highPriceStart = start + step;
-    const highPrices = nj.arange(
-        highPriceStart,
-        highPriceStart + maxIncrement,
-        step
-    );
+    iterationStep = step;
+
+    const highPrices = trend.map((bar, index) => {
+        iterationStep =
+            trendType === TrendType.sideways ? -iterationStep : iterationStep;
+        return highPriceStart + index * step + step;
+    });
+
     const lowPriceStart = start - step;
-    const lowPrices = nj.arange(
-        lowPriceStart,
-        lowPriceStart + maxIncrement,
-        step
-    );
+    iterationStep = step;
+
+    const lowPrices = trend.map((bar, index) => {
+        iterationStep =
+            trendType === TrendType.sideways ? -iterationStep : iterationStep;
+        return lowPriceStart + index * step + step;
+    });
 
     if (
         lowPrices.length < highPrices.length ||
@@ -38,11 +53,10 @@ const getTrend = (
     }
 
     return trend.map((bar, index) => {
-        const adjustedIndex =
-            trendType === TrendType.up ? index : trend.length - index - 1;
-        bar.c = closingPrices.get(adjustedIndex);
-        bar.l = lowPrices.get(adjustedIndex);
-        bar.h = highPrices.get(adjustedIndex);
+        bar.c = closingPrices[index];
+        bar.o = closingPrices[index];
+        bar.l = lowPrices[index];
+        bar.h = highPrices[index];
         return bar;
     });
 };

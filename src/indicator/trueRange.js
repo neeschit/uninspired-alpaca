@@ -19,7 +19,14 @@ const getAverageTrueRange = (bars, period = 14) => {
         tr.push(getTrueRange(bars.slice(index, index + 2)));
     }
 
-    return [getExponentialAverage(tr, period), tr, bars];
+    const atr = getExponentialAverage(tr, period).map((value, index, array) => {
+        return {
+            value,
+            t: bars[bars.length - array.length + index].t
+        };
+    });
+
+    return [atr, tr, bars];
 };
 
 module.exports = {
