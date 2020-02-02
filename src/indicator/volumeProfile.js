@@ -1,6 +1,5 @@
 module.exports = {
     getVolumeProfile: bars => {
-        console.log(bars[0].t);
         const { min, max, sumVolume } = bars.reduce(
             ({ min, max, sumVolume }, bar, index) => {
                 if (bar.c > max) {
