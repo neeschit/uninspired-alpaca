@@ -32,11 +32,27 @@ test("risk management - basic - should identify nearest high quality stop loss",
             t: 1580878800000,
             value: 3.7687595434568366
         },
-        169.11675925278186,
+        /* 169.11675925278186, */
         170.42,
         169.5,
         171.7
     );
 
     t.is(risk, 3.5);
+});
+
+test("risk management - risky - should recognize tight stop and ", t => {
+    const risk = assessRisk(
+        volumeProfile,
+        {
+            t: 1580878800000,
+            value: 2.0687595434568366
+        },
+        /* 169.11675925278186, */
+        170.42,
+        169.4,
+        171.7
+    );
+
+    t.true(risk > 1.6 && risk < 1.8);
 });

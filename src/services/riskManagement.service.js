@@ -3,7 +3,6 @@ const riskUnit = 100;
 const assessRisk = (
     volumeProfile,
     atr,
-    ema,
     currentPrice,
     proposedEntryPrice,
     simpleStop
@@ -27,7 +26,7 @@ const assessRisk = (
     let stop = proposedStopPrice;
 
     if (nearestVolumeProfileStop) {
-        const slippage = (Math.max(0.5, Math.random()) * atr.value) / 20;
+        const slippage = (Math.max(0.5, Math.random()) * atr.value) / 15;
         stop = isShort
             ? nearestVolumeProfileStop.high
             : nearestVolumeProfileStop.low;
