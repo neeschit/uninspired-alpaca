@@ -22,7 +22,7 @@ module.exports = {
             }
         );
 
-        const barsSortedByVolume = bars.sort((bar1, bar2) => {
+        const barsSortedByVolume = bars.slice().sort((bar1, bar2) => {
             return bar1.v > bar2.v ? -1 : 1;
         });
 

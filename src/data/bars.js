@@ -1,5 +1,4 @@
 const { addDays, startOfDay } = require("date-fns");
-const { alpaca } = require("../connection/alpaca.js");
 const { getPolyonData, PeriodType } = require("../connection/polygon");
 
 const date = new Date();
@@ -28,7 +27,7 @@ const getBars = (timeframe, symbols, days, lookback) => {
         throw new Error("require an array");
     }
     const start = startOfDay(addDays(date, -days));
-    const end = addDays(date, -lookback);
+    const end = addDays(date, -lookback + 1);
     const promises = symbols.map(symbol => getPolyonData(symbol, start, end));
 
     return Promise.all(promises);
