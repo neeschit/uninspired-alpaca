@@ -74,8 +74,12 @@ const getRecentTrend = bars => {
     return closingTrend;
 };
 
-const isAboveThreshold = array => {
-    return array[array.length - 1] > array[0] || array[array.length - 1] > 30;
+const isAboveThreshold = (array, compare) => {
+    return (
+        array[array.length - 1] > array[0] ||
+        array[array.length - 1] > 30 ||
+        array[array.length - 1] > compare[compare.length - 1]
+    );
 };
 
 const getOverallTrend = bars => {
@@ -87,9 +91,9 @@ const getOverallTrend = bars => {
         return TrendType.sideways;
     }
 
-    return isAboveThreshold(pdx)
+    return isAboveThreshold(pdx, ndx)
         ? TrendType.up
-        : isAboveThreshold(ndx)
+        : isAboveThreshold(ndx, pdx)
         ? TrendType.down
         : TrendType.sideways;
 };

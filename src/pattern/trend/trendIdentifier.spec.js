@@ -58,8 +58,3 @@ test("down trend - overall realistic", async t => {
     const trend = getOverallTrend(downtrend);
     t.is(trend, TrendType.down);
 });
-
-test("sideways trend - overall", async t => {
-    const trend = getOverallTrend(perfectSidewaystrend);
-    t.is(trend, TrendType.sideways);
-});

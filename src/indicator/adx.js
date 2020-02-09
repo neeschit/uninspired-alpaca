@@ -9,7 +9,7 @@ const getAverageDirectionalIndex = (bars, period = DEFAULT_DMI_PERIOD) => {
         negativeDirectionalMovements
     ] = getDirectionalMovementIndex(bars);
 
-    const [atr] = getAverageTrueRange(bars, period);
+    const [atr, tr] = getAverageTrueRange(bars, period);
 
     const [pdx, ndx] = positiveDirectionalMovements.reduce(
         ([pdx, ndx], positiveMovement, index) => {
@@ -56,7 +56,7 @@ const getAverageDirectionalIndex = (bars, period = DEFAULT_DMI_PERIOD) => {
         })
     );
 
-    return [adx, mappedPdx, mappedNdx, atr, bars];
+    return [adx, mappedPdx, mappedNdx, atr, tr];
 };
 
 module.exports = {
