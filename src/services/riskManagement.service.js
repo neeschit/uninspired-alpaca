@@ -32,7 +32,7 @@ const assessRisk = (
             : nearestVolumeProfileStop.low;
 
         if (!isSafe) {
-            stop += slippage;
+            stop = isShort ? stop + slippage : stop - slippage;
         }
     }
 
