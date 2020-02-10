@@ -5,7 +5,10 @@ const {
     getRecentTrend,
     TrendType
 } = require("../pattern/trend/trendIdentifier.js");
-const { getVolumeProfile } = require("../indicator/volumeProfile.js");
+const {
+    getVolumeProfile,
+    getNextResistance
+} = require("../indicator/volumeProfile.js");
 const { assessRisk } = require("../services/riskManagement.service.js");
 
 class NarrowRangeBarStrategy {
@@ -24,32 +27,30 @@ class NarrowRangeBarStrategy {
 
         this.atr = atr;
         this.tr = tr;
+        this.volumeProfile = getVolumeProfile(this.bars);
     }
 
     get atrValue() {
         return this.atr[this.atr.length - 1].value;
     }
 
-    get stop() {
-        const overallTrend = getOverallTrend(this.bars);
-        const recentTrend = getRecentTrend(this.bars.slice(-2));
-
-        const isShort =
-            overallTrend === TrendType.down && recentTrend === TrendType.up;
-
-        const stop = !isShort
+    get simpleStop() {
+        const stop = !this.isShort
             ? this.bars.slice(-1)[0].l
             : this.bars.slice(-1)[0].h;
 
         return roundHalf(stop);
     }
 
-    get entry() {
+    get isShort() {
         const overallTrend = getOverallTrend(this.bars);
         const recentTrend = getRecentTrend(this.bars.slice(-2));
 
-        const isShort =
-            overallTrend === TrendType.down && recentTrend === TrendType.up;
+        return overallTrend === TrendType.down && recentTrend === TrendType.up;
+    }
+
+    get entry() {
+        const isShort = this.isShort;
 
         const entry = isShort
             ? this.bars.slice(-1)[0].l
@@ -96,15 +97,43 @@ class NarrowRangeBarStrategy {
         return strength;
     }
 
-    getStopPrice() {
-        const volumeProfile = getVolumeProfile(this.bars);
+    get stop() {
         return assessRisk(
-            volumeProfile,
+            this.volumeProfile,
             this.atr.slice(-1)[0],
             this.bars.slice(-1)[0].c,
             this.entry,
-            this.stop
+            this.simpleStop
         );
+    }
+
+    get stopPrice() {
+        return this.isShort ? this.entry + this.stop : this.entry - this.stop;
+    }
+
+    hasPotentialForRewards() {
+        const risk = this.stop;
+        const resistances = getNextResistance(
+            this.bars,
+            this.isShort,
+            this.entry,
+            this.v
+        );
+        if (!resistances || !resistances.length) {
+            return true;
+        }
+
+        const potentialRewards = resistances.map(r => Math.abs(this.entry - r));
+
+        const hasPotential = potentialRewards.some(r => r / risk >= 2);
+
+        return hasPotential;
+    }
+
+    toString() {
+        return `Looking to ${this.isShort ? "SHORT" : "LONG"} ${
+            this.symbol
+        } at ${this.entry}, stop - ${this.stopPrice}`;
     }
 }
 

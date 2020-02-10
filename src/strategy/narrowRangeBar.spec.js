@@ -67,7 +67,7 @@ test("nrb7 - find entry price", t => {
         const entryPrice = nrbStrategyInstance.entry;
         t.is(entryPrice, 297.5);
 
-        const safeStop = nrbStrategyInstance.getStopPrice();
+        const safeStop = nrbStrategyInstance.stop;
         t.is(entryPrice - safeStop, 292);
     } catch (e) {
         console.error(e);
@@ -82,7 +82,7 @@ test("nrb7 - find simple stop price", t => {
     });
 
     try {
-        const stopPrice = nrbStrategyInstance.stop;
+        const stopPrice = nrbStrategyInstance.simpleStop;
         t.is(stopPrice, 294.5);
     } catch (e) {
         console.error(e);
@@ -130,7 +130,7 @@ test("nrb7 - find entry price bars1", t => {
         const entryPrice = nrbStrategyInstance.entry;
         t.is(entryPrice, 208);
 
-        const safeStop = nrbStrategyInstance.getStopPrice();
+        const safeStop = nrbStrategyInstance.stop;
         t.is(entryPrice - safeStop, 201);
     } catch (e) {
         console.error(e);
@@ -145,7 +145,7 @@ test("nrb7 - find simple stop price for bars1", t => {
     });
 
     try {
-        const stopPrice = nrbStrategyInstance.stop;
+        const stopPrice = nrbStrategyInstance.simpleStop;
         t.is(stopPrice, 204.5);
     } catch (e) {
         console.error(e);
@@ -193,7 +193,7 @@ test("nrb7 - find entry price bars2", t => {
         const entryPrice = nrbStrategyInstance.entry;
         t.is(entryPrice, 50);
 
-        const safeStop = nrbStrategyInstance.getStopPrice();
+        const safeStop = nrbStrategyInstance.stop;
         const stopPrice = entryPrice - safeStop;
         t.truthy(stopPrice > 47.8 && stopPrice < 47.95);
     } catch (e) {
@@ -209,7 +209,7 @@ test("nrb7 - find simple stop price for bars2", t => {
     });
 
     try {
-        const stopPrice = nrbStrategyInstance.stop;
+        const stopPrice = nrbStrategyInstance.simpleStop;
         t.is(stopPrice, 48);
     } catch (e) {
         console.error(e);

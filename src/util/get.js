@@ -11,7 +11,6 @@ const get = url => {
         let count = 0;
         const retry = () => {
             https.get(url, response => {
-                console.log(url);
                 count++;
                 if (response.statusCode === 500 && count <= 3) {
                     retry();
