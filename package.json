@@ -11,10 +11,24 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "ava": "^3.0.0"
+    "@ava/typescript": "^1.1.0",
+    "@types/dotenv": "^8.2.0",
+    "@types/node": "^13.7.1",
+    "ava": "^3.0.0",
+    "ts-node": "^8.6.2",
+    "typescript": "^3.7.5"
   },
   "scripts": {
     "test": "ava --watch --verbose",
-    "test:ci": "ava"
+    "test:ci": "ava",
+    "build": "tsc"
+  },
+  "ava": {
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ]
   }
 }
