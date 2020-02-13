@@ -1,9 +1,9 @@
-import { load } from "dotenv";
+import * as dotenv from "dotenv";
 import { format } from "date-fns";
 import { get } from "../util/get";
 import { Bar } from "./bar";
 
-const config = load().parsed;
+const config = dotenv.config().parsed;
 
 const API_KEY = config && config.ALPACA_SECRET_KEY_ID;
 

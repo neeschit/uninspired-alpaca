@@ -65,6 +65,10 @@ export class NarrowRangeBarStrategy {
         return roundHalf(stop);
     }
 
+    get currentPrice() {
+        return this.bars[this.bars.length - 1].c;
+    }
+
     get isShort() {
         const overallTrend = getOverallTrend(this.bars);
         const recentTrend = getRecentTrend(this.bars.slice(-2));
@@ -160,7 +164,9 @@ export class NarrowRangeBarStrategy {
     toString() {
         return `Looking to ${this.isShort ? "SHORT" : "LONG"} ${
             this.symbol
-        } at ${this.entry}, stop - ${this.stopPrice}`;
+        } at ${this.entry}, stop - ${this.stopPrice} - with close ${
+            this.currentPrice
+        }`;
     }
 }
 

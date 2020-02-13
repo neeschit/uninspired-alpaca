@@ -1,7 +1,7 @@
 import Alpaca from "@alpacahq/alpaca-trade-api";
-import { load } from "dotenv";
+import * as dotenv from "dotenv";
 
-const config = load().parsed;
+const config = dotenv.config().parsed;
 
 export const alpaca = new Alpaca({
     keyId: config!.ALPACA_SECRET_KEY_ID,
