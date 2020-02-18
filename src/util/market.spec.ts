@@ -34,5 +34,5 @@ test("is closed - before first second", t => {
 });
 
 test("is closed - after last second", t => {
-    t.falsy(isMarketOpen(new Date("2020-05-01T16:00:00")));
+    t.falsy(isMarketOpen(new Date("2020-05-01T19:00:00.000Z")));
 });
