@@ -192,7 +192,9 @@ export class NarrowRangeBarStrategy {
 
         const bar = lastBar.find(bar => bar.t === timezonedStamp.getTime());
 
-        console.log(bar);
+        console.log(JSON.stringify(bar));
+        console.log(timezonedStamp.getTime());
+        console.log(nowZoned.getTime());
 
         if (!bar) {
             console.error(
