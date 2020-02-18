@@ -158,7 +158,7 @@ export class NarrowRangeBarStrategy {
             console.error("market ain't open biiatch", now);
             return null;
         }
-        return isWithinInterval(now, {
+        const isWithinEntryRange = isWithinInterval(now, {
             start: set(now, {
                 hours: this.entryHour,
                 minutes: this.entryMinuteStart,
@@ -170,6 +170,12 @@ export class NarrowRangeBarStrategy {
                 seconds: 0
             })
         });
+
+        if (!isWithinEntryRange) {
+            console.error("come back later hooomie", now);
+        }
+
+        return isWithinEntryRange;
     }
 
     async rebalance(now: TimestampType = Date.now()) {
