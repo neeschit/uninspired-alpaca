@@ -7,10 +7,8 @@ import {
     PeriodType,
     TradeDirection,
     TimeInForce,
-    TradeType,
-    MarketTimezone
+    TradeType
 } from "../data/data.model";
-import { convertToTimeZone } from "date-fns-timezone";
 
 test("nrb7 - identify", t => {
     const nrbStrategyInstance = new NarrowRangeBarStrategy({

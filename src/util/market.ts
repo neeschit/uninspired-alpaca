@@ -1,6 +1,6 @@
 import { isWeekend, set, isSameDay, isWithinInterval } from "date-fns";
 import { TimestampType, MarketTimezone } from "../data/data.model";
-import { convertToTimeZone } from "date-fns-timezone";
+import { convertToLocalTime } from "date-fns-timezone";
 
 const marketHolidays = [
     "02-17-2020",
@@ -13,7 +13,7 @@ const marketHolidays = [
 ];
 
 export const isMarketOpen = (now: TimestampType = Date.now()) => {
-    const marketOpenToday = convertToTimeZone(
+    const marketOpenToday = convertToLocalTime(
         set(now, {
             hours: 9,
             minutes: 30,
@@ -24,7 +24,7 @@ export const isMarketOpen = (now: TimestampType = Date.now()) => {
         }
     );
 
-    const marketCloseToday = convertToTimeZone(
+    const marketCloseToday = convertToLocalTime(
         set(now, {
             hours: 15,
             minutes: 59,

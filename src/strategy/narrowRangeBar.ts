@@ -1,5 +1,5 @@
 import { isWithinInterval, set, addDays } from "date-fns";
-import { convertToTimeZone } from "date-fns-timezone";
+import { convertToLocalTime } from "date-fns-timezone";
 import { getAverageDirectionalIndex, IndicatorValue } from "../indicator/adx";
 import { getOverallTrend, getRecentTrend, TrendType } from "../pattern/trend/trendIdentifier";
 import { getVolumeProfile, getNextResistance, VolumeProfileBar } from "../indicator/volumeProfile";
@@ -161,7 +161,7 @@ export class NarrowRangeBarStrategy {
         }
 
         const isWithinEntryRange = isWithinInterval(now, {
-            start: convertToTimeZone(
+            start: convertToLocalTime(
                 set(now, {
                     hours: this.entryHour,
                     minutes: this.entryMinuteStart,
@@ -171,7 +171,7 @@ export class NarrowRangeBarStrategy {
                     timeZone: MarketTimezone
                 }
             ),
-            end: convertToTimeZone(
+            end: convertToLocalTime(
                 set(now, {
                     hours: this.entryHour,
                     minutes: this.entryMinuteEnd,
@@ -191,7 +191,7 @@ export class NarrowRangeBarStrategy {
     }
 
     async rebalance(now: TimestampType = Date.now()) {
-        const nowZoned = convertToTimeZone(now, {
+        const nowZoned = convertToLocalTime(now, {
             timeZone: MarketTimezone
         });
 
@@ -210,7 +210,7 @@ export class NarrowRangeBarStrategy {
             seconds: 0
         });
 
-        const timezonedStamp = convertToTimeZone(entryBarTimestamp, {
+        const timezonedStamp = convertToLocalTime(entryBarTimestamp, {
             timeZone: MarketTimezone
         });
 
