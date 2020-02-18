@@ -182,6 +182,8 @@ export class NarrowRangeBarStrategy {
             seconds: 0
         });
 
+        console.log(new Date().getTimezoneOffset());
+
         const bar = lastBar.find(bar => bar.t === entryBarTimestamp.getTime());
 
         if (!bar) {
