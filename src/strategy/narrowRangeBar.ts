@@ -224,7 +224,8 @@ export class NarrowRangeBarStrategy {
             console.error(
                 "couldnt find appropriate bar",
                 timezonedStamp.getTime(),
-                nowZoned.getTime()
+                nowZoned.getTime(),
+                now
             );
             return null;
         }
