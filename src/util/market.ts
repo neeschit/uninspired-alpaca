@@ -35,6 +35,9 @@ export const isMarketOpen = (now: TimestampType = Date.now()) => {
         }
     );
 
+    console.log(marketOpenToday);
+    console.log(marketCloseToday);
+
     const isWeekday = !isWeekend(now);
     const isNotHoliday = !marketHolidays.some(day => isSameDay(now, new Date(day)));
 
