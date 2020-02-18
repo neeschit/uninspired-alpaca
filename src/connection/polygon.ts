@@ -5,7 +5,7 @@ import { PeriodType, DefaultDuration, Bar } from "../data/data.model";
 
 const config = dotenv.config().parsed;
 
-const API_KEY = config && config.ALPACA_SECRET_KEY_ID;
+const API_KEY = (config && config.ALPACA_SECRET_KEY_ID) || process.env.ALPACA_SECRET_KEY_ID;
 
 const getPolygonApiUrl = (resourceUrl: string, version = "v1") =>
     `https://api.polygon.io/${version}/${resourceUrl}?apiKey=${API_KEY}`;
