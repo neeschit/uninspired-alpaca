@@ -187,27 +187,19 @@ export class NarrowRangeBarStrategy {
             timeStart.getTime() <= nowMillis && timeEnd.getTime() >= nowMillis;
 
         if (!isWithinEntryRange) {
-            console.error("come back later hooomie", now);
+            console.error("come back later hooomie", nowMillis);
         }
 
         return isWithinEntryRange;
     }
 
     async rebalance(now: TimestampType = Date.now()) {
-        const nowZoned = convertToLocalTime(now, {
-            timeZone: MarketTimezone
-        });
-
-        if (!this.isTimeForEntry(nowZoned)) {
+        if (!this.isTimeForEntry(now)) {
             return null;
         }
 
-        const lastBar = await getBarsByDate(
-            this.symbol,
-            addDays(nowZoned, -1),
-            addDays(nowZoned, 1)
-        );
-        const entryBarTimestamp = set(nowZoned, {
+        const lastBar = await getBarsByDate(this.symbol, addDays(now, -1), addDays(now, 1));
+        const entryBarTimestamp = set(now, {
             hours: 9,
             minutes: 30,
             seconds: 0
@@ -220,12 +212,7 @@ export class NarrowRangeBarStrategy {
         const bar = lastBar.find(bar => bar.t === timezonedStamp.getTime());
 
         if (!bar) {
-            console.error(
-                "couldnt find appropriate bar",
-                timezonedStamp.getTime(),
-                nowZoned.getTime(),
-                now
-            );
+            console.error("couldnt find appropriate bar", timezonedStamp.getTime(), now);
             return null;
         }
 
