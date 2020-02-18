@@ -155,6 +155,7 @@ export class NarrowRangeBarStrategy {
 
     isTimeForEntry(now: TimestampType) {
         if (!isMarketOpen(now)) {
+            console.error("market ain't open biiatch", now);
             return null;
         }
         return isWithinInterval(now, {
@@ -172,7 +173,6 @@ export class NarrowRangeBarStrategy {
     }
 
     async rebalance(now: TimestampType = Date.now()) {
-        console.log(now);
         if (!this.isTimeForEntry(now)) {
             return null;
         }
@@ -192,10 +192,6 @@ export class NarrowRangeBarStrategy {
         });
 
         const bar = lastBar.find(bar => bar.t === timezonedStamp.getTime());
-
-        console.log(JSON.stringify(bar));
-        console.log(timezonedStamp.getTime());
-        console.log(nowZoned.getTime());
 
         if (!bar) {
             console.error(
