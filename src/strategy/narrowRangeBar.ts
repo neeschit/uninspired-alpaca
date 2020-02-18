@@ -1,4 +1,5 @@
 import { isWithinInterval, set, addDays } from "date-fns";
+import { convertToLocalTime } from "date-fns-timezone";
 import { getAverageDirectionalIndex, IndicatorValue } from "../indicator/adx";
 import { getOverallTrend, getRecentTrend, TrendType } from "../pattern/trend/trendIdentifier";
 import { getVolumeProfile, getNextResistance, VolumeProfileBar } from "../indicator/volumeProfile";
@@ -11,7 +12,8 @@ import {
     TradeConfig,
     TradeDirection,
     TradeType,
-    TimeInForce
+    TimeInForce,
+    MarketTimezone
 } from "../data/data.model";
 
 export class NarrowRangeBarStrategy {
@@ -154,20 +156,41 @@ export class NarrowRangeBarStrategy {
 
     isTimeForEntry(now: TimestampType) {
         if (!isMarketOpen(now)) {
+            console.error("market ain't open biiatch", now);
             return null;
         }
-        return isWithinInterval(now, {
-            start: set(now, {
+
+        const timeStart = convertToLocalTime(
+            set(now, {
                 hours: this.entryHour,
                 minutes: this.entryMinuteStart,
                 seconds: 45
             }),
-            end: set(now, {
+            {
+                timeZone: MarketTimezone
+            }
+        );
+
+        const timeEnd = convertToLocalTime(
+            set(now, {
                 hours: this.entryHour,
                 minutes: this.entryMinuteEnd,
                 seconds: 0
-            })
-        });
+            }),
+            {
+                timeZone: MarketTimezone
+            }
+        );
+        const nowMillis = now instanceof Date ? now.getTime() : now;
+
+        const isWithinEntryRange =
+            timeStart.getTime() <= nowMillis && timeEnd.getTime() >= nowMillis;
+
+        if (!isWithinEntryRange) {
+            console.error("come back later hooomie", nowMillis);
+        }
+
+        return isWithinEntryRange;
     }
 
     async rebalance(now: TimestampType = Date.now()) {
@@ -182,9 +205,14 @@ export class NarrowRangeBarStrategy {
             seconds: 0
         });
 
-        const bar = lastBar.find(bar => bar.t === entryBarTimestamp.getTime());
+        const timezonedStamp = convertToLocalTime(entryBarTimestamp, {
+            timeZone: MarketTimezone
+        });
+
+        const bar = lastBar.find(bar => bar.t === timezonedStamp.getTime());
 
         if (!bar) {
+            console.error("couldnt find appropriate bar", timezonedStamp.getTime(), now);
             return null;
         }
 

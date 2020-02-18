@@ -231,18 +231,18 @@ test("nrb7 - isTimeForEntry", t => {
         bars: bars2
     });
 
-    t.truthy(nrbStrategyInstance.isTimeForEntry(new Date("2020-12-24T09:34:46")));
-    t.truthy(nrbStrategyInstance.isTimeForEntry(new Date("2020-12-24T09:35:46")));
-    t.truthy(nrbStrategyInstance.isTimeForEntry(new Date("2020-12-24T09:34:45")));
-    t.truthy(nrbStrategyInstance.isTimeForEntry(new Date("2020-12-24T09:35:59")));
-    t.truthy(nrbStrategyInstance.isTimeForEntry(new Date("2020-12-24T09:36:00")));
+    t.truthy(nrbStrategyInstance.isTimeForEntry(new Date("2020-12-24T14:34:46.000Z")));
+    t.truthy(nrbStrategyInstance.isTimeForEntry(new Date("2020-12-24T14:35:46.000Z")));
+    t.truthy(nrbStrategyInstance.isTimeForEntry(new Date("2020-12-24T14:34:45.000Z")));
+    t.truthy(nrbStrategyInstance.isTimeForEntry(new Date("2020-12-24T14:35:59.000Z")));
+    t.truthy(nrbStrategyInstance.isTimeForEntry(new Date("2020-12-24T14:36:00.000Z")));
 });
 
 test("integration nrb - real world - identify pattern for BDX", async t => {
     const bars = await getBarsByDate(
         "BDX",
         new Date("2019-10-01"),
-        new Date("2020-01-22T21:34:46"),
+        new Date("2020-01-22T21:34:46.000Z"),
         DefaultDuration.one,
         PeriodType.day
     );
@@ -253,7 +253,7 @@ test("integration nrb - real world - identify pattern for BDX", async t => {
     });
 
     t.truthy(nrbStrategyInstance.checkIfFitsStrategy());
-    const trade = await nrbStrategyInstance.rebalance(new Date("2020-01-22T09:34:46"));
+    const trade = await nrbStrategyInstance.rebalance(new Date("2020-01-22T14:34:46.000Z"));
 
     t.deepEqual(trade, {
         symbol: "BDX",
@@ -269,7 +269,7 @@ test("integration nrb - real world - identify pattern for AKAM", async t => {
     const bars = await getBarsByDate(
         "AKAM",
         new Date("2019-10-01"),
-        new Date("2020-01-22T21:34:46"),
+        new Date("2020-01-22T21:34:46.000Z"),
         DefaultDuration.one,
         PeriodType.day
     );
@@ -280,7 +280,7 @@ test("integration nrb - real world - identify pattern for AKAM", async t => {
     });
 
     t.truthy(nrbStrategyInstance.checkIfFitsStrategy());
-    const trade = await nrbStrategyInstance.rebalance(new Date("2020-01-22T09:34:46"));
+    const trade = await nrbStrategyInstance.rebalance(new Date("2020-01-22T14:34:46.000Z"));
     t.deepEqual(trade, {
         symbol: "AKAM",
         quantity: 6,

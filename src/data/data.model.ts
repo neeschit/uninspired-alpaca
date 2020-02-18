@@ -1,3 +1,5 @@
+export const MarketTimezone = "America/New_York";
+
 export type TimestampType = number | Date;
 
 export interface Bar {
