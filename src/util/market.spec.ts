@@ -14,11 +14,11 @@ test("is closed - christmas hours", t => {
 });
 
 test("is open - regular hours", t => {
-    t.truthy(isMarketOpen(new Date("2020-07-02T10:14:46")));
+    t.truthy(isMarketOpen(new Date("2020-07-02T16:14:46.000Z")));
 });
 
 test("is open - first second", t => {
-    t.truthy(isMarketOpen(new Date("2020-05-01T09:30:00")));
+    t.truthy(isMarketOpen(new Date("2020-05-01T13:30:00.000Z")));
 });
 
 test("is open - timezone", t => {
