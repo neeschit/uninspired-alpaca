@@ -12,7 +12,8 @@ import {
     TradeConfig,
     TradeDirection,
     TradeType,
-    TimeInForce
+    TimeInForce,
+    MarketTimezone
 } from "../data/data.model";
 
 export class NarrowRangeBarStrategy {
@@ -158,6 +159,7 @@ export class NarrowRangeBarStrategy {
             console.error("market ain't open biiatch", now);
             return null;
         }
+
         const isWithinEntryRange = isWithinInterval(now, {
             start: set(now, {
                 hours: this.entryHour,
@@ -179,14 +181,15 @@ export class NarrowRangeBarStrategy {
     }
 
     async rebalance(now: TimestampType = Date.now()) {
-        if (!this.isTimeForEntry(now)) {
+        const nowZoned = convertToTimeZone(now, {
+            timeZone: MarketTimezone
+        });
+
+        if (!this.isTimeForEntry(nowZoned)) {
             return null;
         }
 
         const lastBar = await getBarsByDate(this.symbol, addDays(now, -1), addDays(now, 1));
-        const nowZoned = convertToTimeZone(now, {
-            timeZone: "America/New_York"
-        });
         const entryBarTimestamp = set(now, {
             hours: 9,
             minutes: 30,
@@ -194,7 +197,7 @@ export class NarrowRangeBarStrategy {
         });
 
         const timezonedStamp = convertToTimeZone(entryBarTimestamp, {
-            timeZone: "America/New_York"
+            timeZone: MarketTimezone
         });
 
         const bar = lastBar.find(bar => bar.t === timezonedStamp.getTime());

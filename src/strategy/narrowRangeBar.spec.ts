@@ -7,8 +7,10 @@ import {
     PeriodType,
     TradeDirection,
     TimeInForce,
-    TradeType
+    TradeType,
+    MarketTimezone
 } from "../data/data.model";
+import { convertToTimeZone } from "date-fns-timezone";
 
 test("nrb7 - identify", t => {
     const nrbStrategyInstance = new NarrowRangeBarStrategy({
@@ -236,6 +238,7 @@ test("nrb7 - isTimeForEntry", t => {
     t.truthy(nrbStrategyInstance.isTimeForEntry(new Date("2020-12-24T09:34:45")));
     t.truthy(nrbStrategyInstance.isTimeForEntry(new Date("2020-12-24T09:35:59")));
     t.truthy(nrbStrategyInstance.isTimeForEntry(new Date("2020-12-24T09:36:00")));
+    t.truthy(nrbStrategyInstance.isTimeForEntry(new Date("2020-01-22T14:34:46.000Z")));
 });
 
 test("integration nrb - real world - identify pattern for BDX", async t => {
