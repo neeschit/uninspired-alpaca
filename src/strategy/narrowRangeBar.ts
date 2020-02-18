@@ -177,6 +177,9 @@ export class NarrowRangeBarStrategy {
         }
 
         const lastBar = await getBarsByDate(this.symbol, addDays(now, -1), addDays(now, 1));
+        const nowZoned = convertToTimeZone(now, {
+            timeZone: "America/New_York"
+        });
         const entryBarTimestamp = set(now, {
             hours: 9,
             minutes: 30,
@@ -190,7 +193,11 @@ export class NarrowRangeBarStrategy {
         const bar = lastBar.find(bar => bar.t === timezonedStamp.getTime());
 
         if (!bar) {
-            console.error("couldnt find appropriate bar", timezonedStamp.getTime());
+            console.error(
+                "couldnt find appropriate bar",
+                timezonedStamp.getTime(),
+                nowZoned.getTime()
+            );
             return null;
         }
 
