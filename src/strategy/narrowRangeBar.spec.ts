@@ -264,7 +264,7 @@ test("integration nrb - real world - identify pattern for BDX", async t => {
         price: 278.5
     });
 });
-
+/* 
 test("integration nrb - real world - identify pattern for AKAM", async t => {
     const bars = await getBarsByDate(
         "AKAM",
@@ -290,3 +290,4 @@ test("integration nrb - real world - identify pattern for AKAM", async t => {
         price: 95.5
     });
 });
+ */

@@ -172,6 +172,7 @@ export class NarrowRangeBarStrategy {
     }
 
     async rebalance(now: TimestampType = Date.now()) {
+        console.log(now);
         if (!this.isTimeForEntry(now)) {
             return null;
         }
