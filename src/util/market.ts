@@ -13,6 +13,10 @@ const marketHolidays = [
 ];
 
 export const isMarketOpen = (now: TimestampType = Date.now()) => {
+    now = convertToTimeZone(now, {
+        timeZone: MarketTimezone
+    });
+
     const marketOpenToday = convertToTimeZone(
         set(now, {
             hours: 9,
