@@ -161,16 +161,26 @@ export class NarrowRangeBarStrategy {
         }
 
         const isWithinEntryRange = isWithinInterval(now, {
-            start: set(now, {
-                hours: this.entryHour,
-                minutes: this.entryMinuteStart,
-                seconds: 45
-            }),
-            end: set(now, {
-                hours: this.entryHour,
-                minutes: this.entryMinuteEnd,
-                seconds: 0
-            })
+            start: convertToTimeZone(
+                set(now, {
+                    hours: this.entryHour,
+                    minutes: this.entryMinuteStart,
+                    seconds: 45
+                }),
+                {
+                    timeZone: MarketTimezone
+                }
+            ),
+            end: convertToTimeZone(
+                set(now, {
+                    hours: this.entryHour,
+                    minutes: this.entryMinuteEnd,
+                    seconds: 0
+                }),
+                {
+                    timeZone: MarketTimezone
+                }
+            )
         });
 
         if (!isWithinEntryRange) {
