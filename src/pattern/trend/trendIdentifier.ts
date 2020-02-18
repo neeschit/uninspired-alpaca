@@ -1,5 +1,5 @@
 import { getAverageDirectionalIndex } from "../../indicator/adx";
-import { Bar } from "../../connection/bar";
+import { Bar } from "../../data/data.model";
 
 export const TrendType = {
     up: "up",
@@ -36,8 +36,7 @@ export const getRecentTrend = (bars: Bar[]) => {
         throw new Error();
     }
 
-    const firstBarTrend =
-        bars[1].c - bars[0].c > 0 ? TrendType.up : TrendType.down;
+    const firstBarTrend = bars[1].c - bars[0].c > 0 ? TrendType.up : TrendType.down;
     const noChange = bars[1].c - bars[0].c === 0;
 
     const { closingTrend, highsTrend, lowsTrend } = bars.reduce(
@@ -46,18 +45,9 @@ export const getRecentTrend = (bars: Bar[]) => {
             let newHighsTrend = highsTrend;
             let newLowsTrend = lowsTrend;
             if (index) {
-                newClosingTrend =
-                    bar.c - bars[index - 1].c > 0
-                        ? TrendType.up
-                        : TrendType.down;
-                newHighsTrend =
-                    bar.h - bars[index - 1].h > 0
-                        ? TrendType.up
-                        : TrendType.down;
-                newLowsTrend =
-                    bar.l - bars[index - 1].l > 0
-                        ? TrendType.up
-                        : TrendType.down;
+                newClosingTrend = bar.c - bars[index - 1].c > 0 ? TrendType.up : TrendType.down;
+                newHighsTrend = bar.h - bars[index - 1].h > 0 ? TrendType.up : TrendType.down;
+                newLowsTrend = bar.l - bars[index - 1].l > 0 ? TrendType.up : TrendType.down;
             }
             return {
                 closingTrend: newClosingTrend,

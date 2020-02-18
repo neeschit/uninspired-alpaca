@@ -1,4 +1,4 @@
-import { Bar } from "../connection/bar";
+import { Bar } from "../data/data.model";
 
 export interface VolumeProfileBar {
     low: number;
@@ -51,29 +51,19 @@ export const getVolumeProfile = (bars: Bar[]): VolumeProfileBar[] => {
 
     return volumeProfile
         .filter(profile => profile)
-        .reduce(
-            (
-                mergedArray: VolumeProfileBar[],
-                val: VolumeProfileBar,
-                index,
-                array
-            ) => {
-                const orig = array.filter((foundVal, foundIndex) => {
-                    return val.low === foundVal.low && foundIndex < index;
-                });
+        .reduce((mergedArray: VolumeProfileBar[], val: VolumeProfileBar, index, array) => {
+            const orig = array.filter((foundVal, foundIndex) => {
+                return val.low === foundVal.low && foundIndex < index;
+            });
 
-                if (!orig || !orig.length) {
-                    mergedArray.push(val);
-                } else {
-                    orig[0].v += val.v;
-                }
-                return mergedArray;
-            },
-            []
-        )
-        .sort((p1: VolumeProfileBar, p2: VolumeProfileBar) =>
-            p1.v > p2.v ? -1 : 1
-        );
+            if (!orig || !orig.length) {
+                mergedArray.push(val);
+            } else {
+                orig[0].v += val.v;
+            }
+            return mergedArray;
+        }, [])
+        .sort((p1: VolumeProfileBar, p2: VolumeProfileBar) => (p1.v > p2.v ? -1 : 1));
 };
 
 export const getNextResistance = (

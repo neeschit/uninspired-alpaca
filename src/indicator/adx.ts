@@ -2,17 +2,14 @@ const DEFAULT_DMI_PERIOD = 14;
 import { getDirectionalMovementIndex } from "./dmi";
 import { getExponentialAverage } from "./average";
 import { getAverageTrueRange } from "./trueRange";
-import { Bar } from "../connection/bar";
+import { Bar } from "../data/data.model";
 
 export interface IndicatorValue<X> {
     value: X;
     t: number;
 }
 
-export const getAverageDirectionalIndex = (
-    bars: Bar[],
-    period = DEFAULT_DMI_PERIOD
-) => {
+export const getAverageDirectionalIndex = (bars: Bar[], period = DEFAULT_DMI_PERIOD) => {
     const { pdmi, ndmi } = getDirectionalMovementIndex(bars);
 
     const { atr, tr } = getAverageTrueRange(bars, period);
@@ -23,10 +20,7 @@ export const getAverageDirectionalIndex = (
             if (positiveMovement >= negativeMovement && positiveMovement > 0) {
                 pdx.push(positiveMovement);
                 ndx.push(0);
-            } else if (
-                positiveMovement <= negativeMovement &&
-                negativeMovement > 0
-            ) {
+            } else if (positiveMovement <= negativeMovement && negativeMovement > 0) {
                 pdx.push(0);
                 ndx.push(negativeMovement);
             } else {
@@ -55,12 +49,10 @@ export const getAverageDirectionalIndex = (
         return Math.abs((pVal - nVal) / (pVal + nVal === 0 ? 1 : pVal + nVal));
     });
 
-    const adx = getExponentialAverage(adxToBe, 27).map(
-        (v, index, adxArray) => ({
-            value: v * 100,
-            t: bars[bars.length - adxArray.length].t
-        })
-    );
+    const adx = getExponentialAverage(adxToBe, 27).map((v, index, adxArray) => ({
+        value: v * 100,
+        t: bars[bars.length - adxArray.length].t
+    }));
 
     return { adx, pdx: mappedPdx, ndx: mappedNdx, atr, tr };
 };

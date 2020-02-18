@@ -1,17 +1,18 @@
-"use strict";
+import { isWithinInterval, set, addDays } from "date-fns";
 import { getAverageDirectionalIndex, IndicatorValue } from "../indicator/adx";
+import { getOverallTrend, getRecentTrend, TrendType } from "../pattern/trend/trendIdentifier";
+import { getVolumeProfile, getNextResistance, VolumeProfileBar } from "../indicator/volumeProfile";
+import { assessRisk, TRADING_RISK_UNIT_CONSTANT } from "../services/riskManagement.service";
+import { isMarketOpen } from "../util/market";
+import { getBarsByDate } from "../data/bars";
 import {
-    getOverallTrend,
-    getRecentTrend,
-    TrendType
-} from "../pattern/trend/trendIdentifier";
-import {
-    getVolumeProfile,
-    getNextResistance,
-    VolumeProfileBar
-} from "../indicator/volumeProfile";
-import { assessRisk } from "../services/riskManagement.service";
-import { Bar } from "../connection/bar";
+    TimestampType,
+    Bar,
+    TradeConfig,
+    TradeDirection,
+    TradeType,
+    TimeInForce
+} from "../data/data.model";
 
 export class NarrowRangeBarStrategy {
     period: number;
@@ -25,15 +26,11 @@ export class NarrowRangeBarStrategy {
 
     volumeProfile: VolumeProfileBar[];
 
-    constructor({
-        period,
-        symbol,
-        bars
-    }: {
-        period: number;
-        symbol: string;
-        bars: Bar[];
-    }) {
+    entryHour: number = 9;
+    entryMinuteStart: number = 34;
+    entryMinuteEnd: number = 36;
+
+    constructor({ period, symbol, bars }: { period: number; symbol: string; bars: Bar[] }) {
         if (period < 4) {
             throw new Error("fix da shiz");
         }
@@ -41,9 +38,7 @@ export class NarrowRangeBarStrategy {
         this.symbol = symbol;
         this.bars = bars;
 
-        const { adx, pdx, ndx, atr, tr } = getAverageDirectionalIndex(
-            this.bars
-        );
+        const { adx, pdx, ndx, atr, tr } = getAverageDirectionalIndex(this.bars);
         this.adx = adx;
         this.pdx = pdx;
         this.ndx = ndx;
@@ -58,9 +53,7 @@ export class NarrowRangeBarStrategy {
     }
 
     get simpleStop() {
-        const stop = !this.isShort
-            ? this.bars.slice(-1)[0].l
-            : this.bars.slice(-1)[0].h;
+        const stop = !this.isShort ? this.bars.slice(-1)[0].l : this.bars.slice(-1)[0].h;
 
         return roundHalf(stop);
     }
@@ -79,11 +72,27 @@ export class NarrowRangeBarStrategy {
     get entry() {
         const isShort = this.isShort;
 
-        const entry = isShort
-            ? this.bars.slice(-1)[0].l
-            : this.bars.slice(-1)[0].h;
+        const entry = isShort ? this.bars.slice(-1)[0].l : this.bars.slice(-1)[0].h;
 
         return roundHalf(entry);
+    }
+
+    get stop() {
+        return assessRisk(
+            this.volumeProfile,
+            this.atr.slice(-1)[0],
+            this.bars.slice(-1)[0].c,
+            this.entry,
+            this.simpleStop
+        );
+    }
+
+    get stopPrice() {
+        return this.isShort ? this.entry + this.stop : this.entry - this.stop;
+    }
+
+    get side() {
+        return this.isShort ? TradeDirection.short : TradeDirection.long;
     }
 
     checkIfFitsStrategy() {
@@ -108,34 +117,14 @@ export class NarrowRangeBarStrategy {
     checkStrength() {
         let strength = 0;
 
-        let tr = this.tr.slice(
-            -this.period - strength,
-            this.tr.length - strength
-        );
+        let tr = this.tr.slice(-this.period - strength, this.tr.length - strength);
 
         while (this.isNarrowRangeBar(tr)) {
             strength++;
-            tr = this.tr.slice(
-                -this.period - strength,
-                this.tr.length - strength
-            );
+            tr = this.tr.slice(-this.period - strength, this.tr.length - strength);
         }
 
         return strength;
-    }
-
-    get stop() {
-        return assessRisk(
-            this.volumeProfile,
-            this.atr.slice(-1)[0],
-            this.bars.slice(-1)[0].c,
-            this.entry,
-            this.simpleStop
-        );
-    }
-
-    get stopPrice() {
-        return this.isShort ? this.entry + this.stop : this.entry - this.stop;
     }
 
     hasPotentialForRewards() {
@@ -150,23 +139,66 @@ export class NarrowRangeBarStrategy {
             return true;
         }
 
-        const potentialRewards = resistances.map((r: number) =>
-            Math.abs(this.entry - r)
-        );
+        const potentialRewards = resistances.map((r: number) => Math.abs(this.entry - r));
 
-        const hasPotential = potentialRewards.some(
-            (r: number) => r / risk >= 2
-        );
+        const hasPotential = potentialRewards.some((r: number) => r / risk >= 2);
 
         return hasPotential;
     }
 
     toString() {
-        return `Looking to ${this.isShort ? "SHORT" : "LONG"} ${
-            this.symbol
-        } at ${this.entry}, stop - ${this.stopPrice} - with close ${
-            this.currentPrice
-        }`;
+        return `Looking to ${this.isShort ? "SHORT" : "LONG"} ${this.symbol} at ${
+            this.entry
+        }, stop - ${this.stopPrice} - with close ${this.currentPrice}`;
+    }
+
+    isTimeForEntry(now: TimestampType) {
+        if (!isMarketOpen(now)) {
+            return null;
+        }
+        return isWithinInterval(now, {
+            start: set(now, {
+                hours: this.entryHour,
+                minutes: this.entryMinuteStart,
+                seconds: 45
+            }),
+            end: set(now, {
+                hours: this.entryHour,
+                minutes: this.entryMinuteEnd,
+                seconds: 0
+            })
+        });
+    }
+
+    async rebalance(now: TimestampType = Date.now()) {
+        if (!this.isTimeForEntry(now)) {
+            return null;
+        }
+
+        const lastBar = await getBarsByDate(this.symbol, addDays(now, -1), addDays(now, 1));
+        const entryBarTimestamp = set(now, {
+            hours: 9,
+            minutes: 30,
+            seconds: 0
+        });
+
+        const bar = lastBar.find(bar => bar.t === entryBarTimestamp.getTime());
+
+        if (!bar) {
+            return null;
+        }
+
+        const quantity = Math.floor(TRADING_RISK_UNIT_CONSTANT / this.stop);
+        const price = this.isShort ? bar.l : bar.h;
+
+        return {
+            symbol: this.symbol,
+            quantity,
+            side: this.side,
+            type: TradeType.stop,
+            tif: TimeInForce.day,
+            price: roundHalf(price)
+        };
     }
 }
 

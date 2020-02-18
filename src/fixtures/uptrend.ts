@@ -1,4 +1,4 @@
-import { Bar } from "../connection/bar";
+import { Bar } from "../data/data.model";
 
 const uptrend: Bar[] = [
     { t: 1565668800, o: 201.05, h: 212.14, l: 200.83, c: 208.98, v: 43076897 },

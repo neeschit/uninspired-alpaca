@@ -19,7 +19,7 @@
     "typescript": "^3.7.5"
   },
   "scripts": {
-    "test": "ava --watch --verbose",
+    "test": "yarn test:ci --watch --verbose",
     "test:ci": "ava",
     "build": "tsc"
   },

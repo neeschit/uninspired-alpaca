@@ -1,6 +1,14 @@
 import test from "ava";
 import { NarrowRangeBarStrategy } from "./narrowRangeBar";
 import { bars, bars1, bars2 } from "../fixtures/narrowRange";
+import { getBarsByDate } from "../data/bars";
+import {
+    DefaultDuration,
+    PeriodType,
+    TradeDirection,
+    TimeInForce,
+    TradeType
+} from "../data/data.model";
 
 test("nrb7 - identify", t => {
     const nrbStrategyInstance = new NarrowRangeBarStrategy({
@@ -214,4 +222,80 @@ test("nrb7 - find simple stop price for bars2", t => {
     } catch (e) {
         console.error(e);
     }
+});
+
+test("nrb7 - isTimeForEntry", t => {
+    const nrbStrategyInstance = new NarrowRangeBarStrategy({
+        period: 7,
+        symbol: "TAL",
+        bars: bars2
+    });
+
+    t.truthy(nrbStrategyInstance.isTimeForEntry(new Date("2020-12-24T09:34:46")));
+    t.truthy(nrbStrategyInstance.isTimeForEntry(new Date("2020-12-24T09:35:46")));
+    t.truthy(nrbStrategyInstance.isTimeForEntry(new Date("2020-12-24T09:34:45")));
+    t.truthy(nrbStrategyInstance.isTimeForEntry(new Date("2020-12-24T09:35:59")));
+    t.truthy(nrbStrategyInstance.isTimeForEntry(new Date("2020-12-24T09:36:00")));
+});
+
+test("integration nrb - real world - identify pattern for BDX", async t => {
+    const bars = await getBarsByDate(
+        "BDX",
+        new Date("2019-10-01"),
+        new Date("2020-01-22T21:34:46"),
+        DefaultDuration.one,
+        PeriodType.day
+    );
+    const nrbStrategyInstance = new NarrowRangeBarStrategy({
+        period: 7,
+        symbol: "BDX",
+        bars
+    });
+
+    t.truthy(nrbStrategyInstance.checkIfFitsStrategy());
+    const trade = await nrbStrategyInstance.rebalance(new Date("2020-01-22T09:34:46"));
+
+    t.deepEqual(trade, {
+        symbol: "BDX",
+        quantity: 2,
+        side: TradeDirection.long,
+        type: TradeType.stop,
+        tif: TimeInForce.day,
+        price: 278.5
+    });
+});
+
+test("integration nrb - real world - identify pattern for AKAM", async t => {
+    const bars = await getBarsByDate(
+        "AKAM",
+        new Date("2019-10-01"),
+        new Date("2020-01-22T21:34:46"),
+        DefaultDuration.one,
+        PeriodType.day
+    );
+    const nrbStrategyInstance = new NarrowRangeBarStrategy({
+        period: 7,
+        symbol: "AKAM",
+        bars
+    });
+
+    t.truthy(nrbStrategyInstance.checkIfFitsStrategy());
+    const trade = await nrbStrategyInstance.rebalance(new Date("2020-01-22T09:34:46"));
+    /* {
+        v: 73348,
+        o: 95.51,
+        c: 95.5493,
+        h: 95.7098,
+        l: 95.29,
+        t: 1579703400000,
+        n: 5
+    } */
+    t.deepEqual(trade, {
+        symbol: "AKAM",
+        quantity: 6,
+        side: TradeDirection.long,
+        type: TradeType.stop,
+        tif: TimeInForce.day,
+        price: 95.5
+    });
 });

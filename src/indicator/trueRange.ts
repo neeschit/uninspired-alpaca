@@ -1,5 +1,5 @@
 import { getExponentialAverage } from "./average";
-import { Bar } from "../connection/bar";
+import { Bar } from "../data/data.model";
 
 export const getTrueRange = (bars: Bar[]) => {
     if (!bars || !bars.length || bars.length < 2) {

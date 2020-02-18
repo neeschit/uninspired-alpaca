@@ -3,7 +3,7 @@ import { startOfDay, isSameDay } from "date-fns";
 import { getDayForAlpacaTimestamp } from "../util";
 
 import { getIntradayBars } from "../data/bars";
-import { Bar } from "../connection/bar";
+import { Bar } from "../data/data.model";
 
 const LARGE_CAPS = JSON.parse(readFileSync("./largecaps.json").toString());
 
@@ -37,28 +37,17 @@ Promise.all(barsFetched)
                     return 0;
                 }
 
-                let currentDay = startOfDay(
-                    getDayForAlpacaTimestamp(bars[0].t)
-                );
+                let currentDay = startOfDay(getDayForAlpacaTimestamp(bars[0].t));
 
                 return bars.reduce(
                     (acc, currentBar, index) => {
-                        let { averageVolume, currentVolume, days } = acc[
-                            symbol
-                        ];
-                        if (
-                            isSameDay(
-                                getDayForAlpacaTimestamp(currentBar.t),
-                                currentDay
-                            )
-                        ) {
+                        let { averageVolume, currentVolume, days } = acc[symbol];
+                        if (isSameDay(getDayForAlpacaTimestamp(currentBar.t), currentDay)) {
                             currentVolume += currentBar.v;
                         } else {
                             averageVolume += currentVolume;
                             currentVolume = currentBar.v;
-                            currentDay = startOfDay(
-                                getDayForAlpacaTimestamp(currentBar.t)
-                            );
+                            currentDay = startOfDay(getDayForAlpacaTimestamp(currentBar.t));
                             days++;
                         }
 

@@ -1,7 +1,5 @@
 import { getDayBars } from "../data/bars";
 import { readFileSync } from "fs";
-import { getAverageTrueRange } from "../indicator/trueRange";
-import { getAverageDirectionalIndex } from "../indicator/adx";
 import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
 
 const LARGE_CAPS = JSON.parse(readFileSync("./largecaps.json").toString());
@@ -13,7 +11,7 @@ let list = JSON.parse(JSON.stringify(LARGE_CAPS));
 const barsFetched = [];
 
 while (list.length > 200) { */
-const barsPromise = getDayBars(list, 100, Number(lookback));
+const barsPromise = getDayBars(list, 100, Number(lookback || 0));
 
 /* 
     barsFetched.push(barsPromise);

@@ -1,7 +1,7 @@
 import * as dotenv from "dotenv";
 import { format } from "date-fns";
 import { get } from "../util/get";
-import { Bar } from "./bar";
+import { PeriodType, DefaultDuration, Bar } from "../data/data.model";
 
 const config = dotenv.config().parsed;
 
@@ -16,11 +16,6 @@ export const getTickerDetails = (symbol: string) => {
 
     return get(url);
 };
-export const PeriodType = {
-    day: "day",
-    hour: "hour",
-    minute: "minute"
-};
 
 const dateFormat = "yyyy-MM-dd";
 
@@ -28,8 +23,8 @@ export const getPolyonData = (
     symbol: string,
     start: Date,
     end: Date,
-    period = PeriodType.day,
-    duration = 1
+    period: PeriodType = PeriodType.day,
+    duration: DefaultDuration = DefaultDuration.one
 ): Promise<{ [index: string]: Bar[] }> => {
     const modifiedStart = format(start, dateFormat);
     const modifiedEnd = format(end, dateFormat);
@@ -41,5 +36,23 @@ export const getPolyonData = (
         return {
             [symbol]: response.results
         };
+    });
+};
+
+export const getSimplePolygonData = (
+    symbol: string,
+    start: Date,
+    end: Date,
+    period: PeriodType = PeriodType.day,
+    duration: DefaultDuration = DefaultDuration.one
+): Promise<Bar[]> => {
+    const modifiedStart = format(start, dateFormat);
+    const modifiedEnd = format(end, dateFormat);
+    const resource = `aggs/ticker/${symbol}/range/${duration}/${period}/${modifiedStart}/${modifiedEnd}`;
+
+    const url = getPolygonApiUrl(resource, "v2");
+
+    return get(url).then((response: any) => {
+        return response.results;
     });
 };
