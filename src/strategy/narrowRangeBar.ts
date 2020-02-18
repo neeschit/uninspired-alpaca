@@ -192,6 +192,8 @@ export class NarrowRangeBarStrategy {
 
         const bar = lastBar.find(bar => bar.t === timezonedStamp.getTime());
 
+        console.log(bar);
+
         if (!bar) {
             console.error(
                 "couldnt find appropriate bar",
