@@ -242,7 +242,7 @@ test("integration nrb - real world - identify pattern for BDX", async t => {
     const bars = await getBarsByDate(
         "BDX",
         new Date("2019-10-01"),
-        new Date("2020-01-22T21:34:46"),
+        new Date("2020-01-22T21:34:46.000Z"),
         DefaultDuration.one,
         PeriodType.day
     );
@@ -269,7 +269,7 @@ test("integration nrb - real world - identify pattern for AKAM", async t => {
     const bars = await getBarsByDate(
         "AKAM",
         new Date("2019-10-01"),
-        new Date("2020-01-22T21:34:46"),
+        new Date("2020-01-22T21:34:46.000Z"),
         DefaultDuration.one,
         PeriodType.day
     );
