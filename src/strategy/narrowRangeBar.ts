@@ -158,7 +158,7 @@ export class NarrowRangeBarStrategy {
         now = convertToTimeZone(now, {
             timeZone: MarketTimezone
         });
-        
+
         if (!isMarketOpen(now)) {
             console.error("market ain't open biiatch", now);
             return null;
@@ -203,8 +203,12 @@ export class NarrowRangeBarStrategy {
             return null;
         }
 
-        const lastBar = await getBarsByDate(this.symbol, addDays(now, -1), addDays(now, 1));
-        const entryBarTimestamp = set(now, {
+        const lastBar = await getBarsByDate(
+            this.symbol,
+            addDays(nowZoned, -1),
+            addDays(nowZoned, 1)
+        );
+        const entryBarTimestamp = set(nowZoned, {
             hours: 9,
             minutes: 30,
             seconds: 0
