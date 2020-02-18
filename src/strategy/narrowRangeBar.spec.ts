@@ -231,11 +231,11 @@ test("nrb7 - isTimeForEntry", t => {
         bars: bars2
     });
 
-    t.truthy(nrbStrategyInstance.isTimeForEntry(new Date("2020-12-24T09:34:46")));
-    t.truthy(nrbStrategyInstance.isTimeForEntry(new Date("2020-12-24T09:35:46")));
-    t.truthy(nrbStrategyInstance.isTimeForEntry(new Date("2020-12-24T09:34:45")));
-    t.truthy(nrbStrategyInstance.isTimeForEntry(new Date("2020-12-24T09:35:59")));
-    t.truthy(nrbStrategyInstance.isTimeForEntry(new Date("2020-12-24T09:36:00")));
+    t.truthy(nrbStrategyInstance.isTimeForEntry(new Date("2020-12-24T13:34:46.000Z")));
+    t.truthy(nrbStrategyInstance.isTimeForEntry(new Date("2020-12-24T13:35:46.000Z")));
+    t.truthy(nrbStrategyInstance.isTimeForEntry(new Date("2020-12-24T13:34:45.000Z")));
+    t.truthy(nrbStrategyInstance.isTimeForEntry(new Date("2020-12-24T13:35:59.000Z")));
+    t.truthy(nrbStrategyInstance.isTimeForEntry(new Date("2020-12-24T13:36:00.000Z")));
 });
 
 test("integration nrb - real world - identify pattern for BDX", async t => {
