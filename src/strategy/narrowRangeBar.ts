@@ -155,10 +155,6 @@ export class NarrowRangeBarStrategy {
     }
 
     isTimeForEntry(now: TimestampType) {
-        now = convertToTimeZone(now, {
-            timeZone: MarketTimezone
-        });
-
         if (!isMarketOpen(now)) {
             console.error("market ain't open biiatch", now);
             return null;
