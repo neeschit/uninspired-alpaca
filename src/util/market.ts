@@ -40,13 +40,12 @@ export const isMarketOpen = (now: TimestampType = Date.now()) => {
 
     const isWeekday = !isWeekend(now);
     const isNotHoliday = !marketHolidays.some(day => isSameDay(now, new Date(day)));
+    const nowMillis = now instanceof Date ? now.getTime() : now;
 
     return (
         isWeekday &&
         isNotHoliday &&
-        isWithinInterval(now, {
-            start: marketOpenToday,
-            end: marketCloseToday
-        })
+        marketOpenToday.getTime() <= nowMillis &&
+        marketCloseToday.getTime() >= nowMillis
     );
 };

@@ -160,28 +160,31 @@ export class NarrowRangeBarStrategy {
             return null;
         }
 
-        const isWithinEntryRange = isWithinInterval(now, {
-            start: convertToLocalTime(
-                set(now, {
-                    hours: this.entryHour,
-                    minutes: this.entryMinuteStart,
-                    seconds: 45
-                }),
-                {
-                    timeZone: MarketTimezone
-                }
-            ),
-            end: convertToLocalTime(
-                set(now, {
-                    hours: this.entryHour,
-                    minutes: this.entryMinuteEnd,
-                    seconds: 0
-                }),
-                {
-                    timeZone: MarketTimezone
-                }
-            )
-        });
+        const timeStart = convertToLocalTime(
+            set(now, {
+                hours: this.entryHour,
+                minutes: this.entryMinuteStart,
+                seconds: 45
+            }),
+            {
+                timeZone: MarketTimezone
+            }
+        );
+
+        const timeEnd = convertToLocalTime(
+            set(now, {
+                hours: this.entryHour,
+                minutes: this.entryMinuteEnd,
+                seconds: 0
+            }),
+            {
+                timeZone: MarketTimezone
+            }
+        );
+        const nowMillis = now instanceof Date ? now.getTime() : now;
+
+        const isWithinEntryRange =
+            timeStart.getTime() <= nowMillis && timeEnd.getTime() >= nowMillis;
 
         if (!isWithinEntryRange) {
             console.error("come back later hooomie", now);
