@@ -185,6 +185,7 @@ export class NarrowRangeBarStrategy {
         const bar = lastBar.find(bar => bar.t === entryBarTimestamp.getTime());
 
         if (!bar) {
+            console.error("couldnt find appropriate bar", lastBar);
             return null;
         }
 
