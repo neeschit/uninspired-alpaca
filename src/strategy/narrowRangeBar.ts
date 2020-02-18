@@ -1,4 +1,5 @@
 import { isWithinInterval, set, addDays } from "date-fns";
+import { convertToTimeZone } from "date-fns-timezone";
 import { getAverageDirectionalIndex, IndicatorValue } from "../indicator/adx";
 import { getOverallTrend, getRecentTrend, TrendType } from "../pattern/trend/trendIdentifier";
 import { getVolumeProfile, getNextResistance, VolumeProfileBar } from "../indicator/volumeProfile";
@@ -182,12 +183,14 @@ export class NarrowRangeBarStrategy {
             seconds: 0
         });
 
-        console.log(new Date().getTimezoneOffset());
+        const timezonedStamp = convertToTimeZone(entryBarTimestamp, {
+            timeZone: "America/New_York"
+        });
 
-        const bar = lastBar.find(bar => bar.t === entryBarTimestamp.getTime());
+        const bar = lastBar.find(bar => bar.t === timezonedStamp.getTime());
 
         if (!bar) {
-            console.error("couldnt find appropriate bar", entryBarTimestamp.getTime());
+            console.error("couldnt find appropriate bar", timezonedStamp.getTime());
             return null;
         }
 
