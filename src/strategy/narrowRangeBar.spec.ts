@@ -256,7 +256,7 @@ test("integration nrb - real world - identify pattern for BDX", async t => {
     });
 
     t.truthy(nrbStrategyInstance.checkIfFitsStrategy());
-    const trade = await nrbStrategyInstance.rebalance(new Date("2020-01-22T09:34:46-05:00"));
+    const trade = await nrbStrategyInstance.rebalance(new Date("2020-01-22T14:34:46.000Z"));
 
     t.deepEqual(trade, {
         symbol: "BDX",
@@ -267,7 +267,7 @@ test("integration nrb - real world - identify pattern for BDX", async t => {
         price: 278.5
     });
 });
-/* 
+
 test("integration nrb - real world - identify pattern for AKAM", async t => {
     const bars = await getBarsByDate(
         "AKAM",
@@ -283,7 +283,7 @@ test("integration nrb - real world - identify pattern for AKAM", async t => {
     });
 
     t.truthy(nrbStrategyInstance.checkIfFitsStrategy());
-    const trade = await nrbStrategyInstance.rebalance(new Date("2020-01-22T09:34:46-05:00"));
+    const trade = await nrbStrategyInstance.rebalance(new Date("2020-01-22T14:34:46.000Z"));
     t.deepEqual(trade, {
         symbol: "AKAM",
         quantity: 6,
@@ -293,4 +293,3 @@ test("integration nrb - real world - identify pattern for AKAM", async t => {
         price: 95.5
     });
 });
- */
