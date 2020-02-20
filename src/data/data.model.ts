@@ -53,3 +53,14 @@ export interface TradeConfig {
     tif: TimeInForce;
     price: number;
 }
+
+export interface PositionConfig {
+    symbol: string;
+    averageEntryPrice: number;
+    plannedStopPrice: number;
+    plannedEntryPrice: number;
+    plannedRiskUnits: number;
+    quantity: number;
+    side: TradeDirection;
+    hasHardStop: boolean;
+}
