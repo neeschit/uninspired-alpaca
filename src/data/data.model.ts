@@ -25,8 +25,13 @@ export enum DefaultDuration {
 }
 
 export enum TradeDirection {
-    long = "buy",
-    short = "sell"
+    buy = "buy",
+    sell = "sell"
+}
+
+export enum PositionDirection {
+    long = "long",
+    short = "short"
 }
 
 export enum TradeType {
@@ -52,6 +57,7 @@ export interface TradeConfig {
     type: TradeType;
     tif: TimeInForce;
     price: number;
+    stopPrice?: number;
 }
 
 export interface PositionConfig {
@@ -61,6 +67,7 @@ export interface PositionConfig {
     plannedEntryPrice: number;
     plannedRiskUnits: number;
     quantity: number;
-    side: TradeDirection;
+    side: PositionDirection;
     hasHardStop: boolean;
+    originalQuantity: number;
 }
