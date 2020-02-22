@@ -1,5 +1,5 @@
 import test from "ava";
-import { processOrderFromStrategy, rebalancePosition } from "./tradeManagement.service";
+import { processOrderFromStrategy, rebalancePosition } from "./tradeManagement";
 import { TradeType, TimeInForce, TradeDirection, PositionDirection } from "../data/data.model";
 const symbol = "AAPL";
 
