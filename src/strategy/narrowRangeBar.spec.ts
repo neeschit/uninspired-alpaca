@@ -258,7 +258,7 @@ test("integration nrb - real world - identify pattern for BDX", async t => {
     t.deepEqual(trade, {
         symbol: "BDX",
         quantity: 2,
-        side: TradeDirection.long,
+        side: TradeDirection.buy,
         type: TradeType.stop,
         tif: TimeInForce.day,
         price: 278.5
@@ -284,7 +284,7 @@ test("integration nrb - real world - identify pattern for AKAM", async t => {
     t.deepEqual(trade, {
         symbol: "AKAM",
         quantity: 6,
-        side: TradeDirection.long,
+        side: TradeDirection.buy,
         type: TradeType.stop,
         tif: TimeInForce.day,
         price: 95.5

@@ -94,7 +94,7 @@ export class NarrowRangeBarStrategy {
     }
 
     get side() {
-        return this.isShort ? TradeDirection.short : TradeDirection.long;
+        return this.isShort ? TradeDirection.sell : TradeDirection.buy;
     }
 
     checkIfFitsStrategy() {
