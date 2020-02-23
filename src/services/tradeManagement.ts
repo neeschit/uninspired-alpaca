@@ -5,9 +5,10 @@ import {
     TradeDirection,
     TradeType,
     TimeInForce,
-    PositionDirection
+    PositionDirection,
+    TradePlan
 } from "../data/data.model";
-import { AlpacaTradeConfig } from "../connection/alpaca";
+import { AlpacaTradeConfig, AlpacaOrderUpdate } from "../connection/alpaca";
 
 export const processOrderFromStrategy = (order: TradeConfig): AlpacaTradeConfig => {
     const { quantity, tif, price, type, side, symbol, stopPrice = price } = order;
@@ -89,3 +90,22 @@ export const rebalancePosition = async (
 
     return null;
 };
+
+export class TradeManagement {
+    private position?: PositionConfig;
+    constructor(private config: TradeConfig, private plan: TradePlan) {}
+
+    async queueTrade() {}
+
+    recordTradeOnceFilled(order: AlpacaOrderUpdate): PositionConfig {
+        return {
+            symbol: order.symbol,
+            averageEntryPrice: order.filled_avg_price,
+            quantity: order.filled_qty,
+            ...this.plan,
+            plannedRiskUnits: Math.abs(this.plan.plannedEntryPrice - this.plan.plannedStopPrice),
+            hasHardStop: false,
+            originalQuantity: order.filled_qty
+        };
+    }
+}
