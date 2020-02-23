@@ -24,3 +24,4 @@ jobs:
               env:
                   CI: true
                   ALPACA_SECRET_KEY_ID: ${{ secrets.ALPACA_SECRET_KEY_ID }}
+                  ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}

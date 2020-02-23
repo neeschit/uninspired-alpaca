@@ -50,9 +50,18 @@ export enum TimeInForce {
     fok = "fok"
 }
 
-export interface TradeConfig {
+export interface SymbolContainingConfig {
     symbol: string;
     quantity: number;
+}
+
+export interface TradePlan extends SymbolContainingConfig {
+    plannedStopPrice: number;
+    plannedEntryPrice: number;
+    side: PositionDirection;
+}
+
+export interface TradeConfig extends SymbolContainingConfig {
     side: TradeDirection;
     type: TradeType;
     tif: TimeInForce;
@@ -60,14 +69,9 @@ export interface TradeConfig {
     stopPrice?: number;
 }
 
-export interface PositionConfig {
-    symbol: string;
+export interface PositionConfig extends TradePlan {
     averageEntryPrice: number;
-    plannedStopPrice: number;
-    plannedEntryPrice: number;
     plannedRiskUnits: number;
-    quantity: number;
-    side: PositionDirection;
     hasHardStop: boolean;
     originalQuantity: number;
 }
