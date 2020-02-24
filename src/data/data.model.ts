@@ -58,6 +58,7 @@ export interface SymbolContainingConfig {
 export interface TradePlan extends SymbolContainingConfig {
     plannedStopPrice: number;
     plannedEntryPrice: number;
+    plannedQuantity: number;
     side: PositionDirection;
 }
 
@@ -70,8 +71,29 @@ export interface TradeConfig extends SymbolContainingConfig {
 }
 
 export interface PositionConfig extends TradePlan {
-    averageEntryPrice: number;
     plannedRiskUnits: number;
     hasHardStop: boolean;
     originalQuantity: number;
+}
+
+export interface FilledPositionConfig extends PositionConfig {
+    order: Order;
+}
+
+export interface Order {
+    symbol: string;
+    filledQuantity: number;
+    averagePrice: number;
+    status: OrderStatus;
+}
+
+export enum OrderStatus {
+    new = "new",
+    partial_fill = "partially_filled",
+    filled = "filled",
+    canceled = "canceled",
+    expired = "expired",
+    pending_cancel = "pending_cancel",
+    pending_replace = "pending_replace",
+    done_for_day = "done_for_day"
 }
