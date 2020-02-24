@@ -6,9 +6,11 @@ import {
     TradeType,
     TimeInForce,
     PositionDirection,
-    TradePlan
+    TradePlan,
+    FilledPositionConfig,
+    Order
 } from "../data/data.model";
-import { AlpacaTradeConfig, AlpacaOrderUpdate } from "../connection/alpaca";
+import { AlpacaTradeConfig, AlpacaOrder } from "../connection/alpaca";
 
 export const processOrderFromStrategy = (order: TradeConfig): AlpacaTradeConfig => {
     const { quantity, tif, price, type, side, symbol, stopPrice = price } = order;
@@ -33,17 +35,12 @@ export const processOrderFromStrategy = (order: TradeConfig): AlpacaTradeConfig 
 };
 
 export const rebalancePosition = async (
-    order: PositionConfig,
+    order: FilledPositionConfig,
     currentBar: Bar
 ): Promise<TradeConfig | null> => {
-    const {
-        symbol,
-        plannedRiskUnits,
-        plannedStopPrice,
-        side: positionSide,
-        averageEntryPrice,
-        quantity
-    } = order;
+    const { symbol, plannedRiskUnits, plannedStopPrice, side: positionSide, quantity } = order;
+
+    const { averagePrice: averageEntryPrice } = order.order;
 
     const closingOrderSide =
         positionSide === PositionDirection.long ? TradeDirection.sell : TradeDirection.buy;
@@ -93,19 +90,39 @@ export const rebalancePosition = async (
 
 export class TradeManagement {
     private position?: PositionConfig;
-    constructor(private config: TradeConfig, private plan: TradePlan) {}
+    private order?: Order;
+
+    constructor(private config: TradeConfig, private plan: TradePlan) {
+        this.position = {
+            plannedEntryPrice: plan.plannedEntryPrice,
+            plannedStopPrice: plan.plannedStopPrice,
+            symbol: config.symbol
+        } as PositionConfig;
+    }
 
     async queueTrade() {}
 
-    recordTradeOnceFilled(order: AlpacaOrderUpdate): PositionConfig {
-        return {
-            symbol: order.symbol,
-            averageEntryPrice: order.filled_avg_price,
-            quantity: order.filled_qty,
+    recordTradeOnceFilled(order: AlpacaOrder): FilledPositionConfig {
+        const { symbol, status } = order;
+        this.position = {
             ...this.plan,
+            symbol: order.symbol,
+            quantity: order.filled_qty,
             plannedRiskUnits: Math.abs(this.plan.plannedEntryPrice - this.plan.plannedStopPrice),
             hasHardStop: false,
-            originalQuantity: order.filled_qty
+            originalQuantity: order.filled_qty,
+            plannedQuantity: this.config.quantity
         };
+
+        this.order = {
+            symbol,
+            averagePrice: order.filled_avg_price,
+            filledQuantity: order.filled_qty,
+            status
+        };
+
+        return Object.assign(this.position, {
+            order: this.order
+        });
     }
 }

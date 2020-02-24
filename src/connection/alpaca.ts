@@ -1,6 +1,6 @@
 import Alpaca from "@alpacahq/alpaca-trade-api";
 import * as dotenv from "dotenv";
-import { TradeDirection, TradeType, TimeInForce } from "../data/data.model";
+import { TradeDirection, TradeType, TimeInForce, OrderStatus } from "../data/data.model";
 
 const config = dotenv.config().parsed;
 
@@ -16,7 +16,7 @@ export interface AlpacaTradeConfig {
     order_class: "simple" | "bracket";
 }
 
-export interface AlpacaOrderUpdate {
+export interface AlpacaOrder {
     id: string;
     client_order_id: string;
     created_at: string | Date;
@@ -37,7 +37,7 @@ export interface AlpacaOrderUpdate {
     limit_price: number;
     stop_price: number;
     filled_avg_price: number;
-    status: string;
+    status: OrderStatus;
     extended_hours: boolean;
 }
 
