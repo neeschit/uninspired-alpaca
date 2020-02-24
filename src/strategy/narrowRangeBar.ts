@@ -1,4 +1,4 @@
-import { isWithinInterval, set, addDays } from "date-fns";
+import { set, addDays } from "date-fns";
 import { convertToLocalTime } from "date-fns-timezone";
 import { getAverageDirectionalIndex, IndicatorValue } from "../indicator/adx";
 import { getOverallTrend, getRecentTrend, TrendType } from "../pattern/trend/trendIdentifier";
@@ -6,15 +6,8 @@ import { getVolumeProfile, getNextResistance, VolumeProfileBar } from "../indica
 import { assessRisk, TRADING_RISK_UNIT_CONSTANT } from "../services/riskManagement.service";
 import { isMarketOpen } from "../util/market";
 import { getBarsByDate } from "../data/bars";
-import {
-    TimestampType,
-    Bar,
-    TradeConfig,
-    TradeDirection,
-    TradeType,
-    TimeInForce,
-    MarketTimezone
-} from "../data/data.model";
+import { TimestampType, Bar, MarketTimezone } from "../data/data.model";
+import { TradeDirection, TradeType, TimeInForce } from "@alpacahq/alpaca-trade-api";
 
 export class NarrowRangeBarStrategy {
     period: number;
