@@ -1,14 +1,9 @@
 import test from "ava";
+import { TradeDirection, TradeType, TimeInForce } from "@alpacahq/alpaca-trade-api";
 import { NarrowRangeBarStrategy } from "./narrowRangeBar";
 import { bars, bars1, bars2 } from "../fixtures/narrowRange";
 import { getBarsByDate } from "../data/bars";
-import {
-    DefaultDuration,
-    PeriodType,
-    TradeDirection,
-    TimeInForce,
-    TradeType
-} from "../data/data.model";
+import { DefaultDuration, PeriodType } from "../data/data.model";
 
 test("nrb7 - identify", t => {
     const nrbStrategyInstance = new NarrowRangeBarStrategy({

@@ -2,15 +2,20 @@ import {
     TradeConfig,
     PositionConfig,
     Bar,
-    TradeDirection,
-    TradeType,
-    TimeInForce,
-    PositionDirection,
     TradePlan,
     FilledPositionConfig,
     Order
 } from "../data/data.model";
-import { AlpacaTradeConfig, AlpacaOrder } from "../connection/alpaca";
+import { alpaca } from "../connection/alpaca";
+import {
+    TradeType,
+    PositionDirection,
+    TradeDirection,
+    TimeInForce,
+    AlpacaOrder,
+    AlpacaTradeConfig,
+    Broker
+} from "@alpacahq/alpaca-trade-api";
 
 export const processOrderFromStrategy = (order: TradeConfig): AlpacaTradeConfig => {
     const { quantity, tif, price, type, side, symbol, stopPrice = price } = order;
@@ -92,7 +97,11 @@ export class TradeManagement {
     private position?: PositionConfig;
     private order?: Order;
 
-    constructor(private config: TradeConfig, private plan: TradePlan) {
+    constructor(
+        private config: TradeConfig,
+        private plan: TradePlan,
+        private broker: Broker = alpaca
+    ) {
         this.position = {
             plannedEntryPrice: plan.plannedEntryPrice,
             plannedStopPrice: plan.plannedStopPrice,
@@ -100,7 +109,9 @@ export class TradeManagement {
         } as PositionConfig;
     }
 
-    async queueTrade() {}
+    async queueTrade() {
+        return this.broker.createOrder(processOrderFromStrategy(this.config));
+    }
 
     recordTradeOnceFilled(order: AlpacaOrder): FilledPositionConfig {
         const { symbol, status } = order;

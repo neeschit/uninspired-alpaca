@@ -2,12 +2,11 @@ import test from "ava";
 import { processOrderFromStrategy, rebalancePosition, TradeManagement } from "./tradeManagement";
 import {
     TradeType,
-    TimeInForce,
     TradeDirection,
+    TimeInForce,
     PositionDirection,
     OrderStatus
-} from "../data/data.model";
-import { AlpacaOrder } from "../connection/alpaca";
+} from "@alpacahq/alpaca-trade-api";
 const symbol = "AAPL";
 
 test("processOrderFromStrategy - simple mapping", t => {
