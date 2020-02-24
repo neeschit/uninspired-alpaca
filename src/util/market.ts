@@ -1,4 +1,4 @@
-import { isWeekend, set, isSameDay, isWithinInterval } from "date-fns";
+import { isWeekend, set, isSameDay } from "date-fns";
 import { TimestampType, MarketTimezone } from "../data/data.model";
 import { convertToLocalTime } from "date-fns-timezone";
 

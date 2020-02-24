@@ -4,18 +4,14 @@ import {
     Bar,
     TradePlan,
     FilledPositionConfig,
-    Order
-} from "../data/data.model";
-import { alpaca } from "../connection/alpaca";
-import {
+    Order,
     TradeType,
     PositionDirection,
     TradeDirection,
-    TimeInForce,
-    AlpacaOrder,
-    AlpacaTradeConfig,
-    Broker
-} from "@alpacahq/alpaca-trade-api";
+    TimeInForce
+} from "../data/data.model";
+import { alpaca } from "../connection/alpaca";
+import { AlpacaOrder, AlpacaTradeConfig, Broker } from "@alpacahq/alpaca-trade-api";
 
 export const processOrderFromStrategy = (order: TradeConfig): AlpacaTradeConfig => {
     const { quantity, tif, price, type, side, symbol, stopPrice = price } = order;
@@ -94,8 +90,8 @@ export const rebalancePosition = async (
 };
 
 export class TradeManagement {
-    private position?: PositionConfig;
-    private order?: Order;
+    position?: PositionConfig;
+    order?: Order;
 
     constructor(
         private config: TradeConfig,
@@ -118,7 +114,7 @@ export class TradeManagement {
             console.error("no position or order was never fulfilled");
             return;
         }
-        rebalancePosition(
+        return rebalancePosition(
             Object.assign(this.position, {
                 order: this.order
             }),

@@ -6,8 +6,14 @@ import { getVolumeProfile, getNextResistance, VolumeProfileBar } from "../indica
 import { assessRisk, TRADING_RISK_UNIT_CONSTANT } from "../services/riskManagement.service";
 import { isMarketOpen } from "../util/market";
 import { getBarsByDate } from "../data/bars";
-import { TimestampType, Bar, MarketTimezone } from "../data/data.model";
-import { TradeDirection, TradeType, TimeInForce } from "@alpacahq/alpaca-trade-api";
+import {
+    TimestampType,
+    Bar,
+    MarketTimezone,
+    TradeDirection,
+    TradeType,
+    TimeInForce
+} from "../data/data.model";
 
 export class NarrowRangeBarStrategy {
     period: number;
