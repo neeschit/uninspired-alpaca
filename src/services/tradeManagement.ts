@@ -113,6 +113,19 @@ export class TradeManagement {
         return this.broker.createOrder(processOrderFromStrategy(this.config));
     }
 
+    onTradeUpdate(currentBar: Bar) {
+        if (!this.position || !this.order || !this.order.filledQuantity) {
+            console.error("no position or order was never fulfilled");
+            return;
+        }
+        rebalancePosition(
+            Object.assign(this.position, {
+                order: this.order
+            }),
+            currentBar
+        );
+    }
+
     recordTradeOnceFilled(order: AlpacaOrder): FilledPositionConfig {
         const { symbol, status } = order;
         this.position = {
