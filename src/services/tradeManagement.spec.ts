@@ -6,7 +6,7 @@ import {
     TimeInForce,
     PositionDirection,
     OrderStatus
-} from "@alpacahq/alpaca-trade-api";
+} from "../data/data.model";
 const symbol = "AAPL";
 
 test("processOrderFromStrategy - simple mapping", t => {
@@ -285,4 +285,107 @@ test("trade management - init and recordOnceUpdateReceived", t => {
             filledQuantity: 150
         }
     });
+});
+
+test("trade management - handle trade update - empty fill", t => {
+    const manager = new TradeManagement(
+        {
+            symbol,
+            side: TradeDirection.buy,
+            type: TradeType.stop,
+            tif: TimeInForce.gtc,
+            price: 200,
+            quantity: 200
+        },
+        {
+            plannedEntryPrice: 200,
+            plannedStopPrice: 190,
+            plannedQuantity: 200,
+            symbol,
+            quantity: 200,
+            side: PositionDirection.long
+        }
+    );
+
+    manager.position = {
+        hasHardStop: false,
+        symbol,
+        plannedStopPrice: 190,
+        plannedEntryPrice: 200,
+        plannedRiskUnits: 10,
+        originalQuantity: 150,
+        plannedQuantity: 200,
+        side: PositionDirection.long,
+        quantity: 150
+    };
+
+    manager.order = {
+        symbol,
+        status: OrderStatus.partial_fill,
+        averagePrice: 200.06,
+        filledQuantity: 0
+    };
+
+    t.is(
+        undefined,
+        manager.onTradeUpdate({
+            c: 189.91,
+            h: 191,
+            l: 189.3,
+            v: 30000,
+            o: 190.4,
+            t: 0
+        })
+    );
+});
+
+test("trade management - handle trade update - non empty fill", t => {
+    const manager = new TradeManagement(
+        {
+            symbol,
+            side: TradeDirection.buy,
+            type: TradeType.stop,
+            tif: TimeInForce.gtc,
+            price: 200,
+            quantity: 200
+        },
+        {
+            plannedEntryPrice: 200,
+            plannedStopPrice: 190,
+            plannedQuantity: 200,
+            symbol,
+            quantity: 200,
+            side: PositionDirection.long
+        }
+    );
+
+    manager.position = {
+        hasHardStop: false,
+        symbol,
+        plannedStopPrice: 190,
+        plannedEntryPrice: 200,
+        plannedRiskUnits: 10,
+        originalQuantity: 150,
+        plannedQuantity: 200,
+        side: PositionDirection.long,
+        quantity: 150
+    };
+
+    manager.order = {
+        symbol,
+        status: OrderStatus.partial_fill,
+        averagePrice: 200.06,
+        filledQuantity: 10
+    };
+
+    t.truthy(
+        manager.onTradeUpdate({
+            c: 189.91,
+            h: 191,
+            l: 189.3,
+            v: 30000,
+            o: 190.4,
+            t: 0
+        })
+    );
 });
