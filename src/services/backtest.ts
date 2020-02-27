@@ -25,10 +25,12 @@ export class Backtester {
             this.currentDate = addMilliseconds(this.currentDate, this.updateIntervalMillis);
 
             if (
-                isAfter(this.currentDate, this.endDate) ||
-                isEqual(this.currentDate, this.endDate)
+                (isAfter(this.currentDate, this.endDate) ||
+                    isEqual(this.currentDate, this.endDate)) &&
+                this.cancelIntervalFn
             ) {
-                if (this.cancelIntervalFn) clearInterval(this.cancelIntervalFn);
+                console.log("clearing interval");
+                clearInterval(this.cancelIntervalFn);
             }
         }, this.updateIntervalMillis);
     }
