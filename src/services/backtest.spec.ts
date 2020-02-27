@@ -19,7 +19,7 @@ test("Backtester - simulate days", t => {
             timeZone: MarketTimezone
         }
     );
-    const endDate = parseISO("2019-02-01 12:10:00.000Z");
+    const endDate = parseISO("2019-01-02 12:10:00.000Z");
 
     const zonedEndDate = convertToLocalTime(
         set(endDate.getTime(), {
@@ -45,11 +45,9 @@ test("Backtester - simulate days", t => {
         intervalCount++;
     });
 
-    clock.tick(60000 * 60 * 25);
+    clock.tick(60000 * 60 * 26);
 
-    t.truthy(intervalCount);
-
-    t.is(intervalCount, 420);
+    t.is(intervalCount, 390);
 
     clock.restore();
 });
