@@ -3,7 +3,7 @@ import { convertToLocalTime } from "date-fns-timezone";
 import { getAverageDirectionalIndex, IndicatorValue } from "../indicator/adx";
 import { getOverallTrend, getRecentTrend, TrendType } from "../pattern/trend/trendIdentifier";
 import { getVolumeProfile, getNextResistance, VolumeProfileBar } from "../indicator/volumeProfile";
-import { assessRisk, TRADING_RISK_UNIT_CONSTANT } from "../services/riskManagement.service";
+import { assessRisk, TRADING_RISK_UNIT_CONSTANT } from "../services/riskManagement";
 import { isMarketOpen } from "../util/market";
 import { getBarsByDate } from "../data/bars";
 import {

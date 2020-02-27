@@ -1,5 +1,5 @@
 import test from "ava";
-import { assessRisk } from "./riskManagement.service";
+import { assessRisk } from "./riskManagement";
 
 const volumeProfile = [
     { v: 4810450, low: 161, high: 162 },
