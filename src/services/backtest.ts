@@ -1,23 +1,36 @@
-import {
-    TradeConfig,
-    PositionConfig,
-    DefaultDuration,
-    SymbolContainingConfig
-} from "../data/data.model";
+import { TradeConfig, PositionConfig, SymbolContainingConfig } from "../data/data.model";
 import { EventEmitter } from "events";
+import { isBefore, isAfter, addMilliseconds, isEqual } from "date-fns";
+import { isMarketOpen } from "../util/market";
 
 export class Backtester {
     private pastTradeConfigs: TradeConfig[] = [];
     private currentPositionConfigs: PositionConfig[] = [];
     private pastPositionConfigs: PositionConfig[] = [];
     private cancelIntervalFn?: NodeJS.Timeout | undefined;
+    private currentDate: Date;
 
-    constructor(private updateInterval: number, private startDate: Date, private endDate: Date) {}
+    constructor(
+        private updateIntervalMillis: number,
+        private startDate: Date,
+        private endDate: Date
+    ) {
+        this.currentDate = startDate;
+    }
 
-    init() {
+    init(clock: any) {
         this.cancelIntervalFn = setInterval(() => {
-            if (this.cancelIntervalFn) clearInterval(this.cancelIntervalFn);
-        }, this.updateInterval);
+            if (isMarketOpen(this.currentDate)) this.tradeUpdater.emit("interval hit");
+
+            this.currentDate = addMilliseconds(this.currentDate, this.updateIntervalMillis);
+
+            if (
+                isAfter(this.currentDate, this.endDate) ||
+                isEqual(this.currentDate, this.endDate)
+            ) {
+                if (this.cancelIntervalFn) clearInterval(this.cancelIntervalFn);
+            }
+        }, this.updateIntervalMillis);
     }
 
     public tradeUpdater: EventEmitter = new EventEmitter();
