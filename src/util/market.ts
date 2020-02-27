@@ -17,7 +17,8 @@ export const isMarketOpen = (now: TimestampType = Date.now()) => {
         set(now, {
             hours: 9,
             minutes: 30,
-            seconds: 0
+            seconds: 0,
+            milliseconds: 0
         }),
         {
             timeZone: MarketTimezone
@@ -28,7 +29,8 @@ export const isMarketOpen = (now: TimestampType = Date.now()) => {
         set(now, {
             hours: 15,
             minutes: 59,
-            seconds: 59
+            seconds: 59,
+            milliseconds: 999
         }),
         {
             timeZone: MarketTimezone
