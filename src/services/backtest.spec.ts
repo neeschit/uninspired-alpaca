@@ -12,7 +12,7 @@ import {
 } from "date-fns";
 import { MarketTimezone, TradeDirection, TradeType, TimeInForce } from "../data/data.model";
 
-const defaultStartDate = parseISO("2019-01-01 12:01:36.386Z");
+const defaultStartDate = parseISO("2019-01-02 12:01:36.386Z");
 const defaultZonedStartDate = convertToLocalTime(
     set(defaultStartDate.getTime(), {
         hours: 9,
@@ -24,7 +24,7 @@ const defaultZonedStartDate = convertToLocalTime(
         timeZone: MarketTimezone
     }
 );
-const defaultEndDate = parseISO("2019-01-02 12:10:00.000Z");
+const defaultEndDate = parseISO("2019-01-03 12:10:00.000Z");
 const defaultZonedEndDate = convertToLocalTime(
     set(defaultEndDate.getTime(), {
         hours: 0,
@@ -58,35 +58,11 @@ test("Backtester - simulate days", async t => {
 
     t.is(true, marketOpened);
 
-    console.log(instance.currentDate);
-
     t.falsy(isSameDay(defaultZonedStartDate, instance.currentDate));
 
     t.is(instance.currentDate.getTime(), instance.clock.now);
 
     instance.tradeUpdater.removeAllListeners();
-});
-
-test("Backtester - simulate entering a position", async t => {
-    const instance = new Backtester(60000, defaultZonedStartDate, defaultZonedEndDate, ['ECL']);
-
-    await instance.executeAndRecord();
-
-    t.is(0, instance.currentPositionConfigs.length);
-
-    instance.pendingTradeConfigs = [
-        {
-            symbol: "ECL",
-            quantity: 400,
-            side: TradeDirection.buy,
-            type: TradeType.stop,
-            tif: TimeInForce.day,
-            price: 170,
-            t: Date.now()
-        }
-    ];
-    
-    await instance.executeAndRecord();
 });
 
 test("Backtester - simulate a whole day", async t => {
@@ -102,7 +78,7 @@ test("Backtester - simulate a whole day", async t => {
             timeZone: MarketTimezone
         }
     );
-    const endDate = parseISO("2019-03-02 22:10:00.000Z");
+    const endDate = parseISO("2019-03-05 22:10:00.000Z");
 
     const zonedEndDate = convertToLocalTime(
         set(endDate.getTime(), {
@@ -122,5 +98,6 @@ test("Backtester - simulate a whole day", async t => {
 
     await instance.simulate();
 
-    t.is(1, instance.pendingTradeConfigs.length);
+    t.is(0, instance.pendingTradeConfigs.length);
+    t.is(2, instance.currentPositionConfigs.length);
 });

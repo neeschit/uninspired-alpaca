@@ -17,6 +17,7 @@ const logError = ({
 };
 
 export const get = (url: string) => {
+    /* console.log(url); */
     return new Promise((resolve, reject) => {
         let count = 0;
         const retry = () => {
