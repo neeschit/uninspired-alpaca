@@ -146,7 +146,7 @@ test("rebalancePosition - simple stop", async t => {
         type: TradeType.market,
         quantity: 200,
         side: TradeDirection.sell,
-        t: 0
+        t: order!.t
     });
 });
 
@@ -186,7 +186,7 @@ test("rebalancePosition - simple partial", async t => {
         type: TradeType.limit,
         quantity: 150,
         side: TradeDirection.sell,
-        t: 0
+        t: order!.t
     });
 });
 
@@ -226,7 +226,7 @@ test("rebalancePosition - close position after partial", async t => {
         type: TradeType.market,
         quantity: 50,
         side: TradeDirection.sell,
-        t: 0
+        t: order!.t
     });
 });
 
@@ -239,7 +239,7 @@ test("trade management - init and recordOnceUpdateReceived", t => {
             tif: TimeInForce.gtc,
             price: 200,
             quantity: 200,
-            t: 0
+            t: Date.now()
         },
         {
             plannedEntryPrice: 200,
@@ -304,7 +304,7 @@ test("trade management - handle trade update - empty fill", t => {
             tif: TimeInForce.gtc,
             price: 200,
             quantity: 200,
-            t: 0
+            t: Date.now()
         },
         {
             plannedEntryPrice: 200,
@@ -343,7 +343,7 @@ test("trade management - handle trade update - empty fill", t => {
             l: 189.3,
             v: 30000,
             o: 190.4,
-            t: 0
+            t: Date.now()
         })
     );
 });
@@ -357,7 +357,7 @@ test("trade management - handle trade update - non empty fill", t => {
             tif: TimeInForce.gtc,
             price: 200,
             quantity: 200,
-            t: 0
+            t: Date.now()
         },
         {
             plannedEntryPrice: 200,
@@ -395,7 +395,7 @@ test("trade management - handle trade update - non empty fill", t => {
             l: 189.3,
             v: 30000,
             o: 190.4,
-            t: 0
+            t: Date.now()
         })
     );
 });
