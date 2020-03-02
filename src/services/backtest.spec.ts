@@ -47,7 +47,7 @@ test("Backtester - simulate days", t => {
 
     clock.tick(60000 * 60 * 26);
 
-    t.is(intervalCount, 391);
+    t.is(intervalCount, 390);
 
     clock.restore();
 
@@ -156,7 +156,7 @@ test("Backtester - gotonextday", t => {
     t.falsy(isEqual(zonedStartDate, instance.currentDate));
 });
 
-test("Backtester - simulate a whole month and report for few symbols", async t => {
+test("Backtester - simulate market open", async t => {
     const startDate = parseISO("2019-03-01 12:01:36.386Z");
     const zonedStartDate = convertToLocalTime(
         set(startDate.getTime(), {
@@ -203,11 +203,6 @@ test("Backtester - simulate a whole month and report for few symbols", async t =
     const instance = new Backtester(60000, zonedStartDate, zonedEndDate, test);
 
     instance.init();
-
-    instance.tradeUpdater.on(
-        "interval_hit",
-        async (date1, date2) => await instance.handleTickUpdate(date1, date2)
-    );
 
     let marketOpened = false;
 
