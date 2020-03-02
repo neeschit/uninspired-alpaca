@@ -1,43 +1,44 @@
 import test from "ava";
 import { parseFromTimeZone, convertToLocalTime } from "date-fns-timezone";
-import sinon from "sinon";
 
 import { Backtester } from "./backtest";
-import { set, parseISO, addMilliseconds, addDays, isEqual } from "date-fns";
-import { MarketTimezone } from "../data/data.model";
+import {
+    set,
+    parseISO,
+    addMilliseconds,
+    addDays,
+    isEqual,
+    isSameDay
+} from "date-fns";
+import { MarketTimezone, TradeDirection, TradeType, TimeInForce } from "../data/data.model";
 
-test("Backtester - simulate days", t => {
-    const startDate = parseISO("2019-01-01 12:01:36.386Z");
-    const zonedStartDate = convertToLocalTime(
-        set(startDate.getTime(), {
-            hours: 9,
-            minutes: 0,
-            seconds: 0,
-            milliseconds: 0
-        }),
-        {
-            timeZone: MarketTimezone
-        }
-    );
-    const endDate = parseISO("2019-01-02 12:10:00.000Z");
+const defaultStartDate = parseISO("2019-01-01 12:01:36.386Z");
+const defaultZonedStartDate = convertToLocalTime(
+    set(defaultStartDate.getTime(), {
+        hours: 9,
+        minutes: 0,
+        seconds: 0,
+        milliseconds: 0
+    }),
+    {
+        timeZone: MarketTimezone
+    }
+);
+const defaultEndDate = parseISO("2019-01-02 12:10:00.000Z");
+const defaultZonedEndDate = convertToLocalTime(
+    set(defaultEndDate.getTime(), {
+        hours: 0,
+        minutes: 0,
+        seconds: 0,
+        milliseconds: 0
+    }),
+    {
+        timeZone: MarketTimezone
+    }
+);
 
-    const zonedEndDate = convertToLocalTime(
-        set(endDate.getTime(), {
-            hours: 0,
-            minutes: 0,
-            seconds: 0,
-            milliseconds: 0
-        }),
-        {
-            timeZone: MarketTimezone
-        }
-    );
-
-    const clock = sinon.useFakeTimers(zonedStartDate.getTime());
-
-    const instance = new Backtester(60000, zonedStartDate, zonedEndDate, []);
-
-    instance.init();
+test("Backtester - simulate days", async t => {
+    const instance = new Backtester(60000, defaultZonedStartDate, defaultZonedEndDate, []);
 
     let intervalCount = 0;
 
@@ -45,17 +46,51 @@ test("Backtester - simulate days", t => {
         intervalCount++;
     });
 
-    clock.tick(60000 * 60 * 26);
+    let marketOpened = false;
+
+    instance.tradeUpdater.on("market_opening", async () => {
+        marketOpened = true;
+    });
+
+    await instance.simulate();
 
     t.is(intervalCount, 390);
 
-    clock.restore();
+    t.is(true, marketOpened);
+
+    console.log(instance.currentDate);
+
+    t.falsy(isSameDay(defaultZonedStartDate, instance.currentDate));
+
+    t.is(instance.currentDate.getTime(), instance.clock.now);
 
     instance.tradeUpdater.removeAllListeners();
 });
 
-test("Backtester - fetch bars for simulation and respect current date", async t => {
-    const startDate = parseISO("2019-03-01 12:01:36.386Z");
+test("Backtester - simulate entering a position", async t => {
+    const instance = new Backtester(60000, defaultZonedStartDate, defaultZonedEndDate, ['ECL']);
+
+    await instance.executeAndRecord();
+
+    t.is(0, instance.currentPositionConfigs.length);
+
+    instance.pendingTradeConfigs = [
+        {
+            symbol: "ECL",
+            quantity: 400,
+            side: TradeDirection.buy,
+            type: TradeType.stop,
+            tif: TimeInForce.day,
+            price: 170,
+            t: Date.now()
+        }
+    ];
+    
+    await instance.executeAndRecord();
+});
+
+test("Backtester - simulate a whole day", async t => {
+    const startDate = parseISO("2019-03-01 12:00:00.000Z");
     const zonedStartDate = convertToLocalTime(
         set(startDate.getTime(), {
             hours: 9,
@@ -67,7 +102,7 @@ test("Backtester - fetch bars for simulation and respect current date", async t 
             timeZone: MarketTimezone
         }
     );
-    const endDate = parseISO("2019-03-31 12:10:00.000Z");
+    const endDate = parseISO("2019-03-02 22:10:00.000Z");
 
     const zonedEndDate = convertToLocalTime(
         set(endDate.getTime(), {
@@ -85,134 +120,7 @@ test("Backtester - fetch bars for simulation and respect current date", async t 
 
     const instance = new Backtester(60000, zonedStartDate, zonedEndDate, test);
 
-    let symbols = await instance.getScreenedSymbols();
+    await instance.simulate();
 
-    t.is(1, symbols.length);
-
-    t.is(symbols[0].symbol, "ECL");
-
-    instance.goToNextDay();
-
-    symbols = await instance.getScreenedSymbols();
-
-    symbols.map(symbol => console.log(symbol.toString()));
-
-    t.is(2, symbols.length);
-
-    t.deepEqual(
-        symbols.map(s => s.symbol),
-        ["ECL", "CVS"]
-    );
-});
-
-test("Backtester - gotonextday", t => {
-    const startDate = parseISO("2019-03-01 12:01:36.386Z");
-    const zonedStartDate = convertToLocalTime(
-        set(startDate.getTime(), {
-            hours: 9,
-            minutes: 0,
-            seconds: 0,
-            milliseconds: 0
-        }),
-        {
-            timeZone: MarketTimezone
-        }
-    );
-    const endDate = parseISO("2019-03-31 12:10:00.000Z");
-
-    const zonedEndDate = convertToLocalTime(
-        set(endDate.getTime(), {
-            hours: 0,
-            minutes: 0,
-            seconds: 0,
-            milliseconds: 0
-        }),
-        {
-            timeZone: MarketTimezone
-        }
-    );
-
-    const clock = sinon.useFakeTimers(zonedStartDate.getTime());
-
-    const test = [
-        "ECL",
-        "AAPL",
-        "CVS",
-        "ETR",
-        "JD",
-        "ALL",
-        "HON",
-        "BA",
-        "FB",
-        "MSFT",
-        "DPZ",
-        "SPGI",
-        "NVDA"
-    ];
-    const instance = new Backtester(60000, zonedStartDate, zonedEndDate, test);
-
-    instance.goToNextDay();
-
-    t.falsy(isEqual(zonedStartDate, instance.currentDate));
-});
-
-test("Backtester - simulate market open", async t => {
-    const startDate = parseISO("2019-03-01 12:01:36.386Z");
-    const zonedStartDate = convertToLocalTime(
-        set(startDate.getTime(), {
-            hours: 9,
-            minutes: 0,
-            seconds: 0,
-            milliseconds: 0
-        }),
-        {
-            timeZone: MarketTimezone
-        }
-    );
-    const endDate = parseISO("2019-03-31 12:10:00.000Z");
-
-    const zonedEndDate = convertToLocalTime(
-        set(endDate.getTime(), {
-            hours: 0,
-            minutes: 0,
-            seconds: 0,
-            milliseconds: 0
-        }),
-        {
-            timeZone: MarketTimezone
-        }
-    );
-
-    const clock = sinon.useFakeTimers(zonedStartDate.getTime());
-
-    const test = [
-        "ECL",
-        "AAPL",
-        "CVS",
-        "ETR",
-        "JD",
-        "ALL",
-        "HON",
-        "BA",
-        "FB",
-        "MSFT",
-        "DPZ",
-        "SPGI",
-        "NVDA"
-    ];
-    const instance = new Backtester(60000, zonedStartDate, zonedEndDate, test);
-
-    instance.init();
-
-    let marketOpened = false;
-
-    instance.tradeUpdater.on("market_opening", async () => {
-        marketOpened = true;
-    });
-
-    clock.tick(60000);
-
-    instance.tradeUpdater.removeAllListeners();
-
-    t.is(true, marketOpened);
+    t.is(1, instance.pendingTradeConfigs.length);
 });

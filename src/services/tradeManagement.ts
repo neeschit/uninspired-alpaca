@@ -53,7 +53,8 @@ export const rebalancePosition = async (
             type: TradeType.market,
             side: closingOrderSide,
             tif: TimeInForce.gtc,
-            quantity: quantity
+            quantity: quantity,
+            t: Date.now()
         };
     }
 
@@ -71,7 +72,8 @@ export const rebalancePosition = async (
             type: TradeType.limit,
             side: closingOrderSide,
             tif: TimeInForce.day,
-            quantity: Math.ceil(quantity * 0.75)
+            quantity: Math.ceil(quantity * 0.75),
+            t: Date.now()
         };
     }
 
@@ -82,7 +84,8 @@ export const rebalancePosition = async (
             type: TradeType.market,
             side: closingOrderSide,
             tif: TimeInForce.gtc,
-            quantity
+            quantity,
+            t: Date.now()
         };
     }
 

@@ -1,3 +1,13 @@
+import { EventEmitter } from "events";
+import {
+    isAfter,
+    addMilliseconds,
+    isEqual,
+    addDays,
+    isSameDay,
+    isWeekend
+} from "date-fns";
+import Sinon from 'sinon';
 import {
     TradeConfig,
     PositionConfig,
@@ -5,26 +15,26 @@ import {
     DefaultDuration,
     PeriodType
 } from "../data/data.model";
-import { EventEmitter } from "events";
-import { isAfter, addMilliseconds, isEqual, addDays, isSameDay, isWeekend } from "date-fns";
 import {
     isMarketOpen,
     isMarketOpening,
-    getMarketCloseMillis,
     isAfterMarketClose
 } from "../util/market";
 import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
 import { getBarsByDate } from "../data/bars";
 
+
 export class Backtester {
     private cancelIntervalFn?: NodeJS.Timeout | undefined;
     currentDate: Date;
     pastTradeConfigs: TradeConfig[] = [];
+    pendingTradeConfigs: TradeConfig[] = [];
     currentPositionConfigs: PositionConfig[] = [];
     pastPositionConfigs: PositionConfig[] = [];
     strategyInstances: NarrowRangeBarStrategy[] = [];
     activeStrategyInstances: NarrowRangeBarStrategy[] = [];
-    private daysElapsed: number = 0;
+    daysElapsed: number = 0;
+    clock: Sinon.SinonFakeTimers;
 
     constructor(
         private updateIntervalMillis: number,
@@ -33,6 +43,7 @@ export class Backtester {
         private configuredSymbols: string[]
     ) {
         this.currentDate = startDate;
+        this.clock = Sinon.useFakeTimers(startDate);
     }
 
     async screenSymbols() {
@@ -40,7 +51,7 @@ export class Backtester {
             this.strategyInstances.every(i => i.symbol !== symbol)
         );
 
-        const generator = this.getGenerator(symbols);
+        const generator = this.getBarDataGenerator(symbols);
 
         for await (const { symbol, bars } of generator(this.currentDate)) {
             this.strategyInstances.push(
@@ -51,27 +62,25 @@ export class Backtester {
                 })
             );
         }
+
+        const shouldBeAdded = this.strategyInstances.filter(
+            instance =>
+                instance.checkIfFitsStrategy() &&
+                this.activeStrategyInstances.every(
+                    i => i.symbol !== instance.symbol
+                )
+        );
+
+        this.activeStrategyInstances.push(...shouldBeAdded);
     }
 
     async getScreenedSymbols() {
         await this.screenSymbols();
 
-        const shouldBeAdded = this.strategyInstances.filter(
-            instance =>
-                instance.checkIfFitsStrategy() &&
-                this.activeStrategyInstances.every(i => i.symbol !== instance.symbol)
-        );
-
-        this.activeStrategyInstances.push(...shouldBeAdded);
-
         return this.activeStrategyInstances;
     }
 
-    getTimeSeriesGenerator() {
-        return function*() {};
-    }
-
-    getGenerator(symbols: string[]) {
+    getBarDataGenerator(symbols: string[]) {
         return async function*(currentDate: Date) {
             for (const symbol of symbols) {
                 const bars = await getBarsByDate(
@@ -90,45 +99,58 @@ export class Backtester {
         };
     }
 
-    init() {
-        this.cancelIntervalFn = setInterval(() => {
-            const prevDate = this.currentDate;
+    getTimeSeriesGenerator() {
+        const context = this;
 
-            this.incrementDate();
-
-            if (isMarketOpening(prevDate)) {
-                this.tradeUpdater.emit("market_opening", prevDate);
-            }
-
-            if (isWeekend(prevDate)) {
-                this.goToNextDay();
-                this.tradeUpdater.emit("interval_hit", prevDate, this.currentDate);
-            }
-
-            if (isMarketOpen(prevDate)) {
-                this.tradeUpdater.emit("interval_hit", prevDate, this.currentDate);
-            } else if (isAfterMarketClose(prevDate)) {
-                this.goToNextDay();
-            }
-
-            if (
-                (isAfter(this.currentDate, this.endDate) ||
-                    isEqual(this.currentDate, this.endDate)) &&
-                this.cancelIntervalFn
+        return function*() {
+            for (
+                let i = context.currentDate.getTime();
+                i < context.endDate.getTime();
+                i += context.updateIntervalMillis
             ) {
-                console.log("clearing interval");
-                clearInterval(this.cancelIntervalFn);
+                const prevDate = context.currentDate;
+
+                context.clock.tick(context.updateIntervalMillis);
+
+                yield prevDate;
+
+                context.incrementDate();
             }
-        }, this.updateIntervalMillis);
+        };
     }
 
-    public tradeUpdater: EventEmitter = new EventEmitter();
+    async simulate() {
+        const gen = this.getTimeSeriesGenerator();
 
-    recordOrderRequest(tradeConfig: TradeConfig) {
-        if (!tradeConfig.quantity && !tradeConfig) {
-            this.addToArray(tradeConfig, this.pastTradeConfigs);
+        for await (const date of gen()) {
+            if (isMarketOpen(this.currentDate)) {
+                this.tradeUpdater.emit("interval_hit");
+
+                this.executeAndRecord();
+
+                const filteredInstances = this.activeStrategyInstances
+                    .filter(i => {
+                        return this.pendingTradeConfigs.every(
+                            c => c.symbol !== i.symbol
+                        )
+                    });
+
+                const promises = filteredInstances.map(i => i.rebalance(this.currentDate));
+
+                for await(const promiseResult of promises) {
+                    if (promiseResult) {
+                        this.pendingTradeConfigs.push(promiseResult);
+                    }
+                }
+            }
+            if (isMarketOpening(this.currentDate)) {
+                this.tradeUpdater.emit('market_opening');
+                await this.getScreenedSymbols();
+            }
         }
     }
+
+    tradeUpdater: EventEmitter = new EventEmitter();
 
     recordPositionUpdate(positionConfig: PositionConfig) {
         if (!positionConfig.quantity) {
@@ -149,11 +171,14 @@ export class Backtester {
         }
     }
 
-    public incrementDate() {
-        this.currentDate = addMilliseconds(this.currentDate, this.updateIntervalMillis);
+    incrementDate() {
+        this.currentDate = addMilliseconds(
+            this.currentDate,
+            this.updateIntervalMillis
+        );
     }
 
-    public goToNextDay() {
+    goToNextDay() {
         this.reset();
         this.currentDate = addDays(this.startDate, ++this.daysElapsed);
         this.tradeUpdater.emit("next_day", this.currentDate);
@@ -163,7 +188,7 @@ export class Backtester {
         this.strategyInstances = [];
     }
 
-    public async handleTickUpdate() {
-        return this.activeStrategyInstances.map(async i => await i.rebalance());
+    public async executeAndRecord() {
+        
     }
 }

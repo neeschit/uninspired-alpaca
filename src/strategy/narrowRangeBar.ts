@@ -188,9 +188,9 @@ export class NarrowRangeBarStrategy {
         const isWithinEntryRange =
             timeStart.getTime() <= nowMillis && timeEnd.getTime() >= nowMillis;
 
-        if (!isWithinEntryRange) {
-            console.error("come back later hooomie", nowMillis);
-        }
+        /* if (!isWithinEntryRange) {
+            console.debug("come back later hooomie", nowMillis);
+        } */
 
         return isWithinEntryRange;
     }
@@ -228,7 +228,8 @@ export class NarrowRangeBarStrategy {
             side: this.side,
             type: TradeType.stop,
             tif: TimeInForce.day,
-            price: roundHalf(price)
+            price: roundHalf(price),
+            t: Date.now()
         };
     }
 }

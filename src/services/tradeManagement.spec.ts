@@ -17,7 +17,8 @@ test("processOrderFromStrategy - simple mapping", t => {
             type: TradeType.market,
             side: TradeDirection.buy,
             tif: TimeInForce.gtc,
-            quantity: 100
+            quantity: 100,
+            t: 0
         }),
         {
             symbol,
@@ -41,7 +42,8 @@ test("processOrderFromStrategy - map stop", t => {
             type: TradeType.stop,
             side: TradeDirection.buy,
             tif: TimeInForce.gtc,
-            quantity: 100
+            quantity: 100,
+            t: 0
         }),
         {
             symbol,
@@ -65,7 +67,8 @@ test("processOrderFromStrategy - map limit", t => {
             type: TradeType.limit,
             side: TradeDirection.buy,
             tif: TimeInForce.gtc,
-            quantity: 100
+            quantity: 100,
+            t: 0
         }),
         {
             symbol,
@@ -90,7 +93,8 @@ test("processOrderFromStrategy - map stop_limit", t => {
             type: TradeType.stop_limit,
             side: TradeDirection.buy,
             tif: TimeInForce.gtc,
-            quantity: 100
+            quantity: 100,
+            t: 0
         }),
         {
             symbol,
@@ -141,7 +145,8 @@ test("rebalancePosition - simple stop", async t => {
         tif: TimeInForce.gtc,
         type: TradeType.market,
         quantity: 200,
-        side: TradeDirection.sell
+        side: TradeDirection.sell,
+        t: 0
     });
 });
 
@@ -180,7 +185,8 @@ test("rebalancePosition - simple partial", async t => {
         tif: TimeInForce.day,
         type: TradeType.limit,
         quantity: 150,
-        side: TradeDirection.sell
+        side: TradeDirection.sell,
+        t: 0
     });
 });
 
@@ -219,7 +225,8 @@ test("rebalancePosition - close position after partial", async t => {
         tif: TimeInForce.gtc,
         type: TradeType.market,
         quantity: 50,
-        side: TradeDirection.sell
+        side: TradeDirection.sell,
+        t: 0
     });
 });
 
@@ -231,7 +238,8 @@ test("trade management - init and recordOnceUpdateReceived", t => {
             type: TradeType.stop,
             tif: TimeInForce.gtc,
             price: 200,
-            quantity: 200
+            quantity: 200,
+            t: 0
         },
         {
             plannedEntryPrice: 200,
@@ -295,7 +303,8 @@ test("trade management - handle trade update - empty fill", t => {
             type: TradeType.stop,
             tif: TimeInForce.gtc,
             price: 200,
-            quantity: 200
+            quantity: 200,
+            t: 0
         },
         {
             plannedEntryPrice: 200,
@@ -347,7 +356,8 @@ test("trade management - handle trade update - non empty fill", t => {
             type: TradeType.stop,
             tif: TimeInForce.gtc,
             price: 200,
-            quantity: 200
+            quantity: 200,
+            t: 0
         },
         {
             plannedEntryPrice: 200,
