@@ -1,4 +1,4 @@
-import { isWeekend, set, isSameDay } from "date-fns";
+import { isWeekend, set, isSameDay, isAfter, isBefore, isEqual } from "date-fns";
 import { TimestampType, MarketTimezone } from "../data/data.model";
 import { convertToLocalTime } from "date-fns-timezone";
 
@@ -13,6 +13,66 @@ const marketHolidays = [
 ];
 
 export const isMarketOpen = (now: TimestampType = Date.now()) => {
+    const isWeekday = !isWeekend(now);
+    const isNotHoliday = !marketHolidays.some(day => isSameDay(now, new Date(day)));
+
+    return isWeekday && isNotHoliday && isAfterMarketOpen(now) && isBeforeMarketClose(now);
+};
+
+export const isAfterMarketOpen = (now: TimestampType) => {
+    const marketOpenTime = getMarketOpenMillis(now);
+    const isAfterMarketOpen =
+        (isAfter(now, marketOpenTime) || isEqual(now, marketOpenTime)) &&
+        isSameDay(marketOpenTime, now);
+
+    return isAfterMarketOpen;
+};
+
+export const isAfterMarketClose = (now: TimestampType) => {
+    const marketCloseTime = getMarketCloseMillis(now);
+    const isAfterMarketClose = isAfter(now, marketCloseTime) && isSameDay(marketCloseTime, now);
+
+    return isAfterMarketClose;
+};
+
+export const isBeforeMarketClose = (now: TimestampType) => {
+    const marketCloseTime = getMarketCloseMillis(now);
+    const isBeforeMarketClose =
+        (isBefore(now, marketCloseTime) || isEqual(now, marketCloseTime)) &&
+        isSameDay(marketCloseTime, now);
+
+    return isBeforeMarketClose;
+};
+
+export const isMarketOpening = (now: TimestampType) => {
+    const marketOpenToday = convertToLocalTime(
+        set(now, {
+            hours: 9,
+            minutes: 30,
+            seconds: 0,
+            milliseconds: 0
+        }),
+        {
+            timeZone: MarketTimezone
+        }
+    );
+    const premarketOpenToday = convertToLocalTime(
+        set(now, {
+            hours: 9,
+            minutes: 0,
+            seconds: 0,
+            milliseconds: 0
+        }),
+        {
+            timeZone: MarketTimezone
+        }
+    );
+    const nowMillis = now instanceof Date ? now.getTime() : now;
+
+    return premarketOpenToday.getTime() <= nowMillis && marketOpenToday.getTime() > nowMillis;
+};
+
+export const getMarketOpenMillis = (now: TimestampType) => {
     const marketOpenToday = convertToLocalTime(
         set(now, {
             hours: 9,
@@ -25,6 +85,10 @@ export const isMarketOpen = (now: TimestampType = Date.now()) => {
         }
     );
 
+    return marketOpenToday;
+};
+
+export const getMarketCloseMillis = (now: TimestampType) => {
     const marketCloseToday = convertToLocalTime(
         set(now, {
             hours: 15,
@@ -36,15 +100,5 @@ export const isMarketOpen = (now: TimestampType = Date.now()) => {
             timeZone: MarketTimezone
         }
     );
-
-    const isWeekday = !isWeekend(now);
-    const isNotHoliday = !marketHolidays.some(day => isSameDay(now, new Date(day)));
-    const nowMillis = now instanceof Date ? now.getTime() : now;
-
-    return (
-        isWeekday &&
-        isNotHoliday &&
-        marketOpenToday.getTime() <= nowMillis &&
-        marketCloseToday.getTime() >= nowMillis
-    );
+    return marketCloseToday;
 };

@@ -11,7 +11,7 @@ let list = JSON.parse(JSON.stringify(LARGE_CAPS));
 const barsFetched = [];
 
 while (list.length > 200) { */
-const barsPromise = getDayBars(list, 100, Number(lookback || 0));
+const barsPromise = getDayBars(list, 430, Number(lookback || 366));
 
 /* 
     barsFetched.push(barsPromise);
@@ -30,9 +30,15 @@ barsPromise
         return Promise.resolve(bars);
     })
     .then((stocksBars: any) => {
-        const nrbInstances = Object.keys(stocksBars)
+        const nrbInstances: (NarrowRangeBarStrategy | null)[] = Object.keys(stocksBars)
             .map(symbol => {
                 const bars = stocksBars[symbol];
+
+                if (!bars) {
+                    console.log("no bars");
+
+                    return null;
+                }
 
                 return new NarrowRangeBarStrategy({
                     period: 7,
@@ -40,12 +46,12 @@ barsPromise
                     bars
                 });
             })
-            .filter(instance => instance.checkIfFitsStrategy());
+            .filter(instance => instance && instance.checkIfFitsStrategy());
 
         nrbInstances
             .filter(n => {
-                return n.hasPotentialForRewards();
+                return n!.hasPotentialForRewards();
             })
-            .map(n => console.log(n.toString()));
+            .map(n => console.log(n!.toString()));
     })
-    .catch(console.log);
+    .catch(console.error);
