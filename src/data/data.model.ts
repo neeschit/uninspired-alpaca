@@ -77,6 +77,7 @@ export interface TradeConfig extends SymbolContainingConfig {
     type: TradeType;
     tif: TimeInForce;
     price: number;
+    t: number;
     stopPrice?: number;
 }
 

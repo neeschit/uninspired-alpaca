@@ -45,17 +45,6 @@ export const isBeforeMarketClose = (now: TimestampType) => {
 };
 
 export const isMarketOpening = (now: TimestampType) => {
-    const marketOpenToday = convertToLocalTime(
-        set(now, {
-            hours: 9,
-            minutes: 30,
-            seconds: 0,
-            milliseconds: 0
-        }),
-        {
-            timeZone: MarketTimezone
-        }
-    );
     const premarketOpenToday = convertToLocalTime(
         set(now, {
             hours: 9,
@@ -69,7 +58,7 @@ export const isMarketOpening = (now: TimestampType) => {
     );
     const nowMillis = now instanceof Date ? now.getTime() : now;
 
-    return premarketOpenToday.getTime() <= nowMillis && marketOpenToday.getTime() > nowMillis;
+    return premarketOpenToday.getTime() == nowMillis;
 };
 
 export const getMarketOpenMillis = (now: TimestampType) => {
