@@ -262,7 +262,7 @@ test("integration nrb - real world - identify pattern for BDX", async t => {
         type: TradeType.stop,
         tif: TimeInForce.day,
         price: 278.5,
-        t: Date.now()
+        t: trade!.t
     });
 });
 
@@ -289,6 +289,6 @@ test("integration nrb - real world - identify pattern for AKAM", async t => {
         type: TradeType.stop,
         tif: TimeInForce.day,
         price: 95.5,
-        t: Date.now()
+        t: trade!.t
     });
 });
