@@ -109,7 +109,6 @@ export class Backtester {
                 this.tradeUpdater.emit("interval_hit", prevDate, this.currentDate);
             } else if (isAfterMarketClose(prevDate)) {
                 this.goToNextDay();
-                this.tradeUpdater.emit("interval_hit", prevDate, this.currentDate);
             }
 
             if (
@@ -164,10 +163,7 @@ export class Backtester {
         this.strategyInstances = [];
     }
 
-    public async handleTickUpdate(previousDate: Date, currentDate: Date) {
-        if (!isSameDay(previousDate, currentDate)) {
-        }
-
-        this.activeStrategyInstances && this.activeStrategyInstances.map(i => i.rebalance());
+    public async handleTickUpdate() {
+        return this.activeStrategyInstances.map(async i => await i.rebalance());
     }
 }
