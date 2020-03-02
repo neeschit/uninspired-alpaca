@@ -3,8 +3,12 @@ import { Bar } from "../data/data.model";
 export const DEFAULT_DMI_PERIOD = 14;
 
 export const getDirectionalMovementIndex = (bars: Bar[], period = DEFAULT_DMI_PERIOD) => {
-    if (!bars || bars.length < period + 1) {
-        throw new Error("fix some shiz");
+    if (!bars) {
+        throw new Error("fix some shiz cos no bars");
+    }
+
+    if (bars.length < period + 1) {
+        throw new Error("fix need more bars shiz");
     }
 
     const [pdmi, ndmi] = bars.reduce(

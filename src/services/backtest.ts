@@ -1,28 +1,116 @@
-import { TradeConfig, PositionConfig, SymbolContainingConfig } from "../data/data.model";
+import {
+    TradeConfig,
+    PositionConfig,
+    SymbolContainingConfig,
+    DefaultDuration,
+    PeriodType
+} from "../data/data.model";
 import { EventEmitter } from "events";
-import { isBefore, isAfter, addMilliseconds, isEqual } from "date-fns";
-import { isMarketOpen } from "../util/market";
+import { isAfter, addMilliseconds, isEqual, addDays, isSameDay, isWeekend } from "date-fns";
+import {
+    isMarketOpen,
+    isMarketOpening,
+    getMarketCloseMillis,
+    isAfterMarketClose
+} from "../util/market";
+import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
+import { getBarsByDate } from "../data/bars";
 
 export class Backtester {
-    private pastTradeConfigs: TradeConfig[] = [];
-    private currentPositionConfigs: PositionConfig[] = [];
-    private pastPositionConfigs: PositionConfig[] = [];
     private cancelIntervalFn?: NodeJS.Timeout | undefined;
-    private currentDate: Date;
+    currentDate: Date;
+    pastTradeConfigs: TradeConfig[] = [];
+    currentPositionConfigs: PositionConfig[] = [];
+    pastPositionConfigs: PositionConfig[] = [];
+    strategyInstances: NarrowRangeBarStrategy[] = [];
+    activeStrategyInstances: NarrowRangeBarStrategy[] = [];
+    private daysElapsed: number = 0;
 
     constructor(
         private updateIntervalMillis: number,
         private startDate: Date,
-        private endDate: Date
+        private endDate: Date,
+        private configuredSymbols: string[]
     ) {
         this.currentDate = startDate;
     }
 
-    init(clock: any) {
-        this.cancelIntervalFn = setInterval(() => {
-            if (isMarketOpen(this.currentDate)) this.tradeUpdater.emit("interval hit");
+    async screenSymbols() {
+        const symbols = this.configuredSymbols.filter(symbol =>
+            this.strategyInstances.every(i => i.symbol !== symbol)
+        );
 
-            this.currentDate = addMilliseconds(this.currentDate, this.updateIntervalMillis);
+        const generator = this.getGenerator(symbols);
+
+        for await (const { symbol, bars } of generator(this.currentDate)) {
+            this.strategyInstances.push(
+                new NarrowRangeBarStrategy({
+                    period: 7,
+                    symbol,
+                    bars
+                })
+            );
+        }
+    }
+
+    async getScreenedSymbols() {
+        await this.screenSymbols();
+
+        const shouldBeAdded = this.strategyInstances.filter(
+            instance =>
+                instance.checkIfFitsStrategy() &&
+                this.activeStrategyInstances.every(i => i.symbol !== instance.symbol)
+        );
+
+        this.activeStrategyInstances.push(...shouldBeAdded);
+
+        return this.activeStrategyInstances;
+    }
+
+    getTimeSeriesGenerator() {
+        return function*() {};
+    }
+
+    getGenerator(symbols: string[]) {
+        return async function*(currentDate: Date) {
+            for (const symbol of symbols) {
+                const bars = await getBarsByDate(
+                    symbol,
+                    addDays(currentDate, -150),
+                    currentDate,
+                    DefaultDuration.one,
+                    PeriodType.day
+                );
+
+                yield {
+                    bars,
+                    symbol
+                };
+            }
+        };
+    }
+
+    init() {
+        this.cancelIntervalFn = setInterval(() => {
+            const prevDate = this.currentDate;
+
+            this.incrementDate();
+
+            if (isMarketOpening(prevDate)) {
+                this.tradeUpdater.emit("market_opening", prevDate);
+            }
+
+            if (isWeekend(prevDate)) {
+                this.goToNextDay();
+                this.tradeUpdater.emit("interval_hit", prevDate, this.currentDate);
+            }
+
+            if (isMarketOpen(prevDate)) {
+                this.tradeUpdater.emit("interval_hit", prevDate, this.currentDate);
+            } else if (isAfterMarketClose(prevDate)) {
+                this.goToNextDay();
+                this.tradeUpdater.emit("interval_hit", prevDate, this.currentDate);
+            }
 
             if (
                 (isAfter(this.currentDate, this.endDate) ||
@@ -60,5 +148,26 @@ export class Backtester {
         } else {
             array[index] = item;
         }
+    }
+
+    public incrementDate() {
+        this.currentDate = addMilliseconds(this.currentDate, this.updateIntervalMillis);
+    }
+
+    public goToNextDay() {
+        this.reset();
+        this.currentDate = addDays(this.startDate, ++this.daysElapsed);
+        this.tradeUpdater.emit("next_day", this.currentDate);
+    }
+
+    private reset() {
+        this.strategyInstances = [];
+    }
+
+    public async handleTickUpdate(previousDate: Date, currentDate: Date) {
+        if (!isSameDay(previousDate, currentDate)) {
+        }
+
+        this.activeStrategyInstances && this.activeStrategyInstances.map(i => i.rebalance());
     }
 }

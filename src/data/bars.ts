@@ -4,7 +4,7 @@ import { TimestampType, Bar, PeriodType, DefaultDuration } from "../data/data.mo
 
 const date = new Date();
 
-export const getDayBars = (symbols: string[], days = 100, lookback = 0) => {
+export const getDayBars = (symbols: string[], days = 100, lookback = 100) => {
     console.log(new Date(new Date().setDate(date.getDate() - lookback)).toLocaleDateString());
 
     return getBars(PeriodType.day, symbols, days, lookback);
@@ -42,7 +42,7 @@ const getBars = (
     if (!symbols || !symbols.length || !Array.isArray(symbols)) {
         throw new Error("require an array");
     }
-    const start = startOfDay(addDays(date, -days));
+    const start = startOfDay(addDays(date, -(days + lookback)));
     const end = addDays(date, -lookback + 1);
     const promises = symbols.map(symbol => getPolyonData(symbol, start, end, period, duration));
 

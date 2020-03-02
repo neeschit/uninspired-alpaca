@@ -31,9 +31,12 @@ export class NarrowRangeBarStrategy {
     entryMinuteStart: number = 34;
     entryMinuteEnd: number = 36;
 
-    constructor({ period, symbol, bars }: { period: number; symbol: string; bars: Bar[] }) {
+    constructor({ period = 7, symbol, bars }: { period: number; symbol: string; bars: Bar[] }) {
         if (period < 4) {
             throw new Error("fix da shiz");
+        }
+        if (!bars) {
+            throw new Error("need bars");
         }
         this.period = period;
         this.symbol = symbol;
@@ -155,7 +158,7 @@ export class NarrowRangeBarStrategy {
 
     isTimeForEntry(now: TimestampType) {
         if (!isMarketOpen(now)) {
-            console.error("market ain't open biiatch", now);
+            /* console.error("market ain't open biiatch", now); */
             return null;
         }
 
@@ -194,6 +197,7 @@ export class NarrowRangeBarStrategy {
 
     async rebalance(now: TimestampType = Date.now()) {
         if (!this.isTimeForEntry(now)) {
+            /* console.warn("the time is not nigh"); */
             return null;
         }
 

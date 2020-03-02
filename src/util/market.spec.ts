@@ -1,8 +1,16 @@
 import test from "ava";
-import { isMarketOpen } from "./market";
+import { isMarketOpen, isAfterMarketOpen, isBeforeMarketClose } from "./market";
 
 test("is closed - late hours", t => {
     t.falsy(isMarketOpen(new Date("2020-02-17T04:14:46")));
+});
+
+test("is closed - late hours - isBeforeMarketOpen", t => {
+    t.falsy(isAfterMarketOpen(new Date("2020-02-17T04:14:46")));
+});
+
+test("is closed - late hours - isAfterMarketOpen", t => {
+    t.truthy(isBeforeMarketClose(new Date("2020-02-17T04:14:46")));
 });
 
 test("is closed - holiday hours", t => {

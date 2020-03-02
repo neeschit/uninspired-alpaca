@@ -33,6 +33,9 @@ export const getPolyonData = (
     const url = getPolygonApiUrl(resource, "v2");
 
     return get(url).then((response: any) => {
+        if (!response.results) {
+            console.log(url);
+        }
         return {
             [symbol]: response.results
         };
@@ -53,6 +56,9 @@ export const getSimplePolygonData = (
     const url = getPolygonApiUrl(resource, "v2");
 
     return get(url).then((response: any) => {
+        if (!response.results) {
+            console.log(url);
+        }
         return response.results;
     });
 };
