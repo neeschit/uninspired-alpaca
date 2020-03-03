@@ -186,6 +186,7 @@ export class Backtester {
 
                 for await (const tradeRebalance of rebalancingPositionTrades) {
                     if (tradeRebalance) {
+                        console.log(tradeRebalance);
                         if (this.validateTrade(tradeRebalance)) {
                             await this.findPositionConfigAndRebalance(tradeRebalance);
                         }
@@ -342,6 +343,8 @@ export class Backtester {
             return null;
         }
 
+        this.pastPositionConfigs.push(executedClose);
+
         this.currentPositionConfigs = this.currentPositionConfigs.filter(
             p => p.symbol !== tradeConfig.symbol
         );
@@ -397,7 +400,6 @@ export class Backtester {
         }
 
         if (tradePlan.type === TradeType.market) {
-
             const order = {
                 filledQuantity: tradePlan.quantity,
                 symbol: symbol,
@@ -411,6 +413,22 @@ export class Backtester {
             });
 
             return position;
+        } else {
+            if (bar.h > tradePlan.price) {
+                const order = {
+                    filledQuantity: tradePlan.quantity,
+                    symbol: symbol,
+                    averagePrice: tradePlan.price + Math.random() / 10,
+                    status: OrderStatus.filled
+                };
+
+                position.trades.push({
+                    order,
+                    ...tradePlan
+                });
+    
+                return position;
+            }
         }
         return null;
     }
