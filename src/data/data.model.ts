@@ -80,6 +80,9 @@ export interface TradeConfig extends SymbolContainingConfig {
     t: number;
     stopPrice?: number;
 }
+export interface FilledTradeConfig extends TradeConfig {
+    order: Order;
+}
 
 export interface PositionConfig extends TradePlan {
     plannedRiskUnits: number;
@@ -89,6 +92,7 @@ export interface PositionConfig extends TradePlan {
 
 export interface FilledPositionConfig extends PositionConfig {
     order: Order;
+    trades: FilledTradeConfig[];
 }
 
 export interface Order {

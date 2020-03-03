@@ -3,24 +3,29 @@ import { addMilliseconds, addDays } from "date-fns";
 import Sinon from "sinon";
 import {
     TradeConfig,
-    PositionConfig,
-    SymbolContainingConfig,
     DefaultDuration,
     PeriodType,
     FilledPositionConfig,
     OrderStatus,
     TradeDirection,
     PositionDirection,
-    TradeType
+    Bar,
+    FilledTradeConfig,
+    TradeType,
+    PositionConfig
 } from "../data/data.model";
-import { isMarketOpen, isMarketOpening } from "../util/market";
+import {
+    isMarketOpen,
+    isMarketOpening,
+    isAfterMarketClose
+} from "../util/market";
 import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
 import { getBarsByDate } from "../data/bars";
 import { rebalancePosition } from "./tradeManagement";
 
 export class Backtester {
     currentDate: Date;
-    pastTradeConfigs: TradeConfig[] = [];
+    pastTradeConfigs: FilledTradeConfig[] = [];
     pendingTradeConfigs: TradeConfig[] = [];
     currentPositionConfigs: FilledPositionConfig[] = [];
     pastPositionConfigs: FilledPositionConfig[] = [];
@@ -28,6 +33,9 @@ export class Backtester {
     activeStrategyInstances: NarrowRangeBarStrategy[] = [];
     daysElapsed: number = 0;
     clock: Sinon.SinonFakeTimers;
+    replayBars: {
+        [index: string]: Bar[];
+    } = {};
 
     constructor(
         private updateIntervalMillis: number,
@@ -97,6 +105,31 @@ export class Backtester {
         };
     }
 
+    getReplayDataGenerator(
+        symbols: string[],
+        duration: DefaultDuration = DefaultDuration.one,
+        period: PeriodType = PeriodType.day,
+        startDate: Date,
+        endDate: Date
+    ) {
+        return async function*() {
+            for (const symbol of symbols) {
+                const bars = await getBarsByDate(
+                    symbol,
+                    startDate,
+                    endDate,
+                    duration,
+                    period
+                );
+
+                yield {
+                    bars,
+                    symbol
+                };
+            }
+        };
+    }
+
     getTimeSeriesGenerator() {
         const context = this;
 
@@ -111,10 +144,9 @@ export class Backtester {
                 context.clock.tick(context.updateIntervalMillis);
 
                 yield prevDate;
-                /* 
-                console.log(prevDate);
-
-                console.log(context.pendingTradeConfigs); */
+                /* console.log(prevDate);
+                console.log(context.pendingTradeConfigs);
+                console.log(context.activeStrategyInstances.map(c => c.symbol)); */
 
                 context.incrementDate();
             }
@@ -122,6 +154,20 @@ export class Backtester {
     }
 
     async simulate() {
+        const replayBars = this.getReplayDataGenerator(
+            this.configuredSymbols,
+            DefaultDuration.one,
+            PeriodType.minute,
+            this.startDate,
+            this.endDate
+        );
+
+        for await (const bar of replayBars()) {
+            Object.assign(this.replayBars, {
+                [bar.symbol]: bar.bars
+            });
+        }
+
         const gen = this.getTimeSeriesGenerator();
 
         for await (const {} of gen()) {
@@ -135,6 +181,16 @@ export class Backtester {
                         );
                     }
                 );
+
+                const rebalancingPositionTrades = await this.closeAndRebalance();
+
+                for await (const tradeRebalance of rebalancingPositionTrades) {
+                    if (tradeRebalance) {
+                        if (this.validateTrade(tradeRebalance)) {
+                            await this.findPositionConfigAndRebalance(tradeRebalance);
+                        }
+                    }
+                }
 
                 const potentialTradesToPlace = filteredInstances.map(i =>
                     i.rebalance(this.currentDate)
@@ -152,28 +208,36 @@ export class Backtester {
                     }
                 }
 
-                const enteredSymbols = await this.executeAndRecord();
+                const newlyExecutedSymbols = await this.executeAndRecord();
             }
             if (isMarketOpening(this.currentDate)) {
                 this.tradeUpdater.emit("market_opening");
                 await this.getScreenedSymbols();
             }
+
+            if (isAfterMarketClose(this.currentDate)) {
+                this.goToNextDay();
+            }
         }
     }
 
-    validateTrade(promiseResult: TradeConfig) {
+    validateTrade(tradeConfig: TradeConfig) {
         const currentPosition = this.currentPositionConfigs.find(
-            c => c.symbol === promiseResult.symbol
+            c => c.symbol === tradeConfig.symbol
         );
 
         if (!currentPosition) {
             return true;
         }
 
+        return this.isClosingOrder(currentPosition, tradeConfig);
+    }
+    
+    isClosingOrder(currentPosition: FilledPositionConfig, tradeConfig: TradeConfig) {
         if (currentPosition.side === PositionDirection.long) {
-            return promiseResult.side === TradeDirection.sell;
+            return tradeConfig.side === TradeDirection.sell;
         } else {
-            return promiseResult.side === TradeDirection.buy;
+            return tradeConfig.side === TradeDirection.buy;
         }
     }
 
@@ -188,12 +252,13 @@ export class Backtester {
 
     goToNextDay() {
         this.reset();
-        this.currentDate = addDays(this.startDate, ++this.daysElapsed);
         this.tradeUpdater.emit("next_day", this.currentDate);
     }
 
     private reset() {
         this.strategyInstances = [];
+        this.activeStrategyInstances = [];
+        this.pendingTradeConfigs = [];
     }
 
     public async executeAndRecord() {
@@ -201,72 +266,153 @@ export class Backtester {
             return [];
         }
 
-        const symbols = this.pendingTradeConfigs.map(p => p.symbol);
-
-        const generator = this.getBarDataGenerator(
-            symbols,
-            DefaultDuration.five,
-            PeriodType.minute,
-            1
-        );
-
         const newlyExecutedSymbols = [];
 
-        for await (const barData of generator(addDays(this.currentDate, 1))) {
-            const instance = this.strategyInstances.find(
-                i => i.symbol === barData.symbol
+        for (const tradePlan of this.pendingTradeConfigs) {
+            const symbol = tradePlan.symbol;
+            const bars = this.replayBars[symbol];
+            const instance = this.activeStrategyInstances.find(
+                i => i.symbol === symbol
             );
 
-            const tradePlan = this.pendingTradeConfigs.find(
-                c => c.symbol === barData.symbol
-            );
+            if (instance) {
+                const entry = instance.entry;
 
-            const side =
-                tradePlan!.side === TradeDirection.buy
-                    ? PositionDirection.long
-                    : PositionDirection.short;
-
-            const entry = instance!.entry;
-
-            const barIndex = barData.bars.findIndex(
-                b => b.t > this.currentDate.getTime()
-            );
-
-            const bar = barData.bars[barIndex + 1];
-
-            const exit = instance!.stopPrice;
-
-            if (bar.h > entry) {
-                // simulate entry
-                const position: FilledPositionConfig = {
-                    symbol: barData.symbol,
-                    originalQuantity: tradePlan!.quantity,
-                    hasHardStop: false,
-                    plannedEntryPrice: entry,
-                    plannedStopPrice: exit,
-                    plannedQuantity: tradePlan!.quantity,
-                    plannedRiskUnits: Math.abs(entry - exit),
-                    side: side,
-                    quantity: tradePlan!.quantity,
-                    order: {
-                        filledQuantity: tradePlan!.quantity,
-                        symbol: barData.symbol,
-                        averagePrice: entry + Math.random() / 10,
-                        status: OrderStatus.filled
-                    }
-                };
-
-                this.currentPositionConfigs.push(position);
-                this.pendingTradeConfigs = this.pendingTradeConfigs.filter(
-                    c => c.symbol !== barData.symbol
+                const barIndex = bars.findIndex(
+                    b => b.t > this.currentDate.getTime()
                 );
-                this.pastTradeConfigs.push(tradePlan!);
 
-                newlyExecutedSymbols.push(barData.symbol);
+                const bar = bars[barIndex + 1];
+
+                const position = this.executeSingleTrade(instance.stopPrice, bar, tradePlan, entry);
+
+                if (position) {
+                    this.currentPositionConfigs.push(position);
+                    this.pendingTradeConfigs = this.pendingTradeConfigs.filter(
+                        c => c.symbol !== symbol
+                    );
+                    this.activeStrategyInstances = this.activeStrategyInstances.filter(
+                        s => s.symbol !== symbol
+                    );
+                    this.pastTradeConfigs.push({
+                        ...tradePlan,
+                        order: position.order
+                    });
+                    newlyExecutedSymbols.push(symbol);
+                }
+            } else {
+                console.warn(
+                    "cannot execute without no trade plan from strategy",
+                    tradePlan
+                );
             }
         }
 
         return newlyExecutedSymbols;
+    }
+
+    private async findPositionConfigAndRebalance(tradeConfig: TradeConfig) {
+        const position = this.currentPositionConfigs.find(p => p.symbol === tradeConfig.symbol);
+
+        if (!position) {
+            return null;
+        }
+
+        const bars = this.replayBars[position.symbol];
+        const barIndex = bars.findIndex(
+            b => b.t > this.currentDate.getTime()
+        );
+
+        const bar = bars[barIndex + 1];
+
+        const executedClose = this.executeSingleTrade(position.plannedStopPrice, bar, tradeConfig, position.plannedEntryPrice);
+
+        if (!executedClose) {
+            return null;
+        }
+
+        this.pastTradeConfigs.push({
+            ...tradeConfig,
+            order: executedClose.trades[executedClose.trades.length - 1].order
+        });
+
+        const isClosingOrder = this.isClosingOrder(position, tradeConfig);
+
+        if (!isClosingOrder) {
+            return null;
+        }
+
+        this.currentPositionConfigs = this.currentPositionConfigs.filter(
+            p => p.symbol !== tradeConfig.symbol
+        );
+    }
+
+    private executeSingleTrade(
+        exit: number,
+        bar: Bar,
+        tradePlan: TradeConfig,
+        plannedEntryPrice: number,
+    ): FilledPositionConfig | null {
+        const symbol = tradePlan.symbol;
+        const side =
+            tradePlan.side === TradeDirection.buy
+                ? PositionDirection.long
+                : PositionDirection.short;
+
+        // simulate tradePlan.price
+        const position: FilledPositionConfig | undefined = this.currentPositionConfigs.find(p => p.symbol === tradePlan.symbol);
+
+        if (!position) {
+            let unfilledPosition = {
+                symbol: symbol,
+                originalQuantity: tradePlan.quantity,
+                hasHardStop: false,
+                plannedEntryPrice,
+                plannedStopPrice: exit,
+                plannedQuantity: tradePlan.quantity,
+                plannedRiskUnits: Math.abs(tradePlan.price - exit),
+                side: side,
+                quantity: tradePlan.quantity,
+            };
+
+            if (bar.h > tradePlan.price) {
+                const order = {
+                    filledQuantity: tradePlan.quantity,
+                    symbol: symbol,
+                    averagePrice: tradePlan.price + Math.random() / 10,
+                    status: OrderStatus.filled
+                };
+    
+                return {
+                    ...unfilledPosition,
+                    order,
+                    trades: [{
+                        ...tradePlan,
+                        order                        
+                    }]
+                };
+            }
+
+            return null;
+        }
+
+        if (tradePlan.type === TradeType.market) {
+
+            const order = {
+                filledQuantity: tradePlan.quantity,
+                symbol: symbol,
+                averagePrice: bar.c + Math.random() / 10,
+                status: OrderStatus.filled
+            };
+
+            position.trades.push({
+                order,
+                ...tradePlan
+            });
+
+            return position;
+        }
+        return null;
     }
 
     public async closeAndRebalance() {
@@ -274,24 +420,31 @@ export class Backtester {
             return [];
         }
 
-        const generator = this.getBarDataGenerator(
-            this.currentPositionConfigs.map(p => p.symbol),
-            DefaultDuration.five,
-            PeriodType.minute,
-            1
-        );
+        const symbols = this.currentPositionConfigs.map(p => p.symbol);
 
         const trades = [];
 
-        for await (const { symbol, bars } of generator(this.currentDate)) {
+        for (const symbol of symbols) {
+            const bars = this.replayBars[symbol];
             const barIndex = bars.findIndex(
                 b => b.t > this.currentDate.getTime()
             );
             const bar = bars[barIndex + 1];
 
-            const position = this.currentPositionConfigs.find(p => p.symbol === symbol);
+            const position = this.currentPositionConfigs.find(
+                p => p.symbol === symbol
+            );
 
-            trades.push(rebalancePosition(position!, bar));
+            if (!position) {
+                console.warn('no position for ', symbol);
+                continue;
+            }
+            if (!bar) {
+                console.warn('no bar for ', symbol);
+                continue;
+            }
+
+            trades.push(rebalancePosition(position, bar));
         }
 
         return trades;

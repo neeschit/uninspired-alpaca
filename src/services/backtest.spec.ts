@@ -37,7 +37,7 @@ const defaultZonedEndDate = convertToLocalTime(
     }
 );
 
-test("Backtester - simulate days", async t => {
+test("Backtester - simulate time and check if correct", async t => {
     const instance = new Backtester(60000, defaultZonedStartDate, defaultZonedEndDate, []);
 
     let intervalCount = 0;
@@ -65,7 +65,7 @@ test("Backtester - simulate days", async t => {
     instance.tradeUpdater.removeAllListeners();
 });
 
-test("Backtester - simulate 10 days", async t => {
+test("Backtester - simulate everything for a few days", async t => {
     t.timeout(30000);
     const startDate = parseISO("2019-03-01 12:00:00.000Z");
     const zonedStartDate = convertToLocalTime(
@@ -79,7 +79,7 @@ test("Backtester - simulate 10 days", async t => {
             timeZone: MarketTimezone
         }
     );
-    const endDate = parseISO("2019-03-12 22:10:00.000Z");
+    const endDate = parseISO("2019-03-04 22:10:00.000Z");
     const zonedEndDate = convertToLocalTime(
         set(endDate.getTime(), {
             hours: 0,
@@ -100,4 +100,48 @@ test("Backtester - simulate 10 days", async t => {
 
     t.is(0, instance.pendingTradeConfigs.length);
     t.is(2, instance.currentPositionConfigs.length);
+    t.is(2, instance.pastTradeConfigs.length);
+
+    console.log(instance.pastTradeConfigs);
+});
+
+
+test("Backtester - simulate everything until all positions are closed", async t => {
+    t.timeout(30000);
+    const startDate = parseISO("2019-03-01 12:00:00.000Z");
+    const zonedStartDate = convertToLocalTime(
+        set(startDate.getTime(), {
+            hours: 9,
+            minutes: 0,
+            seconds: 0,
+            milliseconds: 0
+        }),
+        {
+            timeZone: MarketTimezone
+        }
+    );
+    const endDate = parseISO("2019-03-08 22:10:00.000Z");
+    const zonedEndDate = convertToLocalTime(
+        set(endDate.getTime(), {
+            hours: 0,
+            minutes: 0,
+            seconds: 0,
+            milliseconds: 0
+        }),
+        {
+            timeZone: MarketTimezone
+        }
+    );
+
+    const test = ["ECL", "AAPL", "HON"];
+
+    const instance = new Backtester(60000, zonedStartDate, zonedEndDate, test);
+
+    await instance.simulate();
+
+    console.log(instance.pastTradeConfigs);
+
+    t.is(0, instance.pendingTradeConfigs.length);
+    t.is(1, instance.currentPositionConfigs.length);
+    t.is(3, instance.pastTradeConfigs.length);
 });
