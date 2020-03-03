@@ -340,14 +340,20 @@ export class Backtester {
         const isClosingOrder = this.isClosingOrder(position, tradeConfig);
 
         if (!isClosingOrder) {
-            return null;
+            return executedClose;
         }
 
-        this.pastPositionConfigs.push(executedClose);
+        const closesEntirePosition = position.quantity === 0;
 
-        this.currentPositionConfigs = this.currentPositionConfigs.filter(
-            p => p.symbol !== tradeConfig.symbol
-        );
+        if (closesEntirePosition) {
+            this.pastPositionConfigs.push(executedClose);
+
+            this.currentPositionConfigs = this.currentPositionConfigs.filter(
+                p => p.symbol !== tradeConfig.symbol
+            );
+        }
+
+        return executedClose;
     }
 
     private executeSingleTrade(
@@ -412,6 +418,8 @@ export class Backtester {
                 ...tradePlan
             });
 
+            position.quantity -= order.filledQuantity;
+
             return position;
         } else {
             if (bar.h > tradePlan.price) {
@@ -426,7 +434,8 @@ export class Backtester {
                     order,
                     ...tradePlan
                 });
-    
+                position.quantity -= order.filledQuantity;
+
                 return position;
             }
         }

@@ -79,7 +79,7 @@ export const rebalancePosition = async (
         };
     }
 
-    if (currentProfitRatio > 3) {
+    if (currentProfitRatio > 2) {
         return {
             symbol,
             price: 0,
