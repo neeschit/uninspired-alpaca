@@ -111,6 +111,13 @@ test("processOrderFromStrategy - map stop_limit", t => {
 });
 
 test("rebalancePosition - simple stop", async t => {
+    const orderDefinition = {
+        symbol,
+        status: OrderStatus.filled,
+        filledQuantity: 200,
+        averagePrice: 200.06
+    };
+
     const order = await rebalancePosition(
         {
             symbol,
@@ -122,12 +129,19 @@ test("rebalancePosition - simple stop", async t => {
             hasHardStop: true,
             side: PositionDirection.long,
             originalQuantity: 200,
-            order: {
-                symbol,
-                status: OrderStatus.filled,
-                filledQuantity: 200,
-                averagePrice: 200.06
-            }
+            order: orderDefinition,
+            trades: [
+                {
+                    order: orderDefinition,
+                    tif: TimeInForce.day,
+                    price: 200,
+                    quantity: 200,
+                    side: TradeDirection.buy,
+                    type: TradeType.stop,
+                    t: Date.now(),
+                    symbol
+                }
+            ]
         },
         {
             c: 189.91,
@@ -151,6 +165,12 @@ test("rebalancePosition - simple stop", async t => {
 });
 
 test("rebalancePosition - simple partial", async t => {
+    const orderDefinition = {
+        symbol,
+        status: OrderStatus.filled,
+        filledQuantity: 200,
+        averagePrice: 200.06
+    };
     const order = await rebalancePosition(
         {
             symbol,
@@ -162,12 +182,19 @@ test("rebalancePosition - simple partial", async t => {
             hasHardStop: true,
             side: PositionDirection.long,
             originalQuantity: 200,
-            order: {
-                symbol,
-                status: OrderStatus.filled,
-                filledQuantity: 200,
-                averagePrice: 200.06
-            }
+            order: orderDefinition,
+            trades: [
+                {
+                    order: orderDefinition,
+                    tif: TimeInForce.day,
+                    price: 200,
+                    quantity: 200,
+                    side: TradeDirection.buy,
+                    type: TradeType.stop,
+                    t: Date.now(),
+                    symbol
+                }
+            ]
         },
         {
             c: 209.5,
@@ -191,6 +218,12 @@ test("rebalancePosition - simple partial", async t => {
 });
 
 test("rebalancePosition - close position after partial", async t => {
+    const orderDefinition = {
+        symbol,
+        status: OrderStatus.filled,
+        filledQuantity: 200,
+        averagePrice: 200.06
+    };
     const order = await rebalancePosition(
         {
             symbol,
@@ -202,12 +235,19 @@ test("rebalancePosition - close position after partial", async t => {
             hasHardStop: true,
             side: PositionDirection.long,
             originalQuantity: 200,
-            order: {
-                symbol,
-                status: OrderStatus.filled,
-                filledQuantity: 200,
-                averagePrice: 200.06
-            }
+            order: orderDefinition,
+            trades: [
+                {
+                    order: orderDefinition,
+                    tif: TimeInForce.day,
+                    price: 200,
+                    quantity: 200,
+                    side: TradeDirection.buy,
+                    type: TradeType.stop,
+                    t: Date.now(),
+                    symbol
+                }
+            ]
         },
         {
             c: 189.91,
@@ -231,12 +271,18 @@ test("rebalancePosition - close position after partial", async t => {
 });
 
 test("trade management - init and recordOnceUpdateReceived", t => {
+    const orderDefinition = {
+        symbol,
+        status: OrderStatus.partial_fill,
+        filledQuantity: 150,
+        averagePrice: 200.06
+    };
     const manager = new TradeManagement(
         {
             symbol,
             side: TradeDirection.buy,
             type: TradeType.stop,
-            tif: TimeInForce.gtc,
+            tif: TimeInForce.day,
             price: 200,
             quantity: 200,
             t: Date.now()
@@ -286,12 +332,19 @@ test("trade management - init and recordOnceUpdateReceived", t => {
         plannedQuantity: 200,
         side: PositionDirection.long,
         quantity: 150,
-        order: {
-            symbol,
-            status: OrderStatus.partial_fill,
-            averagePrice: 200.06,
-            filledQuantity: 150
-        }
+        order: orderDefinition,
+        trades: [
+            {
+                order: orderDefinition,
+                tif: TimeInForce.day,
+                price: 200,
+                quantity: 150,
+                side: TradeDirection.buy,
+                type: TradeType.stop,
+                t: filledPositionConfig.trades[0].t,
+                symbol
+            }
+        ]
     });
 });
 

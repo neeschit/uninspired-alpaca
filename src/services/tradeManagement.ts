@@ -8,7 +8,8 @@ import {
     TradeType,
     PositionDirection,
     TradeDirection,
-    TimeInForce
+    TimeInForce,
+    FilledTradeConfig
 } from "../data/data.model";
 import { alpaca } from "../connection/alpaca";
 import { AlpacaOrder, AlpacaTradeConfig, Broker } from "@alpacahq/alpaca-trade-api";
@@ -95,6 +96,7 @@ export const rebalancePosition = async (
 export class TradeManagement {
     position?: PositionConfig;
     order?: Order;
+    trades: FilledTradeConfig[] = [];
 
     constructor(
         private config: TradeConfig,
@@ -119,7 +121,8 @@ export class TradeManagement {
         }
         return rebalancePosition(
             Object.assign(this.position, {
-                order: this.order
+                order: this.order,
+                trades: this.trades
             }),
             currentBar
         );
@@ -145,7 +148,12 @@ export class TradeManagement {
         };
 
         return Object.assign(this.position, {
-            order: this.order
+            order: this.order,
+            trades: [{
+                ...this.config,
+                order: this.order,
+                quantity: order.filled_qty,
+            }]
         });
     }
 }
