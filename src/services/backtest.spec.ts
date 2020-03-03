@@ -65,7 +65,8 @@ test("Backtester - simulate days", async t => {
     instance.tradeUpdater.removeAllListeners();
 });
 
-test("Backtester - simulate a whole day", async t => {
+test("Backtester - simulate 10 days", async t => {
+    t.timeout(30000);
     const startDate = parseISO("2019-03-01 12:00:00.000Z");
     const zonedStartDate = convertToLocalTime(
         set(startDate.getTime(), {
@@ -78,8 +79,7 @@ test("Backtester - simulate a whole day", async t => {
             timeZone: MarketTimezone
         }
     );
-    const endDate = parseISO("2019-03-05 22:10:00.000Z");
-
+    const endDate = parseISO("2019-03-12 22:10:00.000Z");
     const zonedEndDate = convertToLocalTime(
         set(endDate.getTime(), {
             hours: 0,
@@ -92,7 +92,7 @@ test("Backtester - simulate a whole day", async t => {
         }
     );
 
-    const test = ["ECL", "AAPL", "CVS"];
+    const test = ["ECL", "AAPL", "HON"];
 
     const instance = new Backtester(60000, zonedStartDate, zonedEndDate, test);
 

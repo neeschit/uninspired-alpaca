@@ -10,18 +10,20 @@ import {
     FilledPositionConfig,
     OrderStatus,
     TradeDirection,
-    PositionDirection
+    PositionDirection,
+    TradeType
 } from "../data/data.model";
 import { isMarketOpen, isMarketOpening } from "../util/market";
 import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
 import { getBarsByDate } from "../data/bars";
+import { rebalancePosition } from "./tradeManagement";
 
 export class Backtester {
     currentDate: Date;
     pastTradeConfigs: TradeConfig[] = [];
     pendingTradeConfigs: TradeConfig[] = [];
-    currentPositionConfigs: PositionConfig[] = [];
-    pastPositionConfigs: PositionConfig[] = [];
+    currentPositionConfigs: FilledPositionConfig[] = [];
+    pastPositionConfigs: FilledPositionConfig[] = [];
     strategyInstances: NarrowRangeBarStrategy[] = [];
     activeStrategyInstances: NarrowRangeBarStrategy[] = [];
     daysElapsed: number = 0;
@@ -109,6 +111,10 @@ export class Backtester {
                 context.clock.tick(context.updateIntervalMillis);
 
                 yield prevDate;
+                /* 
+                console.log(prevDate);
+
+                console.log(context.pendingTradeConfigs); */
 
                 context.incrementDate();
             }
@@ -122,25 +128,31 @@ export class Backtester {
             if (isMarketOpen(this.currentDate)) {
                 this.tradeUpdater.emit("interval_hit");
 
-                const enteredSymbols = await this.executeAndRecord();
-
                 const filteredInstances = this.activeStrategyInstances.filter(
                     i => {
                         return this.pendingTradeConfigs.every(
                             c => c.symbol !== i.symbol
-                        ) && enteredSymbols.indexOf(i.symbol) === -1;
+                        );
                     }
                 );
 
-                const promises = filteredInstances.map(i =>
+                const potentialTradesToPlace = filteredInstances.map(i =>
                     i.rebalance(this.currentDate)
                 );
 
-                for await (const promiseResult of promises) {
+                for await (const promiseResult of potentialTradesToPlace) {
                     if (promiseResult) {
-                        this.pendingTradeConfigs.push(promiseResult);
+                        if (this.validateTrade(promiseResult)) {
+                            this.pendingTradeConfigs.push(promiseResult);
+                        } else {
+                            console.log(
+                                "cannot verify " + JSON.stringify(promiseResult)
+                            );
+                        }
                     }
                 }
+
+                const enteredSymbols = await this.executeAndRecord();
             }
             if (isMarketOpening(this.currentDate)) {
                 this.tradeUpdater.emit("market_opening");
@@ -149,26 +161,23 @@ export class Backtester {
         }
     }
 
-    tradeUpdater: EventEmitter = new EventEmitter();
+    validateTrade(promiseResult: TradeConfig) {
+        const currentPosition = this.currentPositionConfigs.find(
+            c => c.symbol === promiseResult.symbol
+        );
 
-    recordPositionUpdate(positionConfig: PositionConfig) {
-        if (!positionConfig.quantity) {
-            this.addToArray(positionConfig, this.pastPositionConfigs);
-            return;
+        if (!currentPosition) {
+            return true;
         }
 
-        this.addToArray(positionConfig, this.currentPositionConfigs);
-    }
-
-    private addToArray<X extends SymbolContainingConfig>(item: X, array: X[]) {
-        const index = array.findIndex(val => val.symbol);
-
-        if (!index) {
-            array.push(item);
+        if (currentPosition.side === PositionDirection.long) {
+            return promiseResult.side === TradeDirection.sell;
         } else {
-            array[index] = item;
+            return promiseResult.side === TradeDirection.buy;
         }
     }
+
+    tradeUpdater: EventEmitter = new EventEmitter();
 
     incrementDate() {
         this.currentDate = addMilliseconds(
@@ -191,7 +200,7 @@ export class Backtester {
         if (!this.pendingTradeConfigs || !this.pendingTradeConfigs.length) {
             return [];
         }
-        
+
         const symbols = this.pendingTradeConfigs.map(p => p.symbol);
 
         const generator = this.getBarDataGenerator(
@@ -248,12 +257,43 @@ export class Backtester {
                 };
 
                 this.currentPositionConfigs.push(position);
-                this.pendingTradeConfigs = this.pendingTradeConfigs.filter(c => c.symbol !== barData.symbol);
+                this.pendingTradeConfigs = this.pendingTradeConfigs.filter(
+                    c => c.symbol !== barData.symbol
+                );
+                this.pastTradeConfigs.push(tradePlan!);
 
                 newlyExecutedSymbols.push(barData.symbol);
             }
         }
 
         return newlyExecutedSymbols;
+    }
+
+    public async closeAndRebalance() {
+        if (!this.currentPositionConfigs) {
+            return [];
+        }
+
+        const generator = this.getBarDataGenerator(
+            this.currentPositionConfigs.map(p => p.symbol),
+            DefaultDuration.five,
+            PeriodType.minute,
+            1
+        );
+
+        const trades = [];
+
+        for await (const { symbol, bars } of generator(this.currentDate)) {
+            const barIndex = bars.findIndex(
+                b => b.t > this.currentDate.getTime()
+            );
+            const bar = bars[barIndex + 1];
+
+            const position = this.currentPositionConfigs.find(p => p.symbol === symbol);
+
+            trades.push(rebalancePosition(position!, bar));
+        }
+
+        return trades;
     }
 }
