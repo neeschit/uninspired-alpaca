@@ -139,8 +139,6 @@ test("Backtester - simulate everything until all positions are closed", async t 
 
     await instance.simulate();
 
-    console.log(instance.pastTradeConfigs);
-
     t.is(0, instance.pendingTradeConfigs.length);
     t.is(1, instance.currentPositionConfigs.length);
     t.is(3, instance.pastTradeConfigs.length);
