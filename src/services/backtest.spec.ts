@@ -101,13 +101,11 @@ test("Backtester - simulate everything for a few days", async t => {
     t.is(0, instance.pendingTradeConfigs.length);
     t.is(2, instance.currentPositionConfigs.length);
     t.is(2, instance.pastTradeConfigs.length);
-
-    console.log(instance.pastTradeConfigs);
 });
 
 
 test("Backtester - simulate everything until all positions are closed", async t => {
-    t.timeout(30000);
+    t.timeout(60000);
     const startDate = parseISO("2019-03-01 12:00:00.000Z");
     const zonedStartDate = convertToLocalTime(
         set(startDate.getTime(), {
@@ -120,7 +118,7 @@ test("Backtester - simulate everything until all positions are closed", async t 
             timeZone: MarketTimezone
         }
     );
-    const endDate = parseISO("2019-03-08 22:10:00.000Z");
+    const endDate = parseISO("2019-03-31 22:10:00.000Z");
     const zonedEndDate = convertToLocalTime(
         set(endDate.getTime(), {
             hours: 0,
@@ -140,6 +138,7 @@ test("Backtester - simulate everything until all positions are closed", async t 
     await instance.simulate();
 
     t.is(0, instance.pendingTradeConfigs.length);
-    t.is(1, instance.currentPositionConfigs.length);
-    t.is(3, instance.pastTradeConfigs.length);
+    t.is(8, instance.pastTradeConfigs.length);
+    t.is(4, instance.pastPositionConfigs.length);
+    t.is(0, instance.currentPositionConfigs.length);
 });

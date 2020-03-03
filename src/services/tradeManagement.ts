@@ -67,6 +67,7 @@ export const rebalancePosition = async (
     const currentProfitRatio = pnl / plannedRiskUnits;
 
     if (currentProfitRatio > 0.9 && quantity === order.originalQuantity) {
+        console.log(symbol);
         return {
             symbol,
             price: currentBar.c,
