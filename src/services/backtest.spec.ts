@@ -105,7 +105,7 @@ test("Backtester - simulate everything for a few days", async t => {
 
 
 test("Backtester - simulate everything until all positions are closed", async t => {
-    t.timeout(60000);
+    t.timeout(100000);
     const startDate = parseISO("2019-03-01 12:00:00.000Z");
     const zonedStartDate = convertToLocalTime(
         set(startDate.getTime(), {
