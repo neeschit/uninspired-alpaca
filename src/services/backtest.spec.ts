@@ -2,14 +2,7 @@ import test from "ava";
 import { parseFromTimeZone, convertToLocalTime } from "date-fns-timezone";
 
 import { Backtester } from "./backtest";
-import {
-    set,
-    parseISO,
-    addMilliseconds,
-    addDays,
-    isEqual,
-    isSameDay
-} from "date-fns";
+import { set, parseISO, addMilliseconds, addDays, isEqual, isSameDay } from "date-fns";
 import { MarketTimezone, TradeDirection, TradeType, TimeInForce } from "../data/data.model";
 
 const defaultStartDate = parseISO("2019-01-02 12:01:36.386Z");
@@ -99,10 +92,9 @@ test("Backtester - simulate everything for a few days", async t => {
     await instance.simulate();
 
     t.is(0, instance.pendingTradeConfigs.length);
-    t.is(2, instance.currentPositionConfigs.length);
     t.is(2, instance.pastTradeConfigs.length);
+    t.is(2, instance.currentPositionConfigs.length);
 });
-
 
 test("Backtester - simulate everything until all positions are closed", async t => {
     t.timeout(100000);
