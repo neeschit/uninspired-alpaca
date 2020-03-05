@@ -220,6 +220,11 @@ export class NarrowRangeBarStrategy {
         }
 
         const quantity = Math.floor(TRADING_RISK_UNIT_CONSTANT / this.stop);
+
+        if (!quantity) {
+            return null;
+        }
+
         const price = this.isShort ? bar.l : bar.h;
 
         return {

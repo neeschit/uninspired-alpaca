@@ -366,6 +366,10 @@ export class Backtester {
             p => p.symbol === tradePlan.symbol
         );
 
+        if (!bar) {
+            return null;
+        }
+
         if (!position) {
             let unfilledPosition = {
                 symbol: symbol,
@@ -379,11 +383,29 @@ export class Backtester {
                 quantity: tradePlan.quantity
             };
 
-            if (bar.h > tradePlan.price) {
+            if (bar.h > tradePlan.price && tradePlan.side === TradeDirection.buy) {
                 const order = {
                     filledQuantity: tradePlan.quantity,
                     symbol: symbol,
                     averagePrice: tradePlan.price + Math.random() / 10,
+                    status: OrderStatus.filled
+                };
+
+                return {
+                    ...unfilledPosition,
+                    order,
+                    trades: [
+                        {
+                            ...tradePlan,
+                            order
+                        }
+                    ]
+                };
+            } else if (bar.l < tradePlan.price && tradePlan.side === TradeDirection.sell) {
+                const order = {
+                    filledQuantity: tradePlan.quantity,
+                    symbol: symbol,
+                    averagePrice: tradePlan.price - Math.random() / 10,
                     status: OrderStatus.filled
                 };
 
@@ -419,11 +441,26 @@ export class Backtester {
 
             return position;
         } else {
-            if (bar.h > tradePlan.price) {
+            if (bar.h > tradePlan.price && tradePlan.side === TradeDirection.buy) {
                 const order = {
                     filledQuantity: tradePlan.quantity,
                     symbol: symbol,
                     averagePrice: tradePlan.price + Math.random() / 10,
+                    status: OrderStatus.filled
+                };
+
+                position.trades.push({
+                    order,
+                    ...tradePlan
+                });
+                position.quantity -= order.filledQuantity;
+
+                return position;
+            } else if (bar.l < tradePlan.price && tradePlan.side === TradeDirection.sell) {
+                const order = {
+                    filledQuantity: tradePlan.quantity,
+                    symbol: symbol,
+                    averagePrice: tradePlan.price - Math.random() / 10,
                     status: OrderStatus.filled
                 };
 
