@@ -219,9 +219,11 @@ export class NarrowRangeBarStrategy {
             return null;
         }
 
-        const quantity = Math.floor(TRADING_RISK_UNIT_CONSTANT / this.stop);
+        const unitRisk = Math.abs(this.entry - this.stopPrice);
 
-        if (!quantity) {
+        const quantity = Math.floor(TRADING_RISK_UNIT_CONSTANT / unitRisk);
+
+        if (!quantity || quantity < 0) {
             return null;
         }
 

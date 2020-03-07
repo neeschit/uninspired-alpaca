@@ -37,17 +37,33 @@ export const processOrderFromStrategy = (order: TradeConfig): AlpacaTradeConfig 
 };
 
 export const rebalancePosition = async (
-    order: FilledPositionConfig,
+    position: FilledPositionConfig,
     currentBar: Bar
 ): Promise<TradeConfig | null> => {
-    const { symbol, plannedRiskUnits, plannedStopPrice, side: positionSide, quantity } = order;
+    const { symbol, plannedStopPrice, plannedEntryPrice, side: positionSide, quantity } = position;
 
-    const { averagePrice: averageEntryPrice } = order.order;
+    if (!quantity || quantity < 0) {
+        return null;
+    }
+
+    const plannedRiskUnits = Math.abs(plannedEntryPrice - plannedStopPrice);
+
+    const { averagePrice: averageEntryPrice } = position.order;
 
     const closingOrderSide =
         positionSide === PositionDirection.long ? TradeDirection.sell : TradeDirection.buy;
 
-    if (currentBar.c < plannedStopPrice) {
+    if (currentBar.c < plannedStopPrice && positionSide === PositionDirection.long) {
+        return {
+            symbol,
+            price: 0,
+            type: TradeType.market,
+            side: closingOrderSide,
+            tif: TimeInForce.gtc,
+            quantity: quantity,
+            t: Date.now()
+        };
+    } else if (currentBar.c > plannedStopPrice && positionSide === PositionDirection.short) {
         return {
             symbol,
             price: 0,
@@ -66,8 +82,16 @@ export const rebalancePosition = async (
 
     const currentProfitRatio = pnl / plannedRiskUnits;
 
-    if (currentProfitRatio > 0.9 && quantity === order.originalQuantity) {
-        console.log(symbol);
+   /*  console.log(pnl);
+    console.log(currentBar);
+    console.log(position);
+    console.log(currentProfitRatio);
+    console.log(symbol); */
+
+    /* console.log(position.originalQuantity);
+    console.log(position.quantity); */
+
+    if (currentProfitRatio > 0.9 && quantity === position.originalQuantity) {
         return {
             symbol,
             price: currentBar.c,
@@ -78,6 +102,8 @@ export const rebalancePosition = async (
             t: Date.now()
         };
     }
+
+    /* console.log(currentProfitRatio); */
 
     if (currentProfitRatio > 2) {
         return {
