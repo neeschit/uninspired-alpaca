@@ -31,7 +31,7 @@ const defaultZonedEndDate = convertToLocalTime(
         timeZone: MarketTimezone
     }
 );
-/* 
+
 test("Backtester - simulate time and check if correct", async t => {
     const instance = new Backtester(
         updateIntervalMillis,
@@ -149,7 +149,7 @@ test("Backtester - simulate everything until all positions are closed", async t 
     console.log(JSON.stringify(instance.pastPositionConfigs));
     console.log(JSON.stringify(instance.currentPositionConfigs));
 });
- */
+
 test("Backtester - simulate batching", async t => {
     const startDate = parseISO("2019-01-01 12:00:00.000Z");
     const zonedStartDate = convertToLocalTime(

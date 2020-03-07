@@ -236,8 +236,6 @@ export class Backtester {
 
         const difference = differenceInMonths(startDate, endDate);
 
-        console.log(difference);
-
         if (Math.abs(difference) > 6) {
             return null;
         }
