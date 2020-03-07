@@ -84,6 +84,31 @@ test("processOrderFromStrategy - map limit", t => {
     );
 });
 
+test("processOrderFromStrategy - map limit short", t => {
+    t.deepEqual(
+        processOrderFromStrategy({
+            symbol,
+            price: 10,
+            type: TradeType.limit,
+            side: TradeDirection.sell,
+            tif: TimeInForce.gtc,
+            quantity: 100,
+            t: 0
+        }),
+        {
+            symbol,
+            time_in_force: TimeInForce.gtc,
+            type: TradeType.limit,
+            side: TradeDirection.sell,
+            qty: 100,
+            limit_price: 10,
+            stop_price: 0,
+            extended_hours: false,
+            order_class: "simple"
+        }
+    );
+});
+
 test("processOrderFromStrategy - map stop_limit", t => {
     t.deepEqual(
         processOrderFromStrategy({
@@ -104,6 +129,32 @@ test("processOrderFromStrategy - map stop_limit", t => {
             qty: 100,
             limit_price: 10,
             stop_price: 8,
+            extended_hours: false,
+            order_class: "simple"
+        }
+    );
+});
+
+test("processOrderFromStrategy - map stop_limit for shorts", t => {
+    t.deepEqual(
+        processOrderFromStrategy({
+            symbol,
+            price: 10,
+            stopPrice: 11,
+            type: TradeType.stop_limit,
+            side: TradeDirection.sell,
+            tif: TimeInForce.gtc,
+            quantity: 100,
+            t: 0
+        }),
+        {
+            symbol,
+            time_in_force: TimeInForce.gtc,
+            type: TradeType.stop_limit,
+            side: TradeDirection.sell,
+            qty: 100,
+            limit_price: 10,
+            stop_price: 11,
             extended_hours: false,
             order_class: "simple"
         }
@@ -164,6 +215,106 @@ test("rebalancePosition - simple stop", async t => {
     });
 });
 
+test("rebalancePosition - simple stop for a short", async t => {
+    const orderDefinition = {
+        symbol,
+        status: OrderStatus.filled,
+        filledQuantity: 200,
+        averagePrice: 189.96
+    };
+
+    const order = await rebalancePosition(
+        {
+            symbol,
+            plannedEntryPrice: 190,
+            plannedStopPrice: 200,
+            plannedRiskUnits: 10,
+            quantity: 200,
+            plannedQuantity: 200,
+            hasHardStop: true,
+            side: PositionDirection.short,
+            originalQuantity: 200,
+            order: orderDefinition,
+            trades: [
+                {
+                    order: orderDefinition,
+                    tif: TimeInForce.day,
+                    price: 190,
+                    quantity: 200,
+                    side: TradeDirection.sell,
+                    type: TradeType.stop,
+                    t: Date.now(),
+                    symbol
+                }
+            ]
+        },
+        {
+            c: 200.01,
+            h: 201,
+            l: 199.3,
+            v: 30000,
+            o: 199.4,
+            t: 0
+        }
+    );
+
+    t.deepEqual(order, {
+        symbol,
+        price: 0,
+        tif: TimeInForce.gtc,
+        type: TradeType.market,
+        quantity: 200,
+        side: TradeDirection.buy,
+        t: order!.t
+    });
+});
+
+test("rebalancePosition - nothing to do for a short", async t => {
+    const orderDefinition = {
+        symbol,
+        status: OrderStatus.filled,
+        filledQuantity: 200,
+        averagePrice: 189.96
+    };
+
+    const order = await rebalancePosition(
+        {
+            symbol,
+            plannedEntryPrice: 190,
+            plannedStopPrice: 200,
+            plannedRiskUnits: 10,
+            quantity: 200,
+            plannedQuantity: 200,
+            hasHardStop: true,
+            side: PositionDirection.short,
+            originalQuantity: 200,
+            order: orderDefinition,
+            trades: [
+                {
+                    order: orderDefinition,
+                    tif: TimeInForce.day,
+                    price: 190,
+                    quantity: 200,
+                    side: TradeDirection.sell,
+                    type: TradeType.stop,
+                    t: Date.now(),
+                    symbol
+                }
+            ]
+        },
+        {
+            c: 199.01,
+            h: 199.7,
+            l: 198.3,
+            v: 30000,
+            o: 199.4,
+            t: 0
+        }
+    );
+
+    t.deepEqual(order, null);
+});
+
 test("rebalancePosition - simple partial", async t => {
     const orderDefinition = {
         symbol,
@@ -213,6 +364,60 @@ test("rebalancePosition - simple partial", async t => {
         type: TradeType.limit,
         quantity: 150,
         side: TradeDirection.sell,
+        t: order!.t
+    });
+});
+
+test("rebalancePosition - simple partial for a short", async t => {
+    const orderDefinition = {
+        filledQuantity: 5,
+        symbol,
+        averagePrice: 25.489154629747794,
+        status: OrderStatus.filled
+    };
+
+    const order = await rebalancePosition(
+        {
+            symbol,
+            plannedEntryPrice: 25,
+            plannedStopPrice: 27,
+            plannedQuantity: 5,
+            plannedRiskUnits: 10,
+            quantity: 5,
+            hasHardStop: true,
+            side: PositionDirection.short,
+            originalQuantity: 5,
+            order: orderDefinition,
+            trades: [
+                {
+                    order: orderDefinition,
+                    tif: TimeInForce.day,
+                    price: 25.5,
+                    quantity: 5,
+                    side: TradeDirection.sell,
+                    type: TradeType.stop,
+                    t: Date.now(),
+                    symbol
+                }
+            ]
+        },
+        {
+            c: 27.5,
+            h: 28,
+            l: 26.3,
+            v: 30000,
+            o: 26.4,
+            t: 0
+        }
+    );
+
+    t.deepEqual(order, {
+        symbol,
+        price: 0,
+        tif: TimeInForce.gtc,
+        type: TradeType.market,
+        quantity: 5,
+        side: TradeDirection.buy,
         t: order!.t
     });
 });

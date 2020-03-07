@@ -18,7 +18,14 @@
             "type": "node",
             "request": "launch",
             "name": "getAverageVolumes",
-            "program": "${workspaceFolder}/src/scripts/getAverageVolumes.js",
+            "program": "${workspaceFolder}/build/scripts/getAverageVolumes.js",
+            "skipFiles": ["<node_internals>/**"]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "backtester",
+            "program": "${workspaceFolder}/build/scripts/backtest.js",
             "skipFiles": ["<node_internals>/**"]
         },
         {

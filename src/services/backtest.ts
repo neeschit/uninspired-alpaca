@@ -1,5 +1,5 @@
 import { EventEmitter } from "events";
-import { addMilliseconds, addDays, startOfDay } from "date-fns";
+import { addMilliseconds, addDays, startOfDay, addHours } from "date-fns";
 import Sinon from "sinon";
 import {
     TradeConfig,
@@ -47,8 +47,10 @@ export class Backtester {
     }
 
     async screenSymbols() {
-        const symbols = this.configuredSymbols.filter(symbol =>
-            this.strategyInstances.every(i => i.symbol !== symbol)
+        const symbols = this.configuredSymbols.filter(
+            symbol =>
+                this.strategyInstances.every(i => i.symbol !== symbol) &&
+                this.currentPositionConfigs.every(p => p.symbol !== symbol)
         );
 
         for (const symbol of symbols) {
@@ -136,9 +138,14 @@ export class Backtester {
                 context.clock.tick(context.updateIntervalMillis);
 
                 yield prevDate;
-                /* console.log(prevDate);
-                console.log(context.pendingTradeConfigs);
-                console.log(context.activeStrategyInstances.map(c => c.symbol)); */
+                /* if (i % (context.updateIntervalMillis * 100) === 0) {
+                    console.log(prevDate);
+                } */
+                /*console.log(context.pendingTradeConfigs);
+                console.log(context.activeStrategyInstances.map(c => c.symbol));
+                console.log(context.strategyInstances.map(c => c.symbol));
+                console.log(context.currentPositionConfigs.map(c => c.symbol)); */
+                i = context.currentDate.getTime();
 
                 context.incrementDate();
             }
@@ -148,7 +155,7 @@ export class Backtester {
     async simulate() {
         const replayBars = this.getReplayDataGenerator(
             this.configuredSymbols,
-            DefaultDuration.one,
+            this.updateIntervalMillis === 60000 ? DefaultDuration.one : DefaultDuration.five,
             PeriodType.minute,
             this.startDate,
             this.endDate
@@ -188,7 +195,7 @@ export class Backtester {
 
                 for await (const tradeRebalance of rebalancingPositionTrades) {
                     if (tradeRebalance) {
-                        console.log(tradeRebalance);
+                        /* console.log(tradeRebalance); */
                         if (this.validateTrade(tradeRebalance)) {
                             await this.findPositionConfigAndRebalance(tradeRebalance);
                         }
@@ -202,6 +209,7 @@ export class Backtester {
                 for await (const promiseResult of potentialTradesToPlace) {
                     if (promiseResult) {
                         if (this.validateTrade(promiseResult)) {
+                            /* console.log(promiseResult); */
                             this.pendingTradeConfigs.push(promiseResult);
                         } else {
                             console.log("cannot verify " + JSON.stringify(promiseResult));
@@ -250,6 +258,8 @@ export class Backtester {
 
     goToNextDay() {
         this.reset();
+        this.currentDate = addHours(this.currentDate, 12);
+        this.clock.tick(12 * 60 * 60 * 1000);
         this.tradeUpdater.emit("next_day", this.currentDate);
     }
 

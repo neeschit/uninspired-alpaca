@@ -5,6 +5,8 @@ import { Backtester } from "./backtest";
 import { set, parseISO, addMilliseconds, addDays, isEqual, isSameDay } from "date-fns";
 import { MarketTimezone, TradeDirection, TradeType, TimeInForce } from "../data/data.model";
 
+const updateIntervalMillis = 60000;
+
 const defaultStartDate = parseISO("2019-01-02 12:01:36.386Z");
 const defaultZonedStartDate = convertToLocalTime(
     set(defaultStartDate.getTime(), {
@@ -31,7 +33,12 @@ const defaultZonedEndDate = convertToLocalTime(
 );
 
 test("Backtester - simulate time and check if correct", async t => {
-    const instance = new Backtester(60000, defaultZonedStartDate, defaultZonedEndDate, []);
+    const instance = new Backtester(
+        updateIntervalMillis,
+        defaultZonedStartDate,
+        defaultZonedEndDate,
+        []
+    );
 
     let intervalCount = 0;
 
@@ -47,7 +54,12 @@ test("Backtester - simulate time and check if correct", async t => {
 
     await instance.simulate();
 
-    t.is(intervalCount, 390);
+    const intervalExpected = 390;
+    const forInterval = 60000;
+
+    const multiplier = forInterval / updateIntervalMillis;
+
+    t.is(intervalCount, intervalExpected * multiplier);
 
     t.is(true, marketOpened);
 
@@ -87,7 +99,7 @@ test("Backtester - simulate everything for a few days", async t => {
 
     const test = ["ECL", "AAPL", "HON"];
 
-    const instance = new Backtester(60000, zonedStartDate, zonedEndDate, test);
+    const instance = new Backtester(updateIntervalMillis, zonedStartDate, zonedEndDate, test);
 
     await instance.simulate();
 
@@ -125,13 +137,13 @@ test("Backtester - simulate everything until all positions are closed", async t 
 
     const test = ["ECL", "AAPL", "HON"];
 
-    const instance = new Backtester(60000, zonedStartDate, zonedEndDate, test);
+    const instance = new Backtester(updateIntervalMillis, zonedStartDate, zonedEndDate, test);
 
     await instance.simulate();
 
     t.is(0, instance.pendingTradeConfigs.length);
-    t.is(9, instance.pastPositionConfigs.length);
-    t.is(23, instance.pastTradeConfigs.length);
+    t.truthy(9 <= instance.pastPositionConfigs.length && instance.pastPositionConfigs.length <= 10);
+    t.truthy(23 <= instance.pastTradeConfigs.length && instance.pastPositionConfigs.length <= 25);
     t.is(0, instance.currentPositionConfigs.length);
 
     console.log(JSON.stringify(instance.pastPositionConfigs));
