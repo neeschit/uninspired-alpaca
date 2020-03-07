@@ -1,5 +1,5 @@
 import { EventEmitter } from "events";
-import { addMilliseconds, addDays, startOfDay, addHours } from "date-fns";
+import { addMilliseconds, addDays, startOfDay, addHours, differenceInMonths } from "date-fns";
 import Sinon from "sinon";
 import {
     TradeConfig,
@@ -152,7 +152,7 @@ export class Backtester {
         };
     }
 
-    async simulate() {
+    async batchSimulate(startDate: Date, endDate: Date) {
         const replayBars = this.getReplayDataGenerator(
             this.configuredSymbols,
             this.updateIntervalMillis === 60000 ? DefaultDuration.one : DefaultDuration.five,
@@ -228,6 +228,25 @@ export class Backtester {
                 this.goToNextDay();
             }
         }
+    }
+
+    async simulate() {
+        const startDate = this.startDate;
+        const endDate = this.endDate;
+
+        const difference = differenceInMonths(startDate, endDate);
+
+        console.log(difference);
+
+        if (Math.abs(difference) > 6) {
+            return null;
+        }
+
+        if (this.configuredSymbols.length > 100) {
+            return null;
+        }
+
+        return this.batchSimulate(startDate, endDate);
     }
 
     validateTrade(tradeConfig: TradeConfig) {
