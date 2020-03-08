@@ -1,5 +1,12 @@
 import { EventEmitter } from "events";
-import { addMilliseconds, addDays, startOfDay, addHours, differenceInMonths } from "date-fns";
+import {
+    addMilliseconds,
+    addDays,
+    startOfDay,
+    addHours,
+    differenceInMonths,
+    addMonths
+} from "date-fns";
 import Sinon from "sinon";
 import {
     TradeConfig,
@@ -124,13 +131,13 @@ export class Backtester {
         };
     }
 
-    getTimeSeriesGenerator() {
+    getTimeSeriesGenerator({ startDate, endDate }: { startDate: Date; endDate: Date }) {
         const context = this;
 
         return function*() {
             for (
                 let i = context.currentDate.getTime();
-                i < context.endDate.getTime();
+                i < endDate.getTime();
                 i += context.updateIntervalMillis
             ) {
                 const prevDate = context.currentDate;
@@ -138,9 +145,9 @@ export class Backtester {
                 context.clock.tick(context.updateIntervalMillis);
 
                 yield prevDate;
-                /* if (i % (context.updateIntervalMillis * 100) === 0) {
+                if (i % (context.updateIntervalMillis * 100) === 0) {
                     console.log(prevDate);
-                } */
+                }
                 /*console.log(context.pendingTradeConfigs);
                 console.log(context.activeStrategyInstances.map(c => c.symbol));
                 console.log(context.strategyInstances.map(c => c.symbol));
@@ -152,13 +159,13 @@ export class Backtester {
         };
     }
 
-    async batchSimulate(startDate: Date, endDate: Date) {
+    async batchSimulate(startDate: Date, endDate: Date, symbols: string[]) {
         const replayBars = this.getReplayDataGenerator(
-            this.configuredSymbols,
+            symbols,
             this.updateIntervalMillis === 60000 ? DefaultDuration.one : DefaultDuration.five,
             PeriodType.minute,
-            this.startDate,
-            this.endDate
+            startDate,
+            endDate
         );
 
         for await (const bar of replayBars()) {
@@ -168,11 +175,11 @@ export class Backtester {
         }
 
         const screenerBars = this.getReplayDataGenerator(
-            this.configuredSymbols,
+            symbols,
             DefaultDuration.one,
             PeriodType.day,
-            addDays(this.startDate, -150),
-            addDays(this.endDate, 1)
+            addDays(startDate, -150),
+            addDays(endDate, 1)
         );
 
         for await (const bar of screenerBars()) {
@@ -181,7 +188,10 @@ export class Backtester {
             });
         }
 
-        const gen = this.getTimeSeriesGenerator();
+        const gen = this.getTimeSeriesGenerator({
+            startDate,
+            endDate
+        });
 
         for await (const {} of gen()) {
             if (isMarketOpen(this.currentDate)) {
@@ -231,20 +241,14 @@ export class Backtester {
     }
 
     async simulate() {
-        const startDate = this.startDate;
-        const endDate = this.endDate;
+        const batches = Backtester.getBatches(this.startDate, this.endDate, this.configuredSymbols);
 
-        const difference = differenceInMonths(startDate, endDate);
-
-        if (Math.abs(difference) > 6) {
-            return null;
+        for (const batch of batches) {
+            this.currentDate = batch.startDate;
+            this.replayBars = {};
+            this.clock.setSystemTime(this.currentDate);
+            await this.batchSimulate(batch.startDate, batch.endDate, batch.symbols);
         }
-
-        if (this.configuredSymbols.length > 100) {
-            return null;
-        }
-
-        return this.batchSimulate(startDate, endDate);
     }
 
     validateTrade(tradeConfig: TradeConfig) {
@@ -533,4 +537,59 @@ export class Backtester {
 
         return trades;
     }
+
+    static getBatches(
+        startDate: Date,
+        endDate: Date,
+        symbols: string[],
+        batchSize: number = 100
+    ): BacktestBatch[] {
+        const months = differenceInMonths(startDate, endDate);
+
+        if (Math.abs(months) < 5 && symbols.length < batchSize) {
+            return [
+                {
+                    startDate,
+                    endDate,
+                    symbols
+                }
+            ];
+        }
+        const batches = [];
+
+        let batchStartDate = startDate;
+
+        const durations = [];
+
+        while (batchStartDate.getTime() < endDate.getTime()) {
+            let batchedEndDate = addMonths(batchStartDate, 6);
+
+            if (batchedEndDate.getTime() > endDate.getTime()) {
+                batchedEndDate = endDate;
+            }
+            durations.push({
+                startDate: batchStartDate,
+                endDate: batchedEndDate
+            });
+            batchStartDate = batchedEndDate;
+        }
+
+        for (const duration of durations) {
+            for (let i = 0; i < symbols.length; i += batchSize) {
+                batches.push({
+                    startDate: duration.startDate,
+                    endDate: duration.endDate,
+                    symbols: symbols.slice(i, i + batchSize)
+                });
+            }
+        }
+
+        return batches;
+    }
+}
+
+export interface BacktestBatch {
+    startDate: Date;
+    endDate: Date;
+    symbols: string[];
 }
