@@ -2,7 +2,7 @@ import test from "ava";
 import { parseFromTimeZone, convertToLocalTime } from "date-fns-timezone";
 
 import { Backtester } from "./backtest";
-import { set, parseISO, addMilliseconds, addDays, isEqual, isSameDay } from "date-fns";
+import { set, parseISO, addMilliseconds, addDays, isEqual, isSameDay, addMonths } from "date-fns";
 import { MarketTimezone, TradeDirection, TradeType, TimeInForce } from "../data/data.model";
 
 const updateIntervalMillis = 60000;
@@ -70,6 +70,116 @@ test("Backtester - simulate time and check if correct", async t => {
     instance.tradeUpdater.removeAllListeners();
 });
 
+test("Backtester - simulate batching", t => {
+    const startDate = parseISO("2019-01-01 12:00:00.000Z");
+    const zonedStartDate = convertToLocalTime(
+        set(startDate.getTime(), {
+            hours: 9,
+            minutes: 0,
+            seconds: 0,
+            milliseconds: 0
+        }),
+        {
+            timeZone: MarketTimezone
+        }
+    );
+    const endDate = parseISO("2019-09-01 22:10:00.000Z");
+    const zonedEndDate = convertToLocalTime(
+        set(endDate.getTime(), {
+            hours: 0,
+            minutes: 0,
+            seconds: 0,
+            milliseconds: 0
+        }),
+        {
+            timeZone: MarketTimezone
+        }
+    );
+
+    const test = ["ECL", "AAPL", "HON"];
+
+    const result = Backtester.getBatches(zonedStartDate, zonedEndDate, test);
+
+    t.is(result.length, 2);
+    const batchedEnd = addMonths(zonedStartDate, 6);
+    t.deepEqual(result[0], {
+        startDate: zonedStartDate,
+        endDate: batchedEnd,
+        symbols: test
+    });
+
+    t.deepEqual(result[1], {
+        startDate: batchedEnd,
+        endDate: zonedEndDate,
+        symbols: test
+    });
+});
+
+test("Backtester - simulate batching with symbols needing batching as well", async t => {
+    const startDate = parseISO("2019-01-01 12:00:00.000Z");
+    const zonedStartDate = convertToLocalTime(
+        set(startDate.getTime(), {
+            hours: 9,
+            minutes: 0,
+            seconds: 0,
+            milliseconds: 0
+        }),
+        {
+            timeZone: MarketTimezone
+        }
+    );
+    const endDate = parseISO("2019-09-01 22:10:00.000Z");
+    const zonedEndDate = convertToLocalTime(
+        set(endDate.getTime(), {
+            hours: 0,
+            minutes: 0,
+            seconds: 0,
+            milliseconds: 0
+        }),
+        {
+            timeZone: MarketTimezone
+        }
+    );
+
+    const test = ["ECL", "AAPL", "HON"];
+
+    const result = Backtester.getBatches(zonedStartDate, zonedEndDate, test, 1);
+
+    t.is(result.length, 6);
+
+    const batchedEnd = addMonths(zonedStartDate, 6);
+    t.deepEqual(result[0], {
+        startDate: zonedStartDate,
+        endDate: batchedEnd,
+        symbols: ["ECL"]
+    });
+    t.deepEqual(result[1], {
+        startDate: zonedStartDate,
+        endDate: batchedEnd,
+        symbols: ["AAPL"]
+    });
+    t.deepEqual(result[2], {
+        startDate: zonedStartDate,
+        endDate: batchedEnd,
+        symbols: ["HON"]
+    });
+    t.deepEqual(result[3], {
+        startDate: batchedEnd,
+        endDate: zonedEndDate,
+        symbols: ["ECL"]
+    });
+    t.deepEqual(result[4], {
+        startDate: batchedEnd,
+        endDate: zonedEndDate,
+        symbols: ["AAPL"]
+    });
+    t.deepEqual(result[5], {
+        startDate: batchedEnd,
+        endDate: zonedEndDate,
+        symbols: ["HON"]
+    });
+});
+
 test("Backtester - simulate everything for a few days", async t => {
     t.timeout(30000);
     const startDate = parseISO("2019-03-01 12:00:00.000Z");
@@ -122,7 +232,7 @@ test("Backtester - simulate everything until all positions are closed", async t 
             timeZone: MarketTimezone
         }
     );
-    const endDate = parseISO("2019-05-01 22:10:00.000Z");
+    const endDate = parseISO("2019-12-05 22:10:00.000Z");
     const zonedEndDate = convertToLocalTime(
         set(endDate.getTime(), {
             hours: 0,
@@ -135,52 +245,17 @@ test("Backtester - simulate everything until all positions are closed", async t 
         }
     );
 
-    const test = ["ECL", "AAPL", "HON"];
+    const test = ["ECL", "AAPL", "HON", "CVS"];
 
     const instance = new Backtester(updateIntervalMillis, zonedStartDate, zonedEndDate, test);
 
     await instance.simulate();
 
-    t.is(0, instance.pendingTradeConfigs.length);
-    t.truthy(9 <= instance.pastPositionConfigs.length && instance.pastPositionConfigs.length <= 10);
-    t.truthy(23 <= instance.pastTradeConfigs.length && instance.pastPositionConfigs.length <= 25);
-    t.is(0, instance.currentPositionConfigs.length);
-
     console.log(JSON.stringify(instance.pastPositionConfigs));
     console.log(JSON.stringify(instance.currentPositionConfigs));
-});
 
-test("Backtester - simulate batching", async t => {
-    const startDate = parseISO("2019-01-01 12:00:00.000Z");
-    const zonedStartDate = convertToLocalTime(
-        set(startDate.getTime(), {
-            hours: 9,
-            minutes: 0,
-            seconds: 0,
-            milliseconds: 0
-        }),
-        {
-            timeZone: MarketTimezone
-        }
-    );
-    const endDate = parseISO("2019-09-01 22:10:00.000Z");
-    const zonedEndDate = convertToLocalTime(
-        set(endDate.getTime(), {
-            hours: 0,
-            minutes: 0,
-            seconds: 0,
-            milliseconds: 0
-        }),
-        {
-            timeZone: MarketTimezone
-        }
-    );
-
-    const test = ["ECL", "AAPL", "HON"];
-
-    const instance = new Backtester(updateIntervalMillis, zonedStartDate, zonedEndDate, test);
-
-    const result = await instance.simulate();
-
-    t.is(result, null);
+    t.is(0, instance.pendingTradeConfigs.length);
+    t.is(instance.pastPositionConfigs.length, 15);
+    t.is(36, instance.pastTradeConfigs.length);
+    t.is(0, instance.currentPositionConfigs.length);
 });
