@@ -53,8 +53,8 @@ export class Backtester {
         this.clock = Sinon.useFakeTimers(startDate);
     }
 
-    async screenSymbols() {
-        const symbols = this.configuredSymbols.filter(
+    async screenSymbols(configuredSymbols: string[]) {
+        const symbols = configuredSymbols.filter(
             symbol =>
                 this.strategyInstances.every(i => i.symbol !== symbol) &&
                 this.currentPositionConfigs.every(p => p.symbol !== symbol)
@@ -82,8 +82,8 @@ export class Backtester {
         this.activeStrategyInstances.push(...shouldBeAdded);
     }
 
-    async getScreenedSymbols() {
-        await this.screenSymbols();
+    async getScreenedSymbols(symbols: string[]) {
+        await this.screenSymbols(symbols);
 
         return this.activeStrategyInstances;
     }
@@ -145,9 +145,9 @@ export class Backtester {
                 context.clock.tick(context.updateIntervalMillis);
 
                 yield prevDate;
-                if (i % (context.updateIntervalMillis * 100) === 0) {
+                /* if (i % (context.updateIntervalMillis * 100) === 0) {
                     console.log(prevDate);
-                }
+                } */
                 /*console.log(context.pendingTradeConfigs);
                 console.log(context.activeStrategyInstances.map(c => c.symbol));
                 console.log(context.strategyInstances.map(c => c.symbol));
@@ -231,7 +231,7 @@ export class Backtester {
             }
             if (isMarketOpening(this.currentDate)) {
                 this.tradeUpdater.emit("market_opening");
-                await this.getScreenedSymbols();
+                await this.getScreenedSymbols(symbols);
             }
 
             if (isAfterMarketClose(this.currentDate)) {
@@ -240,14 +240,24 @@ export class Backtester {
         }
     }
 
-    async simulate() {
-        const batches = Backtester.getBatches(this.startDate, this.endDate, this.configuredSymbols);
+    async simulate(batchSize = 100) {
+        const batches = Backtester.getBatches(
+            this.startDate,
+            this.endDate,
+            this.configuredSymbols,
+            batchSize
+        );
+
+        const currentPositionConfigs: FilledPositionConfig[][] = [];
 
         for (const batch of batches) {
             this.currentDate = batch.startDate;
             this.replayBars = {};
+            this.currentPositionConfigs = currentPositionConfigs[batch.batchId] || [];
             this.clock.setSystemTime(this.currentDate);
             await this.batchSimulate(batch.startDate, batch.endDate, batch.symbols);
+
+            currentPositionConfigs[batch.batchId] = this.currentPositionConfigs;
         }
     }
 
@@ -518,6 +528,12 @@ export class Backtester {
 
         for (const symbol of symbols) {
             const bars = this.replayBars[symbol];
+
+            if (!bars) {
+                console.warn(`no bars found for date ${this.currentDate} for ${symbol}`);
+                continue;
+            }
+
             const barIndex = bars.findIndex(b => b.t > this.currentDate.getTime());
             const bar = bars[barIndex + 1];
 
@@ -551,7 +567,8 @@ export class Backtester {
                 {
                     startDate,
                     endDate,
-                    symbols
+                    symbols,
+                    batchId: 0
                 }
             ];
         }
@@ -579,7 +596,8 @@ export class Backtester {
                 batches.push({
                     startDate: duration.startDate,
                     endDate: duration.endDate,
-                    symbols: symbols.slice(i, i + batchSize)
+                    symbols: symbols.slice(i, i + batchSize),
+                    batchId: i
                 });
             }
         }
@@ -592,4 +610,5 @@ export interface BacktestBatch {
     startDate: Date;
     endDate: Date;
     symbols: string[];
+    batchId: number;
 }

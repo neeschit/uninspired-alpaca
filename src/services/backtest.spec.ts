@@ -105,13 +105,15 @@ test("Backtester - simulate batching", t => {
     t.deepEqual(result[0], {
         startDate: zonedStartDate,
         endDate: batchedEnd,
-        symbols: test
+        symbols: test,
+        batchId: 0
     });
 
     t.deepEqual(result[1], {
         startDate: batchedEnd,
         endDate: zonedEndDate,
-        symbols: test
+        symbols: test,
+        batchId: 0
     });
 });
 
@@ -151,32 +153,38 @@ test("Backtester - simulate batching with symbols needing batching as well", asy
     t.deepEqual(result[0], {
         startDate: zonedStartDate,
         endDate: batchedEnd,
-        symbols: ["ECL"]
+        symbols: ["ECL"],
+        batchId: 0
     });
     t.deepEqual(result[1], {
         startDate: zonedStartDate,
         endDate: batchedEnd,
-        symbols: ["AAPL"]
+        symbols: ["AAPL"],
+        batchId: 1
     });
     t.deepEqual(result[2], {
         startDate: zonedStartDate,
         endDate: batchedEnd,
-        symbols: ["HON"]
+        symbols: ["HON"],
+        batchId: 2
     });
     t.deepEqual(result[3], {
         startDate: batchedEnd,
         endDate: zonedEndDate,
-        symbols: ["ECL"]
+        symbols: ["ECL"],
+        batchId: 0
     });
     t.deepEqual(result[4], {
         startDate: batchedEnd,
         endDate: zonedEndDate,
-        symbols: ["AAPL"]
+        symbols: ["AAPL"],
+        batchId: 1
     });
     t.deepEqual(result[5], {
         startDate: batchedEnd,
         endDate: zonedEndDate,
-        symbols: ["HON"]
+        symbols: ["HON"],
+        batchId: 2
     });
 });
 

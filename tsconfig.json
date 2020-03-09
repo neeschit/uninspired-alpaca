@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "sourceRoot": "./",
-        "sourceMap": true,
+        "inlineSourceMap": true,
         "strict": true,
         "module": "CommonJS",
         "moduleResolution": "node",
