@@ -1,11 +1,12 @@
 import { addDays, startOfDay } from "date-fns";
 import { getPolyonData, getSimplePolygonData } from "../connection/polygon";
 import { TimestampType, Bar, PeriodType, DefaultDuration } from "../data/data.model";
+import { LOGGER } from "../instrumentation/log";
 
 const date = new Date();
 
 export const getDayBars = (symbols: string[], days = 100, lookback = 100) => {
-    console.log(new Date(new Date().setDate(date.getDate() - lookback)).toLocaleDateString());
+    LOGGER.debug(new Date(new Date().setDate(date.getDate() - lookback)).toLocaleDateString());
 
     return getBars(PeriodType.day, symbols, days, lookback);
 };

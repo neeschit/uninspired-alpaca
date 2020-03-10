@@ -14,6 +14,7 @@ import {
     TradeType,
     TimeInForce
 } from "../data/data.model";
+import { LOGGER } from "../instrumentation/log";
 
 export class NarrowRangeBarStrategy {
     period: number;
@@ -68,6 +69,7 @@ export class NarrowRangeBarStrategy {
 
     get isShort() {
         const overallTrend = getOverallTrend(this.bars);
+        LOGGER.info(`overall trend is ${overallTrend}`);
         const recentTrend = getRecentTrend(this.bars.slice(-2));
 
         return overallTrend === TrendType.down && recentTrend === TrendType.up;
@@ -158,7 +160,7 @@ export class NarrowRangeBarStrategy {
 
     isTimeForEntry(now: TimestampType) {
         if (!isMarketOpen(now)) {
-            /* console.error("market ain't open biiatch", now); */
+            LOGGER.debug("market ain't open biiatch", now);
             return null;
         }
 
@@ -188,16 +190,16 @@ export class NarrowRangeBarStrategy {
         const isWithinEntryRange =
             timeStart.getTime() <= nowMillis && timeEnd.getTime() >= nowMillis;
 
-        /* if (!isWithinEntryRange) {
-            console.debug("come back later hooomie", nowMillis);
-        } */
+        if (!isWithinEntryRange) {
+            LOGGER.debug("come back later hooomie", nowMillis);
+        }
 
         return isWithinEntryRange;
     }
 
     async rebalance(now: TimestampType = Date.now()) {
         if (!this.isTimeForEntry(now)) {
-            /* console.warn("the time is not nigh"); */
+            LOGGER.debug("the time is not nigh");
             return null;
         }
 
@@ -215,7 +217,7 @@ export class NarrowRangeBarStrategy {
         const bar = lastBar.find(bar => bar.t === timezonedStamp.getTime());
 
         if (!bar) {
-            console.error("couldnt find appropriate bar", timezonedStamp.getTime(), now);
+            LOGGER.error("couldnt find appropriate bar", timezonedStamp.getTime(), now);
             return null;
         }
 

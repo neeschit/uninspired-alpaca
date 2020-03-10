@@ -3,6 +3,7 @@ import { parseISO, set } from "date-fns";
 import { convertToLocalTime } from "date-fns-timezone";
 import { MarketTimezone } from "../data/data.model";
 import { readFileSync } from "fs";
+import { LOGGER } from "../instrumentation/log";
 
 const startDate = parseISO("2019-01-01 12:01:36.386Z");
 const zonedStartDate = convertToLocalTime(
@@ -35,8 +36,8 @@ const instance = new Backtester(60000, zonedStartDate, zonedEndDate, LARGE_CAPS)
 
 async function run() {
     await instance.simulate(50);
-    console.log(JSON.stringify(instance.pastPositionConfigs));
-    console.log(JSON.stringify(instance.currentPositionConfigs));
+    LOGGER.info(JSON.stringify(instance.pastPositionConfigs));
+    LOGGER.info(JSON.stringify(instance.currentPositionConfigs));
 }
 
-run().then(() => console.log("done"));
+run().then(() => LOGGER.info("done"));

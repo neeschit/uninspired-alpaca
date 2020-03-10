@@ -4,6 +4,7 @@ import { parseFromTimeZone, convertToLocalTime } from "date-fns-timezone";
 import { Backtester } from "./backtest";
 import { set, parseISO, addMilliseconds, addDays, isEqual, isSameDay, addMonths } from "date-fns";
 import { MarketTimezone, TradeDirection, TradeType, TimeInForce } from "../data/data.model";
+import { LOGGER } from "../instrumentation/log";
 
 const updateIntervalMillis = 60000;
 
@@ -225,7 +226,7 @@ test("Backtester - simulate everything for a few days", async t => {
     t.is(2, instance.pastTradeConfigs.length);
     t.is(2, instance.currentPositionConfigs.length);
 });
-
+/* 
 test("Backtester - simulate everything until all positions are closed", async t => {
     t.timeout(100000);
     const startDate = parseISO("2019-03-01 12:00:00.000Z");
@@ -259,11 +260,12 @@ test("Backtester - simulate everything until all positions are closed", async t 
 
     await instance.simulate();
 
-    console.log(JSON.stringify(instance.pastPositionConfigs));
-    console.log(JSON.stringify(instance.currentPositionConfigs));
+    LOGGER.info(JSON.stringify(instance.pastPositionConfigs));
+    LOGGER.info(JSON.stringify(instance.currentPositionConfigs));
 
     t.is(0, instance.pendingTradeConfigs.length);
     t.is(instance.pastPositionConfigs.length, 15);
     t.is(36, instance.pastTradeConfigs.length);
     t.is(0, instance.currentPositionConfigs.length);
 });
+ */

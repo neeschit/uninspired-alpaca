@@ -9,6 +9,7 @@ import {
     TradeType,
     TimeInForce
 } from "../data/data.model";
+import { LOGGER } from "../instrumentation/log";
 
 test("nrb7 - identify", t => {
     const nrbStrategyInstance = new NarrowRangeBarStrategy({
@@ -21,7 +22,7 @@ test("nrb7 - identify", t => {
         const fits = nrbStrategyInstance.checkIfFitsStrategy();
         t.truthy(fits);
     } catch (e) {
-        console.error(e);
+        LOGGER.error(e);
     }
 });
 
@@ -36,7 +37,7 @@ test("nrb7 - check strength", t => {
         const strength = nrbStrategyInstance.checkStrength();
         t.is(strength, 1);
     } catch (e) {
-        console.error(e);
+        LOGGER.error(e);
     }
 
     const newBars = bars.slice();
@@ -60,7 +61,7 @@ test("nrb7 - check strength", t => {
     try {
         t.is(nrbStrategyInstance1.checkStrength(), 2);
     } catch (e) {
-        console.error(e);
+        LOGGER.error(e);
     }
 });
 
@@ -78,7 +79,7 @@ test("nrb7 - find entry price", t => {
         const safeStop = nrbStrategyInstance.stop;
         t.is(entryPrice - safeStop, 292);
     } catch (e) {
-        console.error(e);
+        LOGGER.error(e);
     }
 });
 
@@ -93,7 +94,7 @@ test("nrb7 - find simple stop price", t => {
         const stopPrice = nrbStrategyInstance.simpleStop;
         t.is(stopPrice, 294.5);
     } catch (e) {
-        console.error(e);
+        LOGGER.error(e);
     }
 });
 
@@ -108,7 +109,7 @@ test("nrb7 - identify for bars1", t => {
         const fits = nrbStrategyInstance.checkIfFitsStrategy();
         t.truthy(fits);
     } catch (e) {
-        console.error(e);
+        LOGGER.error(e);
     }
 });
 
@@ -123,7 +124,7 @@ test("nrb7 - check strength for bars1", t => {
         const strength = nrbStrategyInstance.checkStrength();
         t.is(strength, 1);
     } catch (e) {
-        console.error(e);
+        LOGGER.error(e);
     }
 });
 
@@ -141,7 +142,7 @@ test("nrb7 - find entry price bars1", t => {
         const safeStop = nrbStrategyInstance.stop;
         t.is(entryPrice - safeStop, 201);
     } catch (e) {
-        console.error(e);
+        LOGGER.error(e);
     }
 });
 
@@ -156,7 +157,7 @@ test("nrb7 - find simple stop price for bars1", t => {
         const stopPrice = nrbStrategyInstance.simpleStop;
         t.is(stopPrice, 204.5);
     } catch (e) {
-        console.error(e);
+        LOGGER.error(e);
     }
 });
 
@@ -171,7 +172,7 @@ test("nrb7 - identify for bars2", t => {
         const fits = nrbStrategyInstance.checkIfFitsStrategy();
         t.truthy(fits);
     } catch (e) {
-        console.error(e);
+        LOGGER.error(e);
     }
 });
 
@@ -186,7 +187,7 @@ test("nrb7 - check strength for bars2", t => {
         const strength = nrbStrategyInstance.checkStrength();
         t.is(strength, 1);
     } catch (e) {
-        console.error(e);
+        LOGGER.error(e);
     }
 });
 
@@ -205,7 +206,7 @@ test("nrb7 - find entry price bars2", t => {
         const stopPrice = entryPrice - safeStop;
         t.truthy(stopPrice > 47.8 && stopPrice < 47.95);
     } catch (e) {
-        console.error(e);
+        LOGGER.error(e);
     }
 });
 
@@ -220,7 +221,7 @@ test("nrb7 - find simple stop price for bars2", t => {
         const stopPrice = nrbStrategyInstance.simpleStop;
         t.is(stopPrice, 48);
     } catch (e) {
-        console.error(e);
+        LOGGER.error(e);
     }
 });
 
