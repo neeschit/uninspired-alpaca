@@ -1,11 +1,12 @@
 import { getAverageDirectionalIndex } from "../../indicator/adx";
 import { Bar } from "../../data/data.model";
+import { LOGGER } from "../../instrumentation/log";
 
-export const TrendType = {
-    up: "up",
-    down: "down",
-    sideways: "sideways"
-};
+export enum TrendType {
+    up = "up",
+    down = "down",
+    sideways = "sideways"
+}
 
 const getMaxMin = (bars: Bar[]) => {
     return bars.reduce(
@@ -65,14 +66,6 @@ export const getRecentTrend = (bars: Bar[]) => {
     return closingTrend;
 };
 
-const isAboveThreshold = (array: number[], compare: number[]) => {
-    return (
-        array[array.length - 1] > array[0] ||
-        array[array.length - 1] > 30 ||
-        array[array.length - 1] > compare[compare.length - 1]
-    );
-};
-
 export const getOverallTrend = (bars: Bar[]) => {
     const { adx, pdx, ndx } = getAverageDirectionalIndex(bars);
 
@@ -82,9 +75,8 @@ export const getOverallTrend = (bars: Bar[]) => {
         return TrendType.sideways;
     }
 
-    return isAboveThreshold(pdx, ndx)
-        ? TrendType.up
-        : isAboveThreshold(ndx, pdx)
-        ? TrendType.down
-        : TrendType.sideways;
+    LOGGER.debug(pdx[pdx.length - 1]);
+    LOGGER.debug(ndx[ndx.length - 1]);
+
+    return pdx[pdx.length - 1] > ndx[ndx.length - 1] ? TrendType.up : TrendType.down;
 };

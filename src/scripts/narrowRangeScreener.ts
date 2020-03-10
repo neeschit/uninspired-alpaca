@@ -18,6 +18,9 @@ const barsPromise = getDayBars(list, 430, Number(lookback || 366));
     barsFetched.push(barsPromise);
     list = list.slice(200);
 } */
+LOGGER.info(
+    new Date(new Date().setDate(new Date().getDate() - (lookback || 366))).toLocaleDateString()
+);
 
 barsPromise
     .then(responses => {

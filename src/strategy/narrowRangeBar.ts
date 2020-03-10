@@ -32,6 +32,9 @@ export class NarrowRangeBarStrategy {
     entryMinuteStart: number = 34;
     entryMinuteEnd: number = 36;
 
+    overallTrend: TrendType;
+    recentTrend: TrendType;
+
     constructor({ period = 7, symbol, bars }: { period: number; symbol: string; bars: Bar[] }) {
         if (period < 4) {
             throw new Error("fix da shiz");
@@ -51,6 +54,9 @@ export class NarrowRangeBarStrategy {
         this.atr = atr;
         this.tr = tr;
         this.volumeProfile = getVolumeProfile(this.bars);
+
+        this.overallTrend = getOverallTrend(this.bars);
+        this.recentTrend = getRecentTrend(this.bars.slice(-2));
     }
 
     get atrValue() {
@@ -68,11 +74,7 @@ export class NarrowRangeBarStrategy {
     }
 
     get isShort() {
-        const overallTrend = getOverallTrend(this.bars);
-        LOGGER.info(`overall trend is ${overallTrend}`);
-        const recentTrend = getRecentTrend(this.bars.slice(-2));
-
-        return overallTrend === TrendType.down && recentTrend === TrendType.up;
+        return this.overallTrend === TrendType.down;
     }
 
     get entry() {
@@ -153,9 +155,10 @@ export class NarrowRangeBarStrategy {
     }
 
     toString() {
-        return `Looking to ${this.isShort ? "SHORT" : "LONG"} ${this.symbol} at ${
-            this.entry
-        }, stop - ${this.stopPrice} - with close ${this.currentPrice}`;
+        return `overall trend is ${this.overallTrend}.
+        Looking to ${this.isShort ? "SHORT" : "LONG"} ${this.symbol} at ${this.entry}, stop - ${
+            this.stopPrice
+        } - with close ${this.currentPrice}`;
     }
 
     isTimeForEntry(now: TimestampType) {
