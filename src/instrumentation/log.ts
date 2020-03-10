@@ -34,3 +34,7 @@ export const LOGGER = {
         checkBeforeLog(LogLevel.DEBUG, "debug", message, ...optionalParams);
     }
 };
+
+process.on("uncaughtException", function(err) {
+    console.error("Uncaught exception raised : ", err);
+});
