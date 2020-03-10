@@ -25,6 +25,7 @@ import { isMarketOpen, isMarketOpening, isAfterMarketClose } from "../util/marke
 import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
 import { getBarsByDate } from "../data/bars";
 import { rebalancePosition } from "./tradeManagement";
+import { LOGGER } from "../instrumentation/log";
 
 export class Backtester {
     currentDate: Date;
@@ -145,13 +146,13 @@ export class Backtester {
                 context.clock.tick(context.updateIntervalMillis);
 
                 yield prevDate;
-                /* if (i % (context.updateIntervalMillis * 100) === 0) {
-                    console.log(prevDate);
-                } */
-                /*console.log(context.pendingTradeConfigs);
-                console.log(context.activeStrategyInstances.map(c => c.symbol));
-                console.log(context.strategyInstances.map(c => c.symbol));
-                console.log(context.currentPositionConfigs.map(c => c.symbol)); */
+                if (i % (context.updateIntervalMillis * 100) === 0) {
+                    LOGGER.debug(prevDate);
+                }
+                LOGGER.debug(context.pendingTradeConfigs);
+                LOGGER.debug(context.activeStrategyInstances.map(c => c.symbol));
+                LOGGER.debug(context.strategyInstances.map(c => c.symbol));
+                LOGGER.debug(context.currentPositionConfigs.map(c => c.symbol));
                 i = context.currentDate.getTime();
 
                 context.incrementDate();
@@ -205,7 +206,7 @@ export class Backtester {
 
                 for await (const tradeRebalance of rebalancingPositionTrades) {
                     if (tradeRebalance) {
-                        /* console.log(tradeRebalance); */
+                        LOGGER.debug(tradeRebalance);
                         if (this.validateTrade(tradeRebalance)) {
                             await this.findPositionConfigAndRebalance(tradeRebalance);
                         }
@@ -219,10 +220,10 @@ export class Backtester {
                 for await (const promiseResult of potentialTradesToPlace) {
                     if (promiseResult) {
                         if (this.validateTrade(promiseResult)) {
-                            /* console.log(promiseResult); */
+                            LOGGER.debug(promiseResult);
                             this.pendingTradeConfigs.push(promiseResult);
                         } else {
-                            console.log("cannot verify " + JSON.stringify(promiseResult));
+                            LOGGER.warn("cannot verify " + JSON.stringify(promiseResult));
                         }
                     }
                 }
@@ -336,7 +337,7 @@ export class Backtester {
                     newlyExecutedSymbols.push(symbol);
                 }
             } else {
-                console.warn("cannot execute without no trade plan from strategy", tradePlan);
+                LOGGER.warn("cannot execute without no trade plan from strategy", tradePlan);
             }
         }
 
@@ -530,7 +531,7 @@ export class Backtester {
             const bars = this.replayBars[symbol];
 
             if (!bars) {
-                console.warn(`no bars found for date ${this.currentDate} for ${symbol}`);
+                LOGGER.warn(`no bars found for date ${this.currentDate} for ${symbol}`);
                 continue;
             }
 
@@ -540,11 +541,11 @@ export class Backtester {
             const position = this.currentPositionConfigs.find(p => p.symbol === symbol);
 
             if (!position) {
-                console.warn("no position for ", symbol);
+                LOGGER.warn("no position for ", symbol);
                 continue;
             }
             if (!bar) {
-                console.warn("no bar for ", symbol);
+                LOGGER.warn("no bar for ", symbol);
                 continue;
             }
 

@@ -13,6 +13,7 @@ import {
 } from "../data/data.model";
 import { alpaca } from "../connection/alpaca";
 import { AlpacaOrder, AlpacaTradeConfig, Broker } from "@alpacahq/alpaca-trade-api";
+import { LOGGER } from "../instrumentation/log";
 
 export const processOrderFromStrategy = (order: TradeConfig): AlpacaTradeConfig => {
     const { quantity, tif, price, type, side, symbol, stopPrice = price } = order;
@@ -82,14 +83,14 @@ export const rebalancePosition = async (
 
     const currentProfitRatio = pnl / plannedRiskUnits;
 
-   /*  console.log(pnl);
-    console.log(currentBar);
-    console.log(position);
-    console.log(currentProfitRatio);
-    console.log(symbol); */
+    LOGGER.debug(pnl);
+    LOGGER.debug(currentBar);
+    LOGGER.debug(position);
+    LOGGER.debug(currentProfitRatio);
+    LOGGER.debug(symbol);
 
-    /* console.log(position.originalQuantity);
-    console.log(position.quantity); */
+    LOGGER.debug(position.originalQuantity);
+    LOGGER.debug(position.quantity);
 
     if (currentProfitRatio > 0.9 && quantity === position.originalQuantity) {
         return {
@@ -103,7 +104,7 @@ export const rebalancePosition = async (
         };
     }
 
-    /* console.log(currentProfitRatio); */
+    LOGGER.debug(currentProfitRatio);
 
     if (currentProfitRatio > 2) {
         return {
@@ -143,7 +144,7 @@ export class TradeManagement {
 
     onTradeUpdate(currentBar: Bar) {
         if (!this.position || !this.order || !this.order.filledQuantity) {
-            console.error("no position or order was never fulfilled");
+            LOGGER.error("no position or order was never fulfilled");
             return;
         }
         return rebalancePosition(
@@ -176,11 +177,13 @@ export class TradeManagement {
 
         return Object.assign(this.position, {
             order: this.order,
-            trades: [{
-                ...this.config,
-                order: this.order,
-                quantity: order.filled_qty,
-            }]
+            trades: [
+                {
+                    ...this.config,
+                    order: this.order,
+                    quantity: order.filled_qty
+                }
+            ]
         });
     }
 }

@@ -1,5 +1,6 @@
 import { alpaca } from "../connection/alpaca";
 import { getTickerDetails } from "../connection/polygon";
+import { LOGGER } from "../instrumentation/log";
 
 const allowedCountries = ["usa", "chn", "hkg", "can"];
 
@@ -20,7 +21,7 @@ export const getCompaniesByMarketCap = async (marketcap: number) => {
 
     for (let i = 0; i < companies.length; i++) {
         if (i % buckets === 0) {
-            console.log("completed " + i + " assets");
+            LOGGER.info("completed " + i + " assets");
         }
         try {
             const details: any = await getTickerDetails(companies[i].symbol);

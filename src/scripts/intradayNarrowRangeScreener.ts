@@ -4,6 +4,7 @@ import { getDayForAlpacaTimestamp } from "../util";
 
 import { getIntradayBars } from "../data/bars";
 import { Bar } from "../data/data.model";
+import { LOGGER } from "../instrumentation/log";
 
 const LARGE_CAPS = JSON.parse(readFileSync("./largecaps.json").toString());
 
@@ -90,9 +91,9 @@ Promise.all(barsFetched)
                 ranges.slice(-3).filter(range => range < maxRange / 6).length > threshold;
 
             if (narrowRange) {
-                console.log(symbol);
-                console.log(count++);
+                LOGGER.debug(symbol);
+                LOGGER.debug(count++);
             }
         });
     })
-    .catch(console.log);
+    .catch(LOGGER.info);

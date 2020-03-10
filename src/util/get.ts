@@ -1,4 +1,5 @@
 import * as https from "https";
+import { LOGGER } from "../instrumentation/log";
 
 const logError = ({
     url,
@@ -11,13 +12,13 @@ const logError = ({
     count: number;
     reject: any;
 }) => {
-    console.error(url);
-    console.error(count);
+    LOGGER.error(url);
+    LOGGER.error(count);
     return reject(new Error("statusCode=" + response.statusCode));
 };
 
 export const get = (url: string) => {
-    console.log(url);
+    LOGGER.debug(url);
     return new Promise((resolve, reject) => {
         let count = 0;
         const retry = () => {

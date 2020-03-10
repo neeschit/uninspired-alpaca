@@ -1,6 +1,7 @@
 import { getDayBars } from "../data/bars";
 import { readFileSync } from "fs";
 import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
+import { LOGGER } from "../instrumentation/log";
 
 const LARGE_CAPS = JSON.parse(readFileSync("./largecaps.json").toString());
 
@@ -20,7 +21,7 @@ const barsPromise = getDayBars(list, 430, Number(lookback || 366));
 
 barsPromise
     .then(responses => {
-        console.log(responses.length);
+        LOGGER.debug(responses.length);
         const bars = {};
 
         responses.map(response => {
@@ -35,7 +36,7 @@ barsPromise
                 const bars = stocksBars[symbol];
 
                 if (!bars) {
-                    console.log("no bars");
+                    LOGGER.warn("no bars");
 
                     return null;
                 }
@@ -52,6 +53,6 @@ barsPromise
             .filter(n => {
                 return n!.hasPotentialForRewards();
             })
-            .map(n => console.log(n!.toString()));
+            .map(n => LOGGER.info(n!.toString()));
     })
-    .catch(console.error);
+    .catch(LOGGER.error);

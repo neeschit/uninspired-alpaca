@@ -2,6 +2,7 @@ import * as dotenv from "dotenv";
 import { format } from "date-fns";
 import { get } from "../util/get";
 import { PeriodType, DefaultDuration, Bar } from "../data/data.model";
+import { LOGGER } from "../instrumentation/log";
 
 const config = dotenv.config().parsed;
 
@@ -34,7 +35,7 @@ export const getPolyonData = (
 
     return get(url).then((response: any) => {
         if (!response.results) {
-            console.log(url);
+            LOGGER.debug(url);
         }
         return {
             [symbol]: response.results
@@ -57,7 +58,7 @@ export const getSimplePolygonData = (
 
     return get(url).then((response: any) => {
         if (!response.results) {
-            console.log(url);
+            LOGGER.warn(url);
         }
         return response.results;
     });
