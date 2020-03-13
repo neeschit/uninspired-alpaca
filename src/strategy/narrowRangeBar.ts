@@ -46,6 +46,8 @@ export class NarrowRangeBarStrategy {
         this.symbol = symbol;
         this.bars = bars;
 
+        LOGGER.debug(`${this.bars.length} for ${this.symbol}`);
+
         const { adx, pdx, ndx, atr, tr } = getAverageDirectionalIndex(this.bars);
         this.adx = adx;
         this.pdx = pdx;
@@ -106,7 +108,9 @@ export class NarrowRangeBarStrategy {
     checkIfFitsStrategy() {
         return (
             this.isNarrowRangeBar(this.tr.slice(-this.period)) &&
-            this.adx[this.adx.length - 1].value > 30
+            this.adx[this.adx.length - 1].value > 30 &&
+            this.hasPotentialForRewards() &&
+            this.overallTrend !== TrendType.sideways
         );
     }
 
@@ -224,15 +228,23 @@ export class NarrowRangeBarStrategy {
             return null;
         }
 
-        const unitRisk = Math.abs(this.entry - this.stopPrice);
+        const price = this.isShort ? bar.l : bar.h;
+
+        const unitRisk = Math.abs(price - this.stopPrice);
+        const plannedRiskUnits = Math.abs(this.entry - this.stopPrice);
+
+        /*  if (unitRisk / plannedRiskUnits > 1.5) {
+            LOGGER.warn(
+                `Planned risk units exceeded for ${this.symbol} at this ${new Date(bar.t)}`
+            );
+            return null;
+        } */
 
         const quantity = Math.floor(TRADING_RISK_UNIT_CONSTANT / unitRisk);
 
         if (!quantity || quantity < 0) {
             return null;
         }
-
-        const price = this.isShort ? bar.l : bar.h;
 
         return {
             symbol: this.symbol,

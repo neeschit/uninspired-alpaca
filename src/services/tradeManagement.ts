@@ -39,7 +39,9 @@ export const processOrderFromStrategy = (order: TradeConfig): AlpacaTradeConfig 
 
 export const rebalancePosition = async (
     position: FilledPositionConfig,
-    currentBar: Bar
+    currentBar: Bar,
+    profitRatio: number = 0.9,
+    secondProfitRatio: number = 2
 ): Promise<TradeConfig | null> => {
     const { symbol, plannedStopPrice, plannedEntryPrice, side: positionSide, quantity } = position;
 
@@ -92,7 +94,7 @@ export const rebalancePosition = async (
     LOGGER.debug(position.originalQuantity);
     LOGGER.debug(position.quantity);
 
-    if (currentProfitRatio > 0.9 && quantity === position.originalQuantity) {
+    if (currentProfitRatio > profitRatio && quantity === position.originalQuantity) {
         return {
             symbol,
             price: currentBar.c,
@@ -106,7 +108,7 @@ export const rebalancePosition = async (
 
     LOGGER.debug(currentProfitRatio);
 
-    if (currentProfitRatio > 2) {
+    if (currentProfitRatio > secondProfitRatio) {
         return {
             symbol,
             price: 0,

@@ -195,48 +195,63 @@ export class Backtester {
         });
 
         for await (const {} of gen()) {
-            if (isMarketOpen(this.currentDate)) {
-                this.tradeUpdater.emit("interval_hit");
+            try {
+                if (isMarketOpen(this.currentDate)) {
+                    this.tradeUpdater.emit("interval_hit");
 
-                const filteredInstances = this.activeStrategyInstances.filter(i => {
-                    return this.pendingTradeConfigs.every(c => c.symbol !== i.symbol);
-                });
+                    const filteredInstances = this.activeStrategyInstances.filter(i => {
+                        return this.pendingTradeConfigs.every(c => c.symbol !== i.symbol);
+                    });
 
-                const rebalancingPositionTrades = await this.closeAndRebalance();
+                    try {
+                        const rebalancingPositionTrades = await this.closeAndRebalance();
 
-                for await (const tradeRebalance of rebalancingPositionTrades) {
-                    if (tradeRebalance) {
-                        LOGGER.debug(tradeRebalance);
-                        if (this.validateTrade(tradeRebalance)) {
-                            await this.findPositionConfigAndRebalance(tradeRebalance);
+                        for await (const tradeRebalance of rebalancingPositionTrades) {
+                            if (tradeRebalance) {
+                                LOGGER.debug(tradeRebalance);
+                                if (this.validateTrade(tradeRebalance)) {
+                                    try {
+                                        await this.findPositionConfigAndRebalance(tradeRebalance);
+                                    } catch (e) {
+                                        LOGGER.error(`Error rebalancing trade `, tradeRebalance, e);
+                                    }
+                                }
+                            }
+                        }
+                    } catch (e) {}
+
+                    const potentialTradesToPlace = filteredInstances.map(i => {
+                        try {
+                            return i.rebalance(this.currentDate);
+                        } catch (e) {
+                            LOGGER.error(`Error rebalancing straregy instance `, i.symbol, e);
+                            return null;
+                        }
+                    });
+
+                    for await (const promiseResult of potentialTradesToPlace) {
+                        if (promiseResult) {
+                            if (this.validateTrade(promiseResult)) {
+                                LOGGER.debug(promiseResult);
+                                this.pendingTradeConfigs.push(promiseResult);
+                            } else {
+                                LOGGER.warn("cannot verify " + JSON.stringify(promiseResult));
+                            }
                         }
                     }
+
+                    const newlyExecutedSymbols = await this.executeAndRecord();
+                }
+                if (isMarketOpening(this.currentDate)) {
+                    this.tradeUpdater.emit("market_opening");
+                    await this.getScreenedSymbols(symbols);
                 }
 
-                const potentialTradesToPlace = filteredInstances.map(i =>
-                    i.rebalance(this.currentDate)
-                );
-
-                for await (const promiseResult of potentialTradesToPlace) {
-                    if (promiseResult) {
-                        if (this.validateTrade(promiseResult)) {
-                            LOGGER.debug(promiseResult);
-                            this.pendingTradeConfigs.push(promiseResult);
-                        } else {
-                            LOGGER.warn("cannot verify " + JSON.stringify(promiseResult));
-                        }
-                    }
+                if (isAfterMarketClose(this.currentDate)) {
+                    this.goToNextDay();
                 }
-
-                const newlyExecutedSymbols = await this.executeAndRecord();
-            }
-            if (isMarketOpening(this.currentDate)) {
-                this.tradeUpdater.emit("market_opening");
-                await this.getScreenedSymbols(symbols);
-            }
-
-            if (isAfterMarketClose(this.currentDate)) {
-                this.goToNextDay();
+            } catch (e) {
+                LOGGER.error("Uncaught exception when running time through", e);
             }
         }
     }
@@ -311,6 +326,12 @@ export class Backtester {
         for (const tradePlan of this.pendingTradeConfigs) {
             const symbol = tradePlan.symbol;
             const bars = this.replayBars[symbol];
+
+            if (!bars) {
+                LOGGER.error("cannot execute without bars", tradePlan);
+                continue;
+            }
+
             const instance = this.activeStrategyInstances.find(i => i.symbol === symbol);
 
             if (instance) {
@@ -549,7 +570,7 @@ export class Backtester {
                 continue;
             }
 
-            trades.push(rebalancePosition(position, bar));
+            trades.push(rebalancePosition(position, bar, 2, 4));
         }
 
         return trades;

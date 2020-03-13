@@ -11,21 +11,6 @@ import {
 } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
 
-test("nrb7 - identify", t => {
-    const nrbStrategyInstance = new NarrowRangeBarStrategy({
-        period: 7,
-        symbol: "SPGI",
-        bars
-    });
-
-    try {
-        const fits = nrbStrategyInstance.checkIfFitsStrategy();
-        t.truthy(fits);
-    } catch (e) {
-        LOGGER.error(e);
-    }
-});
-
 test("nrb7 - check strength", t => {
     const nrbStrategyInstance = new NarrowRangeBarStrategy({
         period: 7,
@@ -98,36 +83,6 @@ test("nrb7 - find simple stop price", t => {
     }
 });
 
-test("nrb7 - identify for bars1", t => {
-    const nrbStrategyInstance = new NarrowRangeBarStrategy({
-        period: 7,
-        symbol: "BABA",
-        bars: bars1
-    });
-
-    try {
-        const fits = nrbStrategyInstance.checkIfFitsStrategy();
-        t.truthy(fits);
-    } catch (e) {
-        LOGGER.error(e);
-    }
-});
-
-test("nrb7 - check strength for bars1", t => {
-    const nrbStrategyInstance = new NarrowRangeBarStrategy({
-        period: 7,
-        symbol: "BABA",
-        bars: bars1
-    });
-
-    try {
-        const strength = nrbStrategyInstance.checkStrength();
-        t.is(strength, 1);
-    } catch (e) {
-        LOGGER.error(e);
-    }
-});
-
 test("nrb7 - find entry price bars1", t => {
     const nrbStrategyInstance = new NarrowRangeBarStrategy({
         period: 7,
@@ -156,21 +111,6 @@ test("nrb7 - find simple stop price for bars1", t => {
     try {
         const stopPrice = nrbStrategyInstance.simpleStop;
         t.is(stopPrice, 208);
-    } catch (e) {
-        LOGGER.error(e);
-    }
-});
-
-test("nrb7 - identify for bars2", t => {
-    const nrbStrategyInstance = new NarrowRangeBarStrategy({
-        period: 7,
-        symbol: "TAL",
-        bars: bars2
-    });
-
-    try {
-        const fits = nrbStrategyInstance.checkIfFitsStrategy();
-        t.truthy(fits);
     } catch (e) {
         LOGGER.error(e);
     }

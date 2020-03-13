@@ -223,8 +223,8 @@ test("Backtester - simulate everything for a few days", async t => {
     await instance.simulate();
 
     t.is(0, instance.pendingTradeConfigs.length);
-    t.is(2, instance.pastTradeConfigs.length);
-    t.is(2, instance.currentPositionConfigs.length);
+    t.is(0, instance.pastTradeConfigs.length);
+    t.is(0, instance.currentPositionConfigs.length);
 });
 /* 
 test("Backtester - simulate everything until all positions are closed", async t => {

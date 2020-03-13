@@ -24,11 +24,12 @@ export const get = (url: string) => {
         const retry = () => {
             https.get(url, (response: any) => {
                 count++;
-                if (response.statusCode === 500 && count <= 3) {
+                const isError = response.statusCode < 200 || response.statusCode >= 300;
+                if (response.statusCode >= 300 && count <= 3) {
                     retry();
                     return;
                 }
-                if (response.statusCode < 200 || response.statusCode >= 300) {
+                if (isError) {
                     return logError({ url, response, reject, count });
                 }
                 let body: any[] = [];

@@ -35,8 +35,9 @@ export const getPolyonData = (
 
     return get(url).then((response: any) => {
         if (!response.results) {
-            LOGGER.debug(url);
+            LOGGER.warn(url);
         }
+        LOGGER.debug(`Found ${response.results.length} for ${symbol}`);
         return {
             [symbol]: response.results
         };
@@ -60,6 +61,8 @@ export const getSimplePolygonData = (
         if (!response.results) {
             LOGGER.warn(url);
         }
+
+        LOGGER.debug(`Found ${response.results.length} for ${symbol}`);
         return response.results;
     });
 };
