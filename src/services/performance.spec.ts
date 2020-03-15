@@ -7,11 +7,11 @@ import {
     TradeType,
     TimeInForce
 } from "../data/data.model";
-import { analyzeClosedPositions, getDeeperInsight } from "./performance";
+import { analyzeClosedPositions, getDetailedPerformanceReport } from "./performance";
 import perfReport from "../fixtures/perfReport";
 
 test("assess performance at a deeper level", t => {
-    const insight = getDeeperInsight(perfReport);
+    const insight = getDetailedPerformanceReport(perfReport);
 
     t.is(5, insight.monthly.length);
 

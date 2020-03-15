@@ -4,9 +4,9 @@ import { convertToLocalTime } from "date-fns-timezone";
 import { MarketTimezone } from "../data/data.model";
 import { readFileSync } from "fs";
 import { LOGGER } from "../instrumentation/log";
-import { analyzeClosedPositions } from "../services/performance";
+import { getDetailedPerformanceReport } from "../services/performance";
 
-const startDate = parseISO("2019-11-01 12:01:36.386Z");
+const startDate = parseISO("2018-10-01 12:01:36.386Z");
 const zonedStartDate = convertToLocalTime(
     set(startDate.getTime(), {
         hours: 9,
@@ -37,12 +37,11 @@ const instance = new Backtester(60000, zonedStartDate, zonedEndDate, LARGE_CAPS)
 
 async function run() {
     await instance.simulate(50);
-    LOGGER.info(JSON.stringify(instance.pastPositionConfigs));
     LOGGER.info(JSON.stringify(instance.currentPositionConfigs));
 
-    const performance = analyzeClosedPositions(instance.pastPositionConfigs);
+    const performance = getDetailedPerformanceReport(instance.pastPositionConfigs);
 
-    LOGGER.info(performance);
+    LOGGER.info(JSON.stringify(performance));
 }
 
 run().then(() => LOGGER.info("done"));

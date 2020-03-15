@@ -13,7 +13,7 @@ const getDatePositionEntered = (position: FilledPositionConfig) => {
     return new Date(position.trades[0].t);
 };
 
-export const getDeeperInsight = (positions: FilledPositionConfig[]) => {
+export const getDetailedPerformanceReport = (positions: FilledPositionConfig[]) => {
     if (!positions || !positions.length) {
         throw new Error("Wrong number");
     }
