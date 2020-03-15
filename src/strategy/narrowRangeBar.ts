@@ -46,6 +46,10 @@ export class NarrowRangeBarStrategy {
         this.symbol = symbol;
         this.bars = bars;
 
+        if (bars.length < 15) {
+            throw new Error(`need more bars for ${this.symbol}`);
+        }
+
         const { adx, pdx, ndx, atr, tr } = getAverageDirectionalIndex(this.bars);
         this.adx = adx;
         this.pdx = pdx;
@@ -220,7 +224,12 @@ export class NarrowRangeBarStrategy {
         const bar = lastBar.find(bar => bar.t === timezonedStamp.getTime());
 
         if (!bar) {
-            LOGGER.error("couldnt find appropriate bar", timezonedStamp.getTime(), now);
+            LOGGER.error(
+                "couldnt find appropriate bar",
+                timezonedStamp.toISOString(),
+                now,
+                this.symbol
+            );
             return null;
         }
 

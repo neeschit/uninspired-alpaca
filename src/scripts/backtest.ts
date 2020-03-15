@@ -31,8 +31,8 @@ const zonedEndDate = convertToLocalTime(
         timeZone: MarketTimezone
     }
 );
-const LARGE_CAPS = JSON.parse(readFileSync("./largecaps.json").toString()).slice(0, 5);
-
+const LARGE_CAPS = JSON.parse(readFileSync("./largecaps.json").toString());
+LOGGER.info(zonedStartDate.toISOString());
 const instance = new Backtester(60000, zonedStartDate, zonedEndDate, LARGE_CAPS);
 
 async function run() {
