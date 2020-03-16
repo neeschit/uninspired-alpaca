@@ -1,10 +1,10 @@
 import test from "ava";
-import { parseFromTimeZone, convertToLocalTime } from "date-fns-timezone";
 
 import { Backtester } from "./backtest";
 import { set, parseISO, addMilliseconds, addDays, isEqual, isSameDay, addMonths } from "date-fns";
 import { MarketTimezone, TradeDirection, TradeType, TimeInForce } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
+import { convertToLocalTime } from "../util/date";
 
 const updateIntervalMillis = 60000;
 
@@ -15,10 +15,7 @@ const defaultZonedStartDate = convertToLocalTime(
         minutes: 0,
         seconds: 0,
         milliseconds: 0
-    }),
-    {
-        timeZone: MarketTimezone
-    }
+    })
 );
 const defaultEndDate = parseISO("2019-01-03 12:10:00.000Z");
 const defaultZonedEndDate = convertToLocalTime(
@@ -27,10 +24,7 @@ const defaultZonedEndDate = convertToLocalTime(
         minutes: 0,
         seconds: 0,
         milliseconds: 0
-    }),
-    {
-        timeZone: MarketTimezone
-    }
+    })
 );
 
 test("Backtester - simulate time and check if correct", async t => {
@@ -79,10 +73,7 @@ test("Backtester - simulate batching", t => {
             minutes: 0,
             seconds: 0,
             milliseconds: 0
-        }),
-        {
-            timeZone: MarketTimezone
-        }
+        })
     );
     const endDate = parseISO("2019-09-01 22:10:00.000Z");
     const zonedEndDate = convertToLocalTime(
@@ -91,10 +82,7 @@ test("Backtester - simulate batching", t => {
             minutes: 0,
             seconds: 0,
             milliseconds: 0
-        }),
-        {
-            timeZone: MarketTimezone
-        }
+        })
     );
 
     const test = ["ECL", "AAPL", "HON"];
@@ -126,10 +114,7 @@ test("Backtester - simulate batching with symbols needing batching as well", asy
             minutes: 0,
             seconds: 0,
             milliseconds: 0
-        }),
-        {
-            timeZone: MarketTimezone
-        }
+        })
     );
     const endDate = parseISO("2019-09-01 22:10:00.000Z");
     const zonedEndDate = convertToLocalTime(
@@ -138,10 +123,7 @@ test("Backtester - simulate batching with symbols needing batching as well", asy
             minutes: 0,
             seconds: 0,
             milliseconds: 0
-        }),
-        {
-            timeZone: MarketTimezone
-        }
+        })
     );
 
     const test = ["ECL", "AAPL", "HON"];
@@ -198,10 +180,7 @@ test("Backtester - simulate everything for a few days", async t => {
             minutes: 0,
             seconds: 0,
             milliseconds: 0
-        }),
-        {
-            timeZone: MarketTimezone
-        }
+        })
     );
     const endDate = parseISO("2019-03-04 22:10:00.000Z");
     const zonedEndDate = convertToLocalTime(
@@ -210,10 +189,7 @@ test("Backtester - simulate everything for a few days", async t => {
             minutes: 0,
             seconds: 0,
             milliseconds: 0
-        }),
-        {
-            timeZone: MarketTimezone
-        }
+        })
     );
 
     const test = ["ECL", "AAPL", "HON"];
@@ -236,10 +212,7 @@ test("Backtester - simulate everything until all positions are closed", async t 
             minutes: 0,
             seconds: 0,
             milliseconds: 0
-        }),
-        {
-            timeZone: MarketTimezone
-        }
+        })
     );
     const endDate = parseISO("2019-12-05 22:10:00.000Z");
     const zonedEndDate = convertToLocalTime(
@@ -248,10 +221,7 @@ test("Backtester - simulate everything until all positions are closed", async t 
             minutes: 0,
             seconds: 0,
             milliseconds: 0
-        }),
-        {
-            timeZone: MarketTimezone
-        }
+        })
     );
 
     const test = ["ECL", "AAPL", "HON", "CVS"];

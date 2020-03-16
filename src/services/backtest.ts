@@ -26,6 +26,7 @@ import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
 import { getBarsByDate } from "../data/bars";
 import { rebalancePosition } from "./tradeManagement";
 import { LOGGER } from "../instrumentation/log";
+import { formatInEasternTimeForDisplay } from "../util/date";
 
 export class Backtester {
     currentDate: Date;
@@ -350,7 +351,8 @@ export class Backtester {
                     );
                     this.pastTradeConfigs.push({
                         ...tradePlan,
-                        order: position.order
+                        order: position.order,
+                        estString: formatInEasternTimeForDisplay(tradePlan.t)
                     });
                     newlyExecutedSymbols.push(symbol);
                 }
@@ -429,6 +431,8 @@ export class Backtester {
         if (!bar) {
             return null;
         }
+
+        tradePlan.estString = formatInEasternTimeForDisplay(tradePlan.t);
 
         if (!position) {
             let unfilledPosition = {
