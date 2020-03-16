@@ -46,6 +46,10 @@ export class NarrowRangeBarStrategy {
         this.symbol = symbol;
         this.bars = bars;
 
+        if (bars.length < 15) {
+            throw new Error(`not a proper narrow range bar for symbol ${symbol}`)
+        }
+
         const { adx, pdx, ndx, atr, tr } = getAverageDirectionalIndex(this.bars);
         this.adx = adx;
         this.pdx = pdx;

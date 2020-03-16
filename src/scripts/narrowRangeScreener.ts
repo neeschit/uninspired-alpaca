@@ -12,7 +12,7 @@ let list = JSON.parse(JSON.stringify(LARGE_CAPS));
 const barsFetched = [];
 
 while (list.length > 200) { */
-const barsPromise = getDayBars(list, 430, Number(lookback || 366));
+const barsPromise = getDayBars(list, 100, Number(lookback || 0));
 
 /* 
     barsFetched.push(barsPromise);
@@ -44,11 +44,15 @@ barsPromise
                     return null;
                 }
 
-                return new NarrowRangeBarStrategy({
-                    period: 7,
-                    symbol,
-                    bars
-                });
+                try {
+                    return new NarrowRangeBarStrategy({
+                        period: 7,
+                        symbol,
+                        bars
+                    });
+                } catch (e) {
+                    return null;
+                }
             })
             .filter(instance => instance && instance.checkIfFitsStrategy());
 
