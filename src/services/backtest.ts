@@ -26,6 +26,7 @@ import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
 import { getBarsByDate } from "../data/bars";
 import { rebalancePosition } from "./tradeManagement";
 import { LOGGER } from "../instrumentation/log";
+import { formatInEasternTimeForDisplay } from "../util/date";
 
 export class Backtester {
     currentDate: Date;
@@ -62,16 +63,24 @@ export class Backtester {
         );
 
         for (const symbol of symbols) {
-            const bars = this.screenerBars[symbol].filter(
-                b => b.t < startOfDay(this.currentDate).getTime()
-            );
-            this.strategyInstances.push(
-                new NarrowRangeBarStrategy({
+            try {
+                const stockBars = this.screenerBars[symbol];
+
+                if (!stockBars) {
+                    LOGGER.warn(`No bars for ${symbol} on ${this.currentDate.toLocaleString()}`);
+                    continue;
+                }
+
+                const bars = stockBars.filter(b => b.t < startOfDay(this.currentDate).getTime());
+                const nrbInstance = new NarrowRangeBarStrategy({
                     period: 7,
                     symbol,
                     bars
-                })
-            );
+                });
+                this.strategyInstances.push(nrbInstance);
+            } catch (e) {
+                LOGGER.error(e);
+            }
         }
 
         const shouldBeAdded = this.strategyInstances.filter(
@@ -149,10 +158,12 @@ export class Backtester {
                 if (i % (context.updateIntervalMillis * 100) === 0) {
                     LOGGER.debug(prevDate);
                 }
-                LOGGER.debug(context.pendingTradeConfigs);
-                LOGGER.debug(context.activeStrategyInstances.map(c => c.symbol));
-                LOGGER.debug(context.strategyInstances.map(c => c.symbol));
-                LOGGER.debug(context.currentPositionConfigs.map(c => c.symbol));
+                LOGGER.debug("pending: " + context.pendingTradeConfigs);
+                LOGGER.debug("pending pos: " + context.strategyInstances.map(c => c.symbol));
+                LOGGER.debug("past pos: " + context.pastPositionConfigs.map(c => c.symbol));
+                LOGGER.debug("pending pos: " + JSON.stringify(context.pendingTradeConfigs));
+                LOGGER.debug("active: " + context.currentPositionConfigs.map(c => c.symbol));
+                LOGGER.debug("active pos: " + context.activeStrategyInstances.map(c => c.symbol));
                 i = context.currentDate.getTime();
 
                 context.incrementDate();
@@ -202,7 +213,7 @@ export class Backtester {
                     return this.pendingTradeConfigs.every(c => c.symbol !== i.symbol);
                 });
 
-                const rebalancingPositionTrades = await this.closeAndRebalance();
+                const rebalancingPositionTrades = await this.closeAndRebalance(startDate, endDate);
 
                 for await (const tradeRebalance of rebalancingPositionTrades) {
                     if (tradeRebalance) {
@@ -256,6 +267,9 @@ export class Backtester {
             this.replayBars = {};
             this.currentPositionConfigs = currentPositionConfigs[batch.batchId] || [];
             this.clock.setSystemTime(this.currentDate);
+
+            LOGGER.info(`Starting simulation for batch ${JSON.stringify(batch)}`);
+
             await this.batchSimulate(batch.startDate, batch.endDate, batch.symbols);
 
             currentPositionConfigs[batch.batchId] = this.currentPositionConfigs;
@@ -313,6 +327,11 @@ export class Backtester {
             const bars = this.replayBars[symbol];
             const instance = this.activeStrategyInstances.find(i => i.symbol === symbol);
 
+            if (!bars) {
+                LOGGER.error(`No bars for ${JSON.stringify(tradePlan)}`);
+                continue;
+            }
+
             if (instance) {
                 const entry = instance.entry;
 
@@ -332,7 +351,8 @@ export class Backtester {
                     );
                     this.pastTradeConfigs.push({
                         ...tradePlan,
-                        order: position.order
+                        order: position.order,
+                        estString: formatInEasternTimeForDisplay(tradePlan.t)
                     });
                     newlyExecutedSymbols.push(symbol);
                 }
@@ -411,6 +431,8 @@ export class Backtester {
         if (!bar) {
             return null;
         }
+
+        tradePlan.estString = formatInEasternTimeForDisplay(tradePlan.t);
 
         if (!position) {
             let unfilledPosition = {
@@ -518,7 +540,7 @@ export class Backtester {
         return null;
     }
 
-    public async closeAndRebalance() {
+    public async closeAndRebalance(startDate: Date, endDate: Date) {
         if (!this.currentPositionConfigs) {
             return [];
         }
@@ -535,7 +557,31 @@ export class Backtester {
                 continue;
             }
 
-            const barIndex = bars.findIndex(b => b.t > this.currentDate.getTime());
+            let barIndex = bars.findIndex(b => b.t > this.currentDate.getTime());
+
+            if (barIndex === -1) {
+                LOGGER.warn(
+                    `no bars found for date ${this.currentDate.toLocaleString()} for ${symbol}`
+                );
+                const bars = await getBarsByDate(
+                    symbol,
+                    addDays(this.currentDate, -1),
+                    endDate,
+                    this.updateIntervalMillis === 60000
+                        ? DefaultDuration.one
+                        : DefaultDuration.five,
+                    PeriodType.minute
+                );
+
+                this.replayBars[symbol].push(...bars);
+
+                barIndex = bars.findIndex(b => b.t > this.currentDate.getTime());
+
+                if (barIndex === -1) {
+                    throw new Error("couldnt find bar");
+                }
+            }
+
             const bar = bars[barIndex + 1];
 
             const position = this.currentPositionConfigs.find(p => p.symbol === symbol);
@@ -545,7 +591,7 @@ export class Backtester {
                 continue;
             }
             if (!bar) {
-                LOGGER.warn("no bar for ", symbol);
+                LOGGER.warn(`no bar for ${symbol} at ${this.currentDate.toISOString()}`);
                 continue;
             }
 

@@ -1,6 +1,6 @@
 import { isWeekend, set, isSameDay, isAfter, isBefore, isEqual } from "date-fns";
 import { TimestampType, MarketTimezone } from "../data/data.model";
-import { convertToLocalTime } from "date-fns-timezone";
+import { convertToLocalTime } from "./date";
 
 const marketHolidays = [
     "02-17-2020",
@@ -51,10 +51,7 @@ export const isMarketOpening = (now: TimestampType) => {
             minutes: 0,
             seconds: 0,
             milliseconds: 0
-        }),
-        {
-            timeZone: MarketTimezone
-        }
+        })
     );
     const nowMillis = now instanceof Date ? now.getTime() : now;
 
@@ -68,10 +65,7 @@ export const getMarketOpenMillis = (now: TimestampType) => {
             minutes: 30,
             seconds: 0,
             milliseconds: 0
-        }),
-        {
-            timeZone: MarketTimezone
-        }
+        })
     );
 
     return marketOpenToday;
@@ -84,10 +78,7 @@ export const getMarketCloseMillis = (now: TimestampType) => {
             minutes: 59,
             seconds: 59,
             milliseconds: 999
-        }),
-        {
-            timeZone: MarketTimezone
-        }
+        })
     );
     return marketCloseToday;
 };

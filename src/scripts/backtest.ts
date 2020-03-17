@@ -1,24 +1,21 @@
 import { Backtester } from "../services/backtest";
 import { parseISO, set } from "date-fns";
-import { convertToLocalTime } from "date-fns-timezone";
 import { MarketTimezone } from "../data/data.model";
 import { readFileSync } from "fs";
 import { LOGGER } from "../instrumentation/log";
-import { analyzeClosedPositions } from "../services/performance";
+import { getDetailedPerformanceReport } from "../services/performance";
+import { convertToLocalTime } from "../util/date";
 
-const startDate = parseISO("2019-11-01 12:01:36.386Z");
+const startDate = parseISO("2020-02-01 12:01:36.386Z");
 const zonedStartDate = convertToLocalTime(
     set(startDate.getTime(), {
         hours: 9,
         minutes: 0,
         seconds: 0,
         milliseconds: 0
-    }),
-    {
-        timeZone: MarketTimezone
-    }
+    })
 );
-const endDate = parseISO("2020-03-09 12:10:00.000Z");
+const endDate = parseISO("2020-03-15 12:10:00.000Z");
 
 const zonedEndDate = convertToLocalTime(
     set(endDate.getTime(), {
@@ -26,23 +23,19 @@ const zonedEndDate = convertToLocalTime(
         minutes: 0,
         seconds: 0,
         milliseconds: 0
-    }),
-    {
-        timeZone: MarketTimezone
-    }
+    })
 );
-const LARGE_CAPS = JSON.parse(readFileSync("./largecaps.json").toString()).slice(0, 5);
-
-const instance = new Backtester(60000, zonedStartDate, zonedEndDate, LARGE_CAPS);
+const LARGE_CAPS = JSON.parse(readFileSync("./largecaps.json").toString());
+LOGGER.info(zonedStartDate.toISOString());
+const instance = new Backtester(60000, zonedStartDate, zonedEndDate, ["KSU"]);
 
 async function run() {
     await instance.simulate(50);
-    LOGGER.info(JSON.stringify(instance.pastPositionConfigs));
     LOGGER.info(JSON.stringify(instance.currentPositionConfigs));
 
-    const performance = analyzeClosedPositions(instance.pastPositionConfigs);
+    const performance = getDetailedPerformanceReport(instance.pastPositionConfigs);
 
-    LOGGER.info(performance);
+    LOGGER.info(JSON.stringify(performance));
 }
 
 run().then(() => LOGGER.info("done"));

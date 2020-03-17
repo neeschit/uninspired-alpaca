@@ -78,5 +78,7 @@ export const getOverallTrend = (bars: Bar[]) => {
     LOGGER.debug(pdx[pdx.length - 1]);
     LOGGER.debug(ndx[ndx.length - 1]);
 
-    return pdx[pdx.length - 1] > ndx[ndx.length - 1] ? TrendType.up : TrendType.down;
+    return Math.abs(pdx[pdx.length - 1]) > Math.abs(ndx[ndx.length - 1])
+        ? TrendType.up
+        : TrendType.down;
 };

@@ -7,7 +7,22 @@ import {
     TradeType,
     TimeInForce
 } from "../data/data.model";
-import { analyzeClosedPositions } from "./performance";
+import { analyzeClosedPositions, getDetailedPerformanceReport } from "./performance";
+import perfReport from "../fixtures/perfReport";
+
+test("assess performance at a deeper level", t => {
+    const insight = getDetailedPerformanceReport(perfReport);
+
+    t.is(5, insight.monthly.length);
+
+    t.deepEqual(insight.monthly, [
+        { profit: 106.22413108536668, longs: 113, shorts: 45, winners: 87, total: 158 },
+        { profit: 22.834635835515485, longs: 28, shorts: 13, total: 41, winners: 15 },
+        { profit: 336.9428586497245, longs: 10, shorts: 18, total: 28, winners: 19 },
+        { profit: 232.3042137618636, longs: 2, shorts: 32, total: 34, winners: 23 },
+        { profit: 443.55113040462084, longs: 0, shorts: 28, total: 28, winners: 26 }
+    ]);
+});
 
 test("successful long trade report", t => {
     const position: FilledPositionConfig[] = [
@@ -66,6 +81,154 @@ test("successful long trade report", t => {
 
     t.truthy(performance);
     t.is(Math.round(performance.profit), 7);
+});
+
+test("successful long trade with partial report", t => {
+    const position: FilledPositionConfig[] = [
+        {
+            symbol: "ABMD",
+            originalQuantity: 5,
+            hasHardStop: false,
+            plannedEntryPrice: 218,
+            plannedStopPrice: 210,
+            plannedQuantity: 5,
+            plannedRiskUnits: 7.5,
+            side: PositionDirection.long,
+            quantity: 0,
+            order: {
+                filledQuantity: 5,
+                symbol: "ABMD",
+                averagePrice: 217.59565608986355,
+                status: OrderStatus.filled
+            },
+            trades: [
+                {
+                    symbol: "ABMD",
+                    quantity: 5,
+                    side: TradeDirection.buy,
+                    type: TradeType.stop,
+                    tif: TimeInForce.day,
+                    price: 217.5,
+                    t: 1573137360000,
+                    order: {
+                        filledQuantity: 5,
+                        symbol: "ABMD",
+                        averagePrice: 217.59565608986355,
+                        status: OrderStatus.filled
+                    }
+                },
+                {
+                    order: {
+                        filledQuantity: 4,
+                        symbol: "ABMD",
+                        averagePrice: 224.76377395381638,
+                        status: OrderStatus.filled
+                    },
+                    symbol: "ABMD",
+                    price: 224.81,
+                    type: TradeType.limit,
+                    side: TradeDirection.sell,
+                    tif: TimeInForce.day,
+                    quantity: 4,
+                    t: 1573573320000
+                },
+                {
+                    order: {
+                        filledQuantity: 1,
+                        symbol: "ABMD",
+                        averagePrice: 224.76377395381638,
+                        status: OrderStatus.filled
+                    },
+                    symbol: "ABMD",
+                    price: 224.81,
+                    type: TradeType.limit,
+                    side: TradeDirection.sell,
+                    tif: TimeInForce.day,
+                    quantity: 1,
+                    t: 1573578320000
+                }
+            ]
+        }
+    ];
+
+    const performance = analyzeClosedPositions(position);
+
+    t.truthy(performance);
+    t.is(Math.round(performance.profit), 36);
+});
+
+test("successful long trade with failed partial report", t => {
+    const position: FilledPositionConfig[] = [
+        {
+            symbol: "ABMD",
+            originalQuantity: 5,
+            hasHardStop: false,
+            plannedEntryPrice: 218,
+            plannedStopPrice: 210,
+            plannedQuantity: 5,
+            plannedRiskUnits: 7.5,
+            side: PositionDirection.long,
+            quantity: 0,
+            order: {
+                filledQuantity: 5,
+                symbol: "ABMD",
+                averagePrice: 217.59565608986355,
+                status: OrderStatus.filled
+            },
+            trades: [
+                {
+                    symbol: "ABMD",
+                    quantity: 5,
+                    side: TradeDirection.buy,
+                    type: TradeType.stop,
+                    tif: TimeInForce.day,
+                    price: 217.5,
+                    t: 1573137360000,
+                    order: {
+                        filledQuantity: 5,
+                        symbol: "ABMD",
+                        averagePrice: 217.59565608986355,
+                        status: OrderStatus.filled
+                    }
+                },
+                {
+                    order: {
+                        filledQuantity: 4,
+                        symbol: "ABMD",
+                        averagePrice: 224.76377395381638,
+                        status: OrderStatus.filled
+                    },
+                    symbol: "ABMD",
+                    price: 224.81,
+                    type: TradeType.limit,
+                    side: TradeDirection.sell,
+                    tif: TimeInForce.day,
+                    quantity: 4,
+                    t: 1573573320000
+                },
+                {
+                    order: {
+                        filledQuantity: 1,
+                        symbol: "ABMD",
+                        averagePrice: 214.46377395381638,
+                        status: OrderStatus.filled
+                    },
+                    symbol: "ABMD",
+                    price: 0,
+                    type: TradeType.market,
+                    side: TradeDirection.sell,
+                    tif: TimeInForce.day,
+                    quantity: 1,
+                    t: 1573578320000
+                }
+            ]
+        }
+    ];
+
+    const performance = analyzeClosedPositions(position);
+
+    t.truthy(performance);
+    t.is(Math.round(performance.profit), 26);
 });
 
 test("unsuccessful long trade report", t => {

@@ -14,7 +14,10 @@ const logError = ({
 }) => {
     LOGGER.error(url);
     LOGGER.error(count);
-    return reject(new Error("statusCode=" + response.statusCode));
+    return reject(
+        `response: ${Object.keys(response)}`,
+        new Error("statusCode=" + response.statusCode)
+    );
 };
 
 export const get = (url: string) => {
@@ -24,11 +27,18 @@ export const get = (url: string) => {
         const retry = () => {
             https.get(url, (response: any) => {
                 count++;
-                if (response.statusCode === 500 && count <= 3) {
-                    retry();
-                    return;
-                }
                 if (response.statusCode < 200 || response.statusCode >= 300) {
+                    if (response.statusCode === 500) {
+                        retry();
+                        return;
+                    }
+                    if (count < 15) {
+                        LOGGER.error(
+                            `for url ${url}\nresponse: ${response.statusMessage}\n statusCode= ${response.statusCode})`
+                        );
+                        retry();
+                        return;
+                    }
                     return logError({ url, response, reject, count });
                 }
                 let body: any[] = [];

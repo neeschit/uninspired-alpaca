@@ -1,5 +1,4 @@
 import { set, addDays } from "date-fns";
-import { convertToLocalTime } from "date-fns-timezone";
 import { getAverageDirectionalIndex, IndicatorValue } from "../indicator/adx";
 import { getOverallTrend, getRecentTrend, TrendType } from "../pattern/trend/trendIdentifier";
 import { getVolumeProfile, getNextResistance, VolumeProfileBar } from "../indicator/volumeProfile";
@@ -15,6 +14,7 @@ import {
     TimeInForce
 } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
+import { convertToLocalTime } from "../util/date";
 
 export class NarrowRangeBarStrategy {
     period: number;
@@ -176,10 +176,7 @@ export class NarrowRangeBarStrategy {
                 hours: this.entryHour,
                 minutes: this.entryMinuteStart,
                 seconds: 45
-            }),
-            {
-                timeZone: MarketTimezone
-            }
+            })
         );
 
         const timeEnd = convertToLocalTime(
@@ -187,10 +184,7 @@ export class NarrowRangeBarStrategy {
                 hours: this.entryHour,
                 minutes: this.entryMinuteEnd,
                 seconds: 0
-            }),
-            {
-                timeZone: MarketTimezone
-            }
+            })
         );
         const nowMillis = now instanceof Date ? now.getTime() : now;
 
@@ -217,14 +211,17 @@ export class NarrowRangeBarStrategy {
             seconds: 0
         });
 
-        const timezonedStamp = convertToLocalTime(entryBarTimestamp, {
-            timeZone: MarketTimezone
-        });
+        const timezonedStamp = convertToLocalTime(entryBarTimestamp);
 
         const bar = lastBar.find(bar => bar.t === timezonedStamp.getTime());
 
         if (!bar) {
-            LOGGER.error("couldnt find appropriate bar", timezonedStamp.getTime(), now);
+            LOGGER.error(
+                "couldnt find appropriate bar",
+                timezonedStamp.toISOString(),
+                now,
+                this.symbol
+            );
             return null;
         }
 
