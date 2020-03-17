@@ -1,6 +1,7 @@
 import { isWeekend, set, isSameDay, isAfter, isBefore, isEqual } from "date-fns";
 import { TimestampType, MarketTimezone } from "../data/data.model";
 import { convertToLocalTime } from "./date";
+import { format, zonedTimeToUtc } from "date-fns-tz";
 
 const marketHolidays = [
     "02-17-2020",
@@ -45,40 +46,25 @@ export const isBeforeMarketClose = (now: TimestampType) => {
 };
 
 export const isMarketOpening = (now: TimestampType) => {
-    const premarketOpenToday = convertToLocalTime(
-        set(now, {
-            hours: 9,
-            minutes: 0,
-            seconds: 0,
-            milliseconds: 0
-        })
-    );
+    const marketOpenNYString = format(now, "yyyy-MM-dd") + " 09:00:00.000";
+
+    const premarketOpenToday = zonedTimeToUtc(marketOpenNYString, MarketTimezone);
     const nowMillis = now instanceof Date ? now.getTime() : now;
 
     return premarketOpenToday.getTime() == nowMillis;
 };
 
 export const getMarketOpenMillis = (now: TimestampType) => {
-    const marketOpenToday = convertToLocalTime(
-        set(now, {
-            hours: 9,
-            minutes: 30,
-            seconds: 0,
-            milliseconds: 0
-        })
-    );
+    const marketOpenNYString = format(now, "yyyy-MM-dd") + " 09:30:00.000";
 
+    const marketOpenToday = zonedTimeToUtc(marketOpenNYString, MarketTimezone);
     return marketOpenToday;
 };
 
 export const getMarketCloseMillis = (now: TimestampType) => {
-    const marketCloseToday = convertToLocalTime(
-        set(now, {
-            hours: 15,
-            minutes: 59,
-            seconds: 59,
-            milliseconds: 999
-        })
-    );
+    const marketCloseNYString = format(now, "yyyy-MM-dd") + " 15:59:59.999";
+
+    const marketCloseToday = zonedTimeToUtc(marketCloseNYString, MarketTimezone);
+
     return marketCloseToday;
 };
