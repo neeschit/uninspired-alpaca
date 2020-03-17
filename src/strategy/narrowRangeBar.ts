@@ -205,6 +205,12 @@ export class NarrowRangeBarStrategy {
         }
 
         const lastBar = await getBarsByDate(this.symbol, addDays(now, -1), addDays(now, 1));
+
+        if (!lastBar) {
+            LOGGER.warn(`Couldn't find the bars for ${this.symbol} on ${this.isShort}`);
+            return null;
+        }
+
         const entryBarTimestamp = set(now, {
             hours: 9,
             minutes: 30,

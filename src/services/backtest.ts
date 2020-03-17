@@ -27,6 +27,7 @@ import { getBarsByDate } from "../data/bars";
 import { rebalancePosition } from "./tradeManagement";
 import { LOGGER } from "../instrumentation/log";
 import { formatInEasternTimeForDisplay } from "../util/date";
+import { executeSingleTrade } from "./mockExecution";
 
 export class Backtester {
     currentDate: Date;
@@ -339,7 +340,13 @@ export class Backtester {
 
                 const bar = bars[barIndex + 1];
 
-                const position = this.executeSingleTrade(instance.stopPrice, bar, tradePlan, entry);
+                const position = executeSingleTrade(
+                    instance.stopPrice,
+                    bar,
+                    tradePlan,
+                    entry,
+                    this.currentPositionConfigs
+                );
 
                 if (position) {
                     this.currentPositionConfigs.push(position);
@@ -376,11 +383,12 @@ export class Backtester {
 
         const bar = bars[barIndex + 1];
 
-        const executedClose = this.executeSingleTrade(
+        const executedClose = executeSingleTrade(
             position.plannedStopPrice,
             bar,
             tradeConfig,
-            position.plannedEntryPrice
+            position.plannedEntryPrice,
+            this.currentPositionConfigs
         );
 
         if (!executedClose) {
@@ -409,135 +417,6 @@ export class Backtester {
         }
 
         return executedClose;
-    }
-
-    private executeSingleTrade(
-        exit: number,
-        bar: Bar,
-        tradePlan: TradeConfig,
-        plannedEntryPrice: number
-    ): FilledPositionConfig | null {
-        const symbol = tradePlan.symbol;
-        const side =
-            tradePlan.side === TradeDirection.buy
-                ? PositionDirection.long
-                : PositionDirection.short;
-
-        // simulate tradePlan.price
-        const position: FilledPositionConfig | undefined = this.currentPositionConfigs.find(
-            p => p.symbol === tradePlan.symbol
-        );
-
-        if (!bar) {
-            return null;
-        }
-
-        tradePlan.estString = formatInEasternTimeForDisplay(tradePlan.t);
-
-        if (!position) {
-            let unfilledPosition = {
-                symbol: symbol,
-                originalQuantity: tradePlan.quantity,
-                hasHardStop: false,
-                plannedEntryPrice,
-                plannedStopPrice: exit,
-                plannedQuantity: tradePlan.quantity,
-                plannedRiskUnits: Math.abs(tradePlan.price - exit),
-                side: side,
-                quantity: tradePlan.quantity
-            };
-
-            if (bar.h > tradePlan.price && tradePlan.side === TradeDirection.buy) {
-                const order = {
-                    filledQuantity: tradePlan.quantity,
-                    symbol: symbol,
-                    averagePrice: tradePlan.price + Math.random() / 10,
-                    status: OrderStatus.filled
-                };
-
-                return {
-                    ...unfilledPosition,
-                    order,
-                    trades: [
-                        {
-                            ...tradePlan,
-                            order
-                        }
-                    ]
-                };
-            } else if (bar.l < tradePlan.price && tradePlan.side === TradeDirection.sell) {
-                const order = {
-                    filledQuantity: tradePlan.quantity,
-                    symbol: symbol,
-                    averagePrice: tradePlan.price - Math.random() / 10,
-                    status: OrderStatus.filled
-                };
-
-                return {
-                    ...unfilledPosition,
-                    order,
-                    trades: [
-                        {
-                            ...tradePlan,
-                            order
-                        }
-                    ]
-                };
-            }
-
-            return null;
-        }
-
-        if (tradePlan.type === TradeType.market) {
-            const order = {
-                filledQuantity: tradePlan.quantity,
-                symbol: symbol,
-                averagePrice: bar.c + Math.random() / 10,
-                status: OrderStatus.filled
-            };
-
-            position.trades.push({
-                order,
-                ...tradePlan
-            });
-
-            position.quantity -= order.filledQuantity;
-
-            return position;
-        } else {
-            if (bar.h > tradePlan.price && tradePlan.side === TradeDirection.buy) {
-                const order = {
-                    filledQuantity: tradePlan.quantity,
-                    symbol: symbol,
-                    averagePrice: tradePlan.price + Math.random() / 10,
-                    status: OrderStatus.filled
-                };
-
-                position.trades.push({
-                    order,
-                    ...tradePlan
-                });
-                position.quantity -= order.filledQuantity;
-
-                return position;
-            } else if (bar.l < tradePlan.price && tradePlan.side === TradeDirection.sell) {
-                const order = {
-                    filledQuantity: tradePlan.quantity,
-                    symbol: symbol,
-                    averagePrice: tradePlan.price - Math.random() / 10,
-                    status: OrderStatus.filled
-                };
-
-                position.trades.push({
-                    order,
-                    ...tradePlan
-                });
-                position.quantity -= order.filledQuantity;
-
-                return position;
-            }
-        }
-        return null;
     }
 
     public async closeAndRebalance(startDate: Date, endDate: Date) {
@@ -578,7 +457,8 @@ export class Backtester {
                 barIndex = bars.findIndex(b => b.t > this.currentDate.getTime());
 
                 if (barIndex === -1) {
-                    throw new Error("couldnt find bar");
+                    LOGGER.error(`couldnt find bar ${symbol} after retries`);
+                    continue;
                 }
             }
 

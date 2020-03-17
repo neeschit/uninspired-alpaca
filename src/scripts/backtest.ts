@@ -6,7 +6,7 @@ import { LOGGER } from "../instrumentation/log";
 import { getDetailedPerformanceReport } from "../services/performance";
 import { convertToLocalTime } from "../util/date";
 
-const startDate = parseISO("2020-02-01 12:01:36.386Z");
+const startDate = parseISO("2016-01-01 12:01:36.386Z");
 const zonedStartDate = convertToLocalTime(
     set(startDate.getTime(), {
         hours: 9,
@@ -27,7 +27,7 @@ const zonedEndDate = convertToLocalTime(
 );
 const LARGE_CAPS = JSON.parse(readFileSync("./largecaps.json").toString());
 LOGGER.info(zonedStartDate.toISOString());
-const instance = new Backtester(60000, zonedStartDate, zonedEndDate, ["KSU"]);
+const instance = new Backtester(60000, zonedStartDate, zonedEndDate, LARGE_CAPS);
 
 async function run() {
     await instance.simulate(50);
