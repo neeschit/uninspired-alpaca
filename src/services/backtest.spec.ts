@@ -1,33 +1,18 @@
 import test from "ava";
 
 import { Backtester } from "./backtest";
-import { set, parseISO, addMilliseconds, addDays, isEqual, isSameDay, addMonths } from "date-fns";
-import { MarketTimezone, TradeDirection, TradeType, TimeInForce } from "../data/data.model";
+import { isSameDay, addMonths } from "date-fns";
 import { LOGGER } from "../instrumentation/log";
 import { convertToLocalTime } from "../util/date";
 
 const updateIntervalMillis = 60000;
 
-const defaultStartDate = parseISO("2019-01-02 12:01:36.386Z");
-const defaultZonedStartDate = convertToLocalTime(
-    set(defaultStartDate.getTime(), {
-        hours: 9,
-        minutes: 0,
-        seconds: 0,
-        milliseconds: 0
-    })
-);
-const defaultEndDate = parseISO("2019-01-03 12:10:00.000Z");
-const defaultZonedEndDate = convertToLocalTime(
-    set(defaultEndDate.getTime(), {
-        hours: 0,
-        minutes: 0,
-        seconds: 0,
-        milliseconds: 0
-    })
-);
+const defaultZonedStartDate = convertToLocalTime(new Date("2019-01-02"), " 08:59:00.000");
+const defaultZonedEndDate = convertToLocalTime(new Date("2019-01-03"), " 03:10:00.000");
 
 test("Backtester - simulate time and check if correct", async t => {
+    LOGGER.info(defaultZonedStartDate.toLocaleString());
+    LOGGER.info(defaultZonedEndDate.toLocaleString());
     const instance = new Backtester(
         updateIntervalMillis,
         defaultZonedStartDate,
@@ -37,7 +22,7 @@ test("Backtester - simulate time and check if correct", async t => {
 
     let intervalCount = 0;
 
-    instance.tradeUpdater.on("interval_hit", (date: Date) => {
+    instance.tradeUpdater.on("interval_hit", () => {
         intervalCount++;
     });
 
@@ -66,24 +51,8 @@ test("Backtester - simulate time and check if correct", async t => {
 });
 
 test("Backtester - simulate batching", t => {
-    const startDate = parseISO("2019-01-01 12:00:00.000Z");
-    const zonedStartDate = convertToLocalTime(
-        set(startDate.getTime(), {
-            hours: 9,
-            minutes: 0,
-            seconds: 0,
-            milliseconds: 0
-        })
-    );
-    const endDate = parseISO("2019-09-01 22:10:00.000Z");
-    const zonedEndDate = convertToLocalTime(
-        set(endDate.getTime(), {
-            hours: 0,
-            minutes: 0,
-            seconds: 0,
-            milliseconds: 0
-        })
-    );
+    const zonedStartDate = convertToLocalTime(new Date("2019-01-01"), " 12:00:00.000");
+    const zonedEndDate = convertToLocalTime(new Date("2019-09-01"), " 22:10:00.000");
 
     const test = ["ECL", "AAPL", "HON"];
 
@@ -107,25 +76,8 @@ test("Backtester - simulate batching", t => {
 });
 
 test("Backtester - simulate batching with symbols needing batching as well", async t => {
-    const startDate = parseISO("2019-01-01 12:00:00.000Z");
-    const zonedStartDate = convertToLocalTime(
-        set(startDate.getTime(), {
-            hours: 9,
-            minutes: 0,
-            seconds: 0,
-            milliseconds: 0
-        })
-    );
-    const endDate = parseISO("2019-09-01 22:10:00.000Z");
-    const zonedEndDate = convertToLocalTime(
-        set(endDate.getTime(), {
-            hours: 0,
-            minutes: 0,
-            seconds: 0,
-            milliseconds: 0
-        })
-    );
-
+    const zonedStartDate = convertToLocalTime(new Date("2019-01-01"), " 12:00:00.000");
+    const zonedEndDate = convertToLocalTime(new Date("2019-09-01"), " 22:10:00.000");
     const test = ["ECL", "AAPL", "HON"];
 
     const result = Backtester.getBatches(zonedStartDate, zonedEndDate, test, 1);
@@ -173,24 +125,10 @@ test("Backtester - simulate batching with symbols needing batching as well", asy
 
 test("Backtester - simulate everything for a few days", async t => {
     t.timeout(30000);
-    const startDate = parseISO("2019-03-01 12:00:00.000Z");
-    const zonedStartDate = convertToLocalTime(
-        set(startDate.getTime(), {
-            hours: 9,
-            minutes: 0,
-            seconds: 0,
-            milliseconds: 0
-        })
-    );
-    const endDate = parseISO("2019-03-04 22:10:00.000Z");
-    const zonedEndDate = convertToLocalTime(
-        set(endDate.getTime(), {
-            hours: 0,
-            minutes: 0,
-            seconds: 0,
-            milliseconds: 0
-        })
-    );
+    const date = new Date().getTimezoneOffset() ? "02" : "01";
+    const zonedStartDate = convertToLocalTime(new Date("2019-03-" + date), " 00:00:00.000");
+    const endDate = new Date().getTimezoneOffset() ? "05" : "04";
+    const zonedEndDate = convertToLocalTime(new Date("2019-03-" + endDate), " 08:00:00.000");
 
     const test = ["ECL", "AAPL", "HON"];
 
@@ -199,8 +137,8 @@ test("Backtester - simulate everything for a few days", async t => {
     await instance.simulate();
 
     t.is(0, instance.pendingTradeConfigs.length);
-    t.is(1, instance.pastTradeConfigs.length);
     t.is(1, instance.currentPositionConfigs.length);
+    t.is(1, instance.pastTradeConfigs.length);
 });
 /* 
 test("Backtester - simulate everything until all positions are closed", async t => {

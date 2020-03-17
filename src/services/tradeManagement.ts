@@ -83,14 +83,14 @@ export const rebalancePosition = async (
 
     const currentProfitRatio = pnl / plannedRiskUnits;
 
-    LOGGER.debug(pnl);
-    LOGGER.debug(currentBar);
-    LOGGER.debug(position);
-    LOGGER.debug(currentProfitRatio);
-    LOGGER.debug(symbol);
+    LOGGER.trace(pnl);
+    LOGGER.trace(currentBar);
+    LOGGER.trace(position);
+    LOGGER.trace(currentProfitRatio);
+    LOGGER.trace(symbol);
 
-    LOGGER.debug(position.originalQuantity);
-    LOGGER.debug(position.quantity);
+    LOGGER.trace(position.originalQuantity);
+    LOGGER.trace(position.quantity);
 
     if (currentProfitRatio > 0.9 && quantity === position.originalQuantity) {
         return {

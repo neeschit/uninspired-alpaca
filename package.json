@@ -23,8 +23,8 @@
     "typescript": "^3.7.5"
   },
   "scripts": {
-    "test": "yarn test:ci --watch --verbose",
-    "test:ci": "ava",
+    "test": "ava --watch --verbose",
+    "test:ci": "LOGLEVEL=4 ava --verbose",
     "build": "tsc"
   },
   "ava": {

@@ -1,8 +1,17 @@
-import { utcToZonedTime, format } from "date-fns-tz";
+import { utcToZonedTime, zonedTimeToUtc, format } from "date-fns-tz";
 import { TimestampType, MarketTimezone } from "../data/data.model";
 
-export const convertToLocalTime = (date: TimestampType, timeZone: string = MarketTimezone) => {
-    return utcToZonedTime(date, timeZone);
+export const convertToLocalTime = (
+    date: TimestampType,
+    timeString: string,
+    timeZone: string = MarketTimezone
+) => {
+    const dateString = format(date, "yyyy-MM-dd") + timeString;
+    if (new Date().getTimezoneOffset()) {
+        return utcToZonedTime(dateString, timeZone);
+    } else {
+        return zonedTimeToUtc(dateString, timeZone);
+    }
 };
 
 export const formatInEasternTimeForDisplay = (date: TimestampType) => {

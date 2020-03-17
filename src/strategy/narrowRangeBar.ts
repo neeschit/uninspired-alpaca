@@ -47,7 +47,7 @@ export class NarrowRangeBarStrategy {
         this.bars = bars;
 
         if (bars.length < 15) {
-            throw new Error(`not a proper narrow range bar for symbol ${symbol}`)
+            throw new Error(`not a proper narrow range bar for symbol ${symbol}`);
         }
 
         const { adx, pdx, ndx, atr, tr } = getAverageDirectionalIndex(this.bars);
@@ -171,21 +171,9 @@ export class NarrowRangeBarStrategy {
             return null;
         }
 
-        const timeStart = convertToLocalTime(
-            set(now, {
-                hours: this.entryHour,
-                minutes: this.entryMinuteStart,
-                seconds: 45
-            })
-        );
+        const timeStart = convertToLocalTime(now, " 09:34:45.000");
+        const timeEnd = convertToLocalTime(now, " 09:36:00.000");
 
-        const timeEnd = convertToLocalTime(
-            set(now, {
-                hours: this.entryHour,
-                minutes: this.entryMinuteEnd,
-                seconds: 0
-            })
-        );
         const nowMillis = now instanceof Date ? now.getTime() : now;
 
         const isWithinEntryRange =
@@ -204,52 +192,51 @@ export class NarrowRangeBarStrategy {
             return null;
         }
 
-        const lastBar = await getBarsByDate(this.symbol, addDays(now, -1), addDays(now, 1));
+        try {
+            const lastBar = await getBarsByDate(this.symbol, addDays(now, -1), addDays(now, 1));
 
-        if (!lastBar) {
-            LOGGER.warn(`Couldn't find the bars for ${this.symbol} on ${this.isShort}`);
+            if (!lastBar) {
+                LOGGER.warn(`Couldn't find the bars for ${this.symbol} on ${this.isShort}`);
+                return null;
+            }
+
+            const timezonedStamp = convertToLocalTime(now, " 09:30:00.000");
+
+            const bar = lastBar.find(bar => bar.t === timezonedStamp.getTime());
+
+            if (!bar) {
+                LOGGER.error(
+                    "couldnt find appropriate bar",
+                    timezonedStamp.toISOString(),
+                    now,
+                    this.symbol
+                );
+                return null;
+            }
+
+            const unitRisk = Math.abs(this.entry - this.stopPrice);
+
+            const quantity = Math.floor(TRADING_RISK_UNIT_CONSTANT / unitRisk);
+
+            if (!quantity || quantity < 0) {
+                return null;
+            }
+
+            const price = this.isShort ? bar.l : bar.h;
+
+            return {
+                symbol: this.symbol,
+                quantity,
+                side: this.side,
+                type: TradeType.stop,
+                tif: TimeInForce.day,
+                price: roundHalf(price),
+                t: Date.now()
+            };
+        } catch (e) {
+            LOGGER.error(e);
             return null;
         }
-
-        const entryBarTimestamp = set(now, {
-            hours: 9,
-            minutes: 30,
-            seconds: 0
-        });
-
-        const timezonedStamp = convertToLocalTime(entryBarTimestamp);
-
-        const bar = lastBar.find(bar => bar.t === timezonedStamp.getTime());
-
-        if (!bar) {
-            LOGGER.error(
-                "couldnt find appropriate bar",
-                timezonedStamp.toISOString(),
-                now,
-                this.symbol
-            );
-            return null;
-        }
-
-        const unitRisk = Math.abs(this.entry - this.stopPrice);
-
-        const quantity = Math.floor(TRADING_RISK_UNIT_CONSTANT / unitRisk);
-
-        if (!quantity || quantity < 0) {
-            return null;
-        }
-
-        const price = this.isShort ? bar.l : bar.h;
-
-        return {
-            symbol: this.symbol,
-            quantity,
-            side: this.side,
-            type: TradeType.stop,
-            tif: TimeInForce.day,
-            price: roundHalf(price),
-            t: Date.now()
-        };
     }
 }
 

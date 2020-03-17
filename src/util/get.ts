@@ -21,7 +21,7 @@ const logError = ({
 };
 
 export const get = (url: string) => {
-    LOGGER.debug(url);
+    LOGGER.warn(url);
     return new Promise((resolve, reject) => {
         let count = 0;
         const retry = () => {

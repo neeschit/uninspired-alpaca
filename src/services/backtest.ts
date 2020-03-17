@@ -13,13 +13,10 @@ import {
     DefaultDuration,
     PeriodType,
     FilledPositionConfig,
-    OrderStatus,
     TradeDirection,
     PositionDirection,
     Bar,
-    FilledTradeConfig,
-    TradeType,
-    PositionConfig
+    FilledTradeConfig
 } from "../data/data.model";
 import { isMarketOpen, isMarketOpening, isAfterMarketClose } from "../util/market";
 import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
@@ -142,7 +139,7 @@ export class Backtester {
         };
     }
 
-    getTimeSeriesGenerator({ startDate, endDate }: { startDate: Date; endDate: Date }) {
+    getTimeSeriesGenerator({ endDate }: { startDate: Date; endDate: Date }) {
         const context = this;
 
         return function*() {
@@ -157,14 +154,14 @@ export class Backtester {
 
                 yield prevDate;
                 if (i % (context.updateIntervalMillis * 100) === 0) {
-                    LOGGER.debug(prevDate);
+                    LOGGER.trace(prevDate);
                 }
-                LOGGER.debug("pending: " + context.pendingTradeConfigs);
-                LOGGER.debug("pending pos: " + context.strategyInstances.map(c => c.symbol));
-                LOGGER.debug("past pos: " + context.pastPositionConfigs.map(c => c.symbol));
-                LOGGER.debug("pending pos: " + JSON.stringify(context.pendingTradeConfigs));
-                LOGGER.debug("active: " + context.currentPositionConfigs.map(c => c.symbol));
-                LOGGER.debug("active pos: " + context.activeStrategyInstances.map(c => c.symbol));
+                LOGGER.trace("pending: " + context.pendingTradeConfigs);
+                LOGGER.trace("pending pos: " + context.strategyInstances.map(c => c.symbol));
+                LOGGER.trace("past pos: " + context.pastPositionConfigs.map(c => c.symbol));
+                LOGGER.trace("pending pos: " + JSON.stringify(context.pendingTradeConfigs));
+                LOGGER.trace("active: " + context.currentPositionConfigs.map(c => c.symbol));
+                LOGGER.trace("active pos: " + context.activeStrategyInstances.map(c => c.symbol));
                 i = context.currentDate.getTime();
 
                 context.incrementDate();
@@ -214,7 +211,7 @@ export class Backtester {
                     return this.pendingTradeConfigs.every(c => c.symbol !== i.symbol);
                 });
 
-                const rebalancingPositionTrades = await this.closeAndRebalance(startDate, endDate);
+                const rebalancingPositionTrades = await this.closeAndRebalance(endDate);
 
                 for await (const tradeRebalance of rebalancingPositionTrades) {
                     if (tradeRebalance) {
@@ -239,7 +236,6 @@ export class Backtester {
                         }
                     }
                 }
-
                 const newlyExecutedSymbols = await this.executeAndRecord();
             }
             if (isMarketOpening(this.currentDate)) {
@@ -419,7 +415,7 @@ export class Backtester {
         return executedClose;
     }
 
-    public async closeAndRebalance(startDate: Date, endDate: Date) {
+    public async closeAndRebalance(endDate: Date) {
         if (!this.currentPositionConfigs) {
             return [];
         }

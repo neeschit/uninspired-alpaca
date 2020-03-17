@@ -2,7 +2,8 @@ export enum LogLevel {
     ERROR = 1,
     INFO = 2,
     WARN = 3,
-    DEBUG = 4
+    DEBUG = 4,
+    TRACE = 5
 }
 
 const CONFIGURED_LOG_LEVEL = process.env.LOGLEVEL || LogLevel.WARN;
@@ -32,6 +33,9 @@ export const LOGGER = {
     },
     debug: (message: any, ...optionalParams: any[]) => {
         checkBeforeLog(LogLevel.DEBUG, "debug", message, ...optionalParams);
+    },
+    trace: (message: any, ...optionalParams: any[]) => {
+        checkBeforeLog(LogLevel.TRACE, "debug", message, ...optionalParams);
     }
 };
 
