@@ -1,3 +1,7 @@
+import * as dotenv from "dotenv";
+
+const config = dotenv.config().parsed;
+
 export enum LogLevel {
     ERROR = 1,
     INFO = 2,
@@ -6,7 +10,7 @@ export enum LogLevel {
     TRACE = 5
 }
 
-const CONFIGURED_LOG_LEVEL = process.env.LOGLEVEL || LogLevel.WARN;
+const CONFIGURED_LOG_LEVEL = (config && config.LOGLEVEL) || process.env.LOGLEVEL || LogLevel.WARN;
 
 const checkBeforeLog = (
     logLevel: LogLevel,
