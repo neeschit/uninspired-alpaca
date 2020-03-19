@@ -6,10 +6,10 @@ import { LOGGER } from "../instrumentation/log";
 import { getDetailedPerformanceReport } from "../services/performance";
 import { zonedTimeToUtc } from "date-fns-tz";
 
-const startDate = "2016-01-01 9:00:00.000";
+const startDate = "2020-03-08 9:00:00.000";
 const zonedStartDate = zonedTimeToUtc(startDate, MarketTimezone);
 
-const endDate = parseISO("2020-03-15 16:10:00.000");
+const endDate = parseISO("2020-03-18 16:10:00.000");
 
 const zonedEndDate = zonedTimeToUtc(endDate, MarketTimezone);
 

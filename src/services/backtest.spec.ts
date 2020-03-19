@@ -1,7 +1,7 @@
 import test from "ava";
 
 import { Backtester } from "./backtest";
-import { isSameDay, addMonths } from "date-fns";
+import { isSameDay, addMonths, parseISO } from "date-fns";
 import { LOGGER } from "../instrumentation/log";
 import { convertToLocalTime } from "../util/date";
 
@@ -140,31 +140,15 @@ test("Backtester - simulate everything for a few days", async t => {
     t.is(1, instance.currentPositionConfigs.length);
     t.is(1, instance.pastTradeConfigs.length);
 });
-/* 
-test("Backtester - simulate everything until all positions are closed", async t => {
+
+test.skip("Backtester - simulate everything until all positions are closed", async t => {
     t.timeout(100000);
     const startDate = parseISO("2019-03-01 12:00:00.000Z");
-    const zonedStartDate = convertToLocalTime(
-        set(startDate.getTime(), {
-            hours: 9,
-            minutes: 0,
-            seconds: 0,
-            milliseconds: 0
-        })
-    );
     const endDate = parseISO("2019-12-05 22:10:00.000Z");
-    const zonedEndDate = convertToLocalTime(
-        set(endDate.getTime(), {
-            hours: 0,
-            minutes: 0,
-            seconds: 0,
-            milliseconds: 0
-        })
-    );
 
     const test = ["ECL", "AAPL", "HON", "CVS"];
 
-    const instance = new Backtester(updateIntervalMillis, zonedStartDate, zonedEndDate, test);
+    const instance = new Backtester(updateIntervalMillis, startDate, endDate, test);
 
     await instance.simulate();
 
@@ -172,8 +156,7 @@ test("Backtester - simulate everything until all positions are closed", async t 
     LOGGER.info(JSON.stringify(instance.currentPositionConfigs));
 
     t.is(0, instance.pendingTradeConfigs.length);
-    t.is(instance.pastPositionConfigs.length, 15);
-    t.is(36, instance.pastTradeConfigs.length);
+    t.is(instance.pastPositionConfigs.length, 9);
+    t.is(21, instance.pastTradeConfigs.length);
     t.is(0, instance.currentPositionConfigs.length);
 });
- */

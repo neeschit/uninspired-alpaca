@@ -12,7 +12,7 @@ import {
     FilledTradeConfig
 } from "../data/data.model";
 import { alpaca } from "../connection/alpaca";
-import { AlpacaOrder, AlpacaTradeConfig, Broker } from "@alpacahq/alpaca-trade-api";
+import Alpaca, { AlpacaOrder, AlpacaTradeConfig } from "@alpacahq/alpaca-trade-api";
 import { LOGGER } from "../instrumentation/log";
 
 export const processOrderFromStrategy = (order: TradeConfig): AlpacaTradeConfig => {
@@ -24,24 +24,37 @@ export const processOrderFromStrategy = (order: TradeConfig): AlpacaTradeConfig 
 
     const stop = type === TradeType.stop_limit ? stopPrice : type === TradeType.stop ? price : 0;
 
-    return {
+    const trade: AlpacaTradeConfig = {
         qty: quantity,
         symbol,
         time_in_force: tif,
         stop_price: stop,
-        limit_price: type === TradeType.limit || type === TradeType.stop_limit ? price : 0,
         order_class: "simple",
         type,
         side,
         extended_hours: false
     };
+
+    if (type === TradeType.limit || type === TradeType.stop_limit) {
+        trade.limit_price = price;
+    }
+
+    return trade;
 };
 
 export const rebalancePosition = async (
     position: FilledPositionConfig,
     currentBar: Bar
 ): Promise<TradeConfig | null> => {
-    const { symbol, plannedStopPrice, plannedEntryPrice, side: positionSide, quantity } = position;
+    const {
+        symbol,
+        plannedStopPrice,
+        plannedEntryPrice,
+        side: positionSide,
+        quantity,
+        order,
+        originalQuantity
+    } = position;
 
     if (!quantity || quantity < 0) {
         return null;
@@ -49,7 +62,7 @@ export const rebalancePosition = async (
 
     const plannedRiskUnits = Math.abs(plannedEntryPrice - plannedStopPrice);
 
-    const { averagePrice: averageEntryPrice } = position.order;
+    const { averagePrice: averageEntryPrice } = order;
 
     const closingOrderSide =
         positionSide === PositionDirection.long ? TradeDirection.sell : TradeDirection.buy;
@@ -89,10 +102,10 @@ export const rebalancePosition = async (
     LOGGER.trace(currentProfitRatio);
     LOGGER.trace(symbol);
 
-    LOGGER.trace(position.originalQuantity);
-    LOGGER.trace(position.quantity);
+    LOGGER.trace(originalQuantity);
+    LOGGER.trace(quantity);
 
-    if (currentProfitRatio > 0.9 && quantity === position.originalQuantity) {
+    if (currentProfitRatio > 0.9 && quantity === originalQuantity) {
         return {
             symbol,
             price: currentBar.c,
@@ -122,20 +135,27 @@ export const rebalancePosition = async (
 };
 
 export class TradeManagement {
-    position?: PositionConfig;
+    position: PositionConfig;
     order?: Order;
     trades: FilledTradeConfig[] = [];
 
     constructor(
-        private config: TradeConfig,
-        private plan: TradePlan,
-        private broker: Broker = alpaca
+        public config: TradeConfig,
+        public plan: TradePlan,
+        private broker: Alpaca = alpaca
     ) {
         this.position = {
             plannedEntryPrice: plan.plannedEntryPrice,
             plannedStopPrice: plan.plannedStopPrice,
             symbol: config.symbol
         } as PositionConfig;
+    }
+
+    async executeAndRecord() {
+        const order = await this.queueTrade();
+        const position = this.recordTradeOnceFilled(order);
+
+        return position;
     }
 
     async queueTrade() {

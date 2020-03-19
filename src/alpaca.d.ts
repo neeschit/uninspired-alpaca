@@ -78,18 +78,49 @@ declare module "@alpacahq/alpaca-trade-api" {
         side: TradeDirection;
         type: TradeType;
         time_in_force: TimeInForce;
-        limit_price: number;
+        limit_price?: number;
         stop_price: number;
         extended_hours: boolean;
         order_class: "simple" | "bracket";
     }
 
-    export interface Broker {
-        createOrder(params: AlpacaTradeConfig): Promise<AlpacaOrder>;
+    export interface AlpacaPosition {
+        asset_id: string;
+        symbol: string;
+        exchange: string;
+        asset_class: string;
+        avg_entry_price: string;
+        qty: string;
+        side: PositionDirection;
+        market_value: string;
+        cost_basis: string;
+        unrealized_pl: string;
+        unrealized_plpc: string;
+        unrealized_intraday_pl: string;
+        unrealized_intraday_plpc: string;
+        current_price: string;
+        lastday_price: string;
+        change_today: string;
     }
 
-    class Alpaca implements Broker {
+    export type AlpacaOrderStatusFilter = "open" | "closed" | "all";
+
+    export type SortDirection = "asc" | "desc";
+
+    export interface GetOrdersParams {
+        status: AlpacaOrderStatusFilter;
+        after: Date;
+        until: Date;
+        limit: number;
+        direction: SortDirection;
+    }
+
+    class Alpaca {
         createOrder(params: AlpacaTradeConfig): Promise<AlpacaOrder>;
+        cancelAllOrders(): Promise<{}>;
+        getOrders(params: GetOrdersParams): Promise<AlpacaOrder[]>;
+        getPositions(): Promise<AlpacaPosition[]>;
+        closePosition(symbol: string): Promise<{}>;
         getAssets(params: GetAssetsParams): Asset[];
         constructor(params: AlpacaParams);
     }
