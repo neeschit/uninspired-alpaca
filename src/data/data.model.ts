@@ -94,6 +94,7 @@ export interface PositionConfig extends TradePlan {
 export interface FilledPositionConfig extends PositionConfig {
     order: Order;
     trades: FilledTradeConfig[];
+    averageEntryPrice?: number;
 }
 
 export interface Order {

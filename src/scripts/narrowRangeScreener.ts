@@ -56,10 +56,15 @@ barsPromise
             })
             .filter(instance => instance && instance.checkIfFitsStrategy());
 
-        nrbInstances
+        const symbols = nrbInstances
             .filter(n => {
                 return n!.hasPotentialForRewards();
             })
-            .map(n => LOGGER.info(n!.toString()));
+            .map(n => {
+                LOGGER.info(n!.toString());
+                return n?.symbol;
+            });
+
+        console.log(symbols);
     })
     .catch(LOGGER.error);

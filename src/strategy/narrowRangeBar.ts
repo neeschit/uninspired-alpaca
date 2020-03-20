@@ -110,7 +110,7 @@ export class NarrowRangeBarStrategy {
     checkIfFitsStrategy() {
         return (
             this.isNarrowRangeBar(this.tr.slice(-this.period)) &&
-            this.adx[this.adx.length - 1].value > 30
+            this.adx[this.adx.length - 1].value > 25
         );
     }
 
@@ -187,10 +187,10 @@ export class NarrowRangeBarStrategy {
     }
 
     async rebalance(now: TimestampType = Date.now()) {
-        if (!this.isTimeForEntry(now)) {
+        /* if (!this.isTimeForEntry(now)) {
             LOGGER.debug("the time is not nigh");
             return null;
-        }
+        } */
 
         try {
             const lastBar = await getBarsByDate(this.symbol, addDays(now, -1), addDays(now, 1));

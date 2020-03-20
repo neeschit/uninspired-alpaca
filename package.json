@@ -8,7 +8,8 @@
     "date-fns": "^2.9.0",
     "date-fns-tz": "^1.0.10",
     "dotenv": "^8.2.0",
-    "ioredis": "^4.16.0"
+    "ioredis": "^4.16.0",
+    "ws": "^7.2.3"
   },
   "author": "",
   "license": "ISC",
@@ -17,6 +18,7 @@
     "@types/dotenv": "^8.2.0",
     "@types/node": "^13.7.1",
     "@types/sinon": "^7.5.2",
+    "@types/ws": "^7.2.2",
     "ava": "^3.0.0",
     "sinon": "^9.0.0",
     "ts-node": "^8.6.2",

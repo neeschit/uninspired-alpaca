@@ -25,6 +25,7 @@ import { rebalancePosition } from "./tradeManagement";
 import { LOGGER } from "../instrumentation/log";
 import { formatInEasternTimeForDisplay } from "../util/date";
 import { executeSingleTrade } from "./mockExecution";
+import { getSymbolDataGenerator } from "../connection/polygon";
 
 export class Backtester {
     currentDate: Date;
@@ -96,49 +97,6 @@ export class Backtester {
         return this.activeStrategyInstances;
     }
 
-    getBarDataGenerator(
-        symbols: string[],
-        duration: DefaultDuration = DefaultDuration.one,
-        period: PeriodType = PeriodType.day,
-        lookback: number = 150
-    ) {
-        return async function*(currentDate: Date) {
-            for (const symbol of symbols) {
-                const bars = await getBarsByDate(
-                    symbol,
-                    addDays(currentDate, -lookback),
-                    currentDate,
-                    duration,
-                    period
-                );
-
-                yield {
-                    bars,
-                    symbol
-                };
-            }
-        };
-    }
-
-    getReplayDataGenerator(
-        symbols: string[],
-        duration: DefaultDuration = DefaultDuration.one,
-        period: PeriodType = PeriodType.day,
-        startDate: Date,
-        endDate: Date
-    ) {
-        return async function*() {
-            for (const symbol of symbols) {
-                const bars = await getBarsByDate(symbol, startDate, endDate, duration, period);
-
-                yield {
-                    bars,
-                    symbol
-                };
-            }
-        };
-    }
-
     getTimeSeriesGenerator({ endDate }: { startDate: Date; endDate: Date }) {
         const context = this;
 
@@ -170,7 +128,7 @@ export class Backtester {
     }
 
     async batchSimulate(startDate: Date, endDate: Date, symbols: string[]) {
-        const replayBars = this.getReplayDataGenerator(
+        const replayBars = getSymbolDataGenerator(
             symbols,
             this.updateIntervalMillis === 60000 ? DefaultDuration.one : DefaultDuration.five,
             PeriodType.minute,
@@ -184,7 +142,7 @@ export class Backtester {
             });
         }
 
-        const screenerBars = this.getReplayDataGenerator(
+        const screenerBars = getSymbolDataGenerator(
             symbols,
             DefaultDuration.one,
             PeriodType.day,
