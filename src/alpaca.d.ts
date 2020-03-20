@@ -79,7 +79,7 @@ declare module "@alpacahq/alpaca-trade-api" {
         type: TradeType;
         time_in_force: TimeInForce;
         limit_price?: number;
-        stop_price: number;
+        stop_price?: number;
         extended_hours: boolean;
         order_class: "simple" | "bracket";
     }
@@ -120,6 +120,7 @@ declare module "@alpacahq/alpaca-trade-api" {
         cancelAllOrders(): Promise<{}>;
         getOrders(params: GetOrdersParams): Promise<AlpacaOrder[]>;
         getPositions(): Promise<AlpacaPosition[]>;
+        getPosition(symbol: string): Promise<AlpacaPosition>;
         closePosition(symbol: string): Promise<{}>;
         getAssets(params: GetAssetsParams): Asset[];
         constructor(params: AlpacaParams);

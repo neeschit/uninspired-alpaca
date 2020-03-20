@@ -28,7 +28,6 @@ export const processOrderFromStrategy = (order: TradeConfig): AlpacaTradeConfig 
         qty: quantity,
         symbol,
         time_in_force: tif,
-        stop_price: stop,
         order_class: "simple",
         type,
         side,
@@ -37,6 +36,10 @@ export const processOrderFromStrategy = (order: TradeConfig): AlpacaTradeConfig 
 
     if (type === TradeType.limit || type === TradeType.stop_limit) {
         trade.limit_price = price;
+    }
+
+    if (type === TradeType.stop || type === TradeType.stop_limit) {
+        trade.stop_price = stop;
     }
 
     return trade;
@@ -52,17 +55,27 @@ export const rebalancePosition = async (
         plannedEntryPrice,
         side: positionSide,
         quantity,
-        order,
         originalQuantity
+    } = position;
+
+    let {
+        averageEntryPrice,
     } = position;
 
     if (!quantity || quantity < 0) {
         return null;
     }
 
-    const plannedRiskUnits = Math.abs(plannedEntryPrice - plannedStopPrice);
+    if (!averageEntryPrice) {
+        averageEntryPrice = position.order && position.order.averagePrice;
+    }
+    
+    if (!averageEntryPrice) {
+        LOGGER.warn(`Need an entry price for ${symbol}`);
+        return null;
+    }
 
-    const { averagePrice: averageEntryPrice } = order;
+    const plannedRiskUnits = Math.abs(plannedEntryPrice - plannedStopPrice);
 
     const closingOrderSide =
         positionSide === PositionDirection.long ? TradeDirection.sell : TradeDirection.buy;
@@ -162,18 +175,43 @@ export class TradeManagement {
         return this.broker.createOrder(processOrderFromStrategy(this.config));
     }
 
-    onTradeUpdate(currentBar: Bar) {
-        if (!this.position || !this.order || !this.order.filledQuantity) {
+    async onTradeUpdate(currentBar: Bar) {
+        if (!this.position || !this.order) {
             LOGGER.error("no position or order was never fulfilled");
             return;
         }
-        return rebalancePosition(
+        const config: TradeConfig | null = await rebalancePosition(
             Object.assign(this.position, {
                 order: this.order,
                 trades: this.trades
             }),
             currentBar
         );
+
+        if (!config) {
+            LOGGER.info(
+                `nothing to do for ${JSON.stringify(
+                    this.plan
+                )} with current bar ${JSON.stringify(currentBar)}`
+            );
+            return;
+        }
+
+        return this.broker.createOrder(processOrderFromStrategy(config));
+    }
+
+    async fetchCurrentPosition() {
+        const position = await alpaca.getPosition(this.plan.symbol);
+
+        this.position = {
+            ...this.plan,
+            plannedRiskUnits: Math.abs(this.plan.plannedEntryPrice - this.plan.plannedStopPrice),
+            hasHardStop: false,
+            originalQuantity: this.plan.quantity,
+            quantity: Number(position.qty)
+        }
+
+        return this.position;
     }
 
     recordTradeOnceFilled(order: AlpacaOrder): FilledPositionConfig {

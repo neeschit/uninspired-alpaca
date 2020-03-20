@@ -1,21 +1,58 @@
 import { LOGGER } from "../instrumentation/log";
 import { readFileSync, createWriteStream, fstat, existsSync } from "fs";
 import { getSymbolDataGenerator } from "../connection/polygon";
-import { DefaultDuration, PeriodType, TradeConfig, PositionDirection } from "../data/data.model";
-import { addDays, set, format } from "date-fns";
+import {
+    DefaultDuration,
+    PeriodType,
+    TradeConfig,
+    PositionDirection,
+    TradePlan
+} from "../data/data.model";
+import { addDays, format } from "date-fns";
 import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
-import { alpaca } from "../connection/alpaca";
 import { TradeManagement } from "../services/tradeManagement";
 import { convertToLocalTime } from "../util/date";
-import { isMarketOpen } from "../util/market";
+import { alpaca } from "../connection/alpaca";
+import { getPlannedLogs } from "../util/getTradeLogFileName";
 
 const LARGE_CAPS = JSON.parse(readFileSync("./largecaps.json").toString());
 
+function combLogFilesForPlans(symbols: string[]) {
+    const activePlans = [];
+
+    let index = -1;
+
+    while (activePlans.length !== symbols.length) {
+        const plannedLogName = getPlannedLogs(addDays(Date.now(), index));
+
+        if (!existsSync(plannedLogName)) {
+            LOGGER.error(`didn't find a log file but found active positions`);
+            break;
+        }
+
+        const plans: { plan: TradePlan; config: TradeConfig }[] = JSON.parse(
+            readFileSync(plannedLogName).toString()
+        );
+
+        const active = plans.filter(p => symbols.indexOf(p.plan.symbol) !== -1);
+
+        activePlans.push(...active);
+
+        index--;
+    }
+
+    return activePlans;
+}
+
 async function main() {
     const ordersToBeManaged: TradeManagement[] = [];
-    const plannedLogName = "./tradePlans" + format(Date.now(), "yyyy-MM-dd") + ".log";
+    const positions = await alpaca.getPositions();
+    const symbols = positions.map(p => p.symbol);
+
+    const activePlans = combLogFilesForPlans(symbols);
+
+    const plannedLogName = getPlannedLogs();
     if (!existsSync(plannedLogName)) {
-        const planStream = createWriteStream(plannedLogName);
         const narrowRangeInstances: NarrowRangeBarStrategy[] = [];
         const dailyBarGenerator = getSymbolDataGenerator(
             LARGE_CAPS,
@@ -33,7 +70,10 @@ async function main() {
                     symbol
                 });
 
-                if (nrb.checkIfFitsStrategy()) {
+                if (
+                    nrb.checkIfFitsStrategy() &&
+                    symbols.indexOf(symbol) === -1
+                ) {
                     narrowRangeInstances.push(nrb);
                 }
             } catch (e) {
@@ -43,7 +83,13 @@ async function main() {
 
         LOGGER.info(narrowRangeInstances.map(n => n.symbol));
 
-        const entryTime = convertToLocalTime(Date.now(), " 09:35:01.000");
+        const entryTime = convertToLocalTime(Date.now(), " 09:34:45.000");
+
+        while (Date.now() < entryTime.getTime()) {
+            LOGGER.warn(`tis not time`);
+        }
+
+        const logs = [...activePlans];
 
         for (const n of narrowRangeInstances) {
             try {
@@ -54,16 +100,21 @@ async function main() {
                 } else {
                     const manager = new TradeManagement(order, {
                         symbol: n.symbol,
-                        side: n.isShort ? PositionDirection.short : PositionDirection.long,
+                        side: n.isShort
+                            ? PositionDirection.short
+                            : PositionDirection.long,
                         plannedEntryPrice: order.price,
                         plannedStopPrice: n.stopPrice,
                         plannedQuantity: order.quantity,
                         quantity: order.quantity
                     });
 
-                    planStream.write(JSON.stringify([manager.plan, manager.config]) + "\n");
+                    logs.push({
+                        plan: manager.plan,
+                        config: manager.config
+                    });
 
-                    /* await manager.executeAndRecord(); */
+                    await manager.executeAndRecord();
 
                     ordersToBeManaged.push(manager);
                 }
@@ -72,43 +123,9 @@ async function main() {
             }
         }
 
+        const planStream = createWriteStream(plannedLogName);
+        planStream.write(JSON.stringify(logs));
         planStream.close();
-    }
-
-    if (isMarketOpen()) {
-        const interval = setInterval(async () => {
-            const updateGenerator = getSymbolDataGenerator(
-                ordersToBeManaged.map(o => o.position.symbol),
-                DefaultDuration.one,
-                PeriodType.minute,
-                addDays(Date.now(), -1),
-                addDays(Date.now(), 1)
-            );
-
-            for await (const { bars, symbol } of updateGenerator()) {
-                const lastBar = bars[bars.length - 1];
-
-                if (Date.now() - lastBar.t > 120000) {
-                    LOGGER.error("bad things happening");
-                    continue;
-                }
-
-                const manager = ordersToBeManaged.find(o => o.position.symbol === symbol);
-
-                if (!manager) {
-                    LOGGER.error("more bad things happening");
-                    continue;
-                }
-
-                LOGGER.info(manager.plan);
-
-                manager.onTradeUpdate(lastBar);
-
-                if (!isMarketOpen()) {
-                    clearInterval(interval);
-                }
-            }
-        }, 60000);
     }
 }
 

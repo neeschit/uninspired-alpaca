@@ -8,7 +8,10 @@ import { EventEmitter } from "events";
 
 const config = dotenv.config().parsed;
 
-const API_KEY = (config && config.ALPACA_SECRET_KEY_ID) || process.env.ALPACA_SECRET_KEY_ID;
+const API_KEY =
+    (config && config.LIVE_SECRET_KEY_ID) ||
+    (config && config.ALPACA_SECRET_KEY_ID) ||
+    process.env.ALPACA_SECRET_KEY_ID;
 
 const getPolygonApiUrl = (resourceUrl: string, version = "v1") =>
     `https://api.polygon.io/${version}/${resourceUrl}?apiKey=${API_KEY}`;
@@ -75,7 +78,13 @@ export const getSymbolDataGenerator = (
 ) => {
     return async function*() {
         for (const symbol of symbols) {
-            const bars = await getSimplePolygonData(symbol, startDate, endDate, period, duration);
+            const bars = await getSimplePolygonData(
+                symbol,
+                startDate,
+                endDate,
+                period,
+                duration
+            );
 
             yield {
                 bars,
@@ -135,7 +144,15 @@ class SocketManager {
         return this.emitter;
     }
 
-    processStatusMessage({ ev, status, message }: { ev: string; status: string; message: string }) {
+    processStatusMessage({
+        ev,
+        status,
+        message
+    }: {
+        ev: string;
+        status: string;
+        message: string;
+    }) {
         if (status === "auth_success" && !this.isConnected) {
             this.emitter.emit("auth");
             this.isConnected = true;
@@ -158,7 +175,10 @@ class SocketManager {
         this.emitter.emit("minute_update", params);
     }
 
-    subscribeToTickLevelUpdates(symbols: string[], updateType: "A" | "AM" | "T" | "Q" = "A") {
+    subscribeToTickLevelUpdates(
+        symbols: string[],
+        updateType: "A" | "AM" | "T" | "Q" = "A"
+    ) {
         for (const symbol of symbols) {
             this.serverInstance?.send(
                 JSON.stringify({
