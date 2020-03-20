@@ -86,7 +86,7 @@ async function main() {
         const entryTime = convertToLocalTime(Date.now(), " 09:34:45.000");
 
         while (Date.now() < entryTime.getTime()) {
-            LOGGER.warn(`tis not time`);
+            /* LOGGER.warn(`tis not time`); */
         }
 
         const logs = [...activePlans];

@@ -7,7 +7,6 @@ const n = getSocketManager();
 const server = n.server;
 
 server.on("auth", () => {
-    console.log("auth");
     n.subscribeToTickLevelUpdates([
         "APA",
         "SPGI",

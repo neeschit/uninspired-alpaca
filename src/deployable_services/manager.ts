@@ -23,10 +23,10 @@ async function manage() {
             plan: TradePlan;
         }[] = JSON.parse(readFileSync(plannedLogName).toString());
 
-        const positions = await alpaca.getPositions();
+        let positions = await alpaca.getPositions();
 
         if (positions.length) {
-            const interval = setInterval(async () => {
+            const intervalFn = async () => {
                 const updateGenerator = getSymbolDataGenerator(
                     positions.map(o => o.symbol),
                     DefaultDuration.one,
@@ -35,11 +35,17 @@ async function manage() {
                     addDays(Date.now(), 1)
                 );
 
+                let orderProcessed = false;
+
                 for await (const { bars, symbol } of updateGenerator()) {
                     const lastBar = bars[bars.length - 1];
 
-                    if (Date.now() - lastBar.t > 120000) {
-                        LOGGER.error("bad things happening");
+                    if (Date.now() - lastBar.t > 300000) {
+                        LOGGER.error(
+                            `bad things happening for symbol ${symbol} at ${Date.now()} for ${
+                                lastBar.t
+                            }`
+                        );
                         continue;
                     }
 
@@ -75,13 +81,24 @@ async function manage() {
 
                     const order = await manager.onTradeUpdate(lastBar);
 
-                    console.log(order);
+                    LOGGER.info(order);
+
+                    if (order) {
+                        orderProcessed = true;
+                    }
 
                     if (!isMarketOpen()) {
                         clearInterval(interval);
                     }
                 }
-            }, 60000);
+
+                if (orderProcessed) {
+                    positions = await alpaca.getPositions();
+                }
+            }
+            const interval = setInterval(intervalFn, 60000);
+
+            intervalFn();
         }
     }
 }

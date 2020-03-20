@@ -64,7 +64,5 @@ barsPromise
                 LOGGER.info(n!.toString());
                 return n?.symbol;
             });
-
-        console.log(symbols);
     })
     .catch(LOGGER.error);
