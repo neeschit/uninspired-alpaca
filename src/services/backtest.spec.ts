@@ -8,8 +8,8 @@ import { convertToLocalTime } from "../util/date";
 const updateIntervalMillis = 60000;
 
 test("Backtester - simulate time and check if correct", async t => {
-    const defaultZonedStartDate = convertToLocalTime(new Date("2019-02-03"), " 08:59:00.000");
-    const defaultZonedEndDate = convertToLocalTime(new Date("2019-02-04"), " 03:10:00.000");
+    const defaultZonedStartDate = new Date("2019-01-03T08:10:00.000Z");
+    const defaultZonedEndDate = new Date("2019-01-03T22:10:00.000Z");
     LOGGER.info(defaultZonedStartDate.toLocaleString());
     LOGGER.info(defaultZonedEndDate.toLocaleString());
     const instance = new Backtester(
