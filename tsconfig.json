@@ -1,7 +1,5 @@
 {
     "compilerOptions": {
-        "sourceRoot": "./",
-        "inlineSourceMap": true,
         "strict": true,
         "module": "CommonJS",
         "moduleResolution": "node",
@@ -11,7 +9,8 @@
         "outDir": "./build",
         "target": "ES2020",
         "allowSyntheticDefaultImports": true,
-        "esModuleInterop": true
+        "esModuleInterop": true,
+        "sourceMap": true
     },
     "include": ["src/**/*"],
     "exclude": ["node_modules"]

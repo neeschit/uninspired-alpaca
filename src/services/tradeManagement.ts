@@ -47,7 +47,8 @@ export const processOrderFromStrategy = (order: TradeConfig): AlpacaTradeConfig 
 
 export const rebalancePosition = async (
     position: FilledPositionConfig,
-    currentBar: Bar
+    currentBar: Bar,
+    t = Date.now()
 ): Promise<TradeConfig | null> => {
     const {
         symbol,
@@ -58,9 +59,7 @@ export const rebalancePosition = async (
         originalQuantity
     } = position;
 
-    let {
-        averageEntryPrice,
-    } = position;
+    let averageEntryPrice;
 
     if (!quantity || quantity < 0) {
         return null;
@@ -69,7 +68,7 @@ export const rebalancePosition = async (
     if (!averageEntryPrice) {
         averageEntryPrice = position.order && position.order.averagePrice;
     }
-    
+
     if (!averageEntryPrice) {
         LOGGER.warn(`Need an entry price for ${symbol}`);
         return null;
@@ -88,7 +87,7 @@ export const rebalancePosition = async (
             side: closingOrderSide,
             tif: TimeInForce.gtc,
             quantity: quantity,
-            t: Date.now()
+            t
         };
     } else if (currentBar.c > plannedStopPrice && positionSide === PositionDirection.short) {
         return {
@@ -98,7 +97,7 @@ export const rebalancePosition = async (
             side: closingOrderSide,
             tif: TimeInForce.gtc,
             quantity: quantity,
-            t: Date.now()
+            t
         };
     }
 
@@ -126,7 +125,7 @@ export const rebalancePosition = async (
             side: closingOrderSide,
             tif: TimeInForce.day,
             quantity: Math.ceil(quantity * 0.75),
-            t: Date.now()
+            t
         };
     }
 
@@ -140,7 +139,7 @@ export const rebalancePosition = async (
             side: closingOrderSide,
             tif: TimeInForce.gtc,
             quantity,
-            t: Date.now()
+            t
         };
     }
 
@@ -190,9 +189,9 @@ export class TradeManagement {
 
         if (!config) {
             LOGGER.info(
-                `nothing to do for ${JSON.stringify(
-                    this.plan
-                )} with current bar ${JSON.stringify(currentBar)}`
+                `nothing to do for ${JSON.stringify(this.plan)} with current bar ${JSON.stringify(
+                    currentBar
+                )}`
             );
             return;
         }
@@ -207,9 +206,9 @@ export class TradeManagement {
             ...this.plan,
             plannedRiskUnits: Math.abs(this.plan.plannedEntryPrice - this.plan.plannedStopPrice),
             hasHardStop: false,
-            originalQuantity: this.plan.quantity,
+            originalQuantity: this.plan.plannedQuantity,
             quantity: Number(position.qty)
-        }
+        };
 
         return this.position;
     }

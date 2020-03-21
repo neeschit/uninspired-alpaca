@@ -14,6 +14,7 @@ import { TradeManagement } from "../services/tradeManagement";
 import { convertToLocalTime } from "../util/date";
 import { alpaca } from "../connection/alpaca";
 import { getPlannedLogs } from "../util/getTradeLogFileName";
+import { getBarsByDate } from "../data/bars";
 
 const LARGE_CAPS = JSON.parse(readFileSync("./largecaps.json").toString());
 
@@ -70,10 +71,7 @@ async function main() {
                     symbol
                 });
 
-                if (
-                    nrb.checkIfFitsStrategy() &&
-                    symbols.indexOf(symbol) === -1
-                ) {
+                if (nrb.checkIfFitsStrategy() && symbols.indexOf(symbol) === -1) {
                     narrowRangeInstances.push(nrb);
                 }
             } catch (e) {
@@ -93,16 +91,33 @@ async function main() {
 
         for (const n of narrowRangeInstances) {
             try {
-                const order: TradeConfig | null = await n.rebalance();
+                const lastBar = await getBarsByDate(
+                    n.symbol,
+                    addDays(Date.now(), -1),
+                    addDays(Date.now(), 1)
+                );
+                if (!lastBar || !lastBar.length) {
+                    LOGGER.warn(`Couldn't find the bars for ${n.symbol}`);
+                    continue;
+                }
+
+                const timezonedStamp = convertToLocalTime(Date.now(), " 09:30:00.000");
+
+                const bar = lastBar.find(bar => bar.t === timezonedStamp.getTime());
+
+                if (!bar) {
+                    LOGGER.warn(`Couldn't find the right bar for ${n.symbol}`);
+                    continue;
+                }
+
+                const order: TradeConfig | null = await n.rebalance(bar);
 
                 if (!order) {
                     LOGGER.warn(`Expected an order for ${n.symbol}`);
                 } else {
                     const manager = new TradeManagement(order, {
                         symbol: n.symbol,
-                        side: n.isShort
-                            ? PositionDirection.short
-                            : PositionDirection.long,
+                        side: n.isShort ? PositionDirection.short : PositionDirection.long,
                         plannedEntryPrice: order.price,
                         plannedStopPrice: n.stopPrice,
                         plannedQuantity: order.quantity,

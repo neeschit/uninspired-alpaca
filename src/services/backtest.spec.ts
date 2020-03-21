@@ -7,12 +7,9 @@ import { convertToLocalTime } from "../util/date";
 
 const updateIntervalMillis = 60000;
 
-const defaultZonedStartDate = convertToLocalTime(new Date("2019-01-02"), " 08:59:00.000");
-const defaultZonedEndDate = convertToLocalTime(new Date("2019-01-03"), " 03:10:00.000");
-
 test("Backtester - simulate time and check if correct", async t => {
-    LOGGER.info(defaultZonedStartDate.toLocaleString());
-    LOGGER.info(defaultZonedEndDate.toLocaleString());
+    const defaultZonedStartDate = convertToLocalTime(new Date("2019-02-02"), " 08:59:00.000");
+    const defaultZonedEndDate = convertToLocalTime(new Date("2019-02-03"), " 03:10:00.000");
     const instance = new Backtester(
         updateIntervalMillis,
         defaultZonedStartDate,

@@ -273,10 +273,20 @@ test("integration nrb - real world - identify pattern for AKAM", async t => {
     });
 
     t.truthy(nrbStrategyInstance.checkIfFitsStrategy());
-    const trade = await nrbStrategyInstance.rebalance(new Date("2020-01-22T14:34:46.000Z"));
+    const trade = await nrbStrategyInstance.rebalance(
+        {
+            h: 95.5,
+            l: 95,
+            c: 95.4,
+            o: 95,
+            v: 3000,
+            t: Date.now()
+        },
+        new Date("2020-01-22T14:34:46.000Z")
+    );
     t.deepEqual(trade, {
         symbol: "AKAM",
-        quantity: 6,
+        quantity: 7,
         side: TradeDirection.buy,
         type: TradeType.stop,
         tif: TimeInForce.day,

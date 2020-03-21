@@ -180,9 +180,19 @@ export class Backtester {
                     }
                 }
 
-                const potentialTradesToPlace = filteredInstances.map(i =>
-                    i.rebalance(this.currentDate)
-                );
+                const potentialTradesToPlace = filteredInstances.map(i => {
+                    const bars = this.replayBars[i.symbol];
+
+                    const bar = bars.find(bar => bar.t >= this.currentDate.getTime());
+
+                    if (!bar) {
+                        return null;
+                    }
+
+                    LOGGER.info(bar);
+
+                    return i.isTimeForEntry(this.currentDate) && i.rebalance(bar, this.currentDate);
+                });
 
                 for await (const promiseResult of potentialTradesToPlace) {
                     if (promiseResult) {
@@ -429,7 +439,7 @@ export class Backtester {
                 continue;
             }
 
-            trades.push(rebalancePosition(position, bar));
+            trades.push(rebalancePosition(position, bar, this.currentDate.getTime()));
         }
 
         return trades;

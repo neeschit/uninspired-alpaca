@@ -6,16 +6,18 @@ import { LOGGER } from "../instrumentation/log";
 import { getDetailedPerformanceReport } from "../services/performance";
 import { zonedTimeToUtc } from "date-fns-tz";
 
-const startDate = "2020-03-08 9:00:00.000";
+const startDate = "2019-09-21 9:00:00.000";
 const zonedStartDate = zonedTimeToUtc(startDate, MarketTimezone);
 
-const endDate = parseISO("2020-03-18 16:10:00.000");
+const endDate = parseISO("2020-03-20 16:10:00.000");
 
 const zonedEndDate = zonedTimeToUtc(endDate, MarketTimezone);
 
 const LARGE_CAPS = JSON.parse(readFileSync("./largecaps.json").toString());
 LOGGER.info(zonedStartDate.toISOString());
-const instance = new Backtester(60000, zonedStartDate, zonedEndDate, LARGE_CAPS);
+const instance = new Backtester(60000, zonedStartDate, zonedEndDate, LARGE_CAPS.slice(-5));
+
+throw new Error("helllo");
 
 async function run() {
     await instance.simulate(50);

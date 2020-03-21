@@ -56,9 +56,7 @@ async function manage() {
                         continue;
                     }
 
-                    const plan = tradingPlans.find(
-                        p => p.plan.symbol === position.symbol
-                    );
+                    const plan = tradingPlans.find(p => p.plan.symbol === position.symbol);
 
                     if (!plan) {
                         LOGGER.error("seriously bad things happening");
@@ -74,8 +72,7 @@ async function manage() {
                         status: OrderStatus.filled
                     };
 
-                    manager.position.originalQuantity =
-                        manager.position.plannedQuantity;
+                    manager.position.originalQuantity = plan.plan.plannedQuantity;
                     manager.position.quantity = Math.abs(Number(position.qty));
                     manager.position.side = position.side;
 
@@ -95,7 +92,7 @@ async function manage() {
                 if (orderProcessed) {
                     positions = await alpaca.getPositions();
                 }
-            }
+            };
             const interval = setInterval(intervalFn, 60000);
 
             intervalFn();
