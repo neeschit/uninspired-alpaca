@@ -22,4 +22,5 @@ export const LOGGER = {
 
 process.on("uncaughtException", function(err) {
     console.error("Uncaught exception raised : ", err);
+    console.error(err.stack);
 });

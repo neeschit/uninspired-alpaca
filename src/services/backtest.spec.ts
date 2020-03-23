@@ -4,6 +4,13 @@ import { Backtester } from "./backtest";
 import { isSameDay, addMonths, parseISO } from "date-fns";
 import { LOGGER } from "../instrumentation/log";
 import { convertToLocalTime } from "../util/date";
+import {
+    PositionDirection,
+    OrderStatus,
+    TradeDirection,
+    TradeType,
+    TimeInForce
+} from "../data/data.model";
 
 const updateIntervalMillis = 60000;
 
@@ -138,6 +145,24 @@ test("Backtester - simulate everything for a few days", async t => {
     t.is(0, instance.pendingTradeConfigs.length);
     t.is(1, instance.currentPositionConfigs.length);
     t.is(1, instance.pastTradeConfigs.length);
+});
+
+test("Backtester - simulate ILMN for 6 months", async t => {
+    t.timeout(100000);
+    const startDate = parseISO("2019-09-21 12:00:00.000Z");
+    const endDate = parseISO("2020-03-20 22:10:00.000Z");
+
+    const test = ["ILMN"];
+
+    const instance = new Backtester(updateIntervalMillis, startDate, endDate, test);
+
+    await instance.simulate();
+
+    t.is(0, instance.pendingTradeConfigs.length);
+    t.is(instance.pastPositionConfigs.length, 5);
+    t.is(instance.pastTradeConfigs.length, 10);
+    t.is(0, instance.currentPositionConfigs.length);
+    console.log(JSON.stringify(instance.pastPositionConfigs));
 });
 
 test.skip("Backtester - simulate everything until all positions are closed", async t => {

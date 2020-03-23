@@ -26,6 +26,7 @@ import { LOGGER } from "../instrumentation/log";
 import { formatInEasternTimeForDisplay } from "../util/date";
 import { executeSingleTrade } from "./mockExecution";
 import { getSymbolDataGenerator } from "../connection/polygon";
+import { getDetailedPerformanceReport } from "./performance";
 
 export class Backtester {
     currentDate: Date;
@@ -48,7 +49,8 @@ export class Backtester {
         private updateIntervalMillis: number,
         private startDate: Date,
         private endDate: Date,
-        private configuredSymbols: string[]
+        private configuredSymbols: string[],
+        private profitRatio: number = 1
     ) {
         this.currentDate = startDate;
         this.clock = Sinon.useFakeTimers(startDate);
@@ -65,7 +67,7 @@ export class Backtester {
             try {
                 const stockBars = this.screenerBars[symbol];
 
-                if (!stockBars) {
+                if (!stockBars || stockBars.length < 15) {
                     LOGGER.warn(`No bars for ${symbol} on ${this.currentDate.toLocaleString()}`);
                     continue;
                 }
@@ -78,13 +80,13 @@ export class Backtester {
                 });
                 this.strategyInstances.push(nrbInstance);
             } catch (e) {
-                LOGGER.error(e);
+                LOGGER.error(e.message);
             }
         }
 
         const shouldBeAdded = this.strategyInstances.filter(
             instance =>
-                instance.checkIfFitsStrategy() &&
+                instance.checkIfFitsStrategy(this.profitRatio) &&
                 this.activeStrategyInstances.every(i => i.symbol !== instance.symbol)
         );
 
@@ -125,6 +127,40 @@ export class Backtester {
                 context.incrementDate();
             }
         };
+    }
+
+    async simulate(batchSize = 100, logPerformance = true) {
+        const batches = Backtester.getBatches(
+            this.startDate,
+            this.endDate,
+            this.configuredSymbols,
+            batchSize
+        );
+
+        const currentPositionConfigs: FilledPositionConfig[][] = [];
+
+        let pastLength = 0;
+
+        for (const batch of batches) {
+            this.currentDate = batch.startDate;
+            this.replayBars = {};
+            this.currentPositionConfigs = currentPositionConfigs[batch.batchId] || [];
+            this.clock.setSystemTime(this.currentDate);
+
+            LOGGER.info(`Starting simulation for batch ${JSON.stringify(batch)}`);
+
+            await this.batchSimulate(batch.startDate, batch.endDate, batch.symbols);
+
+            if (logPerformance) {
+                const perfReport = getDetailedPerformanceReport(
+                    this.pastPositionConfigs.slice(pastLength)
+                );
+                pastLength = this.pastPositionConfigs.length;
+                LOGGER.info(`performance so far ${JSON.stringify(perfReport)}`);
+            }
+
+            currentPositionConfigs[batch.batchId] = this.currentPositionConfigs;
+        }
     }
 
     async batchSimulate(startDate: Date, endDate: Date, symbols: string[]) {
@@ -180,18 +216,27 @@ export class Backtester {
                     }
                 }
 
-                const potentialTradesToPlace = filteredInstances.map(i => {
+                const potentialTradesToPlace = filteredInstances.map(async i => {
                     const bars = this.replayBars[i.symbol];
 
-                    const bar = bars.find(bar => bar.t >= this.currentDate.getTime());
+                    try {
+                        let bar = await this.findOrFetchBarByDate(
+                            this.currentDate.getTime(),
+                            i.symbol,
+                            bars
+                        );
 
-                    if (!bar) {
-                        return null;
+                        if (!bar) {
+                            LOGGER.warn(`no bar found`);
+                            return;
+                        }
+
+                        return (
+                            i.isTimeForEntry(this.currentDate) && i.rebalance(bar, this.currentDate)
+                        );
+                    } catch (e) {
+                        LOGGER.warn(e);
                     }
-
-                    LOGGER.info(bar);
-
-                    return i.isTimeForEntry(this.currentDate) && i.rebalance(bar, this.currentDate);
                 });
 
                 for await (const promiseResult of potentialTradesToPlace) {
@@ -217,28 +262,49 @@ export class Backtester {
         }
     }
 
-    async simulate(batchSize = 100) {
-        const batches = Backtester.getBatches(
-            this.startDate,
+    async refreshBars(symbol: string, time = this.currentDate.getTime()): Promise<Bar> {
+        LOGGER.warn(
+            `Detected need to refresh bars at ${this.currentDate.toLocaleString()} for ${symbol}`
+        );
+        const bars = await getBarsByDate(
+            symbol,
+            addDays(this.currentDate, -1),
             this.endDate,
-            this.configuredSymbols,
-            batchSize
+            this.updateIntervalMillis === 60000 ? DefaultDuration.one : DefaultDuration.five,
+            PeriodType.minute
         );
 
-        const currentPositionConfigs: FilledPositionConfig[][] = [];
+        this.replayBars[symbol] = bars;
 
-        for (const batch of batches) {
-            this.currentDate = batch.startDate;
-            this.replayBars = {};
-            this.currentPositionConfigs = currentPositionConfigs[batch.batchId] || [];
-            this.clock.setSystemTime(this.currentDate);
+        return this.findBarByDate(time, symbol, bars);
+    }
 
-            LOGGER.info(`Starting simulation for batch ${JSON.stringify(batch)}`);
-
-            await this.batchSimulate(batch.startDate, batch.endDate, batch.symbols);
-
-            currentPositionConfigs[batch.batchId] = this.currentPositionConfigs;
+    async findOrFetchBarByDate(time: number, symbol: string, bars: Bar[]): Promise<Bar | null> {
+        try {
+            const bar = this.findBarByDate(time, symbol, bars);
+            return bar;
+        } catch (e) {
+            LOGGER.warn(e.message);
         }
+
+        try {
+            return this.refreshBars(symbol, time);
+        } catch (e) {
+            LOGGER.warn(e.message);
+        }
+
+        return null;
+    }
+
+    findBarByDate(time: number, symbol: string, bars: Bar[]): Bar {
+        const barIndex = bars.findIndex(b => b.t >= time);
+
+        if (barIndex === -1) {
+            const err = `couldnt find bar ${symbol} after retries at ${this.currentDate.toLocaleString()}`;
+            throw new Error(err);
+        }
+
+        return bars[barIndex];
     }
 
     validateTrade(tradeConfig: TradeConfig) {
@@ -300,9 +366,16 @@ export class Backtester {
             if (instance) {
                 const entry = instance.entry;
 
-                const barIndex = bars.findIndex(b => b.t > this.currentDate.getTime());
+                const bar = await this.findOrFetchBarByDate(
+                    this.currentDate.getTime(),
+                    symbol,
+                    bars
+                );
 
-                const bar = bars[barIndex + 1];
+                if (!bar) {
+                    LOGGER.error(`No bars for ${JSON.stringify(tradePlan)}`);
+                    continue;
+                }
 
                 const position = executeSingleTrade(
                     instance.stopPrice,
@@ -343,9 +416,21 @@ export class Backtester {
         }
 
         const bars = this.replayBars[position.symbol];
-        const barIndex = bars.findIndex(b => b.t > this.currentDate.getTime());
+        const bar = await this.findOrFetchBarByDate(
+            this.currentDate.getTime(),
+            tradeConfig.symbol,
+            bars
+        );
 
-        const bar = bars[barIndex + 1];
+        if (!bar) {
+            LOGGER.error(
+                `Couldn't find bar when trying to rebalance on ${this.currentDate.toLocaleString()} for ${
+                    position.symbol
+                }`
+            );
+
+            return null;
+        }
 
         const executedClose = executeSingleTrade(
             position.plannedStopPrice,
@@ -400,33 +485,12 @@ export class Backtester {
                 continue;
             }
 
-            let barIndex = bars.findIndex(b => b.t > this.currentDate.getTime());
+            const bar = await this.findOrFetchBarByDate(this.currentDate.getTime(), symbol, bars);
 
-            if (barIndex === -1) {
-                LOGGER.warn(
-                    `no bars found for date ${this.currentDate.toLocaleString()} for ${symbol}`
-                );
-                const bars = await getBarsByDate(
-                    symbol,
-                    addDays(this.currentDate, -1),
-                    endDate,
-                    this.updateIntervalMillis === 60000
-                        ? DefaultDuration.one
-                        : DefaultDuration.five,
-                    PeriodType.minute
-                );
-
-                this.replayBars[symbol].push(...bars);
-
-                barIndex = bars.findIndex(b => b.t > this.currentDate.getTime());
-
-                if (barIndex === -1) {
-                    LOGGER.error(`couldnt find bar ${symbol} after retries`);
-                    continue;
-                }
+            if (!bar) {
+                LOGGER.warn(`no bars found for date ${this.currentDate} for ${symbol}`);
+                continue;
             }
-
-            const bar = bars[barIndex + 1];
 
             const position = this.currentPositionConfigs.find(p => p.symbol === symbol);
 
@@ -439,7 +503,9 @@ export class Backtester {
                 continue;
             }
 
-            trades.push(rebalancePosition(position, bar, this.currentDate.getTime()));
+            trades.push(
+                rebalancePosition(position, bar, this.profitRatio, this.currentDate.getTime())
+            );
         }
 
         return trades;

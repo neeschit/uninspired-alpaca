@@ -48,6 +48,7 @@ export const processOrderFromStrategy = (order: TradeConfig): AlpacaTradeConfig 
 export const rebalancePosition = async (
     position: FilledPositionConfig,
     currentBar: Bar,
+    partialProfitRatio = 0.9,
     t = Date.now()
 ): Promise<TradeConfig | null> => {
     const {
@@ -117,21 +118,7 @@ export const rebalancePosition = async (
     LOGGER.trace(originalQuantity);
     LOGGER.trace(quantity);
 
-    if (currentProfitRatio > 0.9 && quantity === originalQuantity) {
-        return {
-            symbol,
-            price: currentBar.c,
-            type: TradeType.limit,
-            side: closingOrderSide,
-            tif: TimeInForce.day,
-            quantity: Math.ceil(quantity * 0.75),
-            t
-        };
-    }
-
-    LOGGER.debug(currentProfitRatio);
-
-    if (currentProfitRatio > 2) {
+    if (currentProfitRatio >= partialProfitRatio && quantity === originalQuantity) {
         return {
             symbol,
             price: 0,
@@ -154,7 +141,8 @@ export class TradeManagement {
     constructor(
         public config: TradeConfig,
         public plan: TradePlan,
-        private broker: Alpaca = alpaca
+        private broker: Alpaca = alpaca,
+        private partialProfitRatio = 0.9
     ) {
         this.position = {
             plannedEntryPrice: plan.plannedEntryPrice,
@@ -184,7 +172,8 @@ export class TradeManagement {
                 order: this.order,
                 trades: this.trades
             }),
-            currentBar
+            currentBar,
+            this.partialProfitRatio
         );
 
         if (!config) {

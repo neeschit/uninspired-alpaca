@@ -20,7 +20,6 @@
             "name": "backtester",
             "program": "${workspaceFolder}/src/scripts/backtest.ts",
             "args": ["--enable-source-maps"],
-            "preLaunchTask": "npm: build",
             "sourceMaps": true,
             "outFiles": ["${workspaceFolder}/build/**/*.js"],
             "cwd": "${workspaceFolder}",

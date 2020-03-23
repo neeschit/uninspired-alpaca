@@ -78,7 +78,7 @@ export class NarrowRangeBarStrategy {
     }
 
     get isShort() {
-        return this.overallTrend === TrendType.down;
+        return this.overallTrend !== TrendType.down;
     }
 
     get entry() {
@@ -107,10 +107,11 @@ export class NarrowRangeBarStrategy {
         return this.isShort ? TradeDirection.sell : TradeDirection.buy;
     }
 
-    checkIfFitsStrategy() {
+    checkIfFitsStrategy(profitRatio = 2) {
         return (
             this.isNarrowRangeBar(this.tr.slice(-this.period)) &&
-            this.adx[this.adx.length - 1].value > 25
+            this.adx[this.adx.length - 1].value > 30 &&
+            this.hasPotentialForRewards(profitRatio)
         );
     }
 
@@ -139,7 +140,7 @@ export class NarrowRangeBarStrategy {
         return strength;
     }
 
-    hasPotentialForRewards() {
+    hasPotentialForRewards(profitRatio = 2) {
         const risk = this.stop;
         const resistances = getNextResistance(
             this.bars,
@@ -153,7 +154,7 @@ export class NarrowRangeBarStrategy {
 
         const potentialRewards = resistances.map((r: number) => Math.abs(this.entry - r));
 
-        const hasPotential = potentialRewards.some((r: number) => r / risk >= 2);
+        const hasPotential = potentialRewards.some((r: number) => r / risk >= profitRatio);
 
         return hasPotential;
     }
