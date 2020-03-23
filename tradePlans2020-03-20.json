@@ -1,0 +1,496 @@
+[
+    {
+        "plan": {
+            "symbol": "APA",
+            "side": "short",
+            "plannedEntryPrice": 4.5,
+            "plannedStopPrice": 6,
+            "plannedQuantity": 5,
+            "quantity": 5
+        },
+        "config": {
+            "symbol": "APA",
+            "quantity": 5,
+            "side": "sell",
+            "type": "stop",
+            "tif": "day",
+            "price": 4.5,
+            "t": 1584675096332
+        }
+    },
+    {
+        "plan": {
+            "symbol": "WFC",
+            "side": "short",
+            "plannedEntryPrice": 26.5,
+            "plannedStopPrice": 27,
+            "plannedQuantity": 2,
+            "quantity": 2
+        },
+        "config": {
+            "symbol": "WFC",
+            "quantity": 2,
+            "side": "sell",
+            "type": "stop",
+            "tif": "day",
+            "price": 27.5,
+            "t": 1584675097031
+        }
+    },
+    {
+        "plan": {
+            "symbol": "JNJ",
+            "side": "short",
+            "plannedEntryPrice": 131.5,
+            "plannedStopPrice": 137,
+            "plannedQuantity": 1,
+            "quantity": 1
+        },
+        "config": {
+            "symbol": "JNJ",
+            "quantity": 1,
+            "side": "sell",
+            "type": "stop",
+            "tif": "day",
+            "price": 131.5,
+            "t": 1584675097260
+        }
+    },
+    {
+        "plan": {
+            "symbol": "CLR",
+            "side": "short",
+            "plannedEntryPrice": 8,
+            "plannedStopPrice": 9,
+            "plannedQuantity": 5,
+            "quantity": 5
+        },
+        "config": {
+            "symbol": "CLR",
+            "quantity": 5,
+            "side": "sell",
+            "type": "stop",
+            "tif": "day",
+            "price": 8,
+            "t": 1584675098871
+        }
+    },
+    {
+        "plan": {
+            "symbol": "HBAN",
+            "side": "short",
+            "plannedEntryPrice": 7,
+            "plannedStopPrice": 7.537520754045563,
+            "plannedQuantity": 18,
+            "quantity": 18
+        },
+        "config": {
+            "symbol": "HBAN",
+            "quantity": 18,
+            "side": "sell",
+            "type": "stop",
+            "tif": "day",
+            "price": 7,
+            "t": 1584675099122
+        }
+    },
+    {
+        "plan": {
+            "symbol": "BAC",
+            "side": "short",
+            "plannedEntryPrice": 20,
+            "plannedStopPrice": 21.06058806782774,
+            "plannedQuantity": 6,
+            "quantity": 6
+        },
+        "config": {
+            "symbol": "BAC",
+            "quantity": 6,
+            "side": "sell",
+            "type": "stop",
+            "tif": "day",
+            "price": 20,
+            "t": 1584675101358
+        }
+    },
+    {
+        "plan": {
+            "symbol": "PLD",
+            "side": "short",
+            "plannedEntryPrice": 64.5,
+            "plannedStopPrice": 69,
+            "plannedQuantity": 1,
+            "quantity": 1
+        },
+        "config": {
+            "symbol": "PLD",
+            "quantity": 1,
+            "side": "sell",
+            "type": "stop",
+            "tif": "day",
+            "price": 64.5,
+            "t": 1584711285218
+        }
+    },
+    {
+        "plan": {
+            "symbol": "CNQ",
+            "side": "short",
+            "plannedEntryPrice": 8.5,
+            "plannedStopPrice": 10,
+            "plannedQuantity": 4,
+            "quantity": 4
+        },
+        "config": {
+            "symbol": "CNQ",
+            "quantity": 4,
+            "side": "sell",
+            "type": "stop",
+            "tif": "day",
+            "price": 8.5,
+            "t": 1584711286278
+        }
+    },
+    {
+        "plan": {
+            "symbol": "MPC",
+            "side": "short",
+            "plannedEntryPrice": 16.5,
+            "plannedStopPrice": 19,
+            "plannedQuantity": 2,
+            "quantity": 2
+        },
+        "config": {
+            "symbol": "MPC",
+            "quantity": 2,
+            "side": "sell",
+            "type": "stop",
+            "tif": "day",
+            "price": 16.5,
+            "t": 1584711288163
+        }
+    },
+    {
+        "plan": {
+            "symbol": "CCL",
+            "side": "short",
+            "plannedEntryPrice": 11,
+            "plannedStopPrice": 13,
+            "plannedQuantity": 2,
+            "quantity": 2
+        },
+        "config": {
+            "symbol": "CCL",
+            "quantity": 2,
+            "side": "sell",
+            "type": "stop",
+            "tif": "day",
+            "price": 11,
+            "t": 1584711289093
+        }
+    },
+    {
+        "plan": {
+            "symbol": "RCL",
+            "side": "short",
+            "plannedEntryPrice": 23.5,
+            "plannedStopPrice": 28,
+            "plannedQuantity": 1,
+            "quantity": 1
+        },
+        "config": {
+            "symbol": "RCL",
+            "quantity": 1,
+            "side": "sell",
+            "type": "stop",
+            "tif": "day",
+            "price": 23.5,
+            "t": 1584711289471
+        }
+    },
+    {
+        "plan": {
+            "symbol": "AAP",
+            "side": "short",
+            "plannedEntryPrice": 86.5,
+            "plannedStopPrice": 91,
+            "plannedQuantity": 1,
+            "quantity": 1
+        },
+        "config": {
+            "symbol": "AAP",
+            "quantity": 1,
+            "side": "sell",
+            "type": "stop",
+            "tif": "day",
+            "price": 86.5,
+            "t": 1584711289991
+        }
+    },
+    {
+        "plan": {
+            "symbol": "CNP",
+            "side": "short",
+            "plannedEntryPrice": 12.5,
+            "plannedStopPrice": 13,
+            "plannedQuantity": 6,
+            "quantity": 6
+        },
+        "config": {
+            "symbol": "CNP",
+            "quantity": 6,
+            "side": "sell",
+            "type": "stop",
+            "tif": "day",
+            "price": 12.5,
+            "t": 1584711290769
+        }
+    },
+    {
+        "plan": {
+            "symbol": "APH",
+            "side": "short",
+            "plannedEntryPrice": 69,
+            "plannedStopPrice": 70,
+            "plannedQuantity": 1,
+            "quantity": 1
+        },
+        "config": {
+            "symbol": "APH",
+            "quantity": 1,
+            "side": "sell",
+            "type": "stop",
+            "tif": "day",
+            "price": 69,
+            "t": 1584711291706
+        }
+    },
+    {
+        "plan": {
+            "symbol": "BXP",
+            "side": "short",
+            "plannedEntryPrice": 86,
+            "plannedStopPrice": 91,
+            "plannedQuantity": 1,
+            "quantity": 1
+        },
+        "config": {
+            "symbol": "BXP",
+            "quantity": 1,
+            "side": "sell",
+            "type": "stop",
+            "tif": "day",
+            "price": 86,
+            "t": 1584711292683
+        }
+    },
+    {
+        "plan": {
+            "symbol": "SU",
+            "side": "short",
+            "plannedEntryPrice": 11.5,
+            "plannedStopPrice": 13,
+            "plannedQuantity": 4,
+            "quantity": 4
+        },
+        "config": {
+            "symbol": "SU",
+            "quantity": 4,
+            "side": "sell",
+            "type": "stop",
+            "tif": "day",
+            "price": 11.5,
+            "t": 1584711293347
+        }
+    },
+    {
+        "plan": {
+            "symbol": "WY",
+            "side": "short",
+            "plannedEntryPrice": 16,
+            "plannedStopPrice": 17.065492891885068,
+            "plannedQuantity": 4,
+            "quantity": 4
+        },
+        "config": {
+            "symbol": "WY",
+            "quantity": 4,
+            "side": "sell",
+            "type": "stop",
+            "tif": "day",
+            "price": 16,
+            "t": 1584711294110
+        }
+    },
+    {
+        "plan": {
+            "symbol": "ORCL",
+            "side": "short",
+            "plannedEntryPrice": 44.5,
+            "plannedStopPrice": 49,
+            "plannedQuantity": 2,
+            "quantity": 2
+        },
+        "config": {
+            "symbol": "ORCL",
+            "quantity": 2,
+            "side": "sell",
+            "type": "stop",
+            "tif": "day",
+            "price": 44.5,
+            "t": 1584711295781
+        }
+    },
+    {
+        "plan": {
+            "symbol": "TRI",
+            "side": "short",
+            "plannedEntryPrice": 58.5,
+            "plannedStopPrice": 59.135948967909876,
+            "plannedQuantity": 3,
+            "quantity": 3
+        },
+        "config": {
+            "symbol": "TRI",
+            "quantity": 3,
+            "side": "sell",
+            "type": "stop",
+            "tif": "day",
+            "price": 58.5,
+            "t": 1584711296573
+        }
+    },
+    {
+        "plan": {
+            "symbol": "WM",
+            "side": "short",
+            "plannedEntryPrice": 98.5,
+            "plannedStopPrice": 106,
+            "plannedQuantity": 1,
+            "quantity": 1
+        },
+        "config": {
+            "symbol": "WM",
+            "quantity": 1,
+            "side": "sell",
+            "type": "stop",
+            "tif": "day",
+            "price": 98.5,
+            "t": 1584711297825
+        }
+    },
+    {
+        "plan": {
+            "symbol": "CHA",
+            "side": "short",
+            "plannedEntryPrice": 28.5,
+            "plannedStopPrice": 27.04179417689705,
+            "plannedQuantity": 18,
+            "quantity": 18
+        },
+        "config": {
+            "symbol": "CHA",
+            "quantity": 18,
+            "side": "sell",
+            "type": "stop",
+            "tif": "day",
+            "price": 28.5,
+            "t": 1584711298622
+        }
+    },
+    {
+        "plan": {
+            "symbol": "NCLH",
+            "side": "short",
+            "plannedEntryPrice": 9,
+            "plannedStopPrice": 11,
+            "plannedQuantity": 2,
+            "quantity": 2
+        },
+        "config": {
+            "symbol": "NCLH",
+            "quantity": 2,
+            "side": "sell",
+            "type": "stop",
+            "tif": "day",
+            "price": 9,
+            "t": 1584711299491
+        }
+    },
+    {
+        "plan": {
+            "symbol": "CHU",
+            "side": "short",
+            "plannedEntryPrice": 5.5,
+            "plannedStopPrice": 6.0076099690167,
+            "plannedQuantity": 9,
+            "quantity": 9
+        },
+        "config": {
+            "symbol": "CHU",
+            "quantity": 9,
+            "side": "sell",
+            "type": "stop",
+            "tif": "day",
+            "price": 5.5,
+            "t": 1584711300249
+        }
+    },
+    {
+        "plan": {
+            "symbol": "OXY",
+            "side": "short",
+            "plannedEntryPrice": 10.5,
+            "plannedStopPrice": 13,
+            "plannedQuantity": 2,
+            "quantity": 2
+        },
+        "config": {
+            "symbol": "OXY",
+            "quantity": 2,
+            "side": "sell",
+            "type": "stop",
+            "tif": "day",
+            "price": 10.5,
+            "t": 1584711302334
+        }
+    },
+    {
+        "plan": {
+            "symbol": "TU",
+            "side": "short",
+            "plannedEntryPrice": 15.5,
+            "plannedStopPrice": 18,
+            "plannedQuantity": 2,
+            "quantity": 2
+        },
+        "config": {
+            "symbol": "TU",
+            "quantity": 2,
+            "side": "sell",
+            "type": "stop",
+            "tif": "day",
+            "price": 15.5,
+            "t": 1584711303277
+        }
+    },
+    {
+        "plan": {
+            "symbol": "IBM",
+            "side": "short",
+            "plannedEntryPrice": 100,
+            "plannedStopPrice": 105,
+            "plannedQuantity": 1,
+            "quantity": 1
+        },
+        "config": {
+            "symbol": "IBM",
+            "quantity": 1,
+            "side": "sell",
+            "type": "stop",
+            "tif": "day",
+            "price": 100,
+            "t": 1584711304278
+        }
+    }
+]

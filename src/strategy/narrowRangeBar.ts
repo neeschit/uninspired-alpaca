@@ -78,7 +78,7 @@ export class NarrowRangeBarStrategy {
     }
 
     get isShort() {
-        return this.overallTrend === TrendType.down;
+        return this.overallTrend !== TrendType.down;
     }
 
     get entry() {
@@ -107,10 +107,11 @@ export class NarrowRangeBarStrategy {
         return this.isShort ? TradeDirection.sell : TradeDirection.buy;
     }
 
-    checkIfFitsStrategy() {
+    checkIfFitsStrategy(profitRatio = 2) {
         return (
             this.isNarrowRangeBar(this.tr.slice(-this.period)) &&
-            this.adx[this.adx.length - 1].value > 25
+            this.adx[this.adx.length - 1].value > 30 &&
+            this.hasPotentialForRewards(profitRatio)
         );
     }
 
@@ -139,7 +140,7 @@ export class NarrowRangeBarStrategy {
         return strength;
     }
 
-    hasPotentialForRewards() {
+    hasPotentialForRewards(profitRatio = 2) {
         const risk = this.stop;
         const resistances = getNextResistance(
             this.bars,
@@ -153,7 +154,7 @@ export class NarrowRangeBarStrategy {
 
         const potentialRewards = resistances.map((r: number) => Math.abs(this.entry - r));
 
-        const hasPotential = potentialRewards.some((r: number) => r / risk >= 2);
+        const hasPotential = potentialRewards.some((r: number) => r / risk >= profitRatio);
 
         return hasPotential;
     }
@@ -186,37 +187,13 @@ export class NarrowRangeBarStrategy {
         return isWithinEntryRange;
     }
 
-    async rebalance(now: TimestampType = Date.now()) {
-        /* if (!this.isTimeForEntry(now)) {
-            LOGGER.debug("the time is not nigh");
-            return null;
-        } */
+    async rebalance(bar: Bar, now: TimestampType = Date.now()) {
+        now = now instanceof Date ? now.getTime() : now;
 
         try {
-            const lastBar = await getBarsByDate(this.symbol, addDays(now, -1), addDays(now, 1));
-
-            if (!lastBar) {
-                LOGGER.warn(`Couldn't find the bars for ${this.symbol} on ${this.isShort}`);
-                return null;
-            }
-
-            const timezonedStamp = convertToLocalTime(now, " 09:30:00.000");
-
-            const bar = lastBar.find(bar => bar.t === timezonedStamp.getTime());
-
-            if (!bar) {
-                LOGGER.error(
-                    "couldnt find appropriate bar",
-                    timezonedStamp.toISOString(),
-                    now,
-                    this.symbol
-                );
-                return null;
-            }
-
             const unitRisk = Math.abs(this.entry - this.stopPrice);
 
-            const quantity = Math.floor(TRADING_RISK_UNIT_CONSTANT / unitRisk);
+            const quantity = Math.ceil(TRADING_RISK_UNIT_CONSTANT / unitRisk);
 
             if (!quantity || quantity < 0) {
                 return null;
@@ -231,7 +208,7 @@ export class NarrowRangeBarStrategy {
                 type: TradeType.stop,
                 tif: TimeInForce.day,
                 price: roundHalf(price),
-                t: Date.now()
+                t: now
             };
         } catch (e) {
             LOGGER.error(e);

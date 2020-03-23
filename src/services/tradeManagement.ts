@@ -47,7 +47,9 @@ export const processOrderFromStrategy = (order: TradeConfig): AlpacaTradeConfig 
 
 export const rebalancePosition = async (
     position: FilledPositionConfig,
-    currentBar: Bar
+    currentBar: Bar,
+    partialProfitRatio = 0.9,
+    t = Date.now()
 ): Promise<TradeConfig | null> => {
     const {
         symbol,
@@ -58,9 +60,7 @@ export const rebalancePosition = async (
         originalQuantity
     } = position;
 
-    let {
-        averageEntryPrice,
-    } = position;
+    let averageEntryPrice;
 
     if (!quantity || quantity < 0) {
         return null;
@@ -69,7 +69,7 @@ export const rebalancePosition = async (
     if (!averageEntryPrice) {
         averageEntryPrice = position.order && position.order.averagePrice;
     }
-    
+
     if (!averageEntryPrice) {
         LOGGER.warn(`Need an entry price for ${symbol}`);
         return null;
@@ -88,7 +88,7 @@ export const rebalancePosition = async (
             side: closingOrderSide,
             tif: TimeInForce.gtc,
             quantity: quantity,
-            t: Date.now()
+            t
         };
     } else if (currentBar.c > plannedStopPrice && positionSide === PositionDirection.short) {
         return {
@@ -98,7 +98,7 @@ export const rebalancePosition = async (
             side: closingOrderSide,
             tif: TimeInForce.gtc,
             quantity: quantity,
-            t: Date.now()
+            t
         };
     }
 
@@ -118,21 +118,7 @@ export const rebalancePosition = async (
     LOGGER.trace(originalQuantity);
     LOGGER.trace(quantity);
 
-    if (currentProfitRatio > 0.9 && quantity === originalQuantity) {
-        return {
-            symbol,
-            price: currentBar.c,
-            type: TradeType.limit,
-            side: closingOrderSide,
-            tif: TimeInForce.day,
-            quantity: Math.ceil(quantity * 0.75),
-            t: Date.now()
-        };
-    }
-
-    LOGGER.debug(currentProfitRatio);
-
-    if (currentProfitRatio > 2) {
+    if (currentProfitRatio >= partialProfitRatio && quantity === originalQuantity) {
         return {
             symbol,
             price: 0,
@@ -140,7 +126,7 @@ export const rebalancePosition = async (
             side: closingOrderSide,
             tif: TimeInForce.gtc,
             quantity,
-            t: Date.now()
+            t
         };
     }
 
@@ -155,7 +141,8 @@ export class TradeManagement {
     constructor(
         public config: TradeConfig,
         public plan: TradePlan,
-        private broker: Alpaca = alpaca
+        private broker: Alpaca = alpaca,
+        private partialProfitRatio = 0.9
     ) {
         this.position = {
             plannedEntryPrice: plan.plannedEntryPrice,
@@ -185,14 +172,15 @@ export class TradeManagement {
                 order: this.order,
                 trades: this.trades
             }),
-            currentBar
+            currentBar,
+            this.partialProfitRatio
         );
 
         if (!config) {
             LOGGER.info(
-                `nothing to do for ${JSON.stringify(
-                    this.plan
-                )} with current bar ${JSON.stringify(currentBar)}`
+                `nothing to do for ${JSON.stringify(this.plan)} with current bar ${JSON.stringify(
+                    currentBar
+                )}`
             );
             return;
         }
@@ -207,9 +195,9 @@ export class TradeManagement {
             ...this.plan,
             plannedRiskUnits: Math.abs(this.plan.plannedEntryPrice - this.plan.plannedStopPrice),
             hasHardStop: false,
-            originalQuantity: this.plan.quantity,
+            originalQuantity: this.plan.plannedQuantity,
             quantity: Number(position.qty)
-        }
+        };
 
         return this.position;
     }

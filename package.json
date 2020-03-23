@@ -27,7 +27,8 @@
   "scripts": {
     "test": "ava --watch --verbose",
     "test:ci": "LOGLEVEL=4 ava --verbose",
-    "build": "tsc"
+    "build": "tsc",
+    "backtest": "node --enable-source-maps build/scripts/backtest.js"
   },
   "ava": {
     "extensions": [

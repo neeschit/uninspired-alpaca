@@ -12,37 +12,15 @@ export enum LogLevel {
 
 const CONFIGURED_LOG_LEVEL = (config && config.LOGLEVEL) || process.env.LOGLEVEL || LogLevel.WARN;
 
-const checkBeforeLog = (
-    logLevel: LogLevel,
-    logKey: "log" | "warn" | "error" | "debug",
-    message?: any,
-    ...optionalParams: any[]
-) => {
-    if (logLevel > CONFIGURED_LOG_LEVEL) {
-        return;
-    }
-
-    console[logKey].apply(console, [message, ...optionalParams]);
-};
-
 export const LOGGER = {
-    info: (message: any, ...optionalParams: any[]) => {
-        checkBeforeLog(LogLevel.INFO, "log", message, ...optionalParams);
-    },
-    error: (message: any, ...optionalParams: any[]) => {
-        checkBeforeLog(LogLevel.ERROR, "error", message, ...optionalParams);
-    },
-    warn: (message: any, ...optionalParams: any[]) => {
-        checkBeforeLog(LogLevel.WARN, "warn", message, ...optionalParams);
-    },
-    debug: (message: any, ...optionalParams: any[]) => {
-        checkBeforeLog(LogLevel.DEBUG, "debug", message, ...optionalParams);
-    },
-    trace: (message: any, ...optionalParams: any[]) => {
-        checkBeforeLog(LogLevel.TRACE, "debug", message, ...optionalParams);
-    }
+    info: CONFIGURED_LOG_LEVEL > 0 ? console.log.bind(console) : () => {},
+    error: console.error.bind(console),
+    warn: CONFIGURED_LOG_LEVEL > 2 ? console.warn.bind(console) : () => {},
+    debug: CONFIGURED_LOG_LEVEL > 3 ? console.debug.bind(console) : () => {},
+    trace: CONFIGURED_LOG_LEVEL > 4 ? console.log.bind(console) : () => {}
 };
 
 process.on("uncaughtException", function(err) {
     console.error("Uncaught exception raised : ", err);
+    console.error(err.stack);
 });

@@ -9,7 +9,6 @@ test.cb("polygon wss auth", t => {
     });
 
     wss.on("auth", (message: any) => {
-        console.log("message", message);
         sm.close();
     });
 });
@@ -22,7 +21,6 @@ test.cb("polygon wss auth1", t => {
     });
 
     wss.on("auth", (message: any) => {
-        console.log("message", message);
         sm.close();
     });
 });
