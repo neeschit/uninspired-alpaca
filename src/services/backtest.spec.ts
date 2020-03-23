@@ -143,7 +143,7 @@ test("Backtester - simulate everything for a few days", async t => {
     await instance.simulate();
 
     t.is(0, instance.pendingTradeConfigs.length);
-    t.is(1, instance.currentPositionConfigs.length);
+    t.is(0, instance.currentPositionConfigs.length);
     t.is(1, instance.pastTradeConfigs.length);
 });
 

@@ -74,10 +74,10 @@ test("nrb7 - find entry price", t => {
 
     try {
         const entryPrice = nrbStrategyInstance.entry;
-        t.is(entryPrice, 297.5);
+        t.is(entryPrice, 294.5);
 
         const safeStop = nrbStrategyInstance.stop;
-        t.is(entryPrice - safeStop, 293);
+        t.is(entryPrice - safeStop, 289);
     } catch (e) {
         LOGGER.error(e);
     }
@@ -92,7 +92,7 @@ test("nrb7 - find simple stop price", t => {
 
     try {
         const stopPrice = nrbStrategyInstance.simpleStop;
-        t.is(stopPrice, 294.5);
+        t.is(stopPrice, 297.5);
     } catch (e) {
         LOGGER.error(e);
     }
@@ -137,10 +137,10 @@ test("nrb7 - find entry price bars1", t => {
 
     try {
         const entryPrice = nrbStrategyInstance.entry;
-        t.is(entryPrice, 204.5);
+        t.is(entryPrice, 208);
 
         const safeStop = nrbStrategyInstance.stop;
-        t.is(entryPrice + safeStop, 209);
+        t.is(entryPrice + safeStop, 212);
     } catch (e) {
         LOGGER.error(e);
     }
@@ -155,7 +155,7 @@ test("nrb7 - find simple stop price for bars1", t => {
 
     try {
         const stopPrice = nrbStrategyInstance.simpleStop;
-        t.is(stopPrice, 208);
+        t.is(stopPrice, 204.5);
     } catch (e) {
         LOGGER.error(e);
     }
@@ -200,13 +200,13 @@ test("nrb7 - find entry price bars2", t => {
 
     try {
         const entryPrice = nrbStrategyInstance.entry;
-        t.is(entryPrice, 48);
+        t.is(entryPrice, 50);
 
         const safeStop = nrbStrategyInstance.stop;
         const stopPrice = nrbStrategyInstance.isShort
             ? entryPrice + safeStop
             : entryPrice - safeStop;
-        t.truthy(stopPrice > 50 && stopPrice < 50.2);
+        t.truthy(stopPrice > 47.8 && stopPrice < 48);
     } catch (e) {
         LOGGER.error(e);
     }
@@ -221,7 +221,7 @@ test("nrb7 - find simple stop price for bars2", t => {
 
     try {
         const stopPrice = nrbStrategyInstance.simpleStop;
-        t.is(stopPrice, 50);
+        t.is(stopPrice, 48);
     } catch (e) {
         LOGGER.error(e);
     }
@@ -287,10 +287,10 @@ test("integration nrb - real world - identify pattern for AKAM", async t => {
     t.deepEqual(trade, {
         symbol: "AKAM",
         quantity: 7,
-        side: TradeDirection.buy,
+        side: TradeDirection.sell,
         type: TradeType.stop,
         tif: TimeInForce.day,
-        price: 95.5,
+        price: 95,
         t: trade!.t
     });
 });

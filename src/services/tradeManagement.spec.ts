@@ -354,10 +354,10 @@ test("rebalancePosition - simple partial", async t => {
 
     t.deepEqual(order, {
         symbol,
-        price: 209.5,
-        tif: TimeInForce.day,
-        type: TradeType.limit,
-        quantity: 150,
+        price: 0,
+        tif: TimeInForce.gtc,
+        type: TradeType.market,
+        quantity: 200,
         side: TradeDirection.sell,
         t: order!.t
     });

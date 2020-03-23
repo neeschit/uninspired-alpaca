@@ -152,11 +152,15 @@ export class Backtester {
             await this.batchSimulate(batch.startDate, batch.endDate, batch.symbols);
 
             if (logPerformance) {
-                const perfReport = getDetailedPerformanceReport(
-                    this.pastPositionConfigs.slice(pastLength)
-                );
-                pastLength = this.pastPositionConfigs.length;
-                LOGGER.info(`performance so far ${JSON.stringify(perfReport)}`);
+                try {
+                    const perfReport = getDetailedPerformanceReport(
+                        this.pastPositionConfigs.slice(pastLength)
+                    );
+                    pastLength = this.pastPositionConfigs.length;
+                    LOGGER.info(`performance so far ${JSON.stringify(perfReport)}`);
+                } catch (e) {
+                    LOGGER.warn(`no positions so far`);
+                }
             }
 
             currentPositionConfigs[batch.batchId] = this.currentPositionConfigs;
