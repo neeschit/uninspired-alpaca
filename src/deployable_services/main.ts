@@ -69,7 +69,8 @@ async function main() {
                     period: 7,
                     bars,
                     symbol,
-                    useSimpleRange: false
+                    useSimpleRange: false,
+                    counterTrend: false
                 });
 
                 if (nrb.checkIfFitsStrategy() && symbols.indexOf(symbol) === -1) {

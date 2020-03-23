@@ -16,7 +16,8 @@ test("nrb7 - identify", t => {
         period: 7,
         symbol: "SPGI",
         bars,
-        useSimpleRange: false
+        useSimpleRange: false,
+        counterTrend: true
     });
 
     try {
@@ -32,7 +33,8 @@ test("nrb7 - find entry price", t => {
         period: 7,
         symbol: "SPGI",
         bars,
-        useSimpleRange: false
+        useSimpleRange: false,
+        counterTrend: true
     });
 
     try {
@@ -51,7 +53,8 @@ test("nrb7 - find simple stop price", t => {
         period: 7,
         symbol: "SPGI",
         bars,
-        useSimpleRange: false
+        useSimpleRange: false,
+        counterTrend: true
     });
 
     try {
@@ -67,7 +70,8 @@ test("nrb7 - identify for bars1", t => {
         period: 7,
         symbol: "BABA",
         bars: bars1,
-        useSimpleRange: false
+        useSimpleRange: false,
+        counterTrend: true
     });
 
     try {
@@ -83,7 +87,8 @@ test("nrb7 - check strength for bars1", t => {
         period: 7,
         symbol: "BABA",
         bars: bars1,
-        useSimpleRange: false
+        useSimpleRange: false,
+        counterTrend: true
     });
 
     try {
@@ -99,7 +104,8 @@ test.skip("nrb7 - find entry price bars1", t => {
         period: 7,
         symbol: "BABA",
         bars: bars1,
-        useSimpleRange: false
+        useSimpleRange: false,
+        counterTrend: true
     });
 
     try {
@@ -118,7 +124,8 @@ test("nrb7 - find simple stop price for bars1", t => {
         period: 7,
         symbol: "BABA",
         bars: bars1,
-        useSimpleRange: false
+        useSimpleRange: false,
+        counterTrend: true
     });
 
     try {
@@ -134,7 +141,8 @@ test.skip("nrb7 - identify for bars2", t => {
         period: 7,
         symbol: "TAL",
         bars: bars2,
-        useSimpleRange: false
+        useSimpleRange: false,
+        counterTrend: true
     });
 
     try {
@@ -150,7 +158,8 @@ test("nrb7 - find entry price bars2", t => {
         period: 7,
         symbol: "TAL",
         bars: bars2,
-        useSimpleRange: false
+        useSimpleRange: false,
+        counterTrend: true
     });
 
     try {
@@ -172,7 +181,8 @@ test("nrb7 - find simple stop price for bars2", t => {
         period: 7,
         symbol: "TAL",
         bars: bars2,
-        useSimpleRange: false
+        useSimpleRange: false,
+        counterTrend: true
     });
 
     try {
@@ -188,7 +198,8 @@ test("nrb7 - isTimeForEntry", t => {
         period: 7,
         symbol: "TAL",
         bars: bars2,
-        useSimpleRange: false
+        useSimpleRange: false,
+        counterTrend: true
     });
 
     t.truthy(nrbStrategyInstance.isTimeForEntry(new Date("2020-12-24T14:34:46.000Z")));
@@ -210,7 +221,8 @@ test.skip("integration nrb - real world - identify pattern for BDX", async t => 
         period: 7,
         symbol: "BDX",
         bars,
-        useSimpleRange: false
+        useSimpleRange: false,
+        counterTrend: true
     });
 
     t.falsy(nrbStrategyInstance.checkIfFitsStrategy());
@@ -228,7 +240,8 @@ test("integration nrb - real world - identify pattern for AKAM", async t => {
         period: 7,
         symbol: "AKAM",
         bars,
-        useSimpleRange: false
+        useSimpleRange: false,
+        counterTrend: true
     });
 
     t.truthy(nrbStrategyInstance.checkIfFitsStrategy());

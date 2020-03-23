@@ -34,17 +34,20 @@ export class NarrowRangeBarStrategy {
 
     overallTrend: TrendType;
     recentTrend: TrendType;
+    counterTrend: boolean;
 
     constructor({
         period = 7,
         symbol,
         bars,
-        useSimpleRange = false
+        useSimpleRange = false,
+        counterTrend = true
     }: {
         period: number;
         symbol: string;
         bars: Bar[];
         useSimpleRange: boolean;
+        counterTrend: boolean;
     }) {
         if (period < 4) {
             throw new Error("fix da shiz");
@@ -71,6 +74,8 @@ export class NarrowRangeBarStrategy {
 
         this.overallTrend = getOverallTrend(this.bars);
         this.recentTrend = getRecentTrend(this.bars.slice(-2));
+
+        this.counterTrend = counterTrend;
     }
 
     get atrValue() {
@@ -88,7 +93,9 @@ export class NarrowRangeBarStrategy {
     }
 
     get isShort() {
-        return this.overallTrend !== TrendType.down;
+        const isDownTrend = this.overallTrend === TrendType.down;
+        
+        return this.counterTrend ? !isDownTrend : isDownTrend;
     }
 
     get entry() {

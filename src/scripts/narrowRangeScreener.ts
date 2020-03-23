@@ -49,7 +49,8 @@ barsPromise
                         period: 7,
                         symbol,
                         bars,
-                        useSimpleRange: false
+                        useSimpleRange: false,
+                        counterTrend: false
                     });
                 } catch (e) {
                     return null;

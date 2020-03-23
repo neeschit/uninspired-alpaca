@@ -52,7 +52,8 @@ export class Backtester {
         private configuredSymbols: string[],
         private profitRatio: number = 1,
         private minMaxRatio: number = 1,
-        private useSimpleRange: boolean = false
+        private useSimpleRange: boolean = false,
+        private counterTrend: boolean = true
     ) {
         this.currentDate = startDate;
         this.clock = Sinon.useFakeTimers(startDate);
@@ -79,7 +80,8 @@ export class Backtester {
                     period: 7,
                     symbol,
                     bars,
-                    useSimpleRange: this.useSimpleRange
+                    useSimpleRange: this.useSimpleRange,
+                    counterTrend: this.counterTrend
                 });
                 this.strategyInstances.push(nrbInstance);
             } catch (e) {

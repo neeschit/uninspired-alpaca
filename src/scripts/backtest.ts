@@ -6,21 +6,23 @@ import { LOGGER } from "../instrumentation/log";
 import { getDetailedPerformanceReport } from "../services/performance";
 import { zonedTimeToUtc } from "date-fns-tz";
 
-const startDate = "2019-01-01 9:00:00.000";
+const startDate = "2018-01-01 9:00:00.000";
 const zonedStartDate = zonedTimeToUtc(startDate, MarketTimezone);
 
-const endDate = parseISO("2020-03-21 00:10:00.000");
+const endDate = parseISO("2019-01-01 00:10:00.000");
 
 const zonedEndDate = zonedTimeToUtc(endDate, MarketTimezone);
 
 const LARGE_CAPS = JSON.parse(readFileSync("./largecaps.json").toString());
 LOGGER.info(zonedStartDate.toISOString());
 
-const pr = 2;
+const pr = 1;
 
 const simpleRange = false;
 
 const rangeRatio = 1;
+
+const counterTrend = false;
 
 const instance = new Backtester(
     60000,
@@ -29,7 +31,8 @@ const instance = new Backtester(
     LARGE_CAPS,
     pr,
     rangeRatio,
-    simpleRange
+    simpleRange,
+    counterTrend
 );
 
 async function run() {
@@ -42,7 +45,7 @@ async function run() {
         `./${format(zonedStartDate, "yyyy-MM")}-${format(
             zonedEndDate,
             "yyyy-MM"
-        )}-${pr}x-${rangeRatio}-${simpleRange ? "simpleRange" : "trueRange"}-${Date.now()}.json`,
+        )}-${pr}x-${rangeRatio}-${simpleRange ? "simpleRange" : "trueRange"}-${counterTrend ? 'counter' : 'trend-friend'}.json`,
         JSON.stringify(performance)
     );
 }
