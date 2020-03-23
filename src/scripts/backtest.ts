@@ -6,7 +6,7 @@ import { LOGGER } from "../instrumentation/log";
 import { getDetailedPerformanceReport } from "../services/performance";
 import { zonedTimeToUtc } from "date-fns-tz";
 
-const startDate = "2015-01-01 9:00:00.000";
+const startDate = "2019-01-01 9:00:00.000";
 const zonedStartDate = zonedTimeToUtc(startDate, MarketTimezone);
 
 const endDate = parseISO("2020-03-21 00:10:00.000");
@@ -18,7 +18,19 @@ LOGGER.info(zonedStartDate.toISOString());
 
 const pr = 2;
 
-const instance = new Backtester(60000, zonedStartDate, zonedEndDate, LARGE_CAPS, pr);
+const simpleRange = false;
+
+const rangeRatio = 1;
+
+const instance = new Backtester(
+    60000,
+    zonedStartDate,
+    zonedEndDate,
+    LARGE_CAPS,
+    pr,
+    rangeRatio,
+    simpleRange
+);
 
 async function run() {
     await instance.simulate(50);
@@ -30,7 +42,7 @@ async function run() {
         `./${format(zonedStartDate, "yyyy-MM")}-${format(
             zonedEndDate,
             "yyyy-MM"
-        )}-${pr}x-${Date.now()}.json`,
+        )}-${pr}x-${rangeRatio}-${simpleRange ? "simpleRange" : "trueRange"}-${Date.now()}.json`,
         JSON.stringify(performance)
     );
 }

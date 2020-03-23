@@ -48,21 +48,20 @@ barsPromise
                     return new NarrowRangeBarStrategy({
                         period: 7,
                         symbol,
-                        bars
+                        bars,
+                        useSimpleRange: false
                     });
                 } catch (e) {
                     return null;
                 }
             })
-            .filter(instance => instance && instance.checkIfFitsStrategy());
+            .filter(instance => instance && instance.checkIfFitsStrategy(2, true));
 
-        const symbols = nrbInstances
-            .filter(n => {
-                return n!.hasPotentialForRewards();
-            })
-            .map(n => {
-                LOGGER.info(n!.toString());
-                return n?.symbol;
-            });
+        const symbols = nrbInstances.map(n => {
+            LOGGER.info(n!.toString());
+            return n?.symbol;
+        });
+
+        LOGGER.info(nrbInstances.length);
     })
     .catch(LOGGER.error);

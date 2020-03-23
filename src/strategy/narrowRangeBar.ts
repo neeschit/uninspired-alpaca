@@ -35,7 +35,17 @@ export class NarrowRangeBarStrategy {
     overallTrend: TrendType;
     recentTrend: TrendType;
 
-    constructor({ period = 7, symbol, bars }: { period: number; symbol: string; bars: Bar[] }) {
+    constructor({
+        period = 7,
+        symbol,
+        bars,
+        useSimpleRange = false
+    }: {
+        period: number;
+        symbol: string;
+        bars: Bar[];
+        useSimpleRange: boolean;
+    }) {
         if (period < 4) {
             throw new Error("fix da shiz");
         }
@@ -50,7 +60,7 @@ export class NarrowRangeBarStrategy {
             throw new Error(`not a proper narrow range bar for symbol ${symbol}`);
         }
 
-        const { adx, pdx, ndx, atr, tr } = getAverageDirectionalIndex(this.bars);
+        const { adx, pdx, ndx, atr, tr } = getAverageDirectionalIndex(this.bars, useSimpleRange);
         this.adx = adx;
         this.pdx = pdx;
         this.ndx = ndx;
@@ -107,24 +117,52 @@ export class NarrowRangeBarStrategy {
         return this.isShort ? TradeDirection.sell : TradeDirection.buy;
     }
 
-    checkIfFitsStrategy(profitRatio = 2) {
-        return (
-            this.isNarrowRangeBar(this.tr.slice(-this.period)) &&
-            this.adx[this.adx.length - 1].value > 30 &&
-            this.hasPotentialForRewards(profitRatio)
-        );
+    checkIfFitsStrategy(profitRatio = 2, strict = false) {
+        const ranges = this.tr.slice(-this.period);
+        return strict
+            ? this.isVeryNarrowRangeBar(ranges)
+            : this.isNarrowRangeBar(ranges) && this.adx[this.adx.length - 1].value > 20;
     }
 
     isNarrowRangeBar(tr: number[]) {
-        const minPeriodRange = tr.reduce((min: number, range: number) => {
-            if (range < min) {
-                return range;
+        const { min, max } = this.getMinMaxPeriodRange(tr);
+
+        return tr[tr.length - 1] === min;
+    }
+
+    isVeryNarrowRangeBar(tr: number[]) {
+        const { min, max } = this.getMinMaxPeriodRange(tr);
+
+        return tr[tr.length - 1] === min && max / min > 4;
+    }
+
+    private getMinMaxPeriodRange(tr: number[]) {
+        return tr.reduce(
+            ({ min, max }: { min: number; max: number }, range: number) => {
+                if (range < min) {
+                    return {
+                        min: range,
+                        max
+                    };
+                }
+
+                if (range > max) {
+                    return {
+                        min,
+                        max: range
+                    };
+                }
+
+                return {
+                    min,
+                    max
+                };
+            },
+            {
+                min: Number.MAX_SAFE_INTEGER,
+                max: 0
             }
-
-            return min;
-        }, Number.MAX_SAFE_INTEGER);
-
-        return tr[tr.length - 1] === minPeriodRange;
+        );
     }
 
     checkStrength() {

@@ -9,10 +9,14 @@ export interface IndicatorValue<X> {
     t: number;
 }
 
-export const getAverageDirectionalIndex = (bars: Bar[], period = DEFAULT_DMI_PERIOD) => {
+export const getAverageDirectionalIndex = (
+    bars: Bar[],
+    useSimpleRange = true,
+    period = DEFAULT_DMI_PERIOD
+) => {
     const { pdmi, ndmi } = getDirectionalMovementIndex(bars);
 
-    const { atr, tr } = getAverageTrueRange(bars, true, period);
+    const { atr, tr } = getAverageTrueRange(bars, useSimpleRange, period);
 
     const [pdx, ndx] = pdmi.reduce(
         ([pdx, ndx]: number[][], positiveMovement: number, index: number) => {

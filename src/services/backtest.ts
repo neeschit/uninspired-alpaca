@@ -50,7 +50,9 @@ export class Backtester {
         private startDate: Date,
         private endDate: Date,
         private configuredSymbols: string[],
-        private profitRatio: number = 1
+        private profitRatio: number = 1,
+        private minMaxRatio: number = 1,
+        private useSimpleRange: boolean = false
     ) {
         this.currentDate = startDate;
         this.clock = Sinon.useFakeTimers(startDate);
@@ -76,7 +78,8 @@ export class Backtester {
                 const nrbInstance = new NarrowRangeBarStrategy({
                     period: 7,
                     symbol,
-                    bars
+                    bars,
+                    useSimpleRange: this.useSimpleRange
                 });
                 this.strategyInstances.push(nrbInstance);
             } catch (e) {
@@ -86,7 +89,7 @@ export class Backtester {
 
         const shouldBeAdded = this.strategyInstances.filter(
             instance =>
-                instance.checkIfFitsStrategy(this.profitRatio) &&
+                instance.checkIfFitsStrategy(this.profitRatio, this.minMaxRatio > 1) &&
                 this.activeStrategyInstances.every(i => i.symbol !== instance.symbol)
         );
 

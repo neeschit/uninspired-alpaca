@@ -68,7 +68,8 @@ async function main() {
                 const nrb = new NarrowRangeBarStrategy({
                     period: 7,
                     bars,
-                    symbol
+                    symbol,
+                    useSimpleRange: false
                 });
 
                 if (nrb.checkIfFitsStrategy() && symbols.indexOf(symbol) === -1) {
