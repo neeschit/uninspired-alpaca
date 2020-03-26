@@ -15,7 +15,7 @@ import {
 } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
 import { convertToLocalTime } from "../util/date";
-import { roundHalf, floorHalf } from "../util";
+import { ceilHalf, floorHalf } from "../util";
 
 export class NarrowRangeBarStrategy {
     period: number;
@@ -86,7 +86,7 @@ export class NarrowRangeBarStrategy {
     get simpleStop() {
         const stop = !this.isShort
             ? floorHalf(this.bars.slice(-1)[0].l)
-            : roundHalf(this.bars.slice(-1)[0].h);
+            : ceilHalf(this.bars.slice(-1)[0].h);
 
         return stop;
     }
@@ -97,8 +97,10 @@ export class NarrowRangeBarStrategy {
 
     get isShort() {
         const isDownTrend = this.overallTrend === TrendType.down;
+        const adx = this.adx[this.adx.length - 1].value;
+        const counterTrend = this.counterTrend || adx < 15;
 
-        return this.counterTrend ? !isDownTrend : isDownTrend;
+        return counterTrend ? !isDownTrend : isDownTrend;
     }
 
     get entry() {
@@ -106,7 +108,7 @@ export class NarrowRangeBarStrategy {
 
         const entry = isShort
             ? floorHalf(this.bars.slice(-1)[0].l)
-            : roundHalf(this.bars.slice(-1)[0].h);
+            : ceilHalf(this.bars.slice(-1)[0].h);
 
         return entry;
     }
@@ -131,7 +133,6 @@ export class NarrowRangeBarStrategy {
 
     checkIfFitsStrategy(profitRatio = 2, strict = false) {
         const ranges = this.tr.slice(-this.period);
-        const adx = this.adx[this.adx.length - 1].value;
         const isNarrowRangeBar = strict
             ? this.isVeryNarrowRangeBar(ranges)
             : this.isNarrowRangeBar(ranges);

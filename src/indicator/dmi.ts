@@ -1,6 +1,6 @@
 import { Bar } from "../data/data.model";
 
-export const DEFAULT_DMI_PERIOD = 7;
+export const DEFAULT_DMI_PERIOD = 14;
 
 export const getDirectionalMovementIndex = (bars: Bar[], period = DEFAULT_DMI_PERIOD) => {
     if (!bars) {

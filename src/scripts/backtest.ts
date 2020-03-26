@@ -1,10 +1,10 @@
-import { Backtester } from "../services/backtest";
-import { parseISO, set, format, getYear } from "date-fns";
-import { MarketTimezone } from "../data/data.model";
-import { readFileSync, writeFileSync } from "fs";
-import { LOGGER } from "../instrumentation/log";
-import { getDetailedPerformanceReport } from "../services/performance";
+import { format, parseISO } from "date-fns";
 import { zonedTimeToUtc } from "date-fns-tz";
+import { readFileSync, writeFileSync } from "fs";
+import { MarketTimezone } from "../data/data.model";
+import { LOGGER } from "../instrumentation/log";
+import { Backtester } from "../services/backtest";
+import { getDetailedPerformanceReport } from "../services/performance";
 
 const startDate = "2019-10-01 9:00:00.000";
 const zonedStartDate = zonedTimeToUtc(startDate, MarketTimezone);
@@ -44,7 +44,7 @@ async function run() {
         "yyyy-MM"
     )}-${pr}x-${rangeRatio}-${simpleRange ? "simpleRange" : "trueRange"}-${
         counterTrend ? "counter" : "trend-friend"
-    }-shorter-dmi-nrb${nrbPeriod}-no-adx-strict-entry.json`;
+    }-counter-longer-no-sideways-dmi-nrb${nrbPeriod}-no-adx-strict-entry.json`;
 
     /* const pastPositionConfigs = JSON.parse(readFileSync(filename).toString()).sortedPositions;
 
