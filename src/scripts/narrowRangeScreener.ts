@@ -3,7 +3,7 @@ import { readFileSync } from "fs";
 import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
 import { LOGGER } from "../instrumentation/log";
 
-const LARGE_CAPS = JSON.parse(readFileSync("./largecaps.json").toString());
+const LARGE_CAPS = JSON.parse(readFileSync("./largeCapsHighVolume.json").toString());
 
 const lookback = process.argv[2] && Number(process.argv[2]);
 
@@ -49,14 +49,14 @@ barsPromise
                         period: 7,
                         symbol,
                         bars,
-                        useSimpleRange: false,
+                        useSimpleRange: true,
                         counterTrend: false
                     });
                 } catch (e) {
                     return null;
                 }
             })
-            .filter(instance => instance && instance.checkIfFitsStrategy(2, true));
+            .filter(instance => instance && instance.checkIfFitsStrategy(2, false));
 
         const symbols = nrbInstances.map(n => {
             LOGGER.info(n!.toString());

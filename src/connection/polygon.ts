@@ -78,13 +78,7 @@ export const getSymbolDataGenerator = (
 ) => {
     return async function*() {
         for (const symbol of symbols) {
-            const bars = await getSimplePolygonData(
-                symbol,
-                startDate,
-                endDate,
-                period,
-                duration
-            );
+            const bars = await getSimplePolygonData(symbol, startDate, endDate, period, duration);
 
             yield {
                 bars,
@@ -92,6 +86,33 @@ export const getSymbolDataGenerator = (
             };
         }
     };
+};
+
+export const getSymbolDataPromises = async (
+    symbols: string[],
+    duration: DefaultDuration = DefaultDuration.one,
+    period: PeriodType = PeriodType.day,
+    startDate: Date,
+    endDate: Date
+) => {
+    const allBars: { bars: Promise<Bar[]>; symbol: string }[] = [];
+    for (const symbol of symbols) {
+        const bars = getSimplePolygonData(symbol, startDate, endDate, period, duration);
+
+        allBars.push({
+            bars,
+            symbol
+        });
+    }
+
+    const screenerBarsPromises = allBars.map(r => r.bars);
+
+    const screenerBars = await Promise.all(screenerBarsPromises);
+
+    return screenerBars.map((b, index) => ({
+        bars: b,
+        symbol: allBars[index].symbol
+    }));
 };
 
 const wssUrl = "wss://alpaca.socket.polygon.io/stocks";
@@ -144,15 +165,7 @@ class SocketManager {
         return this.emitter;
     }
 
-    processStatusMessage({
-        ev,
-        status,
-        message
-    }: {
-        ev: string;
-        status: string;
-        message: string;
-    }) {
+    processStatusMessage({ ev, status, message }: { ev: string; status: string; message: string }) {
         if (status === "auth_success" && !this.isConnected) {
             this.emitter.emit("auth");
             this.isConnected = true;
@@ -175,10 +188,7 @@ class SocketManager {
         this.emitter.emit("minute_update", params);
     }
 
-    subscribeToTickLevelUpdates(
-        symbols: string[],
-        updateType: "A" | "AM" | "T" | "Q" = "A"
-    ) {
+    subscribeToTickLevelUpdates(symbols: string[], updateType: "A" | "AM" | "T" | "Q" = "A") {
         for (const symbol of symbols) {
             this.serverInstance?.send(
                 JSON.stringify({

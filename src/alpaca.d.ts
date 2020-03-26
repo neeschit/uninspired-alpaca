@@ -115,6 +115,12 @@ declare module "@alpacahq/alpaca-trade-api" {
         direction: SortDirection;
     }
 
+    export interface Calendar {
+        open: string;
+        close: string;
+        date: string;
+    }
+
     class Alpaca {
         createOrder(params: AlpacaTradeConfig): Promise<AlpacaOrder>;
         cancelAllOrders(): Promise<{}>;
@@ -123,6 +129,7 @@ declare module "@alpacahq/alpaca-trade-api" {
         getPosition(symbol: string): Promise<AlpacaPosition>;
         closePosition(symbol: string): Promise<{}>;
         getAssets(params: GetAssetsParams): Asset[];
+        getCalendar({ start, end }: { start: Date; end: Date }): Promise<Calendar[]>;
         constructor(params: AlpacaParams);
     }
 

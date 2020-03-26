@@ -18,7 +18,12 @@ import {
     Bar,
     FilledTradeConfig
 } from "../data/data.model";
-import { isMarketOpen, isMarketOpening, isAfterMarketClose } from "../util/market";
+import {
+    isMarketOpen,
+    isMarketOpening,
+    isAfterMarketClose,
+    confirmMarketOpen
+} from "../util/market";
 import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
 import { getBarsByDate } from "../data/bars";
 import { rebalancePosition } from "./tradeManagement";
@@ -26,7 +31,9 @@ import { LOGGER } from "../instrumentation/log";
 import { formatInEasternTimeForDisplay } from "../util/date";
 import { executeSingleTrade } from "./mockExecution";
 import { getSymbolDataGenerator } from "../connection/polygon";
+import { alpaca } from "../connection/alpaca";
 import { getDetailedPerformanceReport } from "./performance";
+import { Calendar } from "@alpacahq/alpaca-trade-api";
 
 export class Backtester {
     currentDate: Date;
@@ -44,6 +51,7 @@ export class Backtester {
     screenerBars: {
         [index: string]: Bar[];
     } = {};
+    calendar: Calendar[] = [];
 
     constructor(
         private updateIntervalMillis: number,
@@ -53,7 +61,8 @@ export class Backtester {
         private profitRatio: number = 1,
         private minMaxRatio: number = 1,
         private useSimpleRange: boolean = false,
-        private counterTrend: boolean = true
+        private counterTrend: boolean = false,
+        private period: number = 7
     ) {
         this.currentDate = startDate;
         this.clock = Sinon.useFakeTimers(startDate);
@@ -135,6 +144,11 @@ export class Backtester {
     }
 
     async simulate(batchSize = 100, logPerformance = true) {
+        this.calendar = await alpaca.getCalendar({
+            start: this.startDate,
+            end: this.endDate
+        });
+
         const batches = Backtester.getBatches(
             this.startDate,
             this.endDate,
@@ -207,22 +221,26 @@ export class Backtester {
         });
 
         for await (const {} of gen()) {
-            if (isMarketOpen(this.currentDate)) {
+            if (confirmMarketOpen(this.calendar, this.currentDate.getTime())) {
                 this.tradeUpdater.emit("interval_hit");
 
                 const filteredInstances = this.activeStrategyInstances.filter(i => {
                     return this.pendingTradeConfigs.every(c => c.symbol !== i.symbol);
                 });
 
-                const rebalancingPositionTrades = await this.closeAndRebalance(endDate);
+                try {
+                    const rebalancingPositionTrades = await this.closeAndRebalance(endDate);
 
-                for await (const tradeRebalance of rebalancingPositionTrades) {
-                    if (tradeRebalance) {
-                        LOGGER.debug(tradeRebalance);
-                        if (this.validateTrade(tradeRebalance)) {
-                            await this.findPositionConfigAndRebalance(tradeRebalance);
+                    for await (const tradeRebalance of rebalancingPositionTrades) {
+                        if (tradeRebalance) {
+                            LOGGER.debug(tradeRebalance);
+                            if (this.validateTrade(tradeRebalance)) {
+                                await this.findPositionConfigAndRebalance(tradeRebalance);
+                            }
                         }
                     }
+                } catch (e) {
+                    LOGGER.warn(e.message);
                 }
 
                 const potentialTradesToPlace = filteredInstances.map(async i => {
@@ -240,9 +258,7 @@ export class Backtester {
                             return;
                         }
 
-                        return (
-                            i.isTimeForEntry(this.currentDate) && i.rebalance(bar, this.currentDate)
-                        );
+                        return i.rebalance(bar, this.currentDate);
                     } catch (e) {
                         LOGGER.warn(e);
                     }
@@ -291,13 +307,16 @@ export class Backtester {
     async findOrFetchBarByDate(time: number, symbol: string, bars: Bar[]): Promise<Bar | null> {
         try {
             const bar = this.findBarByDate(time, symbol, bars);
+
             return bar;
         } catch (e) {
             LOGGER.warn(e.message);
         }
 
         try {
-            return this.refreshBars(symbol, time);
+            if (confirmMarketOpen(this.calendar, time)) {
+                return this.refreshBars(symbol, time);
+            }
         } catch (e) {
             LOGGER.warn(e.message);
         }
@@ -313,7 +332,18 @@ export class Backtester {
             throw new Error(err);
         }
 
-        return bars[barIndex];
+        const bar = bars[barIndex];
+
+        if (Math.abs(bar.t - time) > this.updateIntervalMillis * 60) {
+            const err = new Error(
+                `wrong bar ${symbol} at ${this.currentDate.toLocaleString()}, found ${new Date(
+                    bar.t
+                ).toLocaleString()} insstead`
+            );
+            throw err;
+        }
+
+        return bar;
     }
 
     validateTrade(tradeConfig: TradeConfig) {

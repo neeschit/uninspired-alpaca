@@ -15,6 +15,7 @@ import {
 } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
 import { convertToLocalTime } from "../util/date";
+import { roundHalf, floorHalf } from "../util";
 
 export class NarrowRangeBarStrategy {
     period: number;
@@ -41,7 +42,7 @@ export class NarrowRangeBarStrategy {
         symbol,
         bars,
         useSimpleRange = false,
-        counterTrend = true
+        counterTrend = false
     }: {
         period: number;
         symbol: string;
@@ -83,9 +84,11 @@ export class NarrowRangeBarStrategy {
     }
 
     get simpleStop() {
-        const stop = !this.isShort ? this.bars.slice(-1)[0].l : this.bars.slice(-1)[0].h;
+        const stop = !this.isShort
+            ? floorHalf(this.bars.slice(-1)[0].l)
+            : roundHalf(this.bars.slice(-1)[0].h);
 
-        return roundHalf(stop);
+        return stop;
     }
 
     get currentPrice() {
@@ -94,16 +97,18 @@ export class NarrowRangeBarStrategy {
 
     get isShort() {
         const isDownTrend = this.overallTrend === TrendType.down;
-        
+
         return this.counterTrend ? !isDownTrend : isDownTrend;
     }
 
     get entry() {
         const isShort = this.isShort;
 
-        const entry = isShort ? this.bars.slice(-1)[0].l : this.bars.slice(-1)[0].h;
+        const entry = isShort
+            ? floorHalf(this.bars.slice(-1)[0].l)
+            : roundHalf(this.bars.slice(-1)[0].h);
 
-        return roundHalf(entry);
+        return entry;
     }
 
     get stop() {
@@ -117,7 +122,7 @@ export class NarrowRangeBarStrategy {
     }
 
     get stopPrice() {
-        return this.isShort ? this.entry + this.stop : this.entry - this.stop;
+        return this.simpleStop;
     }
 
     get side() {
@@ -126,9 +131,11 @@ export class NarrowRangeBarStrategy {
 
     checkIfFitsStrategy(profitRatio = 2, strict = false) {
         const ranges = this.tr.slice(-this.period);
-        return strict
+        const adx = this.adx[this.adx.length - 1].value;
+        const isNarrowRangeBar = strict
             ? this.isVeryNarrowRangeBar(ranges)
-            : this.isNarrowRangeBar(ranges) && this.adx[this.adx.length - 1].value > 20;
+            : this.isNarrowRangeBar(ranges);
+        return isNarrowRangeBar;
     }
 
     isNarrowRangeBar(tr: number[]) {
@@ -185,7 +192,7 @@ export class NarrowRangeBarStrategy {
         return strength;
     }
 
-    hasPotentialForRewards(profitRatio = 2) {
+    hasPotentialForRewards(profitRatio: number) {
         const risk = this.stop;
         const resistances = getNextResistance(
             this.bars,
@@ -238,13 +245,25 @@ export class NarrowRangeBarStrategy {
         try {
             const unitRisk = Math.abs(this.entry - this.stopPrice);
 
+            const currentRisk = Math.abs(bar.c - this.stopPrice);
+
+            if (currentRisk > unitRisk) {
+                LOGGER.info(
+                    `too risky to enter right now ${this.symbol} at ${new Date(
+                        now
+                    ).toLocaleString()}`
+                );
+
+                return null;
+            }
+
             const quantity = Math.ceil(TRADING_RISK_UNIT_CONSTANT / unitRisk);
 
             if (!quantity || quantity < 0) {
                 return null;
             }
 
-            const price = this.isShort ? bar.l : bar.h;
+            const price = this.entry;
 
             return {
                 symbol: this.symbol,
@@ -252,7 +271,7 @@ export class NarrowRangeBarStrategy {
                 side: this.side,
                 type: TradeType.stop,
                 tif: TimeInForce.day,
-                price: roundHalf(price),
+                price: price,
                 t: now
             };
         } catch (e) {
@@ -260,8 +279,4 @@ export class NarrowRangeBarStrategy {
             return null;
         }
     }
-}
-
-function roundHalf(num: number) {
-    return Math.round(num * 2) / 2;
 }

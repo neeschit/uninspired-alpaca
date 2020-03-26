@@ -97,6 +97,10 @@ export interface FilledPositionConfig extends PositionConfig {
     averageEntryPrice?: number;
 }
 
+export interface ClosedPositionConfig extends FilledPositionConfig {
+    pnl: number;
+}
+
 export interface Order {
     symbol: string;
     filledQuantity: number;

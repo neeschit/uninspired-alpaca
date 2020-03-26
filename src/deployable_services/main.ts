@@ -16,7 +16,7 @@ import { alpaca } from "../connection/alpaca";
 import { getPlannedLogs } from "../util/getTradeLogFileName";
 import { getBarsByDate } from "../data/bars";
 
-const LARGE_CAPS = JSON.parse(readFileSync("./largecaps.json").toString());
+const LARGE_CAPS = JSON.parse(readFileSync("./largeCapsHighVolume.json").toString());
 
 function combLogFilesForPlans(symbols: string[]) {
     const activePlans = [];

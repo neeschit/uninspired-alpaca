@@ -1,6 +1,5 @@
 import { readFileSync } from "fs";
 import { isToday } from "date-fns";
-import { getDayForAlpacaTimestamp } from "../util";
 
 import { getIntradayBars } from "../data/bars";
 import { Bar } from "../data/data.model";
@@ -41,7 +40,7 @@ Promise.all(barsFetched)
 
             const ranges: number[] = stockBars
                 .filter(bar => {
-                    return isToday(getDayForAlpacaTimestamp(bar.t.toString()));
+                    return isToday(bar.t);
                 })
                 .map(bar => {
                     const range = Math.abs(bar.h - bar.l);
@@ -54,7 +53,7 @@ Promise.all(barsFetched)
                 });
 
             const volume = stockBars.reduce((sum, bar) => {
-                if (!isToday(getDayForAlpacaTimestamp(bar.t.toString()))) return sum;
+                if (!isToday(bar.t)) return sum;
                 sum += bar.v;
                 return sum;
             }, 0);

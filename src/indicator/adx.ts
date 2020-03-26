@@ -1,4 +1,4 @@
-const DEFAULT_DMI_PERIOD = 14;
+const DEFAULT_DMI_PERIOD = 7;
 import { getDirectionalMovementIndex } from "./dmi";
 import { getExponentialAverage } from "./average";
 import { getAverageTrueRange } from "./trueRange";

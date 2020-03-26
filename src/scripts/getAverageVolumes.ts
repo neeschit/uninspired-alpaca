@@ -1,9 +1,10 @@
 import { readFileSync, writeFileSync } from "fs";
-import { startOfDay, isSameDay } from "date-fns";
-import { getDayForAlpacaTimestamp } from "../util";
+import { startOfDay, isSameDay, addDays } from "date-fns";
 
-import { getIntradayBars } from "../data/bars";
-import { Bar } from "../data/data.model";
+import { getIntradayBars, getBarsByDate } from "../data/bars";
+import { Bar, DefaultDuration, PeriodType } from "../data/data.model";
+import { LOGGER } from "../instrumentation/log";
+import { cursorTo } from "readline";
 
 const LARGE_CAPS = JSON.parse(readFileSync("./largecaps.json").toString());
 
@@ -12,69 +13,80 @@ let list = JSON.parse(JSON.stringify(LARGE_CAPS));
 const barsFetched = [];
 
 while (list.length > 200) {
-    const barsPromise = getIntradayBars(list.slice(0, 200), 90, 1);
+    for (const symbol of list.slice(0, 200)) {
+        const barsPromise = getBarsByDate(
+            symbol,
+            addDays(Date.now(), -20),
+            new Date(),
+            DefaultDuration.one,
+            PeriodType.day
+        );
 
-    barsFetched.push(barsPromise);
+        barsFetched.push(barsPromise);
+    }
 
     list = list.slice(200);
 }
 
 Promise.all(barsFetched)
-    .then(responses => {
-        const bars = {};
+    .then(allBars => {
+        let array: {
+            averageVolume: number;
+            symbol: string;
+            t: number;
+        }[] = [];
 
-        responses.map(response => {
-            Object.assign(bars, response);
-        });
-
-        return Promise.resolve(bars);
-    })
-    .then((symbols: any) => {
-        return Object.keys(symbols)
-            .map(symbol => {
-                const bars: Bar[] = symbols[symbol];
+        array = allBars
+            .map((bars, index) => {
                 if (!bars.length) {
-                    return 0;
+                    LOGGER.warn(`no bars for ${LARGE_CAPS[index]}`);
+                    return {
+                        symbol: LARGE_CAPS[index],
+                        averageVolume: 0,
+                        t: 0
+                    };
                 }
-
-                let currentDay = startOfDay(getDayForAlpacaTimestamp(bars[0].t));
 
                 return bars.reduce(
                     (acc, currentBar, index) => {
-                        let { averageVolume, currentVolume, days } = acc[symbol];
-                        if (isSameDay(getDayForAlpacaTimestamp(currentBar.t), currentDay)) {
-                            currentVolume += currentBar.v;
-                        } else {
-                            averageVolume += currentVolume;
-                            currentVolume = currentBar.v;
-                            currentDay = startOfDay(getDayForAlpacaTimestamp(currentBar.t));
-                            days++;
-                        }
+                        let { averageVolume, currentVolume, days, symbol } = acc;
 
-                        if (index === bars.length - 1) {
-                            averageVolume /= days;
-                        }
+                        currentVolume = currentBar.v;
+                        days++;
+                        averageVolume = currentVolume / days;
 
                         return {
-                            [symbol]: {
-                                currentVolume,
-                                averageVolume,
-                                days
-                            }
+                            currentVolume,
+                            averageVolume,
+                            days,
+                            symbol,
+                            t: currentBar.t
                         };
                     },
                     {
-                        [symbol]: {
-                            currentVolume: 0,
-                            averageVolume: 0,
-                            days: 1
-                        }
+                        currentVolume: 0,
+                        averageVolume: 0,
+                        days: 0,
+                        symbol: LARGE_CAPS[index],
+                        t: 0
                     }
                 );
             })
-            .reduce((reducedBars, bar) => {
-                return Object.assign(reducedBars, bar);
-            }, {});
+            .filter(b => {
+                LOGGER.debug(b.averageVolume);
+                return b.averageVolume > 700000;
+            });
+
+        writeFileSync("largeCapsHighVolume.json", JSON.stringify(array.map(b => b.symbol)));
+
+        return array.reduce((acc, bar) => {
+            return Object.assign(acc, {
+                [bar.symbol]: {
+                    averageVolume: bar.averageVolume,
+                    t: bar.t
+                }
+            });
+        }, {});
     })
     .then(bars => {
         writeFileSync("sixtyDayAvgVol.json", JSON.stringify(bars));
