@@ -1,9 +1,46 @@
-import { isWeekend, set, isSameDay, isAfter, isBefore, isEqual } from "date-fns";
+import { isWeekend, set, isSameDay, isAfter, isBefore, isEqual, parse, parseISO } from "date-fns";
 import { TimestampType, MarketTimezone } from "../data/data.model";
 import { convertToLocalTime } from "./date";
 import { format, zonedTimeToUtc } from "date-fns-tz";
+import { Calendar } from "@alpacahq/alpaca-trade-api";
 
 const marketHolidays = [
+    "01-01-2015",
+    "01-19-2015",
+    "02-16-2015",
+    "04-03-2015",
+    "05-25-2015",
+    "07-03-2015",
+    "09-07-2015",
+    "11-26-2015",
+    "12-25-2015",
+    "01-01-2016",
+    "01-18-2016",
+    "02-15-2016",
+    "03-25-2016",
+    "05-30-2016",
+    "07-04-2016",
+    "09-07-2016",
+    "11-24-2016",
+    "12-25-2016",
+    "01-01-2017",
+    "01-16-2017",
+    "02-20-2017",
+    "04-14-2017",
+    "05-29-2017",
+    "07-04-2017",
+    "09-04-2017",
+    "11-23-2017",
+    "12-25-2017",
+    "01-01-2018",
+    "01-15-2018",
+    "02-19-2018",
+    "03-30-2018",
+    "05-28-2018",
+    "07-04-2018",
+    "09-03-2018",
+    "11-22-2018",
+    "12-25-2018",
     "01-01-2019",
     "01-21-2019",
     "02-18-2019",
@@ -78,4 +115,29 @@ export const getMarketCloseMillis = (now: TimestampType) => {
     const marketCloseToday = zonedTimeToUtc(marketCloseNYString, MarketTimezone);
 
     return marketCloseToday;
+};
+
+export const confirmMarketOpen = (calendar: Calendar[], currentTimeEpoch: number) => {
+    const dateFormat = "yyyy-MM-dd";
+    const timeFormat = "HH:mm";
+    const dateTimeFormat = `${dateFormat} ${timeFormat}`;
+    const currentDateString = format(currentTimeEpoch, dateFormat);
+    const currentCalendarObject = calendar.find(c => c.date === currentDateString);
+
+    if (!currentCalendarObject) {
+        return false;
+    }
+
+    const marketOpenNYString =
+        format(currentTimeEpoch, "yyyy-MM-dd") + ` ${currentCalendarObject.open}:00.000`;
+    const marketCloseNYString =
+        format(currentTimeEpoch, "yyyy-MM-dd") + ` ${currentCalendarObject.close}:00.000`;
+
+    const marketOpenToday = zonedTimeToUtc(marketOpenNYString, MarketTimezone);
+    const marketCloseToday = zonedTimeToUtc(marketCloseNYString, MarketTimezone);
+
+    return (
+        currentTimeEpoch >= marketOpenToday.getTime() &&
+        currentTimeEpoch < marketCloseToday.getTime()
+    );
 };

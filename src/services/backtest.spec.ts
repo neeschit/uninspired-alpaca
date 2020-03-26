@@ -14,7 +14,7 @@ import {
 
 const updateIntervalMillis = 60000;
 
-test("Backtester - simulate time and check if correct", async t => {
+test.only("Backtester - simulate time and check if correct", async t => {
     const defaultZonedStartDate = new Date("2019-01-03T08:10:00.000Z");
     const defaultZonedEndDate = new Date("2019-01-03T22:10:00.000Z");
     LOGGER.info(defaultZonedStartDate.toLocaleString());
@@ -133,7 +133,7 @@ test("Backtester - simulate everything for a few days", async t => {
     t.timeout(30000);
     const date = new Date().getTimezoneOffset() ? "02" : "01";
     const zonedStartDate = convertToLocalTime(new Date("2019-03-" + date), " 00:00:00.000");
-    const endDate = new Date().getTimezoneOffset() ? "05" : "04";
+    const endDate = new Date().getTimezoneOffset() ? "06" : "05";
     const zonedEndDate = convertToLocalTime(new Date("2019-03-" + endDate), " 08:00:00.000");
 
     const test = ["ECL", "AAPL", "HON"];

@@ -16,7 +16,7 @@ import { alpaca } from "../connection/alpaca";
 import { getPlannedLogs } from "../util/getTradeLogFileName";
 import { getBarsByDate } from "../data/bars";
 
-const LARGE_CAPS = JSON.parse(readFileSync("./largecaps.json").toString());
+const LARGE_CAPS = JSON.parse(readFileSync("./largeCapsHighVolume.json").toString());
 
 function combLogFilesForPlans(symbols: string[]) {
     const activePlans = [];
@@ -69,7 +69,8 @@ async function main() {
                     period: 7,
                     bars,
                     symbol,
-                    useSimpleRange: false
+                    useSimpleRange: false,
+                    counterTrend: false
                 });
 
                 if (nrb.checkIfFitsStrategy() && symbols.indexOf(symbol) === -1) {

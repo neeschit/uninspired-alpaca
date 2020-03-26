@@ -118,7 +118,7 @@ export const rebalancePosition = async (
     LOGGER.trace(originalQuantity);
     LOGGER.trace(quantity);
 
-    if (currentProfitRatio >= partialProfitRatio && quantity === originalQuantity) {
+    if (currentProfitRatio >= partialProfitRatio) {
         return {
             symbol,
             price: 0,

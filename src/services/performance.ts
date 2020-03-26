@@ -1,5 +1,11 @@
-import { FilledPositionConfig, PositionDirection, TradeDirection } from "../data/data.model";
+import {
+    FilledPositionConfig,
+    PositionDirection,
+    TradeDirection,
+    ClosedPositionConfig
+} from "../data/data.model";
 import { getMonth, isSameMonth, isAfter } from "date-fns";
+import { promises } from "dns";
 
 export interface Performance {
     profit: number;
@@ -66,12 +72,19 @@ export const getDetailedPerformanceReport = (positions: FilledPositionConfig[]) 
         }
     };
 
-    const sortedPositions = positions.sort((a, b) => {
-        const d1 = getDatePositionEntered(a);
-        const d2 = getDatePositionEntered(b);
+    const sortedPositions = positions
+        .sort((a, b) => {
+            const d1 = getDatePositionEntered(a);
+            const d2 = getDatePositionEntered(b);
 
-        return isAfter(d1, d2) ? 1 : -1;
-    });
+            return isAfter(d1, d2) ? 1 : -1;
+        })
+        .map<ClosedPositionConfig>(p => {
+            return {
+                ...p,
+                pnl: getPnL(p)
+            };
+        });
 
     const simpleAnalysis = analyzeClosedPositions(sortedPositions, positionsAnalyzer);
 
@@ -87,7 +100,8 @@ export const analyzeClosedPositions = (
     onNextPositionCallback?: (
         position: FilledPositionConfig,
         performance: Performance,
-        index: number
+        index: number,
+        pnl: number
     ) => void
 ) => {
     const { profit, longs, shorts, winners, total } = positions.reduce(
@@ -97,15 +111,7 @@ export const analyzeClosedPositions = (
             } else {
                 longs++;
             }
-            const pnl = position.trades.reduce((total, trade) => {
-                if (trade.side === TradeDirection.buy) {
-                    total -= trade.order.filledQuantity * trade.order.averagePrice;
-                } else {
-                    total += trade.order.filledQuantity * trade.order.averagePrice;
-                }
-
-                return total;
-            }, 0);
+            const pnl = getPnL(position);
 
             if (pnl > 0) {
                 winners++;
@@ -122,7 +128,7 @@ export const analyzeClosedPositions = (
             };
 
             if (onNextPositionCallback) {
-                onNextPositionCallback(position, perf, index);
+                onNextPositionCallback(position, perf, index, pnl);
             }
 
             return perf;
@@ -144,3 +150,13 @@ export const analyzeClosedPositions = (
         total
     };
 };
+function getPnL(position: FilledPositionConfig) {
+    return position.trades.reduce((total, trade) => {
+        if (trade.side === TradeDirection.buy) {
+            total -= trade.order.filledQuantity * trade.order.averagePrice;
+        } else {
+            total += trade.order.filledQuantity * trade.order.averagePrice;
+        }
+        return total;
+    }, 0);
+}

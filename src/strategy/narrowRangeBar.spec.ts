@@ -16,7 +16,8 @@ test("nrb7 - identify", t => {
         period: 7,
         symbol: "SPGI",
         bars,
-        useSimpleRange: false
+        useSimpleRange: false,
+        counterTrend: true
     });
 
     try {
@@ -32,7 +33,8 @@ test("nrb7 - find entry price", t => {
         period: 7,
         symbol: "SPGI",
         bars,
-        useSimpleRange: false
+        useSimpleRange: false,
+        counterTrend: true
     });
 
     try {
@@ -51,12 +53,13 @@ test("nrb7 - find simple stop price", t => {
         period: 7,
         symbol: "SPGI",
         bars,
-        useSimpleRange: false
+        useSimpleRange: false,
+        counterTrend: true
     });
 
     try {
         const stopPrice = nrbStrategyInstance.simpleStop;
-        t.is(stopPrice, 297.5);
+        t.is(stopPrice, 298);
     } catch (e) {
         LOGGER.error(e);
     }
@@ -67,7 +70,8 @@ test("nrb7 - identify for bars1", t => {
         period: 7,
         symbol: "BABA",
         bars: bars1,
-        useSimpleRange: false
+        useSimpleRange: false,
+        counterTrend: true
     });
 
     try {
@@ -83,7 +87,8 @@ test("nrb7 - check strength for bars1", t => {
         period: 7,
         symbol: "BABA",
         bars: bars1,
-        useSimpleRange: false
+        useSimpleRange: false,
+        counterTrend: true
     });
 
     try {
@@ -99,7 +104,8 @@ test.skip("nrb7 - find entry price bars1", t => {
         period: 7,
         symbol: "BABA",
         bars: bars1,
-        useSimpleRange: false
+        useSimpleRange: false,
+        counterTrend: true
     });
 
     try {
@@ -118,7 +124,8 @@ test("nrb7 - find simple stop price for bars1", t => {
         period: 7,
         symbol: "BABA",
         bars: bars1,
-        useSimpleRange: false
+        useSimpleRange: false,
+        counterTrend: true
     });
 
     try {
@@ -134,7 +141,8 @@ test.skip("nrb7 - identify for bars2", t => {
         period: 7,
         symbol: "TAL",
         bars: bars2,
-        useSimpleRange: false
+        useSimpleRange: false,
+        counterTrend: true
     });
 
     try {
@@ -150,12 +158,13 @@ test("nrb7 - find entry price bars2", t => {
         period: 7,
         symbol: "TAL",
         bars: bars2,
-        useSimpleRange: false
+        useSimpleRange: false,
+        counterTrend: true
     });
 
     try {
         const entryPrice = nrbStrategyInstance.entry;
-        t.is(entryPrice, 50);
+        t.is(entryPrice, 50.5);
 
         const safeStop = nrbStrategyInstance.stop;
         const stopPrice = nrbStrategyInstance.isShort
@@ -172,7 +181,8 @@ test("nrb7 - find simple stop price for bars2", t => {
         period: 7,
         symbol: "TAL",
         bars: bars2,
-        useSimpleRange: false
+        useSimpleRange: false,
+        counterTrend: true
     });
 
     try {
@@ -188,7 +198,8 @@ test("nrb7 - isTimeForEntry", t => {
         period: 7,
         symbol: "TAL",
         bars: bars2,
-        useSimpleRange: false
+        useSimpleRange: false,
+        counterTrend: true
     });
 
     t.truthy(nrbStrategyInstance.isTimeForEntry(new Date("2020-12-24T14:34:46.000Z")));
@@ -210,7 +221,8 @@ test.skip("integration nrb - real world - identify pattern for BDX", async t => 
         period: 7,
         symbol: "BDX",
         bars,
-        useSimpleRange: false
+        useSimpleRange: false,
+        counterTrend: true
     });
 
     t.falsy(nrbStrategyInstance.checkIfFitsStrategy());
@@ -228,7 +240,8 @@ test("integration nrb - real world - identify pattern for AKAM", async t => {
         period: 7,
         symbol: "AKAM",
         bars,
-        useSimpleRange: false
+        useSimpleRange: false,
+        counterTrend: true
     });
 
     t.truthy(nrbStrategyInstance.checkIfFitsStrategy());
@@ -239,17 +252,17 @@ test("integration nrb - real world - identify pattern for AKAM", async t => {
             c: 95.4,
             o: 95,
             v: 3000,
-            t: Date.now()
+            t: new Date("2020-01-22T14:34:46.000Z").getTime()
         },
         new Date("2020-01-22T14:34:46.000Z")
     );
     t.deepEqual(trade, {
         symbol: "AKAM",
-        quantity: 7,
+        quantity: 10,
         side: TradeDirection.sell,
         type: TradeType.stop,
         tif: TimeInForce.day,
-        price: 95,
+        price: 94.5,
         t: trade!.t
     });
 });

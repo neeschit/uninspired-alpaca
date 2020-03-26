@@ -1,5 +1,4 @@
-const DEFAULT_DMI_PERIOD = 14;
-import { getDirectionalMovementIndex } from "./dmi";
+import { getDirectionalMovementIndex, DEFAULT_DMI_PERIOD } from "./dmi";
 import { getExponentialAverage } from "./average";
 import { getAverageTrueRange } from "./trueRange";
 import { Bar } from "../data/data.model";
