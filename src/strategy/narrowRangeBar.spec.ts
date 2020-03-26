@@ -59,7 +59,7 @@ test("nrb7 - find simple stop price", t => {
 
     try {
         const stopPrice = nrbStrategyInstance.simpleStop;
-        t.is(stopPrice, 297.5);
+        t.is(stopPrice, 298);
     } catch (e) {
         LOGGER.error(e);
     }
@@ -164,7 +164,7 @@ test("nrb7 - find entry price bars2", t => {
 
     try {
         const entryPrice = nrbStrategyInstance.entry;
-        t.is(entryPrice, 50);
+        t.is(entryPrice, 50.5);
 
         const safeStop = nrbStrategyInstance.stop;
         const stopPrice = nrbStrategyInstance.isShort
