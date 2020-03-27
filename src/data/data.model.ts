@@ -82,7 +82,9 @@ export interface TradeConfig extends SymbolContainingConfig {
     stopPrice?: number;
 }
 export interface FilledTradeConfig extends TradeConfig {
-    order: Order;
+    filledQuantity: number;
+    averagePrice: number;
+    status: OrderStatus;
 }
 
 export interface PositionConfig extends TradePlan {
@@ -92,7 +94,6 @@ export interface PositionConfig extends TradePlan {
 }
 
 export interface FilledPositionConfig extends PositionConfig {
-    order: Order;
     trades: FilledTradeConfig[];
     averageEntryPrice?: number;
 }

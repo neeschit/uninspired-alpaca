@@ -10,7 +10,7 @@ import {
 import { analyzeClosedPositions, getDetailedPerformanceReport } from "./performance";
 import perfReport from "../fixtures/perfReport";
 
-test("assess performance at a deeper level", t => {
+test.skip("assess performance at a deeper level", t => {
     const insight = getDetailedPerformanceReport(perfReport);
 
     t.is(5, insight.monthly.length);
@@ -36,12 +36,6 @@ test("successful long trade report", t => {
             plannedRiskUnits: 7.5,
             side: PositionDirection.long,
             quantity: 0,
-            order: {
-                filledQuantity: 1,
-                symbol: "ABMD",
-                averagePrice: 217.59565608986355,
-                status: OrderStatus.filled
-            },
             trades: [
                 {
                     symbol: "ABMD",
@@ -51,21 +45,15 @@ test("successful long trade report", t => {
                     tif: TimeInForce.day,
                     price: 217.5,
                     t: 1573137360000,
-                    order: {
-                        filledQuantity: 1,
-                        symbol: "ABMD",
-                        averagePrice: 217.59565608986355,
-                        status: OrderStatus.filled
-                    }
+                    filledQuantity: 1,
+                    averagePrice: 217.59565608986355,
+                    status: OrderStatus.filled
                 },
                 {
-                    order: {
-                        filledQuantity: 1,
-                        symbol: "ABMD",
-                        averagePrice: 224.76377395381638,
-                        status: OrderStatus.filled
-                    },
+                    filledQuantity: 1,
                     symbol: "ABMD",
+                    averagePrice: 224.76377395381638,
+                    status: OrderStatus.filled,
                     price: 224.81,
                     type: TradeType.limit,
                     side: TradeDirection.sell,
@@ -78,7 +66,6 @@ test("successful long trade report", t => {
     ];
 
     const performance = analyzeClosedPositions(position);
-
     t.truthy(performance);
     t.is(Math.round(performance.profit), 7);
 });
@@ -95,12 +82,6 @@ test("successful long trade with partial report", t => {
             plannedRiskUnits: 7.5,
             side: PositionDirection.long,
             quantity: 0,
-            order: {
-                filledQuantity: 5,
-                symbol: "ABMD",
-                averagePrice: 217.59565608986355,
-                status: OrderStatus.filled
-            },
             trades: [
                 {
                     symbol: "ABMD",
@@ -110,21 +91,15 @@ test("successful long trade with partial report", t => {
                     tif: TimeInForce.day,
                     price: 217.5,
                     t: 1573137360000,
-                    order: {
-                        filledQuantity: 5,
-                        symbol: "ABMD",
-                        averagePrice: 217.59565608986355,
-                        status: OrderStatus.filled
-                    }
+                    filledQuantity: 5,
+                    averagePrice: 217.59565608986355,
+                    status: OrderStatus.filled
                 },
                 {
-                    order: {
-                        filledQuantity: 4,
-                        symbol: "ABMD",
-                        averagePrice: 224.76377395381638,
-                        status: OrderStatus.filled
-                    },
+                    filledQuantity: 4,
                     symbol: "ABMD",
+                    averagePrice: 224.76377395381638,
+                    status: OrderStatus.filled,
                     price: 224.81,
                     type: TradeType.limit,
                     side: TradeDirection.sell,
@@ -133,13 +108,10 @@ test("successful long trade with partial report", t => {
                     t: 1573573320000
                 },
                 {
-                    order: {
-                        filledQuantity: 1,
-                        symbol: "ABMD",
-                        averagePrice: 224.76377395381638,
-                        status: OrderStatus.filled
-                    },
+                    filledQuantity: 1,
                     symbol: "ABMD",
+                    averagePrice: 224.76377395381638,
+                    status: OrderStatus.filled,
                     price: 224.81,
                     type: TradeType.limit,
                     side: TradeDirection.sell,
@@ -169,12 +141,6 @@ test("successful long trade with failed partial report", t => {
             plannedRiskUnits: 7.5,
             side: PositionDirection.long,
             quantity: 0,
-            order: {
-                filledQuantity: 5,
-                symbol: "ABMD",
-                averagePrice: 217.59565608986355,
-                status: OrderStatus.filled
-            },
             trades: [
                 {
                     symbol: "ABMD",
@@ -184,21 +150,15 @@ test("successful long trade with failed partial report", t => {
                     tif: TimeInForce.day,
                     price: 217.5,
                     t: 1573137360000,
-                    order: {
-                        filledQuantity: 5,
-                        symbol: "ABMD",
-                        averagePrice: 217.59565608986355,
-                        status: OrderStatus.filled
-                    }
+                    filledQuantity: 5,
+                    averagePrice: 217.59565608986355,
+                    status: OrderStatus.filled
                 },
                 {
-                    order: {
-                        filledQuantity: 4,
-                        symbol: "ABMD",
-                        averagePrice: 224.76377395381638,
-                        status: OrderStatus.filled
-                    },
+                    filledQuantity: 4,
                     symbol: "ABMD",
+                    averagePrice: 224.76377395381638,
+                    status: OrderStatus.filled,
                     price: 224.81,
                     type: TradeType.limit,
                     side: TradeDirection.sell,
@@ -207,13 +167,10 @@ test("successful long trade with failed partial report", t => {
                     t: 1573573320000
                 },
                 {
-                    order: {
-                        filledQuantity: 1,
-                        symbol: "ABMD",
-                        averagePrice: 214.46377395381638,
-                        status: OrderStatus.filled
-                    },
+                    filledQuantity: 1,
                     symbol: "ABMD",
+                    averagePrice: 214.46377395381638,
+                    status: OrderStatus.filled,
                     price: 0,
                     type: TradeType.market,
                     side: TradeDirection.sell,
@@ -243,12 +200,6 @@ test("unsuccessful long trade report", t => {
             plannedRiskUnits: 3.5,
             side: PositionDirection.long,
             quantity: 0,
-            order: {
-                filledQuantity: 1,
-                symbol: "ABMD",
-                averagePrice: 217.59565608986355,
-                status: OrderStatus.filled
-            },
             trades: [
                 {
                     symbol: "ABMD",
@@ -258,21 +209,15 @@ test("unsuccessful long trade report", t => {
                     tif: TimeInForce.day,
                     price: 217.5,
                     t: 1573137360000,
-                    order: {
-                        filledQuantity: 1,
-                        symbol: "ABMD",
-                        averagePrice: 217.59565608986355,
-                        status: OrderStatus.filled
-                    }
+                    filledQuantity: 1,
+                    averagePrice: 217.59565608986355,
+                    status: OrderStatus.filled
                 },
                 {
-                    order: {
-                        filledQuantity: 1,
-                        symbol: "ABMD",
-                        averagePrice: 214.76377395381638,
-                        status: OrderStatus.filled
-                    },
+                    filledQuantity: 1,
                     symbol: "ABMD",
+                    averagePrice: 214.76377395381638,
+                    status: OrderStatus.filled,
                     price: 214.81,
                     type: TradeType.limit,
                     side: TradeDirection.sell,
@@ -302,12 +247,6 @@ test("successful short trade report", t => {
             plannedRiskUnits: 3,
             side: PositionDirection.short,
             quantity: 0,
-            order: {
-                filledQuantity: 3,
-                symbol: "CVS",
-                averagePrice: 57.93321995517123,
-                status: OrderStatus.filled
-            },
             trades: [
                 {
                     symbol: "CVS",
@@ -317,21 +256,15 @@ test("successful short trade report", t => {
                     tif: TimeInForce.day,
                     price: 58,
                     t: 1551710160000,
-                    order: {
-                        filledQuantity: 3,
-                        symbol: "CVS",
-                        averagePrice: 57.93321995517123,
-                        status: OrderStatus.filled
-                    }
+                    filledQuantity: 3,
+                    averagePrice: 57.93321995517123,
+                    status: OrderStatus.filled
                 },
                 {
-                    order: {
-                        filledQuantity: 3,
-                        symbol: "CVS",
-                        averagePrice: 55.24869019424767,
-                        status: OrderStatus.filled
-                    },
+                    filledQuantity: 3,
                     symbol: "CVS",
+                    averagePrice: 55.24869019424767,
+                    status: OrderStatus.filled,
                     price: 55.21,
                     type: TradeType.limit,
                     side: TradeDirection.buy,
@@ -361,12 +294,6 @@ test("unsuccessful short trade report", t => {
             plannedRiskUnits: 2,
             side: PositionDirection.short,
             quantity: 0,
-            order: {
-                filledQuantity: 5,
-                symbol: "EIX",
-                averagePrice: 65.93375230001038,
-                status: OrderStatus.filled
-            },
             trades: [
                 {
                     symbol: "EIX",
@@ -376,21 +303,15 @@ test("unsuccessful short trade report", t => {
                     tif: TimeInForce.day,
                     price: 66,
                     t: 1573050960000,
-                    order: {
-                        filledQuantity: 5,
-                        symbol: "EIX",
-                        averagePrice: 65.93375230001038,
-                        status: OrderStatus.filled
-                    }
+                    filledQuantity: 5,
+                    averagePrice: 65.93375230001038,
+                    status: OrderStatus.filled
                 },
                 {
-                    order: {
-                        filledQuantity: 5,
-                        symbol: "EIX",
-                        averagePrice: 68.12928697299374,
-                        status: OrderStatus.filled
-                    },
+                    filledQuantity: 5,
                     symbol: "EIX",
+                    averagePrice: 68.12928697299374,
+                    status: OrderStatus.filled,
                     price: 0,
                     type: TradeType.market,
                     side: TradeDirection.buy,
@@ -420,12 +341,6 @@ test("successful list of 8 positions", t => {
             plannedRiskUnits: 2,
             side: PositionDirection.long,
             quantity: 0,
-            order: {
-                filledQuantity: 6,
-                symbol: "HON",
-                averagePrice: 155.077487821752,
-                status: OrderStatus.filled
-            },
             trades: [
                 {
                     symbol: "HON",
@@ -435,21 +350,15 @@ test("successful list of 8 positions", t => {
                     tif: TimeInForce.day,
                     price: 155,
                     t: 1551450960000,
-                    order: {
-                        filledQuantity: 6,
-                        symbol: "HON",
-                        averagePrice: 155.077487821752,
-                        status: OrderStatus.filled
-                    }
+                    filledQuantity: 6,
+                    averagePrice: 155.077487821752,
+                    status: OrderStatus.filled
                 },
                 {
-                    order: {
-                        filledQuantity: 5,
-                        symbol: "HON",
-                        averagePrice: 156.61348740109216,
-                        status: OrderStatus.filled
-                    },
+                    filledQuantity: 5,
                     symbol: "HON",
+                    averagePrice: 156.61348740109216,
+                    status: OrderStatus.filled,
                     price: 156.63,
                     type: TradeType.limit,
                     side: TradeDirection.sell,
@@ -458,13 +367,10 @@ test("successful list of 8 positions", t => {
                     t: 1551709860000
                 },
                 {
-                    order: {
-                        filledQuantity: 1,
-                        symbol: "HON",
-                        averagePrice: 152.9200104946864,
-                        status: OrderStatus.filled
-                    },
+                    filledQuantity: 1,
                     symbol: "HON",
+                    averagePrice: 152.9200104946864,
+                    status: OrderStatus.filled,
                     price: 0,
                     type: TradeType.market,
                     side: TradeDirection.sell,
@@ -484,12 +390,6 @@ test("successful list of 8 positions", t => {
             plannedRiskUnits: 3,
             side: PositionDirection.long,
             quantity: 0,
-            order: {
-                filledQuantity: 4,
-                symbol: "ECL",
-                averagePrice: 170.0411909780172,
-                status: OrderStatus.filled
-            },
             trades: [
                 {
                     symbol: "ECL",
@@ -499,21 +399,15 @@ test("successful list of 8 positions", t => {
                     tif: TimeInForce.day,
                     price: 170,
                     t: 1551450960000,
-                    order: {
-                        filledQuantity: 4,
-                        symbol: "ECL",
-                        averagePrice: 170.0411909780172,
-                        status: OrderStatus.filled
-                    }
+                    filledQuantity: 4,
+                    averagePrice: 170.0411909780172,
+                    status: OrderStatus.filled
                 },
                 {
-                    order: {
-                        filledQuantity: 3,
-                        symbol: "ECL",
-                        averagePrice: 172.35842779921867,
-                        status: OrderStatus.filled
-                    },
+                    filledQuantity: 3,
                     symbol: "ECL",
+                    averagePrice: 172.35842779921867,
+                    status: OrderStatus.filled,
                     price: 172.39,
                     type: TradeType.limit,
                     side: TradeDirection.sell,
@@ -522,13 +416,10 @@ test("successful list of 8 positions", t => {
                     t: 1552483860000
                 },
                 {
-                    order: {
-                        filledQuantity: 1,
-                        symbol: "ECL",
-                        averagePrice: 175.14075813423278,
-                        status: OrderStatus.filled
-                    },
+                    filledQuantity: 1,
                     symbol: "ECL",
+                    averagePrice: 175.14075813423278,
+                    status: OrderStatus.filled,
                     price: 0,
                     type: TradeType.market,
                     side: TradeDirection.sell,

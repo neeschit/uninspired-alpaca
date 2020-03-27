@@ -8,7 +8,7 @@ export const executeSingleTrade = (
     tradePlan: TradeConfig,
     plannedEntryPrice: number,
     currentPositionConfigs: FilledPositionConfig[]
-) => {
+): FilledPositionConfig | null => {
     const symbol = tradePlan.symbol;
     const side =
         tradePlan.side === TradeDirection.buy ? PositionDirection.long : PositionDirection.short;
@@ -47,11 +47,10 @@ export const executeSingleTrade = (
 
             return {
                 ...unfilledPosition,
-                order,
                 trades: [
                     {
                         ...tradePlan,
-                        order
+                        ...order
                     }
                 ]
             };
@@ -65,11 +64,10 @@ export const executeSingleTrade = (
 
             return {
                 ...unfilledPosition,
-                order,
                 trades: [
                     {
                         ...tradePlan,
-                        order
+                        ...order
                     }
                 ]
             };
@@ -87,8 +85,11 @@ export const executeSingleTrade = (
         };
 
         position.trades.push({
-            order,
-            ...tradePlan
+            /* order, */
+            ...tradePlan,
+            filledQuantity: order.filledQuantity,
+            status: order.status,
+            averagePrice: order.averagePrice
         });
 
         position.quantity -= order.filledQuantity;
@@ -104,8 +105,11 @@ export const executeSingleTrade = (
             };
 
             position.trades.push({
-                order,
-                ...tradePlan
+                /* order, */
+                ...tradePlan,
+                filledQuantity: order.filledQuantity,
+                status: order.status,
+                averagePrice: order.averagePrice
             });
             position.quantity -= order.filledQuantity;
 
@@ -119,8 +123,11 @@ export const executeSingleTrade = (
             };
 
             position.trades.push({
-                order,
-                ...tradePlan
+                /* order, */
+                ...tradePlan,
+                filledQuantity: order.filledQuantity,
+                status: order.status,
+                averagePrice: order.averagePrice
             });
             position.quantity -= order.filledQuantity;
 

@@ -153,9 +153,9 @@ export const analyzeClosedPositions = (
 function getPnL(position: FilledPositionConfig) {
     return position.trades.reduce((total, trade) => {
         if (trade.side === TradeDirection.buy) {
-            total -= trade.order.filledQuantity * trade.order.averagePrice;
+            total -= trade.filledQuantity * trade.averagePrice;
         } else {
-            total += trade.order.filledQuantity * trade.order.averagePrice;
+            total += trade.filledQuantity * trade.averagePrice;
         }
         return total;
     }, 0);

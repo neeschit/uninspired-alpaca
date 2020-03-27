@@ -67,7 +67,8 @@ export const rebalancePosition = async (
     }
 
     if (!averageEntryPrice) {
-        averageEntryPrice = position.order && position.order.averagePrice;
+        const order = position.trades && position.trades.length && position.trades[0];
+        averageEntryPrice = order && order.averagePrice;
     }
 
     if (!averageEntryPrice) {
@@ -135,7 +136,6 @@ export const rebalancePosition = async (
 
 export class TradeManagement {
     position: PositionConfig;
-    order?: Order;
     trades: FilledTradeConfig[] = [];
 
     constructor(
@@ -163,13 +163,12 @@ export class TradeManagement {
     }
 
     async onTradeUpdate(currentBar: Bar) {
-        if (!this.position || !this.order) {
+        if (!this.position || !this.trades) {
             LOGGER.error("no position or order was never fulfilled");
             return;
         }
         const config: TradeConfig | null = await rebalancePosition(
             Object.assign(this.position, {
-                order: this.order,
                 trades: this.trades
             }),
             currentBar,
@@ -214,7 +213,7 @@ export class TradeManagement {
             plannedQuantity: this.config.quantity
         };
 
-        this.order = {
+        const filledOrder = {
             symbol,
             averagePrice: order.filled_avg_price,
             filledQuantity: order.filled_qty,
@@ -222,12 +221,13 @@ export class TradeManagement {
         };
 
         return Object.assign(this.position, {
-            order: this.order,
             trades: [
                 {
                     ...this.config,
-                    order: this.order,
-                    quantity: order.filled_qty
+                    quantity: order.filled_qty,
+                    filledQuantity: filledOrder.filledQuantity,
+                    status: filledOrder.status,
+                    averagePrice: filledOrder.averagePrice
                 }
             ]
         });

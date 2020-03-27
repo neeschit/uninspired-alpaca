@@ -434,7 +434,9 @@ export class Backtester {
                     );
                     this.pastTradeConfigs.push({
                         ...tradePlan,
-                        order: position.order,
+                        filledQuantity: position.trades[position.trades.length - 1].quantity,
+                        averagePrice: position.trades[position.trades.length - 1].price,
+                        status: position.trades[position.trades.length - 1].status,
                         estString: formatInEasternTimeForDisplay(tradePlan.t)
                     });
                     newlyExecutedSymbols.push(symbol);
@@ -485,7 +487,10 @@ export class Backtester {
 
         this.pastTradeConfigs.push({
             ...tradeConfig,
-            order: executedClose.trades[executedClose.trades.length - 1].order
+            averagePrice: executedClose.trades[executedClose.trades.length - 1].price,
+            filledQuantity: executedClose.trades[executedClose.trades.length - 1].quantity,
+            status: executedClose.trades[executedClose.trades.length - 1].status
+            /* order: executedClose.trades[executedClose.trades.length - 1].order */
         });
 
         const isClosingOrder = this.isClosingOrder(position, tradeConfig);

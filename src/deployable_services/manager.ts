@@ -65,12 +65,13 @@ async function manage() {
 
                     const manager = new TradeManagement(plan.config, plan.plan);
 
-                    manager.order = {
+                    manager.trades.push({
                         averagePrice: Number(position.avg_entry_price),
                         symbol,
                         filledQuantity: Math.abs(Number(position.qty)),
-                        status: OrderStatus.filled
-                    };
+                        status: OrderStatus.filled,
+                        ...plan.config
+                    });
 
                     manager.position.originalQuantity = plan.plan.plannedQuantity;
                     manager.position.quantity = Math.abs(Number(position.qty));
