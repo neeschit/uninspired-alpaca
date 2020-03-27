@@ -106,6 +106,15 @@ export const isMarketOpening = (now: TimestampType) => {
     return premarketOpenToday.getTime() == nowMillis;
 };
 
+export const isMarketClosing = (now: TimestampType) => {
+    const marketOpenNYString = format(now, "yyyy-MM-dd") + " 15:30:00.000";
+
+    const marketClosingStart = zonedTimeToUtc(marketOpenNYString, MarketTimezone);
+    const nowMillis = now instanceof Date ? now.getTime() : now;
+
+    return marketClosingStart.getTime() >= nowMillis;
+};
+
 export const getMarketOpenMillis = (now: TimestampType) => {
     const marketOpenNYString = format(now, "yyyy-MM-dd") + " 09:30:00.000";
 

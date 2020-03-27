@@ -170,7 +170,7 @@ export class NarrowRangeBarStrategy {
     }
 
     async rebalance(
-        bar: Bar,
+        entryBar: Bar,
         now: TimestampType = Date.now()
     ): Promise<PlannedTradeConfig[] | null> {
         if (!this.isTimeForEntry(now)) {
@@ -180,8 +180,8 @@ export class NarrowRangeBarStrategy {
         now = now instanceof Date ? now.getTime() : now;
 
         try {
-            const entryLong = bar.h + 0.01;
-            const entryShort = bar.l - 0.01;
+            const entryLong = entryBar.h + 0.01;
+            const entryShort = entryBar.l - 0.01;
 
             const unitRisk = Math.abs(entryLong - entryShort);
 

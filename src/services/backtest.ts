@@ -24,14 +24,15 @@ import {
     isMarketOpen,
     isMarketOpening,
     isAfterMarketClose,
-    confirmMarketOpen
+    confirmMarketOpen,
+    isMarketClosing
 } from "../util/market";
 import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
 import { getBarsByDate } from "../data/bars";
 import { rebalancePosition } from "./tradeManagement";
 import { LOGGER } from "../instrumentation/log";
 import { formatInEasternTimeForDisplay } from "../util/date";
-import { executeSingleTrade } from "./mockExecution";
+import { executeSingleTrade, liquidatePosition } from "./mockExecution";
 import { getSymbolDataGenerator } from "../connection/polygon";
 import { alpaca } from "../connection/alpaca";
 import { getDetailedPerformanceReport } from "./performance";
@@ -273,6 +274,24 @@ export class Backtester {
                             return;
                         }
 
+                        if (bar.v < 100000) {
+                            bar = await this.findOrFetchBarByDate(
+                                set(this.currentDate.getTime(), {
+                                    hours: 9,
+                                    minutes: 30,
+                                    seconds: 0
+                                }).getTime(),
+                                i.symbol,
+                                bars,
+                                1
+                            );
+                        }
+
+                        if (!bar) {
+                            LOGGER.warn(`no bar found`);
+                            return;
+                        }
+
                         return i.rebalance(bar, this.currentDate);
                     } catch (e) {
                         LOGGER.warn(e);
@@ -321,9 +340,9 @@ export class Backtester {
         return this.findBarByDate(time, symbol, bars);
     }
 
-    async findOrFetchBarByDate(time: number, symbol: string, bars: Bar[]): Promise<Bar | null> {
+    async findOrFetchBarByDate(time: number, symbol: string, bars: Bar[], offset?: number): Promise<Bar | null> {
         try {
-            const bar = this.findBarByDate(time, symbol, bars);
+            const bar = this.findBarByDate(time, symbol, bars, offset);
 
             return bar;
         } catch (e) {
@@ -341,7 +360,7 @@ export class Backtester {
         return null;
     }
 
-    findBarByDate(time: number, symbol: string, bars: Bar[]): Bar {
+    findBarByDate(time: number, symbol: string, bars: Bar[], offset = 0): Bar {
         const barIndex = bars.findIndex(b => b.t >= time);
 
         if (barIndex === -1) {
@@ -349,7 +368,7 @@ export class Backtester {
             throw new Error(err);
         }
 
-        const bar = bars[barIndex];
+        const bar = bars[barIndex + offset];
 
         if (Math.abs(bar.t - time) > this.updateIntervalMillis * 60) {
             const err = new Error(
@@ -488,7 +507,7 @@ export class Backtester {
             return null;
         }
 
-        const executedClose = executeSingleTrade(
+        let executedClose = executeSingleTrade(
             position.plannedStopPrice,
             bar,
             tradeConfig,
@@ -496,8 +515,14 @@ export class Backtester {
             this.currentPositionConfigs
         );
 
-        if (!executedClose) {
+        const liquidate = isMarketClosing(bar.t);
+
+        if (!executedClose && !liquidate) {
             return null;
+        }
+
+        if (!executedClose) {
+           executedClose = liquidatePosition(position, bar);
         }
 
         this.pastTradeConfigs.push({
