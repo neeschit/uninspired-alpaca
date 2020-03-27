@@ -6,7 +6,8 @@ import {
     PeriodType,
     TradeConfig,
     PositionDirection,
-    TradePlan
+    TradePlan,
+    TradeDirection
 } from "../data/data.model";
 import { addDays, format } from "date-fns";
 import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
@@ -112,30 +113,37 @@ async function main() {
                     LOGGER.warn(`Couldn't find the right bar for ${n.symbol}`);
                     continue;
                 }
+                /* 
+                const orders: TradeConfig[] | null = await n.rebalance(bar);
 
-                const order: TradeConfig | null = await n.rebalance(bar);
-
-                if (!order) {
+                if (!orders) {
                     LOGGER.warn(`Expected an order for ${n.symbol}`);
                 } else {
-                    const manager = new TradeManagement(order, {
-                        symbol: n.symbol,
-                        side: n.isShort ? PositionDirection.short : PositionDirection.long,
-                        plannedEntryPrice: order.price,
-                        plannedStopPrice: n.stopPrice,
-                        plannedQuantity: order.quantity,
-                        quantity: order.quantity
-                    });
+                    const [long, short] = orders;
+                    for (const order of orders) {
+                        const manager = new TradeManagement(order, {
+                            symbol: n.symbol,
+                            side:
+                                order.side === TradeDirection.sell
+                                    ? PositionDirection.short
+                                    : PositionDirection.long,
+                            plannedEntryPrice: order.price,
+                            plannedStopPrice:
+                                order.side === TradeDirection.sell ? long.price : short.price,
+                            plannedQuantity: order.quantity,
+                            quantity: order.quantity
+                        });
 
-                    logs.push({
-                        plan: manager.plan,
-                        config: manager.config
-                    });
+                        logs.push({
+                            plan: manager.plan,
+                            config: manager.config
+                        });
 
-                    await manager.executeAndRecord();
+                        await manager.executeAndRecord();
 
-                    ordersToBeManaged.push(manager);
-                }
+                        ordersToBeManaged.push(manager);
+                    }
+                } */
             } catch (e) {
                 LOGGER.error(e);
             }

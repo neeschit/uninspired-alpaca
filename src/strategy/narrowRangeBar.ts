@@ -11,7 +11,10 @@ import {
     MarketTimezone,
     TradeDirection,
     TradeType,
-    TimeInForce
+    TimeInForce,
+    TradeConfig,
+    PlannedTradeConfig,
+    PositionDirection
 } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
 import { convertToLocalTime } from "../util/date";
@@ -28,10 +31,6 @@ export class NarrowRangeBarStrategy {
     tr: number[];
 
     volumeProfile: VolumeProfileBar[];
-
-    entryHour: number = 9;
-    entryMinuteStart: number = 34;
-    entryMinuteEnd: number = 36;
 
     overallTrend: TrendType;
     recentTrend: TrendType;
@@ -83,52 +82,8 @@ export class NarrowRangeBarStrategy {
         return this.atr[this.atr.length - 1].value;
     }
 
-    get simpleStop() {
-        const stop = !this.isShort
-            ? floorHalf(this.bars.slice(-1)[0].l)
-            : ceilHalf(this.bars.slice(-1)[0].h);
-
-        return stop;
-    }
-
     get currentPrice() {
         return this.bars[this.bars.length - 1].c;
-    }
-
-    get isShort() {
-        const isDownTrend = this.overallTrend === TrendType.down;
-        const adx = this.adx[this.adx.length - 1].value;
-        const counterTrend = this.counterTrend || adx < 15;
-
-        return counterTrend ? !isDownTrend : isDownTrend;
-    }
-
-    get entry() {
-        const isShort = this.isShort;
-
-        const entry = isShort
-            ? floorHalf(this.bars.slice(-1)[0].l)
-            : ceilHalf(this.bars.slice(-1)[0].h);
-
-        return entry;
-    }
-
-    get stop() {
-        return assessRisk(
-            this.volumeProfile,
-            this.atr.slice(-1)[0],
-            this.bars.slice(-1)[0].c,
-            this.entry,
-            this.simpleStop
-        );
-    }
-
-    get stopPrice() {
-        return this.simpleStop;
-    }
-
-    get side() {
-        return this.isShort ? TradeDirection.sell : TradeDirection.buy;
     }
 
     checkIfFitsStrategy(profitRatio = 2, strict = false) {
@@ -193,32 +148,6 @@ export class NarrowRangeBarStrategy {
         return strength;
     }
 
-    hasPotentialForRewards(profitRatio: number) {
-        const risk = this.stop;
-        const resistances = getNextResistance(
-            this.bars,
-            this.isShort,
-            this.entry,
-            this.volumeProfile
-        );
-        if (!resistances || !resistances.length) {
-            return true;
-        }
-
-        const potentialRewards = resistances.map((r: number) => Math.abs(this.entry - r));
-
-        const hasPotential = potentialRewards.some((r: number) => r / risk >= profitRatio);
-
-        return hasPotential;
-    }
-
-    toString() {
-        return `overall trend is ${this.overallTrend}.
-        Looking to ${this.isShort ? "SHORT" : "LONG"} ${this.symbol} at ${this.entry}, stop - ${
-            this.stopPrice
-        } - with close ${this.currentPrice}`;
-    }
-
     isTimeForEntry(now: TimestampType) {
         if (!isMarketOpen(now)) {
             LOGGER.debug("market ain't open biiatch", now);
@@ -226,7 +155,7 @@ export class NarrowRangeBarStrategy {
         }
 
         const timeStart = convertToLocalTime(now, " 09:34:45.000");
-        const timeEnd = convertToLocalTime(now, " 09:36:00.000");
+        const timeEnd = convertToLocalTime(now, " 10:30:00.000");
 
         const nowMillis = now instanceof Date ? now.getTime() : now;
 
@@ -240,41 +169,69 @@ export class NarrowRangeBarStrategy {
         return isWithinEntryRange;
     }
 
-    async rebalance(bar: Bar, now: TimestampType = Date.now()) {
+    async rebalance(
+        bar: Bar,
+        now: TimestampType = Date.now()
+    ): Promise<PlannedTradeConfig[] | null> {
+        if (!this.isTimeForEntry(now)) {
+            LOGGER.warn(`not the time to enter for ${this.symbol} at ${new Date(now)}`);
+            return null;
+        }
         now = now instanceof Date ? now.getTime() : now;
 
         try {
-            const unitRisk = Math.abs(this.entry - this.stopPrice);
+            const entryLong = bar.h + 0.01;
+            const entryShort = bar.l - 0.01;
 
-            const currentRisk = Math.abs(bar.c - this.stopPrice);
-
-            if (currentRisk > unitRisk) {
-                LOGGER.info(
-                    `too risky to enter right now ${this.symbol} at ${new Date(
-                        now
-                    ).toLocaleString()}`
-                );
-
-                return null;
-            }
+            const unitRisk = Math.abs(entryLong - entryShort);
 
             const quantity = Math.ceil(TRADING_RISK_UNIT_CONSTANT / unitRisk);
 
             if (!quantity || quantity < 0) {
+                LOGGER.error(`Expected an order for ${this.symbol} at ${now}`);
                 return null;
             }
 
-            const price = this.entry;
-
-            return {
-                symbol: this.symbol,
-                quantity,
-                side: this.side,
-                type: TradeType.stop,
-                tif: TimeInForce.day,
-                price: price,
-                t: now
-            };
+            return [
+                {
+                    plan: {
+                        plannedEntryPrice: entryLong,
+                        plannedStopPrice: entryShort,
+                        plannedQuantity: quantity,
+                        quantity,
+                        side: PositionDirection.long,
+                        symbol: this.symbol
+                    },
+                    config: {
+                        symbol: this.symbol,
+                        quantity,
+                        side: TradeDirection.buy,
+                        type: TradeType.stop,
+                        tif: TimeInForce.day,
+                        price: entryLong,
+                        t: now
+                    }
+                },
+                {
+                    plan: {
+                        plannedEntryPrice: entryShort,
+                        plannedStopPrice: entryLong,
+                        plannedQuantity: quantity,
+                        quantity,
+                        side: PositionDirection.short,
+                        symbol: this.symbol
+                    },
+                    config: {
+                        symbol: this.symbol,
+                        quantity,
+                        side: TradeDirection.sell,
+                        type: TradeType.stop,
+                        tif: TimeInForce.day,
+                        price: entryShort,
+                        t: now
+                    }
+                }
+            ];
         } catch (e) {
             LOGGER.error(e);
             return null;
