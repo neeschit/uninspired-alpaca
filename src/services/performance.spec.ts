@@ -10,7 +10,7 @@ import {
 import { analyzeClosedPositions, getDetailedPerformanceReport } from "./performance";
 import perfReport from "../fixtures/perfReport";
 
-test("assess performance at a deeper level", t => {
+test.skip("assess performance at a deeper level", t => {
     const insight = getDetailedPerformanceReport(perfReport);
 
     t.is(5, insight.monthly.length);
