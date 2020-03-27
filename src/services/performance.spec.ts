@@ -66,7 +66,6 @@ test("successful long trade report", t => {
     ];
 
     const performance = analyzeClosedPositions(position);
-
     t.truthy(performance);
     t.is(Math.round(performance.profit), 7);
 });
