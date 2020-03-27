@@ -5,6 +5,7 @@ import { MarketTimezone } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
 import { Backtester } from "../services/backtest";
 import { getDetailedPerformanceReport } from "../services/performance";
+import { getHighVolumeCompanies } from "../data/filters";
 
 const startDate = "2019-10-01 9:00:00.000";
 const zonedStartDate = zonedTimeToUtc(startDate, MarketTimezone);
@@ -13,7 +14,7 @@ const endDate = parseISO("2020-03-24 00:10:00.000");
 
 const zonedEndDate = zonedTimeToUtc(endDate, MarketTimezone);
 
-const LARGE_CAPS = JSON.parse(readFileSync("./largeCapsHighVolume.json").toString());
+const LARGE_CAPS = getHighVolumeCompanies();
 LOGGER.info(zonedStartDate.toISOString());
 
 const pr = 2;

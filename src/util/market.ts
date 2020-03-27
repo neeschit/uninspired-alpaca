@@ -61,9 +61,13 @@ const marketHolidays = [
     "12-25-2020"
 ];
 
+export const isMarketHoliday = (now: TimestampType = Date.now()) => {
+    return marketHolidays.some(day => isSameDay(now, new Date(day)));
+};
+
 export const isMarketOpen = (now: TimestampType = Date.now()) => {
     const isWeekday = !isWeekend(now);
-    const isNotHoliday = !marketHolidays.some(day => isSameDay(now, new Date(day)));
+    const isNotHoliday = !isMarketHoliday(now);
 
     return isWeekday && isNotHoliday && isAfterMarketOpen(now) && isBeforeMarketClose(now);
 };

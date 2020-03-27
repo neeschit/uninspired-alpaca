@@ -15,8 +15,9 @@ import { convertToLocalTime } from "../util/date";
 import { alpaca } from "../connection/alpaca";
 import { getPlannedLogs } from "../util/getTradeLogFileName";
 import { getBarsByDate } from "../data/bars";
+import { getHighVolumeCompanies } from "../data/filters";
 
-const LARGE_CAPS = JSON.parse(readFileSync("./largeCapsHighVolume.json").toString());
+const LARGE_CAPS = getHighVolumeCompanies();
 
 function combLogFilesForPlans(symbols: string[]) {
     const activePlans = [];

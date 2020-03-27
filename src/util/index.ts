@@ -1,3 +1,10 @@
+import { DefaultDuration, PeriodType, Bar } from "../data/data.model";
+import { differenceInHours, differenceInDays, differenceInBusinessDays, addDays } from "date-fns";
+import { LOGGER } from "../instrumentation/log";
+import { existsSync, mkdirSync } from "fs";
+import { ensureDirSync } from "fs-extra";
+import { isMarketHoliday } from "./market";
+
 export * from "./get";
 
 export function roundHalf(num: number) {
@@ -11,3 +18,41 @@ export function floorHalf(num: number) {
 export function ceilHalf(num: number) {
     return Math.ceil(num * 2) / 2;
 }
+const cacheDirectory = "./data/cache";
+
+export const getCacheDataName = (
+    symbol: string,
+    duration: DefaultDuration,
+    period: PeriodType,
+    startDate: Date,
+    endDate: Date
+) => {
+    const directory = `${cacheDirectory}/${symbol}/${duration}/${period}/`;
+    ensureDirSync(directory);
+
+    return `${directory}${startDate.toISOString()}-${endDate.toISOString()}.json`;
+};
+
+export const verifyBarData = (bars: Bar[]) => {
+    for (let i = 1; i < bars.length; i++) {
+        const diff = differenceInBusinessDays(bars[i].t, bars[i - 1].t);
+
+        if (diff !== 1) {
+            const prevDay = addDays(bars[i - 1].t, 1);
+            const nextDay = addDays(bars[i].t, -1);
+            const isPreviousDayHoliday = isMarketHoliday(prevDay);
+            const isNextDayHoliday = isMarketHoliday(nextDay);
+            const isHoliday = isPreviousDayHoliday || isNextDayHoliday;
+
+            if (!isHoliday) {
+                LOGGER.warn(
+                    `Expected diff of 1 - got ${diff} for ${new Date(bars[i].t)} for 
+                        ${new Date(bars[i - 1].t)}`
+                );
+                return false;
+            }
+        }
+    }
+
+    return true;
+};

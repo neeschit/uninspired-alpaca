@@ -1,10 +1,9 @@
 import { readFileSync, writeFileSync } from "fs";
-import { startOfDay, isSameDay, addDays } from "date-fns";
+import { addDays } from "date-fns";
 
-import { getIntradayBars, getBarsByDate } from "../data/bars";
-import { Bar, DefaultDuration, PeriodType } from "../data/data.model";
+import { getBarsByDate } from "../data/bars";
+import { DefaultDuration, PeriodType } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
-import { cursorTo } from "readline";
 
 const LARGE_CAPS = JSON.parse(readFileSync("./largecaps.json").toString());
 
@@ -48,7 +47,7 @@ Promise.all(barsFetched)
                 }
 
                 return bars.reduce(
-                    (acc, currentBar, index) => {
+                    (acc, currentBar) => {
                         let { averageVolume, currentVolume, days, symbol } = acc;
 
                         currentVolume = currentBar.v;

@@ -4,3 +4,4 @@ build
 *.log
 tf/credentials.json
 tf/**/terraform-provider-*
+data/cache
