@@ -175,10 +175,9 @@ test("rebalancePosition - simple stop", async t => {
             hasHardStop: true,
             side: PositionDirection.long,
             originalQuantity: 200,
-            order: orderDefinition,
             trades: [
                 {
-                    order: orderDefinition,
+                    ...orderDefinition,
                     tif: TimeInForce.day,
                     price: 200,
                     quantity: 200,
@@ -229,10 +228,9 @@ test("rebalancePosition - simple stop for a short", async t => {
             hasHardStop: true,
             side: PositionDirection.short,
             originalQuantity: 200,
-            order: orderDefinition,
             trades: [
                 {
-                    order: orderDefinition,
+                    ...orderDefinition,
                     tif: TimeInForce.day,
                     price: 190,
                     quantity: 200,
@@ -283,10 +281,9 @@ test("rebalancePosition - nothing to do for a short", async t => {
             hasHardStop: true,
             side: PositionDirection.short,
             originalQuantity: 200,
-            order: orderDefinition,
             trades: [
                 {
-                    order: orderDefinition,
+                    ...orderDefinition,
                     tif: TimeInForce.day,
                     price: 190,
                     quantity: 200,
@@ -328,10 +325,9 @@ test("rebalancePosition - simple partial", async t => {
             hasHardStop: true,
             side: PositionDirection.long,
             originalQuantity: 200,
-            order: orderDefinition,
             trades: [
                 {
-                    order: orderDefinition,
+                    ...orderDefinition,
                     tif: TimeInForce.day,
                     price: 200,
                     quantity: 200,
@@ -382,10 +378,9 @@ test("rebalancePosition - simple partial for a short", async t => {
             hasHardStop: true,
             side: PositionDirection.short,
             originalQuantity: 5,
-            order: orderDefinition,
             trades: [
                 {
-                    order: orderDefinition,
+                    ...orderDefinition,
                     tif: TimeInForce.day,
                     price: 25.5,
                     quantity: 5,
@@ -435,10 +430,9 @@ test("rebalancePosition - close position after partial", async t => {
             hasHardStop: true,
             side: PositionDirection.long,
             originalQuantity: 200,
-            order: orderDefinition,
             trades: [
                 {
-                    order: orderDefinition,
+                    ...orderDefinition,
                     tif: TimeInForce.day,
                     price: 200,
                     quantity: 200,
@@ -532,10 +526,9 @@ test("trade management - init and recordOnceUpdateReceived", t => {
         plannedQuantity: 200,
         side: PositionDirection.long,
         quantity: 150,
-        order: orderDefinition,
         trades: [
             {
-                order: orderDefinition,
+                ...orderDefinition,
                 tif: TimeInForce.day,
                 price: 200,
                 quantity: 150,
@@ -581,12 +574,15 @@ test.skip("trade management - handle trade update - empty fill", async t => {
         quantity: 150
     };
 
-    manager.order = {
-        symbol,
-        status: OrderStatus.partial_fill,
-        averagePrice: 200.06,
-        filledQuantity: 0
-    };
+    manager.trades = [
+        {
+            symbol,
+            status: OrderStatus.partial_fill,
+            averagePrice: 200.06,
+            filledQuantity: 0,
+            ...manager.config
+        }
+    ];
 
     t.is(
         undefined,
@@ -634,12 +630,14 @@ test("trade management - handle trade update - non empty fill", t => {
         quantity: 150
     };
 
-    manager.order = {
-        symbol,
-        status: OrderStatus.partial_fill,
-        averagePrice: 200.06,
-        filledQuantity: 10
-    };
+    manager.trades = [
+        {
+            status: OrderStatus.partial_fill,
+            averagePrice: 200.06,
+            filledQuantity: 10,
+            ...manager.config
+        }
+    ];
 
     t.truthy(
         manager.onTradeUpdate({
