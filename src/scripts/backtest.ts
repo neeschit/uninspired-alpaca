@@ -7,19 +7,19 @@ import { Backtester } from "../services/backtest";
 import { getDetailedPerformanceReport } from "../services/performance";
 import { getHighVolumeCompanies } from "../data/filters";
 
-const startDate = "2019-10-01 9:00:00.000";
+const startDate = "2020-03-15 9:00:00.000";
 const zonedStartDate = zonedTimeToUtc(startDate, MarketTimezone);
 
-const endDate = parseISO("2020-03-24 00:10:00.000");
+const endDate = parseISO("2020-03-27 00:10:00.000");
 
 const zonedEndDate = zonedTimeToUtc(endDate, MarketTimezone);
 
 const LARGE_CAPS = getHighVolumeCompanies();
 LOGGER.info(zonedStartDate.toISOString());
 
-const pr = 2;
+const pr = 1;
 
-const simpleRange = true;
+const simpleRange = false;
 
 const rangeRatio = 1;
 
@@ -28,7 +28,7 @@ const counterTrend = false;
 const nrbPeriod = 7;
 
 const instance = new Backtester(
-    60000,
+    300000,
     zonedStartDate,
     zonedEndDate,
     LARGE_CAPS,
@@ -45,7 +45,7 @@ async function run() {
         "yyyy-MM"
     )}-${pr}x-${rangeRatio}-${simpleRange ? "simpleRange" : "trueRange"}-${
         counterTrend ? "counter" : "trend-friend"
-    }-counter-longer-no-sideways-dmi-nrb${nrbPeriod}-no-adx-strict-entry.json`;
+    }-trend-less-nrb${nrbPeriod}.json`;
 
     /* const pastPositionConfigs = JSON.parse(readFileSync(filename).toString()).sortedPositions;
 

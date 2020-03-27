@@ -5,7 +5,8 @@ import {
     startOfDay,
     addHours,
     differenceInMonths,
-    addMonths
+    addMonths,
+    set
 } from "date-fns";
 import Sinon from "sinon";
 import {
@@ -16,7 +17,8 @@ import {
     TradeDirection,
     PositionDirection,
     Bar,
-    FilledTradeConfig
+    FilledTradeConfig,
+    PlannedTradeConfig
 } from "../data/data.model";
 import {
     isMarketOpen,
@@ -34,11 +36,13 @@ import { getSymbolDataGenerator } from "../connection/polygon";
 import { alpaca } from "../connection/alpaca";
 import { getDetailedPerformanceReport } from "./performance";
 import { Calendar } from "@alpacahq/alpaca-trade-api";
+import { getCacheDataName } from "../util";
+import { readFileSync } from "fs";
 
 export class Backtester {
     currentDate: Date;
     pastTradeConfigs: FilledTradeConfig[] = [];
-    pendingTradeConfigs: TradeConfig[] = [];
+    pendingTradeConfigs: PlannedTradeConfig[] = [];
     currentPositionConfigs: FilledPositionConfig[] = [];
     pastPositionConfigs: FilledPositionConfig[] = [];
     strategyInstances: NarrowRangeBarStrategy[] = [];
@@ -215,6 +219,13 @@ export class Backtester {
             });
         }
 
+        /* for (const symbol of symbols) {
+            const cacheFileName = getCacheDataName(symbol, DefaultDuration.one, PeriodType.day);
+            Object.assign(this.screenerBars, {
+                [symbol]: JSON.parse(readFileSync(cacheFileName).toString())
+            });
+        } */
+
         const gen = this.getTimeSeriesGenerator({
             startDate,
             endDate
@@ -225,7 +236,7 @@ export class Backtester {
                 this.tradeUpdater.emit("interval_hit");
 
                 const filteredInstances = this.activeStrategyInstances.filter(i => {
-                    return this.pendingTradeConfigs.every(c => c.symbol !== i.symbol);
+                    return this.pendingTradeConfigs.every(c => c.plan.symbol !== i.symbol);
                 });
 
                 try {
@@ -248,7 +259,11 @@ export class Backtester {
 
                     try {
                         let bar = await this.findOrFetchBarByDate(
-                            this.currentDate.getTime(),
+                            set(this.currentDate.getTime(), {
+                                hours: 9,
+                                minutes: 30,
+                                seconds: 0
+                            }).getTime(),
                             i.symbol,
                             bars
                         );
@@ -264,13 +279,15 @@ export class Backtester {
                     }
                 });
 
-                for await (const promiseResult of potentialTradesToPlace) {
-                    if (promiseResult) {
-                        if (this.validateTrade(promiseResult)) {
-                            LOGGER.debug(promiseResult);
-                            this.pendingTradeConfigs.push(promiseResult);
-                        } else {
-                            LOGGER.warn("cannot verify " + JSON.stringify(promiseResult));
+                for await (const trades of potentialTradesToPlace) {
+                    if (trades) {
+                        for (const trade of trades) {
+                            if (this.validateTrade(trade.config)) {
+                                LOGGER.debug(trade);
+                                this.pendingTradeConfigs.push(trade);
+                            } else {
+                                LOGGER.warn("cannot verify " + JSON.stringify(trade));
+                            }
                         }
                     }
                 }
@@ -392,19 +409,17 @@ export class Backtester {
 
         const newlyExecutedSymbols = [];
 
-        for (const tradePlan of this.pendingTradeConfigs) {
-            const symbol = tradePlan.symbol;
+        for (const plannedTrade of this.pendingTradeConfigs) {
+            const symbol = plannedTrade.plan.symbol;
             const bars = this.replayBars[symbol];
             const instance = this.activeStrategyInstances.find(i => i.symbol === symbol);
 
             if (!bars) {
-                LOGGER.error(`No bars for ${JSON.stringify(tradePlan)}`);
+                LOGGER.error(`No bars for ${JSON.stringify(plannedTrade)}`);
                 continue;
             }
 
             if (instance) {
-                const entry = instance.entry;
-
                 const bar = await this.findOrFetchBarByDate(
                     this.currentDate.getTime(),
                     symbol,
@@ -412,37 +427,37 @@ export class Backtester {
                 );
 
                 if (!bar) {
-                    LOGGER.error(`No bars for ${JSON.stringify(tradePlan)}`);
+                    LOGGER.error(`No bars for ${JSON.stringify(plannedTrade)}`);
                     continue;
                 }
 
                 const position = executeSingleTrade(
-                    instance.stopPrice,
+                    plannedTrade.plan.plannedStopPrice,
                     bar,
-                    tradePlan,
-                    entry,
+                    plannedTrade.config,
+                    plannedTrade.plan.plannedEntryPrice,
                     this.currentPositionConfigs
                 );
 
                 if (position) {
                     this.currentPositionConfigs.push(position);
                     this.pendingTradeConfigs = this.pendingTradeConfigs.filter(
-                        c => c.symbol !== symbol
+                        c => c.plan.symbol !== symbol
                     );
                     this.activeStrategyInstances = this.activeStrategyInstances.filter(
                         s => s.symbol !== symbol
                     );
                     this.pastTradeConfigs.push({
-                        ...tradePlan,
+                        ...plannedTrade.config,
                         filledQuantity: position.trades[position.trades.length - 1].quantity,
                         averagePrice: position.trades[position.trades.length - 1].price,
                         status: position.trades[position.trades.length - 1].status,
-                        estString: formatInEasternTimeForDisplay(tradePlan.t)
+                        estString: formatInEasternTimeForDisplay(plannedTrade.config.t)
                     });
                     newlyExecutedSymbols.push(symbol);
                 }
             } else {
-                LOGGER.warn("cannot execute without no trade plan from strategy", tradePlan);
+                LOGGER.warn("cannot execute without no trade plan from strategy ", plannedTrade);
             }
         }
 

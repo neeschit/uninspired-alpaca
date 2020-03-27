@@ -145,8 +145,6 @@ export class TradeManagement {
         private partialProfitRatio = 0.9
     ) {
         this.position = {
-            plannedEntryPrice: plan.plannedEntryPrice,
-            plannedStopPrice: plan.plannedStopPrice,
             symbol: config.symbol
         } as PositionConfig;
     }

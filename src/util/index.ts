@@ -1,7 +1,7 @@
 import { DefaultDuration, PeriodType, Bar } from "../data/data.model";
 import { differenceInHours, differenceInDays, differenceInBusinessDays, addDays } from "date-fns";
 import { LOGGER } from "../instrumentation/log";
-import { existsSync, mkdirSync } from "fs";
+import { existsSync, mkdirSync, readdirSync } from "fs";
 import { ensureDirSync } from "fs-extra";
 import { isMarketHoliday } from "./market";
 
@@ -24,13 +24,17 @@ export const getCacheDataName = (
     symbol: string,
     duration: DefaultDuration,
     period: PeriodType,
-    startDate: Date,
-    endDate: Date
+    startDate?: Date,
+    endDate?: Date
 ) => {
     const directory = `${cacheDirectory}/${symbol}/${duration}/${period}/`;
     ensureDirSync(directory);
 
-    return `${directory}${startDate.toISOString()}-${endDate.toISOString()}.json`;
+    if (startDate && endDate) {
+        return `${directory}${startDate.toISOString()}-${endDate.toISOString()}.json`;
+    }
+
+    return `${directory}${readdirSync(directory)[0]}`;
 };
 
 export const verifyBarData = (bars: Bar[]) => {

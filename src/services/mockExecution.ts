@@ -41,7 +41,7 @@ export const executeSingleTrade = (
             const order = {
                 filledQuantity: tradePlan.quantity,
                 symbol: symbol,
-                averagePrice: bar.c + Math.random() / 10,
+                averagePrice: Math.min(bar.h, bar.c + Math.random() / 10),
                 status: OrderStatus.filled
             };
 
@@ -58,7 +58,7 @@ export const executeSingleTrade = (
             const order = {
                 filledQuantity: tradePlan.quantity,
                 symbol: symbol,
-                averagePrice: bar.c - Math.random() / 10,
+                averagePrice: Math.max(bar.l, bar.c - Math.random() / 10),
                 status: OrderStatus.filled
             };
 
@@ -80,7 +80,7 @@ export const executeSingleTrade = (
         const order = {
             filledQuantity: tradePlan.quantity,
             symbol: symbol,
-            averagePrice: bar.c + Math.random() / 10,
+            averagePrice: bar.c,
             status: OrderStatus.filled
         };
 
@@ -100,7 +100,7 @@ export const executeSingleTrade = (
             const order = {
                 filledQuantity: tradePlan.quantity,
                 symbol: symbol,
-                averagePrice: bar.c + Math.random() / 10,
+                averagePrice: Math.min(bar.c + Math.random() / 10, bar.h),
                 status: OrderStatus.filled
             };
 
@@ -118,7 +118,7 @@ export const executeSingleTrade = (
             const order = {
                 filledQuantity: tradePlan.quantity,
                 symbol: symbol,
-                averagePrice: bar.c - Math.random() / 10,
+                averagePrice: Math.max(bar.l, bar.c - Math.random() / 10),
                 status: OrderStatus.filled
             };
 

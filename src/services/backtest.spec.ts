@@ -14,7 +14,7 @@ import {
 
 const updateIntervalMillis = 60000;
 
-test.only("Backtester - simulate time and check if correct", async t => {
+test("Backtester - simulate time and check if correct", async t => {
     const defaultZonedStartDate = new Date("2019-01-03T08:10:00.000Z");
     const defaultZonedEndDate = new Date("2019-01-03T22:10:00.000Z");
     LOGGER.info(defaultZonedStartDate.toLocaleString());
@@ -127,57 +127,4 @@ test("Backtester - simulate batching with symbols needing batching as well", asy
         symbols: ["HON"],
         batchId: 2
     });
-});
-
-test("Backtester - simulate everything for a few days", async t => {
-    t.timeout(30000);
-    const date = new Date().getTimezoneOffset() ? "02" : "01";
-    const zonedStartDate = convertToLocalTime(new Date("2019-03-" + date), " 00:00:00.000");
-    const endDate = new Date().getTimezoneOffset() ? "06" : "05";
-    const zonedEndDate = convertToLocalTime(new Date("2019-03-" + endDate), " 08:00:00.000");
-
-    const test = ["ECL", "AAPL", "HON"];
-
-    const instance = new Backtester(updateIntervalMillis, zonedStartDate, zonedEndDate, test);
-
-    await instance.simulate();
-
-    t.is(0, instance.pendingTradeConfigs.length);
-    t.is(0, instance.currentPositionConfigs.length);
-    t.is(4, instance.pastTradeConfigs.length);
-});
-
-test("Backtester - simulate ILMN for 6 months", async t => {
-    t.timeout(100000);
-    const startDate = parseISO("2019-09-21 12:00:00.000Z");
-    const endDate = parseISO("2020-03-20 22:10:00.000Z");
-
-    const test = ["ILMN"];
-
-    const instance = new Backtester(updateIntervalMillis, startDate, endDate, test);
-
-    await instance.simulate();
-
-    t.is(0, instance.pendingTradeConfigs.length);
-    t.is(0, instance.currentPositionConfigs.length);
-});
-
-test.skip("Backtester - simulate everything until all positions are closed", async t => {
-    t.timeout(100000);
-    const startDate = parseISO("2019-03-01 12:00:00.000Z");
-    const endDate = parseISO("2019-12-05 22:10:00.000Z");
-
-    const test = ["ECL", "AAPL", "HON", "CVS"];
-
-    const instance = new Backtester(updateIntervalMillis, startDate, endDate, test);
-
-    await instance.simulate();
-
-    LOGGER.info(JSON.stringify(instance.pastPositionConfigs));
-    LOGGER.info(JSON.stringify(instance.currentPositionConfigs));
-
-    t.is(0, instance.pendingTradeConfigs.length);
-    t.is(instance.pastPositionConfigs.length, 9);
-    t.is(21, instance.pastTradeConfigs.length);
-    t.is(0, instance.currentPositionConfigs.length);
 });
