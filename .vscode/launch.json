@@ -33,6 +33,22 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "cache",
+            "program": "${workspaceFolder}/src/scripts/cacheData.ts",
+            "args": ["--enable-source-maps"],
+            "sourceMaps": true,
+            "outFiles": ["${workspaceFolder}/build/**/*.js"],
+            "cwd": "${workspaceFolder}",
+            "smartStep": true,
+            "internalConsoleOptions": "openOnSessionStart",
+            "env": {
+                "LOGLEVEL": "4"
+            },
+            "skipFiles": ["<node_internals>/**"]
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "main",
             "program": "${workspaceFolder}/src/deployable_services/main.ts",
             "args": ["--enable-source-maps"],

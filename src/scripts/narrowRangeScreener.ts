@@ -2,8 +2,9 @@ import { getDayBars } from "../data/bars";
 import { readFileSync } from "fs";
 import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
 import { LOGGER } from "../instrumentation/log";
+import { getHighVolumeCompanies } from "../data/filters";
 
-const LARGE_CAPS = JSON.parse(readFileSync("./largeCapsHighVolume.json").toString());
+const LARGE_CAPS = getHighVolumeCompanies();
 
 const lookback = process.argv[2] && Number(process.argv[2]);
 
