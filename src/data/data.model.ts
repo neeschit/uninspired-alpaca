@@ -81,6 +81,12 @@ export interface TradeConfig extends SymbolContainingConfig {
     estString?: string;
     stopPrice?: number;
 }
+
+export interface PlannedTradeConfig {
+    plan: TradePlan;
+    config: TradeConfig;
+}
+
 export interface FilledTradeConfig extends TradeConfig {
     filledQuantity: number;
     averagePrice: number;
