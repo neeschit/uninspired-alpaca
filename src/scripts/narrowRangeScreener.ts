@@ -14,7 +14,7 @@ let list = JSON.parse(JSON.stringify(LARGE_CAPS));
 const barsFetched = [];
 
 while (list.length > 200) { */
-const barsPromise = getDayBars(list, 100, Number(lookback || 0));
+const barsPromise = getDayBars(list, 100, Number(lookback || 1));
 
 /* 
     barsFetched.push(barsPromise);
@@ -51,7 +51,7 @@ barsPromise
                         period: 7,
                         symbol,
                         bars,
-                        useSimpleRange: true,
+                        useSimpleRange: false,
                         counterTrend: false,
                         broker: alpaca
                     });
@@ -61,11 +61,8 @@ barsPromise
             })
             .filter(instance => instance && instance.checkIfFitsStrategy(false));
 
-        const symbols = nrbInstances.map(n => {
-            LOGGER.info(n!.toString());
-            return n?.symbol;
-        });
+        const symbols = nrbInstances.map(n => n?.symbol);
 
-        LOGGER.info(nrbInstances.length);
+        symbols.map(s => console.log(s));
     })
     .catch(LOGGER.error);
