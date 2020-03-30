@@ -169,24 +169,10 @@ test("rebalancePosition - simple stop", async t => {
             symbol,
             plannedEntryPrice: 200,
             plannedStopPrice: 190,
-            plannedRiskUnits: 10,
             quantity: 200,
-            plannedQuantity: 200,
-            hasHardStop: true,
             side: PositionDirection.long,
             originalQuantity: 200,
-            trades: [
-                {
-                    ...orderDefinition,
-                    tif: TimeInForce.day,
-                    price: 200,
-                    quantity: 200,
-                    side: TradeDirection.buy,
-                    type: TradeType.stop,
-                    t: Date.now(),
-                    symbol
-                }
-            ]
+            averageEntryPrice: orderDefinition.averagePrice
         },
         {
             c: 189.91,
@@ -195,7 +181,8 @@ test("rebalancePosition - simple stop", async t => {
             v: 30000,
             o: 190.4,
             t: 0
-        }
+        },
+        0.9
     );
 
     t.deepEqual(order, {
@@ -222,24 +209,10 @@ test("rebalancePosition - simple stop for a short", async t => {
             symbol,
             plannedEntryPrice: 190,
             plannedStopPrice: 200,
-            plannedRiskUnits: 10,
             quantity: 200,
-            plannedQuantity: 200,
-            hasHardStop: true,
             side: PositionDirection.short,
             originalQuantity: 200,
-            trades: [
-                {
-                    ...orderDefinition,
-                    tif: TimeInForce.day,
-                    price: 190,
-                    quantity: 200,
-                    side: TradeDirection.sell,
-                    type: TradeType.stop,
-                    t: Date.now(),
-                    symbol
-                }
-            ]
+            averageEntryPrice: orderDefinition.averagePrice
         },
         {
             c: 200.01,
@@ -248,7 +221,8 @@ test("rebalancePosition - simple stop for a short", async t => {
             v: 30000,
             o: 199.4,
             t: 0
-        }
+        },
+        0.9
     );
 
     t.deepEqual(order, {
@@ -275,24 +249,9 @@ test("rebalancePosition - nothing to do for a short", async t => {
             symbol,
             plannedEntryPrice: 190,
             plannedStopPrice: 200,
-            plannedRiskUnits: 10,
             quantity: 200,
-            plannedQuantity: 200,
-            hasHardStop: true,
             side: PositionDirection.short,
-            originalQuantity: 200,
-            trades: [
-                {
-                    ...orderDefinition,
-                    tif: TimeInForce.day,
-                    price: 190,
-                    quantity: 200,
-                    side: TradeDirection.sell,
-                    type: TradeType.stop,
-                    t: Date.now(),
-                    symbol
-                }
-            ]
+            originalQuantity: 200
         },
         {
             c: 199.01,
@@ -301,7 +260,8 @@ test("rebalancePosition - nothing to do for a short", async t => {
             v: 30000,
             o: 199.4,
             t: 0
-        }
+        },
+        0.9
     );
 
     t.deepEqual(order, null);
@@ -319,24 +279,10 @@ test("rebalancePosition - simple partial", async t => {
             symbol,
             plannedEntryPrice: 200,
             plannedStopPrice: 190,
-            plannedRiskUnits: 10,
-            plannedQuantity: 200,
             quantity: 200,
-            hasHardStop: true,
             side: PositionDirection.long,
             originalQuantity: 200,
-            trades: [
-                {
-                    ...orderDefinition,
-                    tif: TimeInForce.day,
-                    price: 200,
-                    quantity: 200,
-                    side: TradeDirection.buy,
-                    type: TradeType.stop,
-                    t: Date.now(),
-                    symbol
-                }
-            ]
+            averageEntryPrice: orderDefinition.averagePrice
         },
         {
             c: 209.5,
@@ -345,7 +291,8 @@ test("rebalancePosition - simple partial", async t => {
             v: 30000,
             o: 209.4,
             t: 0
-        }
+        },
+        0.9
     );
 
     t.deepEqual(order, {
@@ -372,24 +319,10 @@ test("rebalancePosition - simple partial for a short", async t => {
             symbol,
             plannedEntryPrice: 25,
             plannedStopPrice: 27,
-            plannedQuantity: 5,
-            plannedRiskUnits: 10,
             quantity: 5,
-            hasHardStop: true,
             side: PositionDirection.short,
             originalQuantity: 5,
-            trades: [
-                {
-                    ...orderDefinition,
-                    tif: TimeInForce.day,
-                    price: 25.5,
-                    quantity: 5,
-                    side: TradeDirection.sell,
-                    type: TradeType.stop,
-                    t: Date.now(),
-                    symbol
-                }
-            ]
+            averageEntryPrice: orderDefinition.averagePrice
         },
         {
             c: 27.5,
@@ -398,7 +331,8 @@ test("rebalancePosition - simple partial for a short", async t => {
             v: 30000,
             o: 26.4,
             t: 0
-        }
+        },
+        0.9
     );
 
     t.deepEqual(order, {
@@ -424,24 +358,10 @@ test("rebalancePosition - close position after partial", async t => {
             symbol,
             plannedEntryPrice: 200,
             plannedStopPrice: 190,
-            plannedRiskUnits: 10,
-            plannedQuantity: 200,
             quantity: 50,
-            hasHardStop: true,
             side: PositionDirection.long,
             originalQuantity: 200,
-            trades: [
-                {
-                    ...orderDefinition,
-                    tif: TimeInForce.day,
-                    price: 200,
-                    quantity: 200,
-                    side: TradeDirection.buy,
-                    type: TradeType.stop,
-                    t: Date.now(),
-                    symbol
-                }
-            ]
+            averageEntryPrice: orderDefinition.averagePrice
         },
         {
             c: 189.91,
@@ -450,7 +370,8 @@ test("rebalancePosition - close position after partial", async t => {
             v: 30000,
             o: 190.4,
             t: 0
-        }
+        },
+        0.9
     );
 
     t.deepEqual(order, {
@@ -484,11 +405,11 @@ test("trade management - init and recordOnceUpdateReceived", t => {
         {
             plannedEntryPrice: 200,
             plannedStopPrice: 190,
-            plannedQuantity: 200,
             symbol,
             quantity: 200,
             side: PositionDirection.long
-        }
+        },
+        0.9
     );
 
     const filledPositionConfig = manager.recordTradeOnceFilled({
@@ -517,27 +438,29 @@ test("trade management - init and recordOnceUpdateReceived", t => {
     });
 
     t.deepEqual(filledPositionConfig, {
+        averageEntryPrice: 200.06,
         hasHardStop: false,
         symbol,
         plannedStopPrice: 190,
         plannedEntryPrice: 200,
-        plannedRiskUnits: 10,
         originalQuantity: 150,
-        plannedQuantity: 200,
         side: PositionDirection.long,
         quantity: 150,
         trades: [
             {
-                ...orderDefinition,
-                tif: TimeInForce.day,
+                averagePrice: 200.06,
+                filledQuantity: 150,
                 price: 200,
                 quantity: 150,
                 side: TradeDirection.buy,
-                type: TradeType.stop,
+                status: OrderStatus.partial_fill,
+                symbol: "AAPL",
                 t: filledPositionConfig.trades[0].t,
-                symbol
+                tif: TimeInForce.day,
+                type: TradeType.stop
             }
-        ]
+        ],
+        plannedRiskUnits: 10
     });
 });
 
@@ -555,11 +478,11 @@ test.skip("trade management - handle trade update - empty fill", async t => {
         {
             plannedEntryPrice: 200,
             plannedStopPrice: 190,
-            plannedQuantity: 200,
             symbol,
             quantity: 200,
             side: PositionDirection.long
-        }
+        },
+        0.9
     );
 
     manager.position = {
@@ -567,26 +490,30 @@ test.skip("trade management - handle trade update - empty fill", async t => {
         symbol,
         plannedStopPrice: 190,
         plannedEntryPrice: 200,
-        plannedRiskUnits: 10,
         originalQuantity: 150,
-        plannedQuantity: 200,
         side: PositionDirection.long,
-        quantity: 150
+        quantity: 150,
+        plannedRiskUnits: 10
     };
 
-    manager.trades = [
+    manager.filledPosition = Object.assign(
         {
-            symbol,
-            status: OrderStatus.partial_fill,
-            averagePrice: 200.06,
-            filledQuantity: 0,
-            ...manager.config
-        }
-    ];
+            trades: [
+                {
+                    symbol,
+                    status: OrderStatus.partial_fill,
+                    averagePrice: 200.06,
+                    filledQuantity: 0,
+                    ...manager.config
+                }
+            ]
+        },
+        manager.position
+    );
 
     t.is(
         undefined,
-        await manager.onTradeUpdate({
+        await manager.onTickUpdate({
             c: 189.91,
             h: 191,
             l: 189.3,
@@ -611,11 +538,11 @@ test("trade management - handle trade update - non empty fill", t => {
         {
             plannedEntryPrice: 200,
             plannedStopPrice: 190,
-            plannedQuantity: 200,
             symbol,
             quantity: 200,
             side: PositionDirection.long
-        }
+        },
+        0.9
     );
 
     manager.position = {
@@ -623,24 +550,28 @@ test("trade management - handle trade update - non empty fill", t => {
         symbol,
         plannedStopPrice: 190,
         plannedEntryPrice: 200,
-        plannedRiskUnits: 10,
         originalQuantity: 150,
-        plannedQuantity: 200,
         side: PositionDirection.long,
-        quantity: 150
+        quantity: 150,
+        plannedRiskUnits: 10
     };
 
-    manager.trades = [
+    manager.filledPosition = Object.assign(
         {
-            status: OrderStatus.partial_fill,
-            averagePrice: 200.06,
-            filledQuantity: 10,
-            ...manager.config
-        }
-    ];
+            trades: [
+                {
+                    status: OrderStatus.partial_fill,
+                    averagePrice: 200.06,
+                    filledQuantity: 10,
+                    ...manager.config
+                }
+            ]
+        },
+        manager.position
+    );
 
     t.truthy(
-        manager.onTradeUpdate({
+        manager.onTickUpdate({
             c: 189.91,
             h: 191,
             l: 189.3,

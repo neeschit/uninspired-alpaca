@@ -108,11 +108,11 @@ declare module "@alpacahq/alpaca-trade-api" {
     export type SortDirection = "asc" | "desc";
 
     export interface GetOrdersParams {
-        status: AlpacaOrderStatusFilter;
-        after: Date;
-        until: Date;
-        limit: number;
-        direction: SortDirection;
+        status?: AlpacaOrderStatusFilter;
+        after?: Date;
+        until?: Date;
+        limit?: number;
+        direction?: SortDirection;
     }
 
     export interface Calendar {
@@ -121,14 +121,25 @@ declare module "@alpacahq/alpaca-trade-api" {
         date: string;
     }
 
-    class Alpaca {
+    export interface Broker {
         createOrder(params: AlpacaTradeConfig): Promise<AlpacaOrder>;
         cancelAllOrders(): Promise<{}>;
         getOrders(params: GetOrdersParams): Promise<AlpacaOrder[]>;
         getPositions(): Promise<AlpacaPosition[]>;
         getPosition(symbol: string): Promise<AlpacaPosition>;
         closePosition(symbol: string): Promise<{}>;
-        getAssets(params: GetAssetsParams): Asset[];
+        getAssets(params: GetAssetsParams): Promise<Asset[]>;
+        getCalendar({ start, end }: { start: Date; end: Date }): Promise<Calendar[]>;
+    }
+
+    class Alpaca implements Broker {
+        createOrder(params: AlpacaTradeConfig): Promise<AlpacaOrder>;
+        cancelAllOrders(): Promise<{}>;
+        getOrders(params: GetOrdersParams): Promise<AlpacaOrder[]>;
+        getPositions(): Promise<AlpacaPosition[]>;
+        getPosition(symbol: string): Promise<AlpacaPosition>;
+        closePosition(symbol: string): Promise<{}>;
+        getAssets(params: GetAssetsParams): Promise<Asset[]>;
         getCalendar({ start, end }: { start: Date; end: Date }): Promise<Calendar[]>;
         constructor(params: AlpacaParams);
     }

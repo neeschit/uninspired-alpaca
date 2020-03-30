@@ -1,6 +1,6 @@
 import { LOGGER } from "../instrumentation/log";
 import { readFileSync, createWriteStream, fstat, existsSync } from "fs";
-import { getSymbolDataGenerator } from "../connection/polygon";
+import { getSymbolDataGenerator } from "../resources/polygon";
 import {
     DefaultDuration,
     PeriodType,
@@ -13,7 +13,7 @@ import { addDays, format } from "date-fns";
 import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
 import { TradeManagement } from "../services/tradeManagement";
 import { convertToLocalTime } from "../util/date";
-import { alpaca } from "../connection/alpaca";
+import { alpaca } from "../resources/alpaca";
 import { getPlannedLogs } from "../util/getTradeLogFileName";
 import { getBarsByDate } from "../data/bars";
 import { getHighVolumeCompanies } from "../data/filters";
@@ -72,7 +72,8 @@ async function main() {
                     bars,
                     symbol,
                     useSimpleRange: false,
-                    counterTrend: false
+                    counterTrend: false,
+                    broker: alpaca
                 });
 
                 if (nrb.checkIfFitsStrategy() && symbols.indexOf(symbol) === -1) {

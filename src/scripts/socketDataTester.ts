@@ -1,4 +1,4 @@
-import { getSocketManager } from "../connection/polygon";
+import { getSocketManager } from "../resources/polygon";
 import { createReadStream, createWriteStream } from "fs";
 import { LOGGER } from "../instrumentation/log";
 

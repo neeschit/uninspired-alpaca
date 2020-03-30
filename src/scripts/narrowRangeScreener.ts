@@ -3,6 +3,7 @@ import { readFileSync } from "fs";
 import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
 import { LOGGER } from "../instrumentation/log";
 import { getHighVolumeCompanies } from "../data/filters";
+import { alpaca } from "../resources/alpaca";
 
 const LARGE_CAPS = getHighVolumeCompanies();
 
@@ -51,13 +52,14 @@ barsPromise
                         symbol,
                         bars,
                         useSimpleRange: true,
-                        counterTrend: false
+                        counterTrend: false,
+                        broker: alpaca
                     });
                 } catch (e) {
                     return null;
                 }
             })
-            .filter(instance => instance && instance.checkIfFitsStrategy(2, false));
+            .filter(instance => instance && instance.checkIfFitsStrategy(false));
 
         const symbols = nrbInstances.map(n => {
             LOGGER.info(n!.toString());

@@ -11,6 +11,7 @@ import {
     TradeType,
     TimeInForce
 } from "../data/data.model";
+import { MockBroker } from "./mockExecution";
 
 const updateIntervalMillis = 60000;
 
@@ -20,6 +21,7 @@ test("Backtester - simulate time and check if correct", async t => {
     LOGGER.info(defaultZonedStartDate.toLocaleString());
     LOGGER.info(defaultZonedEndDate.toLocaleString());
     const instance = new Backtester(
+        MockBroker.getInstance(),
         updateIntervalMillis,
         defaultZonedStartDate,
         defaultZonedEndDate,

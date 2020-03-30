@@ -7,8 +7,8 @@ import {
     OrderStatus
 } from "../data/data.model";
 import { readFileSync } from "fs";
-import { alpaca } from "../connection/alpaca";
-import { getSymbolDataGenerator } from "../connection/polygon";
+import { alpaca } from "../resources/alpaca";
+import { getSymbolDataGenerator } from "../resources/polygon";
 import { addDays, format } from "date-fns";
 import { LOGGER } from "../instrumentation/log";
 import { getPlannedLogs } from "../util/getTradeLogFileName";
@@ -63,9 +63,13 @@ async function manage() {
                         continue;
                     }
 
-                    const manager = new TradeManagement(plan.config, plan.plan);
+                    const manager = new TradeManagement(plan.config, plan.plan, 1);
 
-                    manager.trades.push({
+                    if (!manager.filledPosition) {
+                        throw new Error("boom shit");
+                    }
+
+                    manager.filledPosition.trades.push({
                         averagePrice: Number(position.avg_entry_price),
                         symbol,
                         filledQuantity: Math.abs(Number(position.qty)),
@@ -73,11 +77,10 @@ async function manage() {
                         ...plan.config
                     });
 
-                    manager.position.originalQuantity = plan.plan.plannedQuantity;
-                    manager.position.quantity = Math.abs(Number(position.qty));
+                    manager.position.originalQuantity = plan.plan.quantity;
                     manager.position.side = position.side;
 
-                    const order = await manager.onTradeUpdate(lastBar);
+                    const order = await manager.onTickUpdate(lastBar);
 
                     LOGGER.info(order);
 
