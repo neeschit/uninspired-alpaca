@@ -9,16 +9,10 @@ import {
     PositionDirection,
     TradeDirection,
     TimeInForce,
-    FilledTradeConfig,
-    SymbolContainingConfig
+    OrderStatus
 } from "../data/data.model";
 import { alpaca } from "../resources/alpaca";
-import Alpaca, {
-    AlpacaOrder,
-    AlpacaTradeConfig,
-    Broker,
-    OrderStatus
-} from "@alpacahq/alpaca-trade-api";
+import Alpaca, { AlpacaOrder, AlpacaTradeConfig, Broker } from "@alpacahq/alpaca-trade-api";
 import { LOGGER } from "../instrumentation/log";
 import { isMarketClosing } from "../util/market";
 

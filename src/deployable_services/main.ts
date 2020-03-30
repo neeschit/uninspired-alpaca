@@ -5,11 +5,11 @@ import {
     DefaultDuration,
     PeriodType,
     TradeConfig,
-    PositionDirection,
     TradePlan,
-    TradeDirection
+    TradeDirection,
+    PlannedTradeConfig
 } from "../data/data.model";
-import { addDays, format } from "date-fns";
+import { addDays, format, set } from "date-fns";
 import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
 import { TradeManagement } from "../services/tradeManagement";
 import { convertToLocalTime } from "../util/date";
@@ -76,7 +76,7 @@ async function main() {
                     broker: alpaca
                 });
 
-                if (nrb.checkIfFitsStrategy() && symbols.indexOf(symbol) === -1) {
+                if (nrb.checkIfFitsStrategy()) {
                     narrowRangeInstances.push(nrb);
                 }
             } catch (e) {
@@ -86,7 +86,7 @@ async function main() {
 
         LOGGER.info(narrowRangeInstances.map(n => n.symbol));
 
-        const entryTime = convertToLocalTime(Date.now(), " 09:34:45.000");
+        const entryTime = set(Date.now(), narrowRangeInstances[0].entryEpochTrigger);
 
         while (Date.now() < entryTime.getTime()) {
             /* LOGGER.warn(`tis not time`); */
@@ -114,26 +114,22 @@ async function main() {
                     LOGGER.warn(`Couldn't find the right bar for ${n.symbol}`);
                     continue;
                 }
-                /* 
-                const orders: TradeConfig[] | null = await n.rebalance(bar);
+
+                const orders: PlannedTradeConfig[] | null = await n.rebalance(bar);
 
                 if (!orders) {
                     LOGGER.warn(`Expected an order for ${n.symbol}`);
                 } else {
-                    const [long, short] = orders;
                     for (const order of orders) {
-                        const manager = new TradeManagement(order, {
-                            symbol: n.symbol,
-                            side:
-                                order.side === TradeDirection.sell
-                                    ? PositionDirection.short
-                                    : PositionDirection.long,
-                            plannedEntryPrice: order.price,
-                            plannedStopPrice:
-                                order.side === TradeDirection.sell ? long.price : short.price,
-                            plannedQuantity: order.quantity,
-                            quantity: order.quantity
-                        });
+                        const manager = new TradeManagement(
+                            {
+                                symbol: n.symbol,
+                                ...order.config
+                            },
+                            order.plan,
+                            1,
+                            alpaca
+                        );
 
                         logs.push({
                             plan: manager.plan,
@@ -144,7 +140,7 @@ async function main() {
 
                         ordersToBeManaged.push(manager);
                     }
-                } */
+                }
             } catch (e) {
                 LOGGER.error(e);
             }
