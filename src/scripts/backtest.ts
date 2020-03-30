@@ -20,7 +20,7 @@ LOGGER.info(zonedStartDate.toISOString());
 
 const pr = 1;
 
-const simpleRange = true;
+const simpleRange = false;
 
 const rangeRatio = 1;
 
