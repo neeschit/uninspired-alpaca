@@ -103,7 +103,7 @@ export const isMarketOpening = (now: TimestampType) => {
     const premarketOpenToday = zonedTimeToUtc(marketOpenNYString, MarketTimezone);
     const nowMillis = now instanceof Date ? now.getTime() : now;
 
-    return premarketOpenToday.getTime() == nowMillis;
+    return premarketOpenToday.getTime() === nowMillis;
 };
 
 export const isMarketClosing = (now: TimestampType) => {
@@ -112,7 +112,7 @@ export const isMarketClosing = (now: TimestampType) => {
     const marketClosingStart = zonedTimeToUtc(marketOpenNYString, MarketTimezone);
     const nowMillis = now instanceof Date ? now.getTime() : now;
 
-    return marketClosingStart.getTime() >= nowMillis;
+    return marketClosingStart.getTime() <= nowMillis;
 };
 
 export const getMarketOpenMillis = (now: TimestampType) => {

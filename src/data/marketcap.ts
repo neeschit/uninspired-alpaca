@@ -1,5 +1,5 @@
-import { alpaca } from "../connection/alpaca";
-import { getTickerDetails } from "../connection/polygon";
+import { alpaca } from "../resources/alpaca";
+import { getTickerDetails } from "../resources/polygon";
 import { LOGGER } from "../instrumentation/log";
 
 const allowedCountries = ["usa", "chn", "hkg", "can"];

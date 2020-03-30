@@ -6,8 +6,9 @@ import { LOGGER } from "../instrumentation/log";
 import { Backtester } from "../services/backtest";
 import { getDetailedPerformanceReport } from "../services/performance";
 import { getHighVolumeCompanies } from "../data/filters";
+import { MockBroker } from "../services/mockExecution";
 
-const startDate = "2019-03-27 9:00:00.000";
+const startDate = "2020-03-22 9:00:00.000";
 const zonedStartDate = zonedTimeToUtc(startDate, MarketTimezone);
 
 const endDate = parseISO("2020-03-27 16:10:00.000");
@@ -19,7 +20,7 @@ LOGGER.info(zonedStartDate.toISOString());
 
 const pr = 1;
 
-const simpleRange = false;
+const simpleRange = true;
 
 const rangeRatio = 1;
 
@@ -28,6 +29,7 @@ const counterTrend = false;
 const nrbPeriod = 7;
 
 const instance = new Backtester(
+    MockBroker.getInstance(),
     300000,
     zonedStartDate,
     zonedEndDate,
@@ -52,8 +54,8 @@ async function run() {
     const performance = getDetailedPerformanceReport(pastPositionConfigs); */
 
     await instance.simulate(170);
-    LOGGER.info(JSON.stringify(instance.currentPositionConfigs));
-    const performance = getDetailedPerformanceReport(instance.pastPositionConfigs);
+    LOGGER.info(JSON.stringify(MockBroker.getInstance().getPositions()));
+    const performance = getDetailedPerformanceReport(MockBroker.getInstance().pastPositionConfigs);
 
     writeFileSync(filename, JSON.stringify(performance));
 }

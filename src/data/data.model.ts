@@ -62,13 +62,12 @@ export enum DefaultDuration {
 
 export interface SymbolContainingConfig {
     symbol: string;
-    quantity: number;
 }
 
 export interface TradePlan extends SymbolContainingConfig {
     plannedStopPrice: number;
     plannedEntryPrice: number;
-    plannedQuantity: number;
+    quantity: number;
     side: PositionDirection;
 }
 
@@ -80,6 +79,7 @@ export interface TradeConfig extends SymbolContainingConfig {
     t: number;
     estString?: string;
     stopPrice?: number;
+    quantity: number;
 }
 
 export interface PlannedTradeConfig {

@@ -1,24 +1,21 @@
-import { set, addDays } from "date-fns";
 import { getAverageDirectionalIndex, IndicatorValue } from "../indicator/adx";
 import { getOverallTrend, getRecentTrend, TrendType } from "../pattern/trend/trendIdentifier";
-import { getVolumeProfile, getNextResistance, VolumeProfileBar } from "../indicator/volumeProfile";
-import { assessRisk, TRADING_RISK_UNIT_CONSTANT } from "../services/riskManagement";
+import { getVolumeProfile, VolumeProfileBar } from "../indicator/volumeProfile";
+import { TRADING_RISK_UNIT_CONSTANT } from "../services/riskManagement";
 import { isMarketOpen } from "../util/market";
-import { getBarsByDate } from "../data/bars";
 import {
     TimestampType,
     Bar,
-    MarketTimezone,
     TradeDirection,
     TradeType,
     TimeInForce,
-    TradeConfig,
     PlannedTradeConfig,
     PositionDirection
 } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
 import { convertToLocalTime } from "../util/date";
-import { ceilHalf, floorHalf } from "../util";
+import { Broker } from "@alpacahq/alpaca-trade-api";
+import { alpaca } from "../resources/alpaca";
 
 export class NarrowRangeBarStrategy {
     period: number;
@@ -35,19 +32,27 @@ export class NarrowRangeBarStrategy {
     overallTrend: TrendType;
     recentTrend: TrendType;
     counterTrend: boolean;
+    entryEpochTrigger: {
+        hours: number;
+        minutes: number;
+        seconds: number;
+    };
+    broker: Broker;
 
     constructor({
         period = 7,
         symbol,
         bars,
         useSimpleRange = false,
-        counterTrend = false
+        counterTrend = false,
+        broker = alpaca
     }: {
         period: number;
         symbol: string;
         bars: Bar[];
         useSimpleRange: boolean;
         counterTrend: boolean;
+        broker: Broker;
     }) {
         if (period < 4) {
             throw new Error("fix da shiz");
@@ -58,6 +63,8 @@ export class NarrowRangeBarStrategy {
         this.period = period;
         this.symbol = symbol;
         this.bars = bars;
+
+        this.broker = broker;
 
         if (bars.length < 15) {
             throw new Error(`not a proper narrow range bar for symbol ${symbol}`);
@@ -76,6 +83,12 @@ export class NarrowRangeBarStrategy {
         this.recentTrend = getRecentTrend(this.bars.slice(-2));
 
         this.counterTrend = counterTrend;
+
+        this.entryEpochTrigger = {
+            hours: 9,
+            minutes: 30,
+            seconds: 0
+        };
     }
 
     get atrValue() {
@@ -86,7 +99,7 @@ export class NarrowRangeBarStrategy {
         return this.bars[this.bars.length - 1].c;
     }
 
-    checkIfFitsStrategy(profitRatio = 2, strict = false) {
+    checkIfFitsStrategy(strict = false) {
         const ranges = this.tr.slice(-this.period);
         const isNarrowRangeBar = strict
             ? this.isVeryNarrowRangeBar(ranges)
@@ -95,7 +108,7 @@ export class NarrowRangeBarStrategy {
     }
 
     isNarrowRangeBar(tr: number[]) {
-        const { min, max } = this.getMinMaxPeriodRange(tr);
+        const { min } = this.getMinMaxPeriodRange(tr);
 
         return tr[tr.length - 1] === min;
     }
@@ -179,6 +192,14 @@ export class NarrowRangeBarStrategy {
         }
         now = now instanceof Date ? now.getTime() : now;
 
+        const currentPositions = await this.broker.getPositions();
+
+        const notCurrentPosition = currentPositions.findIndex(p => p.symbol === this.symbol) === -1;
+
+        if (!notCurrentPosition) {
+            return null;
+        }
+
         try {
             const entryLong = entryBar.h + 0.01;
             const entryShort = entryBar.l - 0.01;
@@ -197,7 +218,6 @@ export class NarrowRangeBarStrategy {
                     plan: {
                         plannedEntryPrice: entryLong,
                         plannedStopPrice: entryShort,
-                        plannedQuantity: quantity,
                         quantity,
                         side: PositionDirection.long,
                         symbol: this.symbol
@@ -216,7 +236,6 @@ export class NarrowRangeBarStrategy {
                     plan: {
                         plannedEntryPrice: entryShort,
                         plannedStopPrice: entryLong,
-                        plannedQuantity: quantity,
                         quantity,
                         side: PositionDirection.short,
                         symbol: this.symbol

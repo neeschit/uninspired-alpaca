@@ -9,11 +9,26 @@ import {
     PositionDirection,
     TradeDirection,
     TimeInForce,
-    FilledTradeConfig
+    FilledTradeConfig,
+    SymbolContainingConfig
 } from "../data/data.model";
-import { alpaca } from "../connection/alpaca";
-import Alpaca, { AlpacaOrder, AlpacaTradeConfig } from "@alpacahq/alpaca-trade-api";
+import { alpaca } from "../resources/alpaca";
+import Alpaca, {
+    AlpacaOrder,
+    AlpacaTradeConfig,
+    Broker,
+    OrderStatus
+} from "@alpacahq/alpaca-trade-api";
 import { LOGGER } from "../instrumentation/log";
+import { isMarketClosing } from "../util/market";
+
+export const isClosingOrder = (currentPosition: FilledPositionConfig, tradeConfig: TradeConfig) => {
+    if (currentPosition.side === PositionDirection.long) {
+        return tradeConfig.side === TradeDirection.sell;
+    } else {
+        return tradeConfig.side === TradeDirection.buy;
+    }
+};
 
 export const processOrderFromStrategy = (order: TradeConfig): AlpacaTradeConfig => {
     const { quantity, tif, price, type, side, symbol, stopPrice = price } = order;
@@ -46,9 +61,18 @@ export const processOrderFromStrategy = (order: TradeConfig): AlpacaTradeConfig 
 };
 
 export const rebalancePosition = async (
-    position: FilledPositionConfig,
+    position: Pick<
+        FilledPositionConfig,
+        | "symbol"
+        | "plannedStopPrice"
+        | "plannedEntryPrice"
+        | "side"
+        | "quantity"
+        | "originalQuantity"
+        | "averageEntryPrice"
+    >,
     currentBar: Bar,
-    partialProfitRatio = 0.9,
+    partialProfitRatio: number,
     t = Date.now()
 ): Promise<TradeConfig | null> => {
     const {
@@ -57,18 +81,11 @@ export const rebalancePosition = async (
         plannedEntryPrice,
         side: positionSide,
         quantity,
-        originalQuantity
+        averageEntryPrice
     } = position;
-
-    let averageEntryPrice;
 
     if (!quantity || quantity < 0) {
         return null;
-    }
-
-    if (!averageEntryPrice) {
-        const order = position.trades && position.trades.length && position.trades[0];
-        averageEntryPrice = order && order.averagePrice;
     }
 
     if (!averageEntryPrice) {
@@ -110,15 +127,6 @@ export const rebalancePosition = async (
 
     const currentProfitRatio = pnl / plannedRiskUnits;
 
-    LOGGER.trace(pnl);
-    LOGGER.trace(currentBar);
-    LOGGER.trace(position);
-    LOGGER.trace(currentProfitRatio);
-    LOGGER.trace(symbol);
-
-    LOGGER.trace(originalQuantity);
-    LOGGER.trace(quantity);
-
     if (currentProfitRatio >= partialProfitRatio) {
         return {
             symbol,
@@ -134,41 +142,58 @@ export const rebalancePosition = async (
     return null;
 };
 
+export const orderToLiquidatePosition = (position: FilledPositionConfig): TradeConfig => {
+    const symbol = position.symbol;
+
+    return {
+        side: position.side === PositionDirection.long ? TradeDirection.sell : TradeDirection.buy,
+        quantity: position.quantity,
+        type: TradeType.market,
+        price: 0,
+        tif: TimeInForce.day,
+        symbol,
+        t: Date.now()
+    };
+};
+
 export class TradeManagement {
     position: PositionConfig;
-    trades: FilledTradeConfig[] = [];
+    filledPosition?: FilledPositionConfig;
 
     constructor(
         public config: TradeConfig,
         public plan: TradePlan,
-        private broker: Alpaca = alpaca,
-        private partialProfitRatio = 0.9
+        private partialProfitRatio: number,
+        private broker: Broker = alpaca
     ) {
         this.position = {
+            plannedEntryPrice: plan.plannedEntryPrice,
+            plannedStopPrice: plan.plannedStopPrice,
             symbol: config.symbol
         } as PositionConfig;
     }
 
     async executeAndRecord() {
         const order = await this.queueTrade();
-        const position = this.recordTradeOnceFilled(order);
 
-        return position;
+        if (order.status !== OrderStatus.new) {
+            LOGGER.error(`could not verify order for ${JSON.stringify(this.plan)}`);
+        }
+
+        return order;
     }
 
     async queueTrade() {
         return this.broker.createOrder(processOrderFromStrategy(this.config));
     }
 
-    async onTradeUpdate(currentBar: Bar) {
-        if (!this.position || !this.trades) {
+    async onTickUpdate(currentBar: Bar) {
+        if (!this.filledPosition) {
             LOGGER.error("no position or order was never fulfilled");
             return;
         }
         const config: TradeConfig | null = await rebalancePosition(
-            Object.assign(this.position, {
-                trades: this.trades
-            }),
+            this.filledPosition,
             currentBar,
             this.partialProfitRatio
         );
@@ -186,13 +211,13 @@ export class TradeManagement {
     }
 
     async fetchCurrentPosition() {
-        const position = await alpaca.getPosition(this.plan.symbol);
+        const position = await this.broker.getPosition(this.plan.symbol);
 
         this.position = {
             ...this.plan,
             plannedRiskUnits: Math.abs(this.plan.plannedEntryPrice - this.plan.plannedStopPrice),
             hasHardStop: false,
-            originalQuantity: this.plan.plannedQuantity,
+            originalQuantity: this.plan.quantity,
             quantity: Number(position.qty)
         };
 
@@ -207,27 +232,61 @@ export class TradeManagement {
             quantity: order.filled_qty,
             plannedRiskUnits: Math.abs(this.plan.plannedEntryPrice - this.plan.plannedStopPrice),
             hasHardStop: false,
-            originalQuantity: order.filled_qty,
-            plannedQuantity: this.config.quantity
+            originalQuantity: order.filled_qty
         };
 
-        const filledOrder = {
-            symbol,
-            averagePrice: order.filled_avg_price,
-            filledQuantity: order.filled_qty,
-            status
-        };
-
-        return Object.assign(this.position, {
+        this.filledPosition = Object.assign(this.position, {
             trades: [
                 {
                     ...this.config,
                     quantity: order.filled_qty,
-                    filledQuantity: filledOrder.filledQuantity,
-                    status: filledOrder.status,
-                    averagePrice: filledOrder.averagePrice
+                    symbol,
+                    averagePrice: order.filled_avg_price,
+                    filledQuantity: order.filled_qty,
+                    status
                 }
-            ]
+            ],
+            averageEntryPrice: order.filled_avg_price
         });
+
+        return this.filledPosition;
+    }
+
+    async rebalancePosition(bar: Bar, now = Date.now()): Promise<TradeConfig | null> {
+        if (!this.filledPosition) {
+            return null;
+        }
+
+        const liquidate = isMarketClosing(bar.t);
+
+        let order: TradeConfig | null;
+
+        if (liquidate) {
+            order = orderToLiquidatePosition(this.filledPosition);
+        } else {
+            order = await rebalancePosition(
+                {
+                    averageEntryPrice: Number(this.filledPosition.averageEntryPrice),
+                    symbol: this.plan.symbol,
+                    side: this.position.side,
+                    quantity: Number(this.filledPosition.trades[0].filledQuantity),
+                    ...this.plan,
+                    originalQuantity: this.plan.quantity
+                },
+                bar,
+                this.partialProfitRatio,
+                now
+            );
+        }
+
+        return order;
+    }
+
+    async validateTrade(tradeConfig: TradeConfig) {
+        if (!this.filledPosition) {
+            return true;
+        }
+
+        return isClosingOrder(this.filledPosition, tradeConfig);
     }
 }

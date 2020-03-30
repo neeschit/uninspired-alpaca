@@ -14,38 +14,22 @@ import {
     DefaultDuration,
     PeriodType,
     FilledPositionConfig,
-    TradeDirection,
-    PositionDirection,
-    Bar,
-    FilledTradeConfig,
-    PlannedTradeConfig
+    Bar
 } from "../data/data.model";
-import {
-    isMarketOpen,
-    isMarketOpening,
-    isAfterMarketClose,
-    confirmMarketOpen,
-    isMarketClosing
-} from "../util/market";
+import { isMarketOpening, isAfterMarketClose, confirmMarketOpen } from "../util/market";
 import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
 import { getBarsByDate } from "../data/bars";
-import { rebalancePosition } from "./tradeManagement";
+import { TradeManagement } from "./tradeManagement";
 import { LOGGER } from "../instrumentation/log";
-import { formatInEasternTimeForDisplay } from "../util/date";
-import { executeSingleTrade, liquidatePosition } from "./mockExecution";
-import { getSymbolDataGenerator } from "../connection/polygon";
-import { alpaca } from "../connection/alpaca";
+import { executeSingleTrade, liquidatePosition, MockBroker } from "./mockExecution";
+import { getSymbolDataGenerator } from "../resources/polygon";
+import { alpaca } from "../resources/alpaca";
 import { getDetailedPerformanceReport } from "./performance";
 import { Calendar } from "@alpacahq/alpaca-trade-api";
-import { getCacheDataName } from "../util";
-import { readFileSync } from "fs";
 
 export class Backtester {
     currentDate: Date;
-    pastTradeConfigs: FilledTradeConfig[] = [];
-    pendingTradeConfigs: PlannedTradeConfig[] = [];
-    currentPositionConfigs: FilledPositionConfig[] = [];
-    pastPositionConfigs: FilledPositionConfig[] = [];
+    managers: TradeManagement[] = [];
     strategyInstances: NarrowRangeBarStrategy[] = [];
     activeStrategyInstances: NarrowRangeBarStrategy[] = [];
     daysElapsed: number = 0;
@@ -59,6 +43,7 @@ export class Backtester {
     calendar: Calendar[] = [];
 
     constructor(
+        private broker: MockBroker,
         private updateIntervalMillis: number,
         private startDate: Date,
         private endDate: Date,
@@ -74,10 +59,11 @@ export class Backtester {
     }
 
     async screenSymbols(configuredSymbols: string[]) {
+        const positions = await this.broker.getPositions();
         const symbols = configuredSymbols.filter(
             symbol =>
                 this.strategyInstances.every(i => i.symbol !== symbol) &&
-                this.currentPositionConfigs.every(p => p.symbol !== symbol)
+                positions.every(p => p.symbol !== symbol)
         );
 
         for (const symbol of symbols) {
@@ -91,11 +77,12 @@ export class Backtester {
 
                 const bars = stockBars.filter(b => b.t < startOfDay(this.currentDate).getTime());
                 const nrbInstance = new NarrowRangeBarStrategy({
-                    period: 7,
+                    period: this.period,
                     symbol,
                     bars,
                     useSimpleRange: this.useSimpleRange,
-                    counterTrend: this.counterTrend
+                    counterTrend: this.counterTrend,
+                    broker: this.broker
                 });
                 this.strategyInstances.push(nrbInstance);
             } catch (e) {
@@ -105,7 +92,7 @@ export class Backtester {
 
         const shouldBeAdded = this.strategyInstances.filter(
             instance =>
-                instance.checkIfFitsStrategy(this.profitRatio, this.minMaxRatio > 1) &&
+                instance.checkIfFitsStrategy(this.minMaxRatio > 1) &&
                 this.activeStrategyInstances.every(i => i.symbol !== instance.symbol)
         );
 
@@ -135,12 +122,6 @@ export class Backtester {
                 if (i % (context.updateIntervalMillis * 100) === 0) {
                     LOGGER.trace(prevDate);
                 }
-                LOGGER.trace("pending: " + context.pendingTradeConfigs);
-                LOGGER.trace("pending pos: " + context.strategyInstances.map(c => c.symbol));
-                LOGGER.trace("past pos: " + context.pastPositionConfigs.map(c => c.symbol));
-                LOGGER.trace("pending pos: " + JSON.stringify(context.pendingTradeConfigs));
-                LOGGER.trace("active: " + context.currentPositionConfigs.map(c => c.symbol));
-                LOGGER.trace("active pos: " + context.activeStrategyInstances.map(c => c.symbol));
                 i = context.currentDate.getTime();
 
                 context.incrementDate();
@@ -168,7 +149,7 @@ export class Backtester {
         for (const batch of batches) {
             this.currentDate = batch.startDate;
             this.replayBars = {};
-            this.currentPositionConfigs = currentPositionConfigs[batch.batchId] || [];
+            this.broker.setPositions(currentPositionConfigs[batch.batchId] || []);
             this.clock.setSystemTime(this.currentDate);
 
             LOGGER.info(`Starting simulation for batch ${JSON.stringify(batch)}`);
@@ -177,35 +158,20 @@ export class Backtester {
 
             if (logPerformance) {
                 try {
-                    const perfReport = getDetailedPerformanceReport(
-                        this.pastPositionConfigs.slice(pastLength)
-                    );
-                    pastLength = this.pastPositionConfigs.length;
+                    const pastPositionConfigs = this.broker.getPastPositions().slice(pastLength);
+                    const perfReport = getDetailedPerformanceReport(pastPositionConfigs);
+                    pastLength = pastPositionConfigs.length;
                     LOGGER.info(`performance so far ${JSON.stringify(perfReport)}`);
                 } catch (e) {
                     LOGGER.warn(`no positions so far`);
                 }
             }
 
-            currentPositionConfigs[batch.batchId] = this.currentPositionConfigs;
+            currentPositionConfigs[batch.batchId] = await this.broker.getCurrentPositions();
         }
     }
 
     async batchSimulate(startDate: Date, endDate: Date, symbols: string[]) {
-        const replayBars = getSymbolDataGenerator(
-            symbols,
-            this.updateIntervalMillis === 60000 ? DefaultDuration.one : DefaultDuration.five,
-            PeriodType.minute,
-            startDate,
-            endDate
-        );
-
-        for await (const bar of replayBars()) {
-            Object.assign(this.replayBars, {
-                [bar.symbol]: bar.bars
-            });
-        }
-
         const screenerBars = getSymbolDataGenerator(
             symbols,
             DefaultDuration.one,
@@ -216,6 +182,20 @@ export class Backtester {
 
         for await (const bar of screenerBars()) {
             Object.assign(this.screenerBars, {
+                [bar.symbol]: bar.bars
+            });
+        }
+
+        const replayBars = getSymbolDataGenerator(
+            symbols,
+            this.updateIntervalMillis === 60000 ? DefaultDuration.one : DefaultDuration.five,
+            PeriodType.minute,
+            startDate,
+            endDate
+        );
+
+        for await (const bar of replayBars()) {
+            Object.assign(this.replayBars, {
                 [bar.symbol]: bar.bars
             });
         }
@@ -236,19 +216,21 @@ export class Backtester {
             if (confirmMarketOpen(this.calendar, this.currentDate.getTime())) {
                 this.tradeUpdater.emit("interval_hit");
 
+                const pendingTradeConfigs = await this.broker.getOrders({
+                    status: "open"
+                });
+
                 const filteredInstances = this.activeStrategyInstances.filter(i => {
-                    return this.pendingTradeConfigs.every(c => c.plan.symbol !== i.symbol);
+                    return pendingTradeConfigs.every(c => c.symbol !== i.symbol);
                 });
 
                 try {
-                    const rebalancingPositionTrades = await this.closeAndRebalance(endDate);
+                    const rebalancingPositionTrades = await this.closeAndRebalance();
 
                     for await (const tradeRebalance of rebalancingPositionTrades) {
                         if (tradeRebalance) {
                             LOGGER.debug(tradeRebalance);
-                            if (this.validateTrade(tradeRebalance)) {
-                                await this.findPositionConfigAndRebalance(tradeRebalance);
-                            }
+                            await this.findPositionConfigAndRebalance(tradeRebalance);
                         }
                     }
                 } catch (e) {
@@ -260,11 +242,7 @@ export class Backtester {
 
                     try {
                         let bar = await this.findOrFetchBarByDate(
-                            set(this.currentDate.getTime(), {
-                                hours: 9,
-                                minutes: 30,
-                                seconds: 0
-                            }).getTime(),
+                            set(this.currentDate.getTime(), i.entryEpochTrigger).getTime(),
                             i.symbol,
                             bars
                         );
@@ -274,13 +252,9 @@ export class Backtester {
                             return;
                         }
 
-                        if (bar.v < 100000) {
+                        if (bar.v < 25000) {
                             bar = await this.findOrFetchBarByDate(
-                                set(this.currentDate.getTime(), {
-                                    hours: 9,
-                                    minutes: 30,
-                                    seconds: 0
-                                }).getTime(),
+                                set(this.currentDate.getTime(), i.entryEpochTrigger).getTime(),
                                 i.symbol,
                                 bars,
                                 1
@@ -288,8 +262,7 @@ export class Backtester {
                         }
 
                         if (!bar) {
-                            LOGGER.warn(`no bar found`);
-                            return;
+                            throw new Error("no bar found");
                         }
 
                         return i.rebalance(bar, this.currentDate);
@@ -301,17 +274,21 @@ export class Backtester {
                 for await (const trades of potentialTradesToPlace) {
                     if (trades) {
                         for (const trade of trades) {
-                            if (this.validateTrade(trade.config)) {
-                                LOGGER.debug(trade);
-                                this.pendingTradeConfigs.push(trade);
-                            } else {
-                                LOGGER.warn("cannot verify " + JSON.stringify(trade));
-                            }
+                            const manager = new TradeManagement(
+                                trade.config,
+                                trade.plan,
+                                this.profitRatio,
+                                this.broker
+                            );
+
+                            this.managers.push(manager);
                         }
                     }
                 }
-                const newlyExecutedSymbols = await this.executeAndRecord();
+
+                await this.executeAndRecord();
             }
+
             if (isMarketOpening(this.currentDate)) {
                 this.tradeUpdater.emit("market_opening");
                 await this.getScreenedSymbols(symbols);
@@ -340,7 +317,12 @@ export class Backtester {
         return this.findBarByDate(time, symbol, bars);
     }
 
-    async findOrFetchBarByDate(time: number, symbol: string, bars: Bar[], offset?: number): Promise<Bar | null> {
+    async findOrFetchBarByDate(
+        time: number,
+        symbol: string,
+        bars: Bar[],
+        offset?: number
+    ): Promise<Bar | null> {
         try {
             const bar = this.findBarByDate(time, symbol, bars, offset);
 
@@ -374,32 +356,12 @@ export class Backtester {
             const err = new Error(
                 `wrong bar ${symbol} at ${this.currentDate.toLocaleString()}, found ${new Date(
                     bar.t
-                ).toLocaleString()} insstead`
+                ).toLocaleString()} instead`
             );
             throw err;
         }
 
         return bar;
-    }
-
-    validateTrade(tradeConfig: TradeConfig) {
-        const currentPosition = this.currentPositionConfigs.find(
-            c => c.symbol === tradeConfig.symbol
-        );
-
-        if (!currentPosition) {
-            return true;
-        }
-
-        return this.isClosingOrder(currentPosition, tradeConfig);
-    }
-
-    isClosingOrder(currentPosition: FilledPositionConfig, tradeConfig: TradeConfig) {
-        if (currentPosition.side === PositionDirection.long) {
-            return tradeConfig.side === TradeDirection.sell;
-        } else {
-            return tradeConfig.side === TradeDirection.buy;
-        }
     }
 
     tradeUpdater: EventEmitter = new EventEmitter();
@@ -418,146 +380,74 @@ export class Backtester {
     private reset() {
         this.strategyInstances = [];
         this.activeStrategyInstances = [];
-        this.pendingTradeConfigs = [];
+        this.managers = [];
+        this.broker.cancelAllOrders();
     }
 
     public async executeAndRecord() {
-        if (!this.pendingTradeConfigs || !this.pendingTradeConfigs.length) {
+        if (!this.managers.length) {
             return [];
         }
 
-        const newlyExecutedSymbols = [];
-
-        for (const plannedTrade of this.pendingTradeConfigs) {
-            const symbol = plannedTrade.plan.symbol;
+        for (const manager of this.managers) {
+            const symbol = manager.plan.symbol;
             const bars = this.replayBars[symbol];
-            const instance = this.activeStrategyInstances.find(i => i.symbol === symbol);
+
+            if (manager.filledPosition) {
+                return null;
+            }
 
             if (!bars) {
-                LOGGER.error(`No bars for ${JSON.stringify(plannedTrade)}`);
+                LOGGER.error(`No bars for ${JSON.stringify(manager.plan)}`);
+                continue;
+            }
+            const bar = await this.findOrFetchBarByDate(this.currentDate.getTime(), symbol, bars);
+
+            if (!bar) {
+                LOGGER.error(`No bars for ${JSON.stringify(manager.plan)}`);
                 continue;
             }
 
-            if (instance) {
-                const bar = await this.findOrFetchBarByDate(
-                    this.currentDate.getTime(),
-                    symbol,
-                    bars
+            const position = this.broker.executeTrade(bar, manager);
+
+            if (position) {
+                manager.filledPosition = position;
+                this.activeStrategyInstances = this.activeStrategyInstances.filter(
+                    s => s.symbol !== symbol
                 );
-
-                if (!bar) {
-                    LOGGER.error(`No bars for ${JSON.stringify(plannedTrade)}`);
-                    continue;
-                }
-
-                const position = executeSingleTrade(
-                    plannedTrade.plan.plannedStopPrice,
-                    bar,
-                    plannedTrade.config,
-                    plannedTrade.plan.plannedEntryPrice,
-                    this.currentPositionConfigs
+                this.managers = this.managers.filter(
+                    m => m.plan.symbol !== position.symbol || m.filledPosition
                 );
-
-                if (position) {
-                    this.currentPositionConfigs.push(position);
-                    this.pendingTradeConfigs = this.pendingTradeConfigs.filter(
-                        c => c.plan.symbol !== symbol
-                    );
-                    this.activeStrategyInstances = this.activeStrategyInstances.filter(
-                        s => s.symbol !== symbol
-                    );
-                    this.pastTradeConfigs.push({
-                        ...plannedTrade.config,
-                        filledQuantity: position.trades[position.trades.length - 1].quantity,
-                        averagePrice: position.trades[position.trades.length - 1].price,
-                        status: position.trades[position.trades.length - 1].status,
-                        estString: formatInEasternTimeForDisplay(plannedTrade.config.t)
-                    });
-                    newlyExecutedSymbols.push(symbol);
-                }
-            } else {
-                LOGGER.warn("cannot execute without no trade plan from strategy ", plannedTrade);
             }
         }
 
-        return newlyExecutedSymbols;
+        return [];
     }
 
     private async findPositionConfigAndRebalance(tradeConfig: TradeConfig) {
-        const position = this.currentPositionConfigs.find(p => p.symbol === tradeConfig.symbol);
+        const manager = this.managers.find(p => p.position.symbol === tradeConfig.symbol);
 
-        if (!position) {
+        if (!manager || !manager.filledPosition) {
             return null;
         }
 
-        const bars = this.replayBars[position.symbol];
+        const bars = this.replayBars[manager.plan.symbol];
         const bar = await this.findOrFetchBarByDate(
             this.currentDate.getTime(),
             tradeConfig.symbol,
             bars
         );
 
-        if (!bar) {
-            LOGGER.error(
-                `Couldn't find bar when trying to rebalance on ${this.currentDate.toLocaleString()} for ${
-                    position.symbol
-                }`
-            );
-
-            return null;
-        }
-
-        let executedClose = executeSingleTrade(
-            position.plannedStopPrice,
-            bar,
-            tradeConfig,
-            position.plannedEntryPrice,
-            this.currentPositionConfigs
-        );
-
-        const liquidate = isMarketClosing(bar.t);
-
-        if (!executedClose && !liquidate) {
-            return null;
-        }
-
-        if (!executedClose) {
-           executedClose = liquidatePosition(position, bar);
-        }
-
-        this.pastTradeConfigs.push({
-            ...tradeConfig,
-            averagePrice: executedClose.trades[executedClose.trades.length - 1].price,
-            filledQuantity: executedClose.trades[executedClose.trades.length - 1].quantity,
-            status: executedClose.trades[executedClose.trades.length - 1].status
-            /* order: executedClose.trades[executedClose.trades.length - 1].order */
-        });
-
-        const isClosingOrder = this.isClosingOrder(position, tradeConfig);
-
-        if (!isClosingOrder) {
-            return executedClose;
-        }
-
-        const closesEntirePosition = position.quantity === 0;
-
-        if (closesEntirePosition) {
-            this.pastPositionConfigs.push(executedClose);
-
-            this.currentPositionConfigs = this.currentPositionConfigs.filter(
-                p => p.symbol !== tradeConfig.symbol
-            );
-        }
-
-        return executedClose;
+        return this.broker.rebalanceHeldPosition(manager, bar, this.currentDate);
     }
 
-    public async closeAndRebalance(endDate: Date) {
-        if (!this.currentPositionConfigs) {
+    public async closeAndRebalance(): Promise<Array<TradeConfig | null>> {
+        const currentPositionConfigs = await this.broker.getPositions();
+        if (!currentPositionConfigs || !currentPositionConfigs.length) {
             return [];
         }
 
-        const symbols = this.currentPositionConfigs.map(p => p.symbol);
+        const symbols = currentPositionConfigs.map(p => p.symbol);
 
         const trades = [];
 
@@ -576,10 +466,10 @@ export class Backtester {
                 continue;
             }
 
-            const position = this.currentPositionConfigs.find(p => p.symbol === symbol);
+            const manager = this.managers.find(p => p.plan.symbol === symbol);
 
-            if (!position) {
-                LOGGER.warn("no position for ", symbol);
+            if (!manager) {
+                LOGGER.warn("no trace for ", symbol);
                 continue;
             }
             if (!bar) {
@@ -587,9 +477,7 @@ export class Backtester {
                 continue;
             }
 
-            trades.push(
-                rebalancePosition(position, bar, this.profitRatio, this.currentDate.getTime())
-            );
+            trades.push(await manager.rebalancePosition(bar, this.currentDate.getTime()));
         }
 
         return trades;
