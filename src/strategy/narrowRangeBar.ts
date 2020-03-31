@@ -54,7 +54,7 @@ export class NarrowRangeBarStrategy {
         counterTrend: boolean;
         broker: Broker;
     }) {
-        if (period < 4) {
+        if (period < 3) {
             throw new Error("fix da shiz");
         }
         if (!bars) {

@@ -1,13 +1,11 @@
-import { readFileSync } from "fs";
-import { isToday } from "date-fns";
-
 import { getIntradayBars } from "../data/bars";
-import { Bar } from "../data/data.model";
+import { Bar, PeriodType, DefaultDuration } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
+import { getHighVolumeCompanies } from "../data/filters";
+import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
+import { alpaca } from "../resources/alpaca";
 
-const LARGE_CAPS = JSON.parse(readFileSync("./largecaps.json").toString());
-
-const AVG_VOLUMES = JSON.parse(readFileSync("./sixtyDayAvgVol.json").toString());
+const LARGE_CAPS = getHighVolumeCompanies();
 
 const lookback = process.argv[2] && Number(process.argv[2]);
 
@@ -15,8 +13,8 @@ let list = JSON.parse(JSON.stringify(LARGE_CAPS));
 
 const barsFetched = [];
 
-while (list.length > 200) {
-    const barsPromise = getIntradayBars(list.slice(0, 200), 1, Number(lookback));
+while (list.length > 200 || list.length) {
+    const barsPromise = getIntradayBars(list.slice(0, 200), 1, 0, PeriodType.minute, DefaultDuration.five);
 
     barsFetched.push(barsPromise);
 
@@ -35,63 +33,20 @@ Promise.all(barsFetched)
     })
     .then((bars: any) => {
         let count = 0;
-        Object.keys(bars).map(symbol => {
-            const stockBars: Bar[] = bars[symbol];
+        Object.keys(bars).map(index => {
+            const symbol = Object.keys(bars[index])[0];
 
-            const ranges: number[] = stockBars
-                .filter(bar => {
-                    return isToday(bar.t);
-                })
-                .map(bar => {
-                    const range = Math.abs(bar.h - bar.l);
+            const nrb = new NarrowRangeBarStrategy({
+                period: 7,
+                bars: bars[index][symbol],
+                useSimpleRange: false,
+                counterTrend: false,
+                broker: alpaca,
+                symbol
+            });
 
-                    if (!range) {
-                        return 0.35;
-                    }
-
-                    return range;
-                });
-
-            const volume = stockBars.reduce((sum, bar) => {
-                if (!isToday(bar.t)) return sum;
-                sum += bar.v;
-                return sum;
-            }, 0);
-
-            const symbolAverages = AVG_VOLUMES[symbol];
-
-            const { previousMin: minRange, previousMax: maxRange } = ranges.reduce(
-                ({ previousMin, previousMax }, currVal) => {
-                    if (currVal < previousMin) {
-                        previousMin = currVal;
-                    }
-
-                    if (currVal > previousMax) {
-                        previousMax = currVal;
-                    }
-
-                    return {
-                        previousMin,
-                        previousMax
-                    };
-                },
-                {
-                    previousMin: 10000,
-                    previousMax: Number.MIN_SAFE_INTEGER
-                }
-            );
-
-            const isHighVol = symbolAverages && volume > 2 * symbolAverages.averageVolume;
-            const rangeRatio = maxRange / minRange;
-
-            const threshold = 2;
-
-            const narrowRange =
-                ranges.slice(-3).filter(range => range < maxRange / 6).length > threshold;
-
-            if (narrowRange) {
-                LOGGER.debug(symbol);
-                LOGGER.debug(count++);
+            if (nrb.checkIfFitsStrategy()) {
+                LOGGER.info(symbol);
             }
         });
     })
