@@ -1,40 +1,38 @@
-import { getSocketManager } from "../resources/polygon";
 import { createReadStream, createWriteStream } from "fs";
+import { alpaca } from "../resources/alpaca";
+import { getHighVolumeCompanies } from "../data/filters";
+import { subscribeToTickLevelUpdates } from "../resources/polygon";
 import { LOGGER } from "../instrumentation/log";
 
-const n = getSocketManager();
+const highVolCompanies = getHighVolumeCompanies();
 
-const server = n.server;
-
-server.on("auth", () => {
-    n.subscribeToTickLevelUpdates([
-        "APA",
-        "SPGI",
-        "MPC",
-        "CCL",
-        "RCL",
-        "EPD",
-        "PXD",
-        "MGM",
-        "DXC",
-        "VLO",
-        "NCLH",
-        "CQP",
-        "FTNT",
-        "PSX"
-    ]);
-});
+const socket = alpaca.websocket;
 
 const logOfTrades = createWriteStream("./tradeUpdates.log");
 
-server.on("trade_update", trade => {
-    logOfTrades.write(JSON.stringify(trade) + "\n");
+socket.onConnect(() => {
+    const mappedAggs = subscribeToTickLevelUpdates(highVolCompanies);
+    socket.subscribe(["trade_updates", "account_updates", ...mappedAggs]);
+});
+socket.onStateChange(newState => {
+    console.log(`State changed to ${newState}`);
 });
 
-server.on("close", () => {
-    logOfTrades.close();
+socket.onOrderUpdate(data => {
+    console.log(`Order updates: ${JSON.stringify(data)}`);
 });
 
-setTimeout(() => {
-    n.close();
-}, 150000 * 15);
+socket.onStockAggMin((subject: string, data: string) => {
+    LOGGER.info(subject);
+    return;
+});
+socket.onStockTrades((subject: string, data: string) => {
+    LOGGER.info(subject);
+    return;
+});
+socket.onStockAggSec((subject: string, data: string) => {
+    LOGGER.info(data);
+    return;
+});
+
+socket.connect();

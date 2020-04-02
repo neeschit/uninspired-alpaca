@@ -116,7 +116,9 @@ export class NarrowRangeBarStrategy {
     isVeryNarrowRangeBar(tr: number[]) {
         const { min, max } = this.getMinMaxPeriodRange(tr);
 
-        return tr[tr.length - 1] === min && max / min > 4;
+        LOGGER.info(max / min);
+
+        return tr[tr.length - 1] === min && max / min > 3;
     }
 
     private getMinMaxPeriodRange(tr: number[]) {

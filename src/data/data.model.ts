@@ -47,6 +47,9 @@ export interface Bar {
     t: number;
     n?: number;
 }
+export interface TickBar extends Omit<Bar, "n"> {
+    a: number;
+}
 
 export enum PeriodType {
     day = "day",
