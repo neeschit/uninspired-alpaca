@@ -1,14 +1,21 @@
 import {
     checkIfTableExistsForSymbol,
     createStorageTables,
-    createMetadataTables
-} from "../resources/stock_data";
+    createMetadataTables,
+    insertBar,
+    dropStorageTables
+} from "../resources/stockData";
 import { LOGGER } from "../instrumentation/log";
 import { endPooledConnection } from "../connection/pg";
 import { getHighVolumeCompanies } from "../data/filters";
 
+const drop = process.argv[2] && Boolean(process.argv[2]);
+
 async function run() {
     const newSymbols = [];
+
+    drop && (await dropStorageTables(getHighVolumeCompanies()));
+
     for (const symbol of getHighVolumeCompanies()) {
         if (!(await checkIfTableExistsForSymbol(symbol))) {
             newSymbols.push(symbol);
@@ -20,6 +27,7 @@ async function run() {
     await createStorageTables(newSymbols);
 
     await createMetadataTables();
+    ž;
 
     await endPooledConnection();
 }

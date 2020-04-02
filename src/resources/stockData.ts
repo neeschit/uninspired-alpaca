@@ -2,18 +2,10 @@ import { getConnection } from "../connection/pg";
 import { TickBar } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
 
-export const insertBar = async (bar: TickBar, symbol: string) => {
-    const pool = getConnection();
-
-    pool.query(
-        `insert into ('bar_data') values (${bar.t}, '${symbol}', ${bar.o}, ${bar.c}, ${bar.h}, ${bar.l}, ${bar.a}, ${bar.v}) `
-    );
-};
-
 const getTableNameForSymbol = (symbol: string) => `tick_${symbol.toLowerCase()}`;
 
 const getCreateBarsTableSql = (tablename: string) => `create table ${tablename} (
-    t timestamptz not null,
+    t timestamptz primary key,
     o numeric not null,
     h numeric not null,
     l numeric not null,
@@ -99,6 +91,22 @@ export const createStorageTables = async (symbols: string[]) => {
     return results;
 };
 
+export const dropStorageTables = async (symbols: string[]) => {
+    const pool = getConnection();
+
+    const results = [];
+
+    for (const symbol of symbols) {
+        try {
+            results.push(await pool.query(`drop table ${getTableNameForSymbol(symbol)};`));
+        } catch (e) {
+            LOGGER.error(e);
+        }
+    }
+
+    return results;
+};
+
 export const createMetadataTables = async () => {
     const positionsExists = await checkIfTableExists("positions");
     const ordersExists = await checkIfTableExists("orders");
@@ -110,4 +118,24 @@ export const createMetadataTables = async () => {
     if (!ordersExists) {
         await getConnection().query(getCreateOrdersTableSql());
     }
+};
+
+export const insertBar = async (bar: TickBar, symbol: string) => {
+    const pool = getConnection();
+
+    const tablename = getTableNameForSymbol(symbol);
+
+    const query = `insert into ${tablename} values (
+        to_timestamp(${bar.t / 1000}), 
+        ${bar.o}, 
+        ${bar.c}, 
+        ${bar.h}, 
+        ${bar.l}, 
+        ${bar.a}, 
+        ${bar.v}
+    );`;
+
+    LOGGER.info(query);
+
+    return pool.query(query);
 };

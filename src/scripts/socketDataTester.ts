@@ -3,6 +3,8 @@ import { alpaca } from "../resources/alpaca";
 import { getHighVolumeCompanies } from "../data/filters";
 import { subscribeToTickLevelUpdates } from "../resources/polygon";
 import { LOGGER } from "../instrumentation/log";
+import { TickBar } from "../data/data.model";
+import { insertBar } from "../resources/stockData";
 
 const highVolCompanies = getHighVolumeCompanies();
 
@@ -30,9 +32,24 @@ socket.onStockTrades((subject: string, data: string) => {
     LOGGER.info(subject);
     return;
 });
-socket.onStockAggSec((subject: string, data: string) => {
-    LOGGER.info(data);
-    return;
+socket.onStockAggSec(async (subject: string, data: any) => {
+    if (typeof data === "string") {
+        data = JSON.parse(data);
+    }
+
+    for (const d of data) {
+        const bar: TickBar = {
+            o: d.o,
+            h: d.h,
+            l: d.l,
+            c: d.c,
+            a: d.a,
+            t: d.s,
+            v: d.v
+        };
+
+        await insertBar(bar, d.sym);
+    }
 });
 
 socket.connect();
