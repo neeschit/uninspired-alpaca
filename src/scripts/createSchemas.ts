@@ -27,7 +27,6 @@ async function run() {
     await createStorageTables(newSymbols);
 
     await createMetadataTables();
-    ž;
 
     await endPooledConnection();
 }
