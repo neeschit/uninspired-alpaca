@@ -3,7 +3,8 @@ import {
     createStorageTables,
     createMetadataTables,
     insertBar,
-    dropStorageTables
+    dropStorageTables,
+    createDataTableForSymbol
 } from "../resources/stockData";
 import { LOGGER } from "../instrumentation/log";
 import { endPooledConnection } from "../connection/pg";
@@ -25,6 +26,11 @@ async function run() {
     LOGGER.info(newSymbols);
 
     await createStorageTables(newSymbols);
+
+    if (!(await checkIfTableExistsForSymbol("SPY"))) {
+        LOGGER.info(`creating table for SPY`);
+        await createDataTableForSymbol("SPY");
+    }
 
     await createMetadataTables();
 

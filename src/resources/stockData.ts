@@ -82,7 +82,7 @@ export const createStorageTables = async (symbols: string[]) => {
 
     for (const symbol of symbols) {
         try {
-            results.push(await pool.query(getCreateBarsTableSql(getTableNameForSymbol(symbol))));
+            results.push(await createDataTableForSymbol(symbol, pool));
         } catch (e) {
             LOGGER.error(e);
         }
@@ -128,14 +128,18 @@ export const insertBar = async (bar: TickBar, symbol: string) => {
     const query = `insert into ${tablename} values (
         to_timestamp(${bar.t / 1000}), 
         ${bar.o}, 
-        ${bar.c}, 
         ${bar.h}, 
         ${bar.l}, 
+        ${bar.c}, 
         ${bar.a}, 
         ${bar.v}
     );`;
 
-    LOGGER.info(query);
+    LOGGER.debug(query);
 
     return pool.query(query);
+};
+
+export const createDataTableForSymbol = (symbol: string, pool = getConnection()) => {
+    return pool.query(getCreateBarsTableSql(getTableNameForSymbol(symbol)));
 };

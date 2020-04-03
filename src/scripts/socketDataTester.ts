@@ -14,7 +14,7 @@ const logOfTrades = createWriteStream("./tradeUpdates.log");
 
 socket.onConnect(() => {
     const mappedAggs = subscribeToTickLevelUpdates(highVolCompanies);
-    socket.subscribe(["trade_updates", "account_updates", ...mappedAggs]);
+    socket.subscribe(["trade_updates", "account_updates", ...mappedAggs, "A.SPY"]);
 });
 socket.onStateChange(newState => {
     console.log(`State changed to ${newState}`);
@@ -48,7 +48,11 @@ socket.onStockAggSec(async (subject: string, data: any) => {
             v: d.v
         };
 
-        await insertBar(bar, d.sym);
+        try {
+            await insertBar(bar, d.sym);
+        } catch (e) {
+            LOGGER.error(`Could not insert ${JSON.stringify(bar)} for ${d.sym}`);
+        }
     }
 });
 
