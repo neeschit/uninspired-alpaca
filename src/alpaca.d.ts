@@ -132,7 +132,23 @@ declare module "@alpacahq/alpaca-trade-api" {
         getCalendar({ start, end }: { start: Date; end: Date }): Promise<Calendar[]>;
     }
 
+    export class AlpacaStreamingClient {
+        connect(): void;
+        disconnect(): void;
+        subscribe(params: string[]): void;
+        unsubscribe(params: string[]): void;
+        onConnect(cb: () => void): void;
+        onDisconnect(): void;
+        onStateChange(cb: (newState: any) => void): void;
+        onOrderUpdate(cb: (subject: string, data: string) => void): void;
+        onStockTrades(cb: (subject: string, data: string) => void): void;
+        onStockQuotes(cb: (subject: string, data: string) => void): void;
+        onStockAggSec(cb: (subject: string, data: string) => void): void;
+        onStockAggMin(cb: (subject: string, data: string) => void): void;
+    }
+
     class Alpaca implements Broker {
+        websocket: AlpacaStreamingClient;
         createOrder(params: AlpacaTradeConfig): Promise<AlpacaOrder>;
         cancelAllOrders(): Promise<{}>;
         getOrders(params: GetOrdersParams): Promise<AlpacaOrder[]>;

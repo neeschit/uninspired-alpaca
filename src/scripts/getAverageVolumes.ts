@@ -73,7 +73,10 @@ Promise.all(barsFetched)
             })
             .filter(b => {
                 LOGGER.debug(b.averageVolume);
-                return b.averageVolume > 700000;
+                return b.averageVolume > 1000000;
+            })
+            .sort((a, b) => {
+                return a.symbol > b.symbol ? 1 : -1;
             });
 
         writeFileSync("largeCapsHighVolume.json", JSON.stringify(array.map(b => b.symbol)));

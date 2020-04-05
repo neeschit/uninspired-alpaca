@@ -1,40 +1,58 @@
-import { getSocketManager } from "../resources/polygon";
 import { createReadStream, createWriteStream } from "fs";
+import { alpaca } from "../resources/alpaca";
+import { getHighVolumeCompanies } from "../data/filters";
+import { subscribeToTickLevelUpdates } from "../resources/polygon";
 import { LOGGER } from "../instrumentation/log";
+import { TickBar } from "../data/data.model";
+import { insertBar } from "../resources/stockData";
+import { isAfterMarketClose } from "../util/market";
 
-const n = getSocketManager();
+const highVolCompanies = getHighVolumeCompanies();
 
-const server = n.server;
-
-server.on("auth", () => {
-    n.subscribeToTickLevelUpdates([
-        "APA",
-        "SPGI",
-        "MPC",
-        "CCL",
-        "RCL",
-        "EPD",
-        "PXD",
-        "MGM",
-        "DXC",
-        "VLO",
-        "NCLH",
-        "CQP",
-        "FTNT",
-        "PSX"
-    ]);
-});
+const socket = alpaca.websocket;
 
 const logOfTrades = createWriteStream("./tradeUpdates.log");
 
-server.on("trade_update", trade => {
-    logOfTrades.write(JSON.stringify(trade) + "\n");
+socket.onConnect(() => {
+    const mappedAggs = subscribeToTickLevelUpdates(highVolCompanies);
+    socket.subscribe(["trade_updates", "account_updates", ...mappedAggs, "A.SPY"]);
+});
+socket.onStateChange(newState => {
+    console.log(`State changed to ${newState}`);
 });
 
-server.on("close", () => {
-    logOfTrades.close();
+socket.onOrderUpdate(data => {
+    console.log(`Order updates: ${JSON.stringify(data)}`);
 });
 
-setTimeout(() => {
-    n.close();
-}, 150000 * 15);
+socket.onStockAggSec(async (subject: string, data: any) => {
+    if (typeof data === "string") {
+        data = JSON.parse(data);
+    }
+
+    for (const d of data) {
+        const bar: TickBar = {
+            o: d.o,
+            h: d.h,
+            l: d.l,
+            c: d.c,
+            a: d.a,
+            t: d.s,
+            v: d.v
+        };
+
+        try {
+            await insertBar(bar, d.sym);
+        } catch (e) {
+            LOGGER.error(`Could not insert ${JSON.stringify(bar)} for ${d.sym}`);
+        }
+    }
+});
+
+setInterval(() => {
+    if (isAfterMarketClose(Date.now())) {
+        socket.disconnect();
+    }
+}, 30000);
+
+socket.connect();

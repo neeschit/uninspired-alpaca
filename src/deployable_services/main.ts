@@ -115,31 +115,29 @@ async function main() {
                     continue;
                 }
 
-                const orders: PlannedTradeConfig[] | null = await n.rebalance(bar);
+                const order: PlannedTradeConfig | null = await n.rebalance(bar, bar);
 
-                if (!orders) {
+                if (!order) {
                     LOGGER.warn(`Expected an order for ${n.symbol}`);
                 } else {
-                    for (const order of orders) {
-                        const manager = new TradeManagement(
-                            {
-                                symbol: n.symbol,
-                                ...order.config
-                            },
-                            order.plan,
-                            1,
-                            alpaca
-                        );
+                    const manager = new TradeManagement(
+                        {
+                            symbol: n.symbol,
+                            ...order.config
+                        },
+                        order.plan,
+                        1,
+                        alpaca
+                    );
 
-                        logs.push({
-                            plan: manager.plan,
-                            config: manager.config
-                        });
+                    logs.push({
+                        plan: manager.plan,
+                        config: manager.config
+                    });
 
-                        await manager.executeAndRecord();
+                    await manager.executeAndRecord();
 
-                        ordersToBeManaged.push(manager);
-                    }
+                    ordersToBeManaged.push(manager);
                 }
             } catch (e) {
                 LOGGER.error(e);

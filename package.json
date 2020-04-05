@@ -4,12 +4,13 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "@alpacahq/alpaca-trade-api": "^1.0.3",
+    "@alpacahq/alpaca-trade-api": "^1.2.9",
     "date-fns": "^2.9.0",
     "date-fns-tz": "^1.0.10",
     "dotenv": "^8.2.0",
     "fs-extra": "^9.0.0",
-    "ioredis": "^4.16.0",
+    "pg": "^8.0.0",
+    "uuid": "^7.0.3",
     "ws": "^7.2.3"
   },
   "author": "",
@@ -19,7 +20,9 @@
     "@types/dotenv": "^8.2.0",
     "@types/fs-extra": "^8.1.0",
     "@types/node": "^13.7.1",
+    "@types/pg": "^7.14.3",
     "@types/sinon": "^7.5.2",
+    "@types/uuid": "^7.0.2",
     "@types/ws": "^7.2.2",
     "ava": "^3.0.0",
     "sinon": "^9.0.0",
@@ -30,7 +33,9 @@
     "test": "ava --watch --verbose",
     "test:ci": "LOGLEVEL=4 ava --verbose",
     "build": "tsc",
-    "backtest": "node --enable-source-maps build/scripts/backtest.js"
+    "backtest": "node --enable-source-maps build/scripts/backtest.js",
+    "narrowRangeScreener": "node --enable-source-maps build/scripts/narrowRangeScreener.js",
+    "socketDataTester": "node --enable-source-maps build/scripts/socketDataTester.js"
   },
   "ava": {
     "extensions": [

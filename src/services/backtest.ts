@@ -241,10 +241,12 @@ export class Backtester {
                     const bars = this.replayBars[i.symbol];
 
                     try {
+                        let offset = 0;
                         let bar = await this.findOrFetchBarByDate(
                             set(this.currentDate.getTime(), i.entryEpochTrigger).getTime(),
                             i.symbol,
-                            bars
+                            bars,
+                            offset
                         );
 
                         if (!bar) {
@@ -253,11 +255,12 @@ export class Backtester {
                         }
 
                         if (bar.v < 25000) {
+                            offset++;
                             bar = await this.findOrFetchBarByDate(
                                 set(this.currentDate.getTime(), i.entryEpochTrigger).getTime(),
                                 i.symbol,
                                 bars,
-                                1
+                                offset
                             );
                         }
 
@@ -265,24 +268,34 @@ export class Backtester {
                             throw new Error("no bar found");
                         }
 
-                        return i.rebalance(bar, this.currentDate);
+                        const nextBar = await this.findOrFetchBarByDate(
+                            set(this.currentDate.getTime(), i.entryEpochTrigger).getTime(),
+                            i.symbol,
+                            bars,
+                            offset,
+                            false
+                        );
+
+                        if (!nextBar) {
+                            throw new Error("Shoulda found the next bar for " + i.symbol);
+                        }
+
+                        return i.rebalance(nextBar, bar, this.currentDate);
                     } catch (e) {
                         LOGGER.warn(e);
                     }
                 });
 
-                for await (const trades of potentialTradesToPlace) {
-                    if (trades) {
-                        for (const trade of trades) {
-                            const manager = new TradeManagement(
-                                trade.config,
-                                trade.plan,
-                                this.profitRatio,
-                                this.broker
-                            );
+                for await (const trade of potentialTradesToPlace) {
+                    if (trade) {
+                        const manager = new TradeManagement(
+                            trade.config,
+                            trade.plan,
+                            this.profitRatio,
+                            this.broker
+                        );
 
-                            this.managers.push(manager);
-                        }
+                        this.managers.push(manager);
                     }
                 }
 
@@ -321,10 +334,11 @@ export class Backtester {
         time: number,
         symbol: string,
         bars: Bar[],
-        offset?: number
+        offset?: number,
+        shouldForceAggregate = true
     ): Promise<Bar | null> {
         try {
-            const bar = this.findBarByDate(time, symbol, bars, offset);
+            const bar = this.findBarByDate(time, symbol, bars, offset, shouldForceAggregate);
 
             return bar;
         } catch (e) {
@@ -342,7 +356,15 @@ export class Backtester {
         return null;
     }
 
-    findBarByDate(time: number, symbol: string, bars: Bar[], offset = 0): Bar {
+    findBarByDate(
+        time: number,
+        symbol: string,
+        bars: Bar[],
+        offset = 0,
+        shouldForceAggregate = true
+    ): Bar {
+        const aggregate = this.updateIntervalMillis / 60000;
+
         const barIndex = bars.findIndex(b => b.t >= time);
 
         if (barIndex === -1) {
@@ -350,18 +372,59 @@ export class Backtester {
             throw new Error(err);
         }
 
-        const bar = bars[barIndex + offset];
+        const offsetBarIndex = barIndex + offset;
 
-        if (Math.abs(bar.t - time) > this.updateIntervalMillis * 60) {
-            const err = new Error(
-                `wrong bar ${symbol} at ${this.currentDate.toLocaleString()}, found ${new Date(
-                    bar.t
-                ).toLocaleString()} instead`
+        if (aggregate < 5 && shouldForceAggregate) {
+            const aggregateBars = bars.slice(barIndex - 5 / aggregate, barIndex);
+
+            return aggregateBars.reduce(
+                (aggregatedBar, currentBar) => {
+                    aggregatedBar.v += currentBar.v;
+
+                    if (!aggregatedBar.t) {
+                        aggregatedBar.c = currentBar.c;
+                        aggregatedBar.o = currentBar.o;
+                    } else if (currentBar.t > aggregatedBar.t) {
+                        aggregatedBar.c = currentBar.c;
+                    } else if (currentBar.t < aggregatedBar.t) {
+                        aggregatedBar.o = currentBar.o;
+                    }
+
+                    if (currentBar.h > aggregatedBar.h) {
+                        aggregatedBar.h = currentBar.h;
+                    }
+
+                    if (currentBar.l < aggregatedBar.l) {
+                        aggregatedBar.l = currentBar.l;
+                    }
+
+                    aggregatedBar.t = currentBar.t;
+
+                    return aggregatedBar;
+                },
+                {
+                    o: 0,
+                    h: 0,
+                    l: Number.MAX_SAFE_INTEGER,
+                    c: 0,
+                    v: 0,
+                    t: 0
+                }
             );
-            throw err;
-        }
+        } else {
+            const bar = bars[offsetBarIndex];
 
-        return bar;
+            if (Math.abs(bar.t - time) > this.updateIntervalMillis * 60) {
+                const err = new Error(
+                    `wrong bar ${symbol} at ${this.currentDate.toLocaleString()}, found ${new Date(
+                        bar.t
+                    ).toLocaleString()} instead`
+                );
+                throw err;
+            }
+
+            return bar;
+        }
     }
 
     tradeUpdater: EventEmitter = new EventEmitter();

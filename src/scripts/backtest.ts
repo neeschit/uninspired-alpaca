@@ -8,10 +8,10 @@ import { getDetailedPerformanceReport } from "../services/performance";
 import { getHighVolumeCompanies } from "../data/filters";
 import { MockBroker } from "../services/mockExecution";
 
-const startDate = "2020-03-22 9:00:00.000";
+const startDate = "2020-03-01 9:00:00.000";
 const zonedStartDate = zonedTimeToUtc(startDate, MarketTimezone);
 
-const endDate = parseISO("2020-03-27 16:10:00.000");
+const endDate = parseISO("2020-03-31 16:10:00.000");
 
 const zonedEndDate = zonedTimeToUtc(endDate, MarketTimezone);
 
@@ -28,9 +28,11 @@ const counterTrend = false;
 
 const nrbPeriod = 7;
 
+const updateInterval = 60000;
+
 const instance = new Backtester(
     MockBroker.getInstance(),
-    300000,
+    updateInterval,
     zonedStartDate,
     zonedEndDate,
     LARGE_CAPS,
@@ -47,7 +49,7 @@ async function run() {
         "yyyy-MM"
     )}-${pr}x-${rangeRatio}-${simpleRange ? "simpleRange" : "trueRange"}-${
         counterTrend ? "counter" : "trend-friend"
-    }-trend-less-nrb${nrbPeriod}.json`;
+    }-trend-less-nrb${nrbPeriod}-${updateInterval / 60000}.json`;
 
     /* const pastPositionConfigs = JSON.parse(readFileSync(filename).toString()).sortedPositions;
 

@@ -4,7 +4,6 @@ import {
     Bar,
     TradePlan,
     FilledPositionConfig,
-    Order,
     TradeType,
     PositionDirection,
     TradeDirection,
@@ -12,7 +11,7 @@ import {
     OrderStatus
 } from "../data/data.model";
 import { alpaca } from "../resources/alpaca";
-import Alpaca, { AlpacaOrder, AlpacaTradeConfig, Broker } from "@alpacahq/alpaca-trade-api";
+import { AlpacaOrder, AlpacaTradeConfig, Broker } from "@alpacahq/alpaca-trade-api";
 import { LOGGER } from "../instrumentation/log";
 import { isMarketClosing } from "../util/market";
 

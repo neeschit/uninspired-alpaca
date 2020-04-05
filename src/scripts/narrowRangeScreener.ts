@@ -14,7 +14,7 @@ let list = JSON.parse(JSON.stringify(LARGE_CAPS));
 const barsFetched = [];
 
 while (list.length > 200) { */
-const barsPromise = getDayBars(list, 100, Number(lookback || 1));
+const barsPromise = getDayBars(list, 100, Number(lookback || 0));
 
 /* 
     barsFetched.push(barsPromise);
@@ -59,7 +59,10 @@ barsPromise
                     return null;
                 }
             })
-            .filter(instance => instance && instance.checkIfFitsStrategy(false));
+            .filter(
+                instance =>
+                    instance && instance.checkIfFitsStrategy(true) && instance.checkStrength() > 1
+            );
 
         const symbols = nrbInstances.map(n => n?.symbol);
 
