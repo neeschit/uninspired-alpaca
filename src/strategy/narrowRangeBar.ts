@@ -86,7 +86,7 @@ export class NarrowRangeBarStrategy {
 
         this.entryEpochTrigger = {
             hours: 9,
-            minutes: 30,
+            minutes: 35,
             seconds: 0
         };
     }
@@ -170,12 +170,10 @@ export class NarrowRangeBarStrategy {
         }
 
         const timeStart = convertToLocalTime(now, " 09:34:45.000");
-        const timeEnd = convertToLocalTime(now, " 10:30:00.000");
 
         const nowMillis = now instanceof Date ? now.getTime() : now;
 
-        const isWithinEntryRange =
-            timeStart.getTime() <= nowMillis && timeEnd.getTime() >= nowMillis;
+        const isWithinEntryRange = timeStart.getTime() <= nowMillis;
 
         if (!isWithinEntryRange) {
             LOGGER.debug("come back later hooomie", nowMillis);
@@ -184,10 +182,15 @@ export class NarrowRangeBarStrategy {
         return isWithinEntryRange;
     }
 
+    async onTradeUpdate(currentBar: Bar, entryBar: Bar, now: TimestampType = Date.now()) {
+        return this.rebalance(currentBar, entryBar, now);
+    }
+
     async rebalance(
+        currentBar: Bar,
         entryBar: Bar,
         now: TimestampType = Date.now()
-    ): Promise<PlannedTradeConfig[] | null> {
+    ): Promise<PlannedTradeConfig | null> {
         if (!this.isTimeForEntry(now)) {
             LOGGER.warn(`not the time to enter for ${this.symbol} at ${new Date(now)}`);
             return null;
@@ -203,59 +206,70 @@ export class NarrowRangeBarStrategy {
         }
 
         try {
-            const entryLong = entryBar.h + 0.01;
-            const entryShort = entryBar.l - 0.01;
-
-            const unitRisk = Math.abs(entryLong - entryShort);
-
-            const quantity = Math.ceil(TRADING_RISK_UNIT_CONSTANT / unitRisk);
-
-            if (!quantity || quantity < 0) {
-                LOGGER.error(`Expected an order for ${this.symbol} at ${now}`);
-                return null;
-            }
-
-            return [
-                {
-                    plan: {
-                        plannedEntryPrice: entryLong,
-                        plannedStopPrice: entryShort,
-                        quantity,
-                        side: PositionDirection.long,
-                        symbol: this.symbol
-                    },
-                    config: {
-                        symbol: this.symbol,
-                        quantity,
-                        side: TradeDirection.buy,
-                        type: TradeType.stop,
-                        tif: TimeInForce.day,
-                        price: entryLong,
-                        t: now
-                    }
-                },
-                {
-                    plan: {
-                        plannedEntryPrice: entryShort,
-                        plannedStopPrice: entryLong,
-                        quantity,
-                        side: PositionDirection.short,
-                        symbol: this.symbol
-                    },
-                    config: {
-                        symbol: this.symbol,
-                        quantity,
-                        side: TradeDirection.sell,
-                        type: TradeType.stop,
-                        tif: TimeInForce.day,
-                        price: entryShort,
-                        t: now
-                    }
-                }
-            ];
+            return this.getPlan(entryBar, currentBar, now);
         } catch (e) {
             LOGGER.error(e);
             return null;
         }
+    }
+    getEntryPrices(entryBar: Bar): { entryLong: any; entryShort: any } {
+        return {
+            entryLong: entryBar.h + 0.01,
+            entryShort: entryBar.l - 0.01
+        };
+    }
+
+    getPlan(entryBar: Bar, currentBar: Bar, now = Date.now()) {
+        const { entryLong, entryShort } = this.getEntryPrices(entryBar);
+        const unitRisk = Math.abs(entryLong - entryShort);
+
+        const quantity = Math.ceil(TRADING_RISK_UNIT_CONSTANT / unitRisk);
+
+        if (!quantity || quantity < 0) {
+            LOGGER.error(`Expected an order for ${this.symbol} at ${now}`);
+            return null;
+        }
+
+        if (currentBar.h > entryBar.h) {
+            return {
+                plan: {
+                    plannedEntryPrice: entryLong,
+                    plannedStopPrice: entryShort,
+                    quantity,
+                    side: PositionDirection.long,
+                    symbol: this.symbol
+                },
+                config: {
+                    symbol: this.symbol,
+                    quantity,
+                    side: TradeDirection.buy,
+                    type: TradeType.stop,
+                    tif: TimeInForce.day,
+                    price: entryLong,
+                    t: now
+                }
+            };
+        } else if (currentBar.l < entryBar.l) {
+            return {
+                plan: {
+                    plannedEntryPrice: entryShort,
+                    plannedStopPrice: entryLong,
+                    quantity,
+                    side: PositionDirection.short,
+                    symbol: this.symbol
+                },
+                config: {
+                    symbol: this.symbol,
+                    quantity,
+                    side: TradeDirection.sell,
+                    type: TradeType.stop,
+                    tif: TimeInForce.day,
+                    price: entryShort,
+                    t: now
+                }
+            };
+        }
+
+        return null;
     }
 }

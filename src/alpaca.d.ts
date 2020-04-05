@@ -134,6 +134,7 @@ declare module "@alpacahq/alpaca-trade-api" {
 
     export class AlpacaStreamingClient {
         connect(): void;
+        disconnect(): void;
         subscribe(params: string[]): void;
         unsubscribe(params: string[]): void;
         onConnect(cb: () => void): void;

@@ -5,6 +5,7 @@ import { subscribeToTickLevelUpdates } from "../resources/polygon";
 import { LOGGER } from "../instrumentation/log";
 import { TickBar } from "../data/data.model";
 import { insertBar } from "../resources/stockData";
+import { isAfterMarketClose } from "../util/market";
 
 const highVolCompanies = getHighVolumeCompanies();
 
@@ -24,14 +25,6 @@ socket.onOrderUpdate(data => {
     console.log(`Order updates: ${JSON.stringify(data)}`);
 });
 
-socket.onStockAggMin((subject: string, data: string) => {
-    LOGGER.info(subject);
-    return;
-});
-socket.onStockTrades((subject: string, data: string) => {
-    LOGGER.info(subject);
-    return;
-});
 socket.onStockAggSec(async (subject: string, data: any) => {
     if (typeof data === "string") {
         data = JSON.parse(data);
@@ -55,5 +48,11 @@ socket.onStockAggSec(async (subject: string, data: any) => {
         }
     }
 });
+
+setInterval(() => {
+    if (isAfterMarketClose(Date.now())) {
+        socket.disconnect();
+    }
+}, 30000);
 
 socket.connect();
