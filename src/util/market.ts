@@ -133,7 +133,6 @@ export const getMarketCloseMillis = (now: TimestampType) => {
 export const confirmMarketOpen = (calendar: Calendar[], currentTimeEpoch: number) => {
     const dateFormat = "yyyy-MM-dd";
     const timeFormat = "HH:mm";
-    const dateTimeFormat = `${dateFormat} ${timeFormat}`;
     const currentDateString = format(currentTimeEpoch, dateFormat);
     const currentCalendarObject = calendar.find(c => c.date === currentDateString);
 

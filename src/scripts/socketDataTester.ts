@@ -16,9 +16,16 @@ const logOfTrades = createWriteStream("./tradeUpdates.log");
 socket.onConnect(() => {
     const mappedAggs = subscribeToTickLevelUpdates(highVolCompanies);
     socket.subscribe(["trade_updates", "account_updates", ...mappedAggs, "A.SPY"]);
+
+    setTimeout(() => {
+        socket.disconnect();
+    }, 5000);
 });
 socket.onStateChange(newState => {
     console.log(`State changed to ${newState}`);
+    if (newState === "disconnected") {
+        socket.reconnect();
+    }
 });
 
 socket.onOrderUpdate(data => {
