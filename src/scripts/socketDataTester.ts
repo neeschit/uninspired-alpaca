@@ -1,11 +1,10 @@
 import { createReadStream, createWriteStream } from "fs";
 import { alpaca } from "../resources/alpaca";
 import { getHighVolumeCompanies } from "../data/filters";
-import { subscribeToTickLevelUpdates } from "../resources/polygon";
+import { subscribeToTickLevelUpdates, getSocketManager } from "../resources/polygon";
 import { LOGGER } from "../instrumentation/log";
-import { TickBar } from "../data/data.model";
-import { insertBar } from "../resources/stockData";
-import { isAfterMarketClose } from "../util/market";
+import { TickBar, TradeUpdate } from "../data/data.model";
+import { insertBar, insertTrade } from "../resources/stockData";
 
 const highVolCompanies = getHighVolumeCompanies();
 
@@ -14,21 +13,28 @@ const socket = alpaca.websocket;
 const logOfTrades = createWriteStream("./tradeUpdates.log");
 
 socket.onConnect(() => {
-    const mappedAggs = subscribeToTickLevelUpdates(highVolCompanies);
-    socket.subscribe(["trade_updates", "account_updates", ...mappedAggs, "A.SPY"]);
+    const mappedAggs = subscribeToTickLevelUpdates(highVolCompanies, "AM");
+    socket.subscribe(["trade_updates", "account_updates", "AM.SPY", ...mappedAggs]);
 });
-socket.onStateChange(newState => {
-    console.log(`State changed to ${newState}`);
+socket.onStateChange((newState) => {
+    console.log(`State changed to ${newState} at ${new Date().toLocaleTimeString()}`);
     if (newState === "disconnected") {
         socket.reconnect();
     }
 });
 
-socket.onOrderUpdate(data => {
+socket.onOrderUpdate((data) => {
     console.log(`Order updates: ${JSON.stringify(data)}`);
 });
 
+socket.onStockTrades(async (subject: string, data: string) => {
+    const jsonData: TradeUpdate[] = JSON.parse(data);
+
+    await insertTrade(jsonData);
+});
+
 socket.onStockAggSec(async (subject: string, data: any) => {
+    LOGGER.info(data);
     if (typeof data === "string") {
         data = JSON.parse(data);
     }
@@ -41,7 +47,7 @@ socket.onStockAggSec(async (subject: string, data: any) => {
             c: d.c,
             a: d.a,
             t: d.s,
-            v: d.v
+            v: d.v,
         };
 
         try {
@@ -51,11 +57,5 @@ socket.onStockAggSec(async (subject: string, data: any) => {
         }
     }
 });
-
-setInterval(() => {
-    if (isAfterMarketClose(Date.now())) {
-        socket.disconnect();
-    }
-}, 30000);
 
 socket.connect();

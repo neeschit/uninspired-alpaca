@@ -10,7 +10,7 @@ import {
     TradeType,
     TimeInForce,
     PlannedTradeConfig,
-    PositionDirection
+    PositionDirection,
 } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
 import { convertToLocalTime } from "../util/date";
@@ -45,7 +45,7 @@ export class NarrowRangeBarStrategy {
         bars,
         useSimpleRange = false,
         counterTrend = false,
-        broker = alpaca
+        broker = alpaca,
     }: {
         period: number;
         symbol: string;
@@ -87,7 +87,7 @@ export class NarrowRangeBarStrategy {
         this.entryEpochTrigger = {
             hours: 9,
             minutes: 35,
-            seconds: 0
+            seconds: 0,
         };
     }
 
@@ -127,25 +127,25 @@ export class NarrowRangeBarStrategy {
                 if (range < min) {
                     return {
                         min: range,
-                        max
+                        max,
                     };
                 }
 
                 if (range > max) {
                     return {
                         min,
-                        max: range
+                        max: range,
                     };
                 }
 
                 return {
                     min,
-                    max
+                    max,
                 };
             },
             {
                 min: Number.MAX_SAFE_INTEGER,
-                max: 0
+                max: 0,
             }
         );
     }
@@ -199,7 +199,8 @@ export class NarrowRangeBarStrategy {
 
         const currentPositions = await this.broker.getPositions();
 
-        const notCurrentPosition = currentPositions.findIndex(p => p.symbol === this.symbol) === -1;
+        const notCurrentPosition =
+            currentPositions.findIndex((p) => p.symbol === this.symbol) === -1;
 
         if (!notCurrentPosition) {
             return null;
@@ -215,7 +216,7 @@ export class NarrowRangeBarStrategy {
     getEntryPrices(entryBar: Bar): { entryLong: any; entryShort: any } {
         return {
             entryLong: entryBar.h + 0.01,
-            entryShort: entryBar.l - 0.01
+            entryShort: entryBar.l - 0.01,
         };
     }
 
@@ -230,14 +231,17 @@ export class NarrowRangeBarStrategy {
             return null;
         }
 
+        const riskAtrRatio = unitRisk / this.atrValue;
+
         if (currentBar.h > entryBar.h) {
             return {
                 plan: {
                     plannedEntryPrice: entryLong,
                     plannedStopPrice: entryShort,
+                    riskAtrRatio,
                     quantity,
                     side: PositionDirection.long,
-                    symbol: this.symbol
+                    symbol: this.symbol,
                 },
                 config: {
                     symbol: this.symbol,
@@ -246,17 +250,18 @@ export class NarrowRangeBarStrategy {
                     type: TradeType.stop,
                     tif: TimeInForce.day,
                     price: entryLong,
-                    t: now
-                }
+                    t: now,
+                },
             };
         } else if (currentBar.l < entryBar.l) {
             return {
                 plan: {
                     plannedEntryPrice: entryShort,
                     plannedStopPrice: entryLong,
+                    riskAtrRatio,
                     quantity,
                     side: PositionDirection.short,
-                    symbol: this.symbol
+                    symbol: this.symbol,
                 },
                 config: {
                     symbol: this.symbol,
@@ -265,8 +270,8 @@ export class NarrowRangeBarStrategy {
                     type: TradeType.stop,
                     tif: TimeInForce.day,
                     price: entryShort,
-                    t: now
-                }
+                    t: now,
+                },
             };
         }
 

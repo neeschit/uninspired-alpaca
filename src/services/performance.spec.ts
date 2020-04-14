@@ -5,12 +5,12 @@ import {
     PositionDirection,
     TradeDirection,
     TradeType,
-    TimeInForce
+    TimeInForce,
 } from "../data/data.model";
 import { analyzeClosedPositions, getDetailedPerformanceReport } from "./performance";
 import perfReport from "../fixtures/perfReport";
 
-test.skip("assess performance at a deeper level", t => {
+test.skip("assess performance at a deeper level", (t) => {
     const insight = getDetailedPerformanceReport(perfReport);
 
     t.is(5, insight.monthly.length);
@@ -24,15 +24,15 @@ test.skip("assess performance at a deeper level", t => {
     ]); */
 });
 
-test("successful long trade report", t => {
+test("successful long trade report", (t) => {
     const position: FilledPositionConfig[] = [
         {
             symbol: "ABMD",
             originalQuantity: 1,
             hasHardStop: false,
+            riskAtrRatio: 1,
             plannedEntryPrice: 218,
             plannedStopPrice: 210,
-            plannedRiskUnits: 7.5,
             side: PositionDirection.long,
             quantity: 0,
             trades: [
@@ -46,7 +46,7 @@ test("successful long trade report", t => {
                     t: 1573137360000,
                     filledQuantity: 1,
                     averagePrice: 217.59565608986355,
-                    status: OrderStatus.filled
+                    status: OrderStatus.filled,
                 },
                 {
                     filledQuantity: 1,
@@ -58,10 +58,10 @@ test("successful long trade report", t => {
                     side: TradeDirection.sell,
                     tif: TimeInForce.day,
                     quantity: 1,
-                    t: 1573573320000
-                }
-            ]
-        }
+                    t: 1573573320000,
+                },
+            ],
+        },
     ];
 
     const performance = analyzeClosedPositions(position);
@@ -69,15 +69,15 @@ test("successful long trade report", t => {
     t.is(Math.round(performance.profit), 7);
 });
 
-test("successful long trade with partial report", t => {
+test("successful long trade with partial report", (t) => {
     const position: FilledPositionConfig[] = [
         {
             symbol: "ABMD",
             originalQuantity: 5,
             hasHardStop: false,
+            riskAtrRatio: 1,
             plannedEntryPrice: 218,
             plannedStopPrice: 210,
-            plannedRiskUnits: 7.5,
             side: PositionDirection.long,
             quantity: 0,
             trades: [
@@ -91,7 +91,7 @@ test("successful long trade with partial report", t => {
                     t: 1573137360000,
                     filledQuantity: 5,
                     averagePrice: 217.59565608986355,
-                    status: OrderStatus.filled
+                    status: OrderStatus.filled,
                 },
                 {
                     filledQuantity: 4,
@@ -103,7 +103,7 @@ test("successful long trade with partial report", t => {
                     side: TradeDirection.sell,
                     tif: TimeInForce.day,
                     quantity: 4,
-                    t: 1573573320000
+                    t: 1573573320000,
                 },
                 {
                     filledQuantity: 1,
@@ -115,10 +115,10 @@ test("successful long trade with partial report", t => {
                     side: TradeDirection.sell,
                     tif: TimeInForce.day,
                     quantity: 1,
-                    t: 1573578320000
-                }
-            ]
-        }
+                    t: 1573578320000,
+                },
+            ],
+        },
     ];
 
     const performance = analyzeClosedPositions(position);
@@ -127,15 +127,15 @@ test("successful long trade with partial report", t => {
     t.is(Math.round(performance.profit), 36);
 });
 
-test("successful long trade with failed partial report", t => {
+test("successful long trade with failed partial report", (t) => {
     const position: FilledPositionConfig[] = [
         {
             symbol: "ABMD",
             originalQuantity: 5,
             hasHardStop: false,
+            riskAtrRatio: 1,
             plannedEntryPrice: 218,
             plannedStopPrice: 210,
-            plannedRiskUnits: 7.5,
             side: PositionDirection.long,
             quantity: 0,
             trades: [
@@ -149,7 +149,7 @@ test("successful long trade with failed partial report", t => {
                     t: 1573137360000,
                     filledQuantity: 5,
                     averagePrice: 217.59565608986355,
-                    status: OrderStatus.filled
+                    status: OrderStatus.filled,
                 },
                 {
                     filledQuantity: 4,
@@ -161,7 +161,7 @@ test("successful long trade with failed partial report", t => {
                     side: TradeDirection.sell,
                     tif: TimeInForce.day,
                     quantity: 4,
-                    t: 1573573320000
+                    t: 1573573320000,
                 },
                 {
                     filledQuantity: 1,
@@ -173,10 +173,10 @@ test("successful long trade with failed partial report", t => {
                     side: TradeDirection.sell,
                     tif: TimeInForce.day,
                     quantity: 1,
-                    t: 1573578320000
-                }
-            ]
-        }
+                    t: 1573578320000,
+                },
+            ],
+        },
     ];
 
     const performance = analyzeClosedPositions(position);
@@ -185,15 +185,15 @@ test("successful long trade with failed partial report", t => {
     t.is(Math.round(performance.profit), 26);
 });
 
-test("unsuccessful long trade report", t => {
+test("unsuccessful long trade report", (t) => {
     const position: FilledPositionConfig[] = [
         {
             symbol: "ABMD",
             originalQuantity: 1,
             hasHardStop: false,
+            riskAtrRatio: 1,
             plannedEntryPrice: 218,
             plannedStopPrice: 215,
-            plannedRiskUnits: 3.5,
             side: PositionDirection.long,
             quantity: 0,
             trades: [
@@ -207,7 +207,7 @@ test("unsuccessful long trade report", t => {
                     t: 1573137360000,
                     filledQuantity: 1,
                     averagePrice: 217.59565608986355,
-                    status: OrderStatus.filled
+                    status: OrderStatus.filled,
                 },
                 {
                     filledQuantity: 1,
@@ -219,10 +219,10 @@ test("unsuccessful long trade report", t => {
                     side: TradeDirection.sell,
                     tif: TimeInForce.day,
                     quantity: 1,
-                    t: 1573573320000
-                }
-            ]
-        }
+                    t: 1573573320000,
+                },
+            ],
+        },
     ];
 
     const performance = analyzeClosedPositions(position);
@@ -231,15 +231,15 @@ test("unsuccessful long trade report", t => {
     t.is(Math.round(performance.profit), -3);
 });
 
-test("successful short trade report", t => {
+test("successful short trade report", (t) => {
     const position: FilledPositionConfig[] = [
         {
             symbol: "CVS",
             originalQuantity: 3,
             hasHardStop: false,
+            riskAtrRatio: 1,
             plannedEntryPrice: 58,
             plannedStopPrice: 61,
-            plannedRiskUnits: 3,
             side: PositionDirection.short,
             quantity: 0,
             trades: [
@@ -253,7 +253,7 @@ test("successful short trade report", t => {
                     t: 1551710160000,
                     filledQuantity: 3,
                     averagePrice: 57.93321995517123,
-                    status: OrderStatus.filled
+                    status: OrderStatus.filled,
                 },
                 {
                     filledQuantity: 3,
@@ -265,10 +265,10 @@ test("successful short trade report", t => {
                     side: TradeDirection.buy,
                     tif: TimeInForce.day,
                     quantity: 3,
-                    t: 1553521980000
-                }
-            ]
-        }
+                    t: 1553521980000,
+                },
+            ],
+        },
     ];
 
     const performance = analyzeClosedPositions(position);
@@ -277,15 +277,15 @@ test("successful short trade report", t => {
     t.is(Math.round(performance.profit), 8);
 });
 
-test("unsuccessful short trade report", t => {
+test("unsuccessful short trade report", (t) => {
     const position: FilledPositionConfig[] = [
         {
             symbol: "EIX",
             originalQuantity: 5,
             hasHardStop: false,
+            riskAtrRatio: 1,
             plannedEntryPrice: 66,
             plannedStopPrice: 68,
-            plannedRiskUnits: 2,
             side: PositionDirection.short,
             quantity: 0,
             trades: [
@@ -299,7 +299,7 @@ test("unsuccessful short trade report", t => {
                     t: 1573050960000,
                     filledQuantity: 5,
                     averagePrice: 65.93375230001038,
-                    status: OrderStatus.filled
+                    status: OrderStatus.filled,
                 },
                 {
                     filledQuantity: 5,
@@ -311,10 +311,10 @@ test("unsuccessful short trade report", t => {
                     side: TradeDirection.buy,
                     tif: TimeInForce.gtc,
                     quantity: 5,
-                    t: 1573661100000
-                }
-            ]
-        }
+                    t: 1573661100000,
+                },
+            ],
+        },
     ];
 
     const performance = analyzeClosedPositions(position);
@@ -323,15 +323,15 @@ test("unsuccessful short trade report", t => {
     t.is(Math.round(performance.profit), -11);
 });
 
-test("successful list of 8 positions", t => {
+test("successful list of 8 positions", (t) => {
     const positions: FilledPositionConfig[] = [
         {
             symbol: "HON",
             originalQuantity: 6,
             hasHardStop: false,
+            riskAtrRatio: 1,
             plannedEntryPrice: 154.5,
             plannedStopPrice: 153,
-            plannedRiskUnits: 2,
             side: PositionDirection.long,
             quantity: 0,
             trades: [
@@ -345,7 +345,7 @@ test("successful list of 8 positions", t => {
                     t: 1551450960000,
                     filledQuantity: 6,
                     averagePrice: 155.077487821752,
-                    status: OrderStatus.filled
+                    status: OrderStatus.filled,
                 },
                 {
                     filledQuantity: 5,
@@ -357,7 +357,7 @@ test("successful list of 8 positions", t => {
                     side: TradeDirection.sell,
                     tif: TimeInForce.day,
                     quantity: 5,
-                    t: 1551709860000
+                    t: 1551709860000,
                 },
                 {
                     filledQuantity: 1,
@@ -369,17 +369,17 @@ test("successful list of 8 positions", t => {
                     side: TradeDirection.sell,
                     tif: TimeInForce.gtc,
                     quantity: 1,
-                    t: 1551969660000
-                }
-            ]
+                    t: 1551969660000,
+                },
+            ],
         },
         {
             symbol: "ECL",
             originalQuantity: 4,
             hasHardStop: false,
+            riskAtrRatio: 1,
             plannedEntryPrice: 169.5,
             plannedStopPrice: 167,
-            plannedRiskUnits: 3,
             side: PositionDirection.long,
             quantity: 0,
             trades: [
@@ -393,7 +393,7 @@ test("successful list of 8 positions", t => {
                     t: 1551450960000,
                     filledQuantity: 4,
                     averagePrice: 170.0411909780172,
-                    status: OrderStatus.filled
+                    status: OrderStatus.filled,
                 },
                 {
                     filledQuantity: 3,
@@ -405,7 +405,7 @@ test("successful list of 8 positions", t => {
                     side: TradeDirection.sell,
                     tif: TimeInForce.day,
                     quantity: 3,
-                    t: 1552483860000
+                    t: 1552483860000,
                 },
                 {
                     filledQuantity: 1,
@@ -417,10 +417,10 @@ test("successful list of 8 positions", t => {
                     side: TradeDirection.sell,
                     tif: TimeInForce.gtc,
                     quantity: 1,
-                    t: 1552938180000
-                }
-            ]
-        }
+                    t: 1552938180000,
+                },
+            ],
+        },
     ];
     const performance = analyzeClosedPositions(positions);
 

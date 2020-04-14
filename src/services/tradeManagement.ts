@@ -8,7 +8,7 @@ import {
     PositionDirection,
     TradeDirection,
     TimeInForce,
-    OrderStatus
+    OrderStatus,
 } from "../data/data.model";
 import { alpaca } from "../resources/alpaca";
 import { AlpacaOrder, AlpacaTradeConfig, Broker } from "@alpacahq/alpaca-trade-api";
@@ -39,7 +39,7 @@ export const processOrderFromStrategy = (order: TradeConfig): AlpacaTradeConfig 
         order_class: "simple",
         type,
         side,
-        extended_hours: false
+        extended_hours: false,
     };
 
     if (type === TradeType.limit || type === TradeType.stop_limit) {
@@ -74,7 +74,7 @@ export const rebalancePosition = async (
         plannedEntryPrice,
         side: positionSide,
         quantity,
-        averageEntryPrice
+        averageEntryPrice,
     } = position;
 
     if (!quantity || quantity < 0) {
@@ -99,7 +99,7 @@ export const rebalancePosition = async (
             side: closingOrderSide,
             tif: TimeInForce.gtc,
             quantity: quantity,
-            t
+            t,
         };
     } else if (currentBar.c > plannedStopPrice && positionSide === PositionDirection.short) {
         return {
@@ -109,7 +109,7 @@ export const rebalancePosition = async (
             side: closingOrderSide,
             tif: TimeInForce.gtc,
             quantity: quantity,
-            t
+            t,
         };
     }
 
@@ -128,7 +128,7 @@ export const rebalancePosition = async (
             side: closingOrderSide,
             tif: TimeInForce.gtc,
             quantity,
-            t
+            t,
         };
     }
 
@@ -145,7 +145,7 @@ export const orderToLiquidatePosition = (position: FilledPositionConfig): TradeC
         price: 0,
         tif: TimeInForce.day,
         symbol,
-        t: Date.now()
+        t: Date.now(),
     };
 };
 
@@ -162,7 +162,7 @@ export class TradeManagement {
         this.position = {
             plannedEntryPrice: plan.plannedEntryPrice,
             plannedStopPrice: plan.plannedStopPrice,
-            symbol: config.symbol
+            symbol: config.symbol,
         } as PositionConfig;
     }
 
@@ -208,10 +208,9 @@ export class TradeManagement {
 
         this.position = {
             ...this.plan,
-            plannedRiskUnits: Math.abs(this.plan.plannedEntryPrice - this.plan.plannedStopPrice),
             hasHardStop: false,
             originalQuantity: this.plan.quantity,
-            quantity: Number(position.qty)
+            quantity: Number(position.qty),
         };
 
         return this.position;
@@ -223,9 +222,8 @@ export class TradeManagement {
             ...this.plan,
             symbol: order.symbol,
             quantity: order.filled_qty,
-            plannedRiskUnits: Math.abs(this.plan.plannedEntryPrice - this.plan.plannedStopPrice),
             hasHardStop: false,
-            originalQuantity: order.filled_qty
+            originalQuantity: order.filled_qty,
         };
 
         this.filledPosition = Object.assign(this.position, {
@@ -236,10 +234,10 @@ export class TradeManagement {
                     symbol,
                     averagePrice: order.filled_avg_price,
                     filledQuantity: order.filled_qty,
-                    status
-                }
+                    status,
+                },
             ],
-            averageEntryPrice: order.filled_avg_price
+            averageEntryPrice: order.filled_avg_price,
         });
 
         return this.filledPosition;
@@ -264,7 +262,7 @@ export class TradeManagement {
                     side: this.position.side,
                     quantity: Number(this.filledPosition.trades[0].filledQuantity),
                     ...this.plan,
-                    originalQuantity: this.plan.quantity
+                    originalQuantity: this.plan.quantity,
                 },
                 bar,
                 this.partialProfitRatio,

@@ -3,7 +3,7 @@ import {
     TradeConfig,
     FilledPositionConfig,
     FilledTradeConfig,
-    PlannedTradeConfig
+    PlannedTradeConfig,
 } from "../data/data.model";
 import { TradeDirection, PositionDirection, OrderStatus, TradeType } from "../data/data.model";
 import { formatInEasternTimeForDisplay } from "../util/date";
@@ -16,7 +16,7 @@ import {
     AlpacaPosition,
     GetAssetsParams,
     Asset,
-    Calendar
+    Calendar,
 } from "@alpacahq/alpaca-trade-api";
 import { alpaca } from "../resources/alpaca";
 import { TradeManagement, isClosingOrder } from "./tradeManagement";
@@ -32,7 +32,7 @@ export const liquidatePosition = (
         filledQuantity: position.quantity,
         symbol: symbol,
         averagePrice: bar.c,
-        status: OrderStatus.filled
+        status: OrderStatus.filled,
     };
 
     position.trades.push({
@@ -46,7 +46,7 @@ export const liquidatePosition = (
         t: Date.now(),
         filledQuantity: order.filledQuantity,
         status: order.status,
-        averagePrice: order.averagePrice
+        averagePrice: order.averagePrice,
     });
 
     position.quantity -= order.filledQuantity;
@@ -79,9 +79,8 @@ export const executeSingleTrade = (
             plannedEntryPrice,
             plannedStopPrice: exit,
             plannedQuantity: tradePlan.quantity,
-            plannedRiskUnits: Math.abs(tradePlan.price - exit),
             side: side,
-            quantity: tradePlan.quantity
+            quantity: tradePlan.quantity,
         };
 
         if (bar.h > tradePlan.price && tradePlan.side === TradeDirection.buy) {
@@ -89,36 +88,38 @@ export const executeSingleTrade = (
                 filledQuantity: tradePlan.quantity,
                 symbol: symbol,
                 averagePrice: plannedEntryPrice + 0.01,
-                status: OrderStatus.filled
+                status: OrderStatus.filled,
             };
 
             return {
                 ...unfilledPosition,
                 averageEntryPrice: order.averagePrice,
+                riskAtrRatio: 1,
                 trades: [
                     {
                         ...tradePlan,
-                        ...order
-                    }
-                ]
+                        ...order,
+                    },
+                ],
             };
         } else if (bar.l < tradePlan.price && tradePlan.side === TradeDirection.sell) {
             const order = {
                 filledQuantity: tradePlan.quantity,
                 symbol: symbol,
                 averagePrice: plannedEntryPrice - 0.01,
-                status: OrderStatus.filled
+                status: OrderStatus.filled,
             };
 
             return {
                 ...unfilledPosition,
                 averageEntryPrice: order.averagePrice,
+                riskAtrRatio: 1,
                 trades: [
                     {
                         ...tradePlan,
-                        ...order
-                    }
-                ]
+                        ...order,
+                    },
+                ],
             };
         }
 
@@ -133,7 +134,7 @@ export const executeSingleTrade = (
                 filledQuantity: tradePlan.quantity,
                 symbol: symbol,
                 averagePrice: bar.h + 0.01,
-                status: OrderStatus.filled
+                status: OrderStatus.filled,
             };
 
             position.trades.push({
@@ -141,7 +142,7 @@ export const executeSingleTrade = (
                 ...tradePlan,
                 filledQuantity: order.filledQuantity,
                 status: order.status,
-                averagePrice: order.averagePrice
+                averagePrice: order.averagePrice,
             });
             position.quantity -= order.filledQuantity;
 
@@ -151,7 +152,7 @@ export const executeSingleTrade = (
                 filledQuantity: tradePlan.quantity,
                 symbol: symbol,
                 averagePrice: bar.l - 0.01,
-                status: OrderStatus.filled
+                status: OrderStatus.filled,
             };
 
             position.trades.push({
@@ -159,7 +160,7 @@ export const executeSingleTrade = (
                 ...tradePlan,
                 filledQuantity: order.filledQuantity,
                 status: order.status,
-                averagePrice: order.averagePrice
+                averagePrice: order.averagePrice,
             });
             position.quantity -= order.filledQuantity;
 
@@ -192,7 +193,7 @@ export const mapPendingOrder = (c: PlannedTradeConfig) => {
         stop_price: c.config.stopPrice || c.config.price,
         filled_avg_price: 0,
         status: OrderStatus.new,
-        extended_hours: false
+        extended_hours: false,
     };
 };
 
@@ -215,10 +216,10 @@ export class MockBroker implements Broker {
         return true;
     }
     async getOrders(params: GetOrdersParams): Promise<AlpacaOrder[]> {
-        return this.pendingTradeConfigs.map(c => mapPendingOrder(c));
+        return this.pendingTradeConfigs.map((c) => mapPendingOrder(c));
     }
     async getPositions(): Promise<AlpacaPosition[]> {
-        return this.currentPositionConfigs.map(p => ({
+        return this.currentPositionConfigs.map((p) => ({
             asset_id: "string",
             symbol: p.symbol,
             exchange: "string",
@@ -234,7 +235,7 @@ export class MockBroker implements Broker {
             unrealized_intraday_plpc: "string",
             current_price: "string",
             lastday_price: "string",
-            change_today: "string"
+            change_today: "string",
         }));
     }
     async getPosition(symbol: string): Promise<AlpacaPosition> {
@@ -273,14 +274,14 @@ export class MockBroker implements Broker {
         if (position) {
             this.currentPositionConfigs.push(position);
             this.pendingTradeConfigs = this.pendingTradeConfigs.filter(
-                c => c.plan.symbol !== symbol
+                (c) => c.plan.symbol !== symbol
             );
             this.pastTradeConfigs.push({
                 ...trade.config,
                 filledQuantity: position.trades[position.trades.length - 1].quantity,
                 averagePrice: position.trades[position.trades.length - 1].price,
                 status: position.trades[position.trades.length - 1].status,
-                estString: formatInEasternTimeForDisplay(trade.config.t)
+                estString: formatInEasternTimeForDisplay(trade.config.t),
             });
 
             return position;
@@ -325,7 +326,7 @@ export class MockBroker implements Broker {
             ...tradeConfig,
             averagePrice: executedClose.trades[executedClose.trades.length - 1].price,
             filledQuantity: executedClose.trades[executedClose.trades.length - 1].quantity,
-            status: executedClose.trades[executedClose.trades.length - 1].status
+            status: executedClose.trades[executedClose.trades.length - 1].status,
         });
 
         const isClosing = isClosingOrder(manager.filledPosition, tradeConfig);
@@ -340,7 +341,7 @@ export class MockBroker implements Broker {
             this.pastPositionConfigs.push(executedClose);
 
             this.currentPositionConfigs = this.currentPositionConfigs.filter(
-                p => p.symbol !== tradeConfig.symbol
+                (p) => p.symbol !== tradeConfig.symbol
             );
         }
 
@@ -365,14 +366,14 @@ function executeMarkerOrder(
         filledQuantity: tradePlan.quantity,
         symbol: symbol,
         averagePrice: bar.c,
-        status: OrderStatus.filled
+        status: OrderStatus.filled,
     };
     position.trades.push({
         /* order, */
         ...tradePlan,
         filledQuantity: order.filledQuantity,
         status: order.status,
-        averagePrice: order.averagePrice
+        averagePrice: order.averagePrice,
     });
     position.quantity -= order.filledQuantity;
     return position;

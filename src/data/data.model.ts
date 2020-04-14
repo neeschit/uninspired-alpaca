@@ -2,19 +2,19 @@ export const MarketTimezone = "America/New_York";
 
 export enum TradeDirection {
     buy = "buy",
-    sell = "sell"
+    sell = "sell",
 }
 
 export enum PositionDirection {
     long = "long",
-    short = "short"
+    short = "short",
 }
 
 export enum TradeType {
     market = "market",
     limit = "limit",
     stop = "stop",
-    stop_limit = "stop_limit"
+    stop_limit = "stop_limit",
 }
 
 export enum TimeInForce {
@@ -23,7 +23,7 @@ export enum TimeInForce {
     opg = "opg",
     cls = "cls",
     ioc = "ioc",
-    fok = "fok"
+    fok = "fok",
 }
 export enum OrderStatus {
     new = "new",
@@ -33,7 +33,7 @@ export enum OrderStatus {
     expired = "expired",
     pending_cancel = "pending_cancel",
     pending_replace = "pending_replace",
-    done_for_day = "done_for_day"
+    done_for_day = "done_for_day",
 }
 
 export type TimestampType = number | Date;
@@ -54,13 +54,13 @@ export interface TickBar extends Omit<Bar, "n"> {
 export enum PeriodType {
     day = "day",
     hour = "hour",
-    minute = "minute"
+    minute = "minute",
 }
 
 export enum DefaultDuration {
     fifteen = "15",
     five = "5",
-    one = "1"
+    one = "1",
 }
 
 export interface SymbolContainingConfig {
@@ -70,6 +70,7 @@ export interface SymbolContainingConfig {
 export interface TradePlan extends SymbolContainingConfig {
     plannedStopPrice: number;
     plannedEntryPrice: number;
+    riskAtrRatio: number;
     quantity: number;
     side: PositionDirection;
 }
@@ -97,7 +98,6 @@ export interface FilledTradeConfig extends TradeConfig {
 }
 
 export interface PositionConfig extends TradePlan {
-    plannedRiskUnits: number;
     hasHardStop: boolean;
     originalQuantity: number;
 }
@@ -116,4 +116,15 @@ export interface Order {
     filledQuantity: number;
     averagePrice: number;
     status: OrderStatus;
+}
+
+export interface TradeUpdate {
+    sym: string;
+    i: number;
+    x: number;
+    p: number;
+    s: number;
+    t: number;
+    z: number;
+    c: number[];
 }

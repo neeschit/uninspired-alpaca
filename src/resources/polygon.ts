@@ -43,7 +43,7 @@ export const getPolyonData = (
             LOGGER.debug(url);
         }
         return {
-            [symbol]: response.results
+            [symbol]: response.results,
         };
     });
 };
@@ -76,13 +76,13 @@ export const getSymbolDataGenerator = (
     startDate: Date,
     endDate: Date
 ) => {
-    return async function*() {
+    return async function* () {
         for (const symbol of symbols) {
             const bars = await getSimplePolygonData(symbol, startDate, endDate, period, duration);
 
             yield {
                 bars,
-                symbol
+                symbol,
             };
         }
     };
@@ -101,17 +101,17 @@ export const getSymbolDataPromises = async (
 
         allBars.push({
             bars,
-            symbol
+            symbol,
         });
     }
 
-    const screenerBarsPromises = allBars.map(r => r.bars);
+    const screenerBarsPromises = allBars.map((r) => r.bars);
 
     const screenerBars = await Promise.all(screenerBarsPromises);
 
     return screenerBars.map((b, index) => ({
         bars: b,
-        symbol: allBars[index].symbol
+        symbol: allBars[index].symbol,
     }));
 };
 
@@ -119,7 +119,7 @@ export const subscribeToTickLevelUpdates = (
     symbols: string[],
     updateType: "A" | "AM" | "T" | "Q" = "A"
 ) => {
-    return symbols.map(s => `${updateType}.${s}`);
+    return symbols.map((s) => `${updateType}.${s}`);
 };
 
 export interface PolygonTradeUpdate {
@@ -137,3 +137,107 @@ export interface PolygonTradeUpdate {
     s: number;
     e: number;
 }
+
+const wssUrl = "wss://alpaca.socket.polygon.io/stocks";
+
+const getWebsocketServer = () => {
+    const wssServer = new WebSocket(wssUrl);
+
+    wssServer.once("open", () => {
+        wssServer.send(
+            JSON.stringify({
+                action: "auth",
+                params: API_KEY,
+            })
+        );
+    });
+
+    return wssServer;
+};
+
+class SocketManager {
+    private serverInstance?: WebSocket;
+    private emitter: EventEmitter = new EventEmitter();
+    private isConnected: boolean = false;
+    private symbolsSubscribedTo = [];
+
+    get server() {
+        if (this.serverInstance) {
+            return this.emitter;
+        }
+
+        this.serverInstance = getWebsocketServer();
+
+        this.serverInstance.on("message", (message: WebSocket.Data) => {
+            const messageJSON = JSON.parse(message.toString() || "[{}]")[0];
+
+            if (messageJSON.ev === "status") {
+                this.processStatusMessage(messageJSON);
+            } else if (messageJSON.ev === "A") {
+                this.processAggregatedSecond(messageJSON);
+            } else if (messageJSON.ev === "AM") {
+                this.processAggregatedSecond(messageJSON);
+            } else {
+                LOGGER.info(messageJSON);
+                this.emitter.emit("message", messageJSON);
+            }
+        });
+        this.serverInstance.on("close", () => {
+            this.emitter.emit("close");
+        });
+        return this.emitter;
+    }
+
+    processStatusMessage({ ev, status, message }: { ev: string; status: string; message: string }) {
+        if (status === "auth_success" && !this.isConnected) {
+            this.emitter.emit("auth");
+            this.isConnected = true;
+        }
+        if (status === "success") {
+            // subscribed to: A.PSX
+            if (message.indexOf("subscribed to") === -1) {
+                LOGGER.info(message);
+            }
+        } else {
+            LOGGER.info(arguments);
+        }
+    }
+
+    processAggregatedSecond(params: PolygonTradeUpdate) {
+        this.emitter.emit("tick_update", params);
+    }
+
+    processAggregatedMinute(params: PolygonTradeUpdate) {
+        this.emitter.emit("minute_update", params);
+    }
+
+    subscribeToTickLevelUpdates(symbols: string[], updateType: "A" | "AM" | "T" | "Q" = "A") {
+        LOGGER.info("subbing");
+        for (const symbol of symbols) {
+            this.serverInstance?.send(
+                JSON.stringify({
+                    action: "subscribe",
+                    params: `${updateType}.${symbol}`,
+                })
+            );
+        }
+    }
+
+    close() {
+        if (!this.serverInstance) {
+            return;
+        }
+
+        this.serverInstance.close();
+    }
+}
+
+let polygonSocketManager: SocketManager;
+
+export const getSocketManager = () => {
+    if (!polygonSocketManager) {
+        polygonSocketManager = new SocketManager();
+    }
+
+    return polygonSocketManager;
+};

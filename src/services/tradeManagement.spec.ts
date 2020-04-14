@@ -5,11 +5,11 @@ import {
     TradeDirection,
     TimeInForce,
     PositionDirection,
-    OrderStatus
+    OrderStatus,
 } from "../data/data.model";
 const symbol = "AAPL";
 
-test("processOrderFromStrategy - simple mapping", t => {
+test("processOrderFromStrategy - simple mapping", (t) => {
     t.deepEqual(
         processOrderFromStrategy({
             symbol,
@@ -18,7 +18,7 @@ test("processOrderFromStrategy - simple mapping", t => {
             side: TradeDirection.buy,
             tif: TimeInForce.gtc,
             quantity: 100,
-            t: 0
+            t: 0,
         }),
         {
             symbol,
@@ -27,12 +27,12 @@ test("processOrderFromStrategy - simple mapping", t => {
             side: TradeDirection.buy,
             qty: 100,
             extended_hours: false,
-            order_class: "simple"
+            order_class: "simple",
         }
     );
 });
 
-test("processOrderFromStrategy - map stop", t => {
+test("processOrderFromStrategy - map stop", (t) => {
     t.deepEqual(
         processOrderFromStrategy({
             symbol,
@@ -41,7 +41,7 @@ test("processOrderFromStrategy - map stop", t => {
             side: TradeDirection.buy,
             tif: TimeInForce.gtc,
             quantity: 100,
-            t: 0
+            t: 0,
         }),
         {
             symbol,
@@ -51,12 +51,12 @@ test("processOrderFromStrategy - map stop", t => {
             qty: 100,
             stop_price: 10,
             extended_hours: false,
-            order_class: "simple"
+            order_class: "simple",
         }
     );
 });
 
-test("processOrderFromStrategy - map limit", t => {
+test("processOrderFromStrategy - map limit", (t) => {
     t.deepEqual(
         processOrderFromStrategy({
             symbol,
@@ -65,7 +65,7 @@ test("processOrderFromStrategy - map limit", t => {
             side: TradeDirection.buy,
             tif: TimeInForce.gtc,
             quantity: 100,
-            t: 0
+            t: 0,
         }),
         {
             symbol,
@@ -75,12 +75,12 @@ test("processOrderFromStrategy - map limit", t => {
             qty: 100,
             limit_price: 10,
             extended_hours: false,
-            order_class: "simple"
+            order_class: "simple",
         }
     );
 });
 
-test("processOrderFromStrategy - map limit short", t => {
+test("processOrderFromStrategy - map limit short", (t) => {
     t.deepEqual(
         processOrderFromStrategy({
             symbol,
@@ -89,7 +89,7 @@ test("processOrderFromStrategy - map limit short", t => {
             side: TradeDirection.sell,
             tif: TimeInForce.gtc,
             quantity: 100,
-            t: 0
+            t: 0,
         }),
         {
             symbol,
@@ -99,12 +99,12 @@ test("processOrderFromStrategy - map limit short", t => {
             qty: 100,
             limit_price: 10,
             extended_hours: false,
-            order_class: "simple"
+            order_class: "simple",
         }
     );
 });
 
-test("processOrderFromStrategy - map stop_limit", t => {
+test("processOrderFromStrategy - map stop_limit", (t) => {
     t.deepEqual(
         processOrderFromStrategy({
             symbol,
@@ -114,7 +114,7 @@ test("processOrderFromStrategy - map stop_limit", t => {
             side: TradeDirection.buy,
             tif: TimeInForce.gtc,
             quantity: 100,
-            t: 0
+            t: 0,
         }),
         {
             symbol,
@@ -125,12 +125,12 @@ test("processOrderFromStrategy - map stop_limit", t => {
             limit_price: 10,
             stop_price: 8,
             extended_hours: false,
-            order_class: "simple"
+            order_class: "simple",
         }
     );
 });
 
-test("processOrderFromStrategy - map stop_limit for shorts", t => {
+test("processOrderFromStrategy - map stop_limit for shorts", (t) => {
     t.deepEqual(
         processOrderFromStrategy({
             symbol,
@@ -140,7 +140,7 @@ test("processOrderFromStrategy - map stop_limit for shorts", t => {
             side: TradeDirection.sell,
             tif: TimeInForce.gtc,
             quantity: 100,
-            t: 0
+            t: 0,
         }),
         {
             symbol,
@@ -151,17 +151,17 @@ test("processOrderFromStrategy - map stop_limit for shorts", t => {
             limit_price: 10,
             stop_price: 11,
             extended_hours: false,
-            order_class: "simple"
+            order_class: "simple",
         }
     );
 });
 
-test("rebalancePosition - simple stop", async t => {
+test("rebalancePosition - simple stop", async (t) => {
     const orderDefinition = {
         symbol,
         status: OrderStatus.filled,
         filledQuantity: 200,
-        averagePrice: 200.06
+        averagePrice: 200.06,
     };
 
     const order = await rebalancePosition(
@@ -172,7 +172,7 @@ test("rebalancePosition - simple stop", async t => {
             quantity: 200,
             side: PositionDirection.long,
             originalQuantity: 200,
-            averageEntryPrice: orderDefinition.averagePrice
+            averageEntryPrice: orderDefinition.averagePrice,
         },
         {
             c: 189.91,
@@ -180,7 +180,7 @@ test("rebalancePosition - simple stop", async t => {
             l: 189.3,
             v: 30000,
             o: 190.4,
-            t: 0
+            t: 0,
         },
         0.9
     );
@@ -192,16 +192,16 @@ test("rebalancePosition - simple stop", async t => {
         type: TradeType.market,
         quantity: 200,
         side: TradeDirection.sell,
-        t: order!.t
+        t: order!.t,
     });
 });
 
-test("rebalancePosition - simple stop for a short", async t => {
+test("rebalancePosition - simple stop for a short", async (t) => {
     const orderDefinition = {
         symbol,
         status: OrderStatus.filled,
         filledQuantity: 200,
-        averagePrice: 189.96
+        averagePrice: 189.96,
     };
 
     const order = await rebalancePosition(
@@ -212,7 +212,7 @@ test("rebalancePosition - simple stop for a short", async t => {
             quantity: 200,
             side: PositionDirection.short,
             originalQuantity: 200,
-            averageEntryPrice: orderDefinition.averagePrice
+            averageEntryPrice: orderDefinition.averagePrice,
         },
         {
             c: 200.01,
@@ -220,7 +220,7 @@ test("rebalancePosition - simple stop for a short", async t => {
             l: 199.3,
             v: 30000,
             o: 199.4,
-            t: 0
+            t: 0,
         },
         0.9
     );
@@ -232,16 +232,16 @@ test("rebalancePosition - simple stop for a short", async t => {
         type: TradeType.market,
         quantity: 200,
         side: TradeDirection.buy,
-        t: order!.t
+        t: order!.t,
     });
 });
 
-test("rebalancePosition - nothing to do for a short", async t => {
+test("rebalancePosition - nothing to do for a short", async (t) => {
     const orderDefinition = {
         symbol,
         status: OrderStatus.filled,
         filledQuantity: 200,
-        averagePrice: 189.96
+        averagePrice: 189.96,
     };
 
     const order = await rebalancePosition(
@@ -251,7 +251,7 @@ test("rebalancePosition - nothing to do for a short", async t => {
             plannedStopPrice: 200,
             quantity: 200,
             side: PositionDirection.short,
-            originalQuantity: 200
+            originalQuantity: 200,
         },
         {
             c: 199.01,
@@ -259,7 +259,7 @@ test("rebalancePosition - nothing to do for a short", async t => {
             l: 198.3,
             v: 30000,
             o: 199.4,
-            t: 0
+            t: 0,
         },
         0.9
     );
@@ -267,12 +267,12 @@ test("rebalancePosition - nothing to do for a short", async t => {
     t.deepEqual(order, null);
 });
 
-test("rebalancePosition - simple partial", async t => {
+test("rebalancePosition - simple partial", async (t) => {
     const orderDefinition = {
         symbol,
         status: OrderStatus.filled,
         filledQuantity: 200,
-        averagePrice: 200.06
+        averagePrice: 200.06,
     };
     const order = await rebalancePosition(
         {
@@ -282,7 +282,7 @@ test("rebalancePosition - simple partial", async t => {
             quantity: 200,
             side: PositionDirection.long,
             originalQuantity: 200,
-            averageEntryPrice: orderDefinition.averagePrice
+            averageEntryPrice: orderDefinition.averagePrice,
         },
         {
             c: 209.5,
@@ -290,7 +290,7 @@ test("rebalancePosition - simple partial", async t => {
             l: 209.3,
             v: 30000,
             o: 209.4,
-            t: 0
+            t: 0,
         },
         0.9
     );
@@ -302,16 +302,16 @@ test("rebalancePosition - simple partial", async t => {
         type: TradeType.market,
         quantity: 200,
         side: TradeDirection.sell,
-        t: order!.t
+        t: order!.t,
     });
 });
 
-test("rebalancePosition - simple partial for a short", async t => {
+test("rebalancePosition - simple partial for a short", async (t) => {
     const orderDefinition = {
         filledQuantity: 5,
         symbol,
         averagePrice: 25.489154629747794,
-        status: OrderStatus.filled
+        status: OrderStatus.filled,
     };
 
     const order = await rebalancePosition(
@@ -322,7 +322,7 @@ test("rebalancePosition - simple partial for a short", async t => {
             quantity: 5,
             side: PositionDirection.short,
             originalQuantity: 5,
-            averageEntryPrice: orderDefinition.averagePrice
+            averageEntryPrice: orderDefinition.averagePrice,
         },
         {
             c: 27.5,
@@ -330,7 +330,7 @@ test("rebalancePosition - simple partial for a short", async t => {
             l: 26.3,
             v: 30000,
             o: 26.4,
-            t: 0
+            t: 0,
         },
         0.9
     );
@@ -342,16 +342,16 @@ test("rebalancePosition - simple partial for a short", async t => {
         type: TradeType.market,
         quantity: 5,
         side: TradeDirection.buy,
-        t: order!.t
+        t: order!.t,
     });
 });
 
-test("rebalancePosition - close position after partial", async t => {
+test("rebalancePosition - close position after partial", async (t) => {
     const orderDefinition = {
         symbol,
         status: OrderStatus.filled,
         filledQuantity: 200,
-        averagePrice: 200.06
+        averagePrice: 200.06,
     };
     const order = await rebalancePosition(
         {
@@ -361,7 +361,7 @@ test("rebalancePosition - close position after partial", async t => {
             quantity: 50,
             side: PositionDirection.long,
             originalQuantity: 200,
-            averageEntryPrice: orderDefinition.averagePrice
+            averageEntryPrice: orderDefinition.averagePrice,
         },
         {
             c: 189.91,
@@ -369,7 +369,7 @@ test("rebalancePosition - close position after partial", async t => {
             l: 189.3,
             v: 30000,
             o: 190.4,
-            t: 0
+            t: 0,
         },
         0.9
     );
@@ -381,16 +381,16 @@ test("rebalancePosition - close position after partial", async t => {
         type: TradeType.market,
         quantity: 50,
         side: TradeDirection.sell,
-        t: order!.t
+        t: order!.t,
     });
 });
 
-test("trade management - init and recordOnceUpdateReceived", t => {
+test("trade management - init and recordOnceUpdateReceived", (t) => {
     const orderDefinition = {
         symbol,
         status: OrderStatus.partial_fill,
         filledQuantity: 150,
-        averagePrice: 200.06
+        averagePrice: 200.06,
     };
     const manager = new TradeManagement(
         {
@@ -400,14 +400,15 @@ test("trade management - init and recordOnceUpdateReceived", t => {
             tif: TimeInForce.day,
             price: 200,
             quantity: 200,
-            t: Date.now()
+            t: Date.now(),
         },
         {
             plannedEntryPrice: 200,
+            riskAtrRatio: 1,
             plannedStopPrice: 190,
             symbol,
             quantity: 200,
-            side: PositionDirection.long
+            side: PositionDirection.long,
         },
         0.9
     );
@@ -434,7 +435,7 @@ test("trade management - init and recordOnceUpdateReceived", t => {
         limit_price: 200,
         stop_price: 190,
         filled_avg_price: 200.06,
-        extended_hours: false
+        extended_hours: false,
     });
 
     t.deepEqual(filledPositionConfig, {
@@ -444,6 +445,7 @@ test("trade management - init and recordOnceUpdateReceived", t => {
         plannedStopPrice: 190,
         plannedEntryPrice: 200,
         originalQuantity: 150,
+        riskAtrRatio: 1,
         side: PositionDirection.long,
         quantity: 150,
         trades: [
@@ -457,14 +459,13 @@ test("trade management - init and recordOnceUpdateReceived", t => {
                 symbol: "AAPL",
                 t: filledPositionConfig.trades[0].t,
                 tif: TimeInForce.day,
-                type: TradeType.stop
-            }
+                type: TradeType.stop,
+            },
         ],
-        plannedRiskUnits: 10
     });
 });
 
-test.skip("trade management - handle trade update - empty fill", async t => {
+test.skip("trade management - handle trade update - empty fill", async (t) => {
     const manager = new TradeManagement(
         {
             symbol,
@@ -473,14 +474,15 @@ test.skip("trade management - handle trade update - empty fill", async t => {
             tif: TimeInForce.gtc,
             price: 200,
             quantity: 200,
-            t: Date.now()
+            t: Date.now(),
         },
         {
             plannedEntryPrice: 200,
             plannedStopPrice: 190,
             symbol,
+            riskAtrRatio: 1,
             quantity: 200,
-            side: PositionDirection.long
+            side: PositionDirection.long,
         },
         0.9
     );
@@ -490,10 +492,10 @@ test.skip("trade management - handle trade update - empty fill", async t => {
         symbol,
         plannedStopPrice: 190,
         plannedEntryPrice: 200,
+        riskAtrRatio: 1,
         originalQuantity: 150,
         side: PositionDirection.long,
         quantity: 150,
-        plannedRiskUnits: 10
     };
 
     manager.filledPosition = Object.assign(
@@ -504,9 +506,9 @@ test.skip("trade management - handle trade update - empty fill", async t => {
                     status: OrderStatus.partial_fill,
                     averagePrice: 200.06,
                     filledQuantity: 0,
-                    ...manager.config
-                }
-            ]
+                    ...manager.config,
+                },
+            ],
         },
         manager.position
     );
@@ -519,12 +521,12 @@ test.skip("trade management - handle trade update - empty fill", async t => {
             l: 189.3,
             v: 30000,
             o: 190.4,
-            t: Date.now()
+            t: Date.now(),
         })
     );
 });
 
-test("trade management - handle trade update - non empty fill", t => {
+test("trade management - handle trade update - non empty fill", (t) => {
     const manager = new TradeManagement(
         {
             symbol,
@@ -533,14 +535,15 @@ test("trade management - handle trade update - non empty fill", t => {
             tif: TimeInForce.gtc,
             price: 200,
             quantity: 200,
-            t: Date.now()
+            t: Date.now(),
         },
         {
             plannedEntryPrice: 200,
             plannedStopPrice: 190,
+            riskAtrRatio: 1,
             symbol,
             quantity: 200,
-            side: PositionDirection.long
+            side: PositionDirection.long,
         },
         0.9
     );
@@ -550,10 +553,10 @@ test("trade management - handle trade update - non empty fill", t => {
         symbol,
         plannedStopPrice: 190,
         plannedEntryPrice: 200,
+        riskAtrRatio: 1,
         originalQuantity: 150,
         side: PositionDirection.long,
         quantity: 150,
-        plannedRiskUnits: 10
     };
 
     manager.filledPosition = Object.assign(
@@ -563,9 +566,9 @@ test("trade management - handle trade update - non empty fill", t => {
                     status: OrderStatus.partial_fill,
                     averagePrice: 200.06,
                     filledQuantity: 10,
-                    ...manager.config
-                }
-            ]
+                    ...manager.config,
+                },
+            ],
         },
         manager.position
     );
@@ -577,7 +580,7 @@ test("trade management - handle trade update - non empty fill", t => {
             l: 189.3,
             v: 30000,
             o: 190.4,
-            t: Date.now()
+            t: Date.now(),
         })
     );
 });
