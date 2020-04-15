@@ -2,10 +2,7 @@ import {
     checkIfTableExistsForSymbol,
     createStorageTables,
     createMetadataTables,
-    insertBar,
     dropStorageTables,
-    createAggregatedDataTableForSymbol,
-    createTradeDataTableForSymbol,
 } from "../resources/stockData";
 import { LOGGER } from "../instrumentation/log";
 import { endPooledConnection } from "../connection/pg";
@@ -22,7 +19,7 @@ async function run() {
 
     drop && (await dropStorageTables(symbols));
 
-    for (const symbol of getHighVolumeCompanies()) {
+    for (const symbol of symbols) {
         if (!(await checkIfTableExistsForSymbol(symbol))) {
             newSymbols.push(symbol);
         }
@@ -31,12 +28,6 @@ async function run() {
     LOGGER.info(newSymbols);
 
     await createStorageTables(newSymbols);
-
-    if (!(await checkIfTableExistsForSymbol("SPY"))) {
-        LOGGER.info(`creating table for SPY`);
-        await createTradeDataTableForSymbol("SPY");
-        await createAggregatedDataTableForSymbol("SPY");
-    }
 
     await createMetadataTables();
 

@@ -8,13 +8,16 @@ import { insertBar, insertTrade } from "../resources/stockData";
 
 const highVolCompanies = getHighVolumeCompanies();
 
+highVolCompanies.push("SPY");
+
 const socket = alpaca.websocket;
 
 const logOfTrades = createWriteStream("./tradeUpdates.log");
 
 socket.onConnect(() => {
-    const mappedAggs = subscribeToTickLevelUpdates(highVolCompanies, "AM");
-    socket.subscribe(["trade_updates", "account_updates", "AM.SPY", ...mappedAggs]);
+    const mappedAggMins = subscribeToTickLevelUpdates(highVolCompanies, "AM");
+    const mappedAggSecs = subscribeToTickLevelUpdates(highVolCompanies, "A");
+    socket.subscribe(["trade_updates", "account_updates", ...mappedAggMins, ...mappedAggSecs]);
 });
 socket.onStateChange((newState) => {
     console.log(`State changed to ${newState} at ${new Date().toLocaleTimeString()}`);
@@ -33,8 +36,31 @@ socket.onStockTrades(async (subject: string, data: string) => {
     await insertTrade(jsonData);
 });
 
+socket.onStockAggMin(async (subject: string, data: any) => {
+    if (typeof data === "string") {
+        data = JSON.parse(data);
+    }
+
+    for (const d of data) {
+        const bar: TickBar = {
+            o: d.o,
+            h: d.h,
+            l: d.l,
+            c: d.c,
+            a: d.a,
+            t: d.s,
+            v: d.v,
+        };
+
+        try {
+            await insertBar(bar, d.sym, true);
+        } catch (e) {
+            /* LOGGER.error(`Could not insert ${JSON.stringify(bar)} for ${d.sym}`); */
+        }
+    }
+});
+
 socket.onStockAggSec(async (subject: string, data: any) => {
-    LOGGER.info(data);
     if (typeof data === "string") {
         data = JSON.parse(data);
     }
@@ -53,7 +79,7 @@ socket.onStockAggSec(async (subject: string, data: any) => {
         try {
             await insertBar(bar, d.sym);
         } catch (e) {
-            LOGGER.error(`Could not insert ${JSON.stringify(bar)} for ${d.sym}`);
+            /* LOGGER.error(`Could not insert ${JSON.stringify(bar)} for ${d.sym}`); */
         }
     }
 });

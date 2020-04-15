@@ -4,7 +4,7 @@ import { LOGGER } from "../instrumentation/log";
 
 const getAggregatedTickTableNameForSymbol = (symbol: string) => `tick_${symbol.toLowerCase()}`;
 
-const getCreateAggregatedSecondBarsTableSql = (tablename: string) => `create table ${tablename} (
+const getCreateAggregatedBarsTableSql = (tablename: string) => `create table ${tablename} (
     t timestamptz(3) primary key,
     o numeric not null,
     h numeric not null,
@@ -18,6 +18,7 @@ SELECT create_hypertable('${tablename}', 't');
 
 SELECT set_chunk_time_interval('${tablename}', interval '1 day');
 `;
+const getAggregatedMinuteTableNameForSymbol = (symbol: string) => `minute_${symbol.toLowerCase()}`;
 
 const getTradeTableNameForSymbol = (symbol: string) => `trades_${symbol.toLowerCase()}`;
 
@@ -115,12 +116,17 @@ export const createStorageTables = async (symbols: string[]) => {
 
     for (const symbol of symbols) {
         try {
-            results.push(await createAggregatedDataTableForSymbol(symbol, pool));
+            results.push(await createAggregatedSecondsDataTableForSymbol(symbol, pool));
         } catch (e) {
             LOGGER.error(e);
         }
         try {
             results.push(await createTradeDataTableForSymbol(symbol, pool));
+        } catch (e) {
+            LOGGER.error(e);
+        }
+        try {
+            results.push(await createAggregatedMinutesDataTableForSymbol(symbol, pool));
         } catch (e) {
             LOGGER.error(e);
         }
@@ -138,6 +144,13 @@ export const dropStorageTables = async (symbols: string[]) => {
         try {
             results.push(
                 await pool.query(`drop table ${getAggregatedTickTableNameForSymbol(symbol)};`)
+            );
+        } catch (e) {
+            LOGGER.error(e);
+        }
+        try {
+            results.push(
+                await pool.query(`drop table ${getAggregatedMinuteTableNameForSymbol(symbol)};`)
             );
         } catch (e) {
             LOGGER.error(e);
@@ -165,10 +178,12 @@ export const createMetadataTables = async () => {
     }
 };
 
-export const insertBar = async (bar: TickBar, symbol: string) => {
+export const insertBar = async (bar: TickBar, symbol: string, isMinute = false) => {
     const pool = getConnection();
 
-    const tablename = getAggregatedTickTableNameForSymbol(symbol);
+    const tablename = isMinute
+        ? getAggregatedMinuteTableNameForSymbol(symbol)
+        : getAggregatedTickTableNameForSymbol(symbol);
 
     const query = `insert into ${tablename} values (
         to_timestamp(${bar.t}::double precision / 1000), 
@@ -216,14 +231,23 @@ export const insertTrade = async (trades: TradeUpdate[]) => {
     }
 };
 
-export const createAggregatedDataTableForSymbol = (symbol: string, pool = getConnection()) => {
+export const createAggregatedSecondsDataTableForSymbol = (
+    symbol: string,
+    pool = getConnection()
+) => {
+    return pool.query(getCreateAggregatedBarsTableSql(getAggregatedTickTableNameForSymbol(symbol)));
+};
+
+export const createAggregatedMinutesDataTableForSymbol = (
+    symbol: string,
+    pool = getConnection()
+) => {
     return pool.query(
-        getCreateAggregatedSecondBarsTableSql(getAggregatedTickTableNameForSymbol(symbol))
+        getCreateAggregatedBarsTableSql(getAggregatedMinuteTableNameForSymbol(symbol))
     );
 };
 
 export const createTradeDataTableForSymbol = (symbol: string, pool = getConnection()) => {
     const query = getCreateTradesTableSql(getTradeTableNameForSymbol(symbol));
-    LOGGER.info(query);
     return pool.query(query);
 };
