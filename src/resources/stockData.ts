@@ -11,6 +11,9 @@ const getCreateAggregatedBarsTableSql = (tablename: string) => `create table ${t
     l numeric not null,
     c numeric not null,
     a numeric not null,
+    vw numeric not null,
+    av numeric not null,
+    op numeric not null,
     v integer not null
 );
 
@@ -192,6 +195,9 @@ export const insertBar = async (bar: TickBar, symbol: string, isMinute = false) 
         ${bar.l}, 
         ${bar.c}, 
         ${bar.a}, 
+        ${bar.vw}, 
+        ${bar.av}, 
+        ${bar.op}, 
         ${bar.v}
     );`;
 

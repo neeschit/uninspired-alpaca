@@ -36,21 +36,26 @@ socket.onStockTrades(async (subject: string, data: string) => {
     await insertTrade(jsonData);
 });
 
+const getBar = (d: any) => ({
+    o: d.o,
+    h: d.h,
+    l: d.l,
+    c: d.c,
+    a: d.a,
+    t: d.s,
+    v: d.v,
+    vw: d.vw,
+    av: d.av,
+    op: d.op,
+});
+
 socket.onStockAggMin(async (subject: string, data: any) => {
     if (typeof data === "string") {
         data = JSON.parse(data);
     }
 
     for (const d of data) {
-        const bar: TickBar = {
-            o: d.o,
-            h: d.h,
-            l: d.l,
-            c: d.c,
-            a: d.a,
-            t: d.s,
-            v: d.v,
-        };
+        const bar: TickBar = getBar(d);
 
         try {
             await insertBar(bar, d.sym, true);
@@ -66,15 +71,7 @@ socket.onStockAggSec(async (subject: string, data: any) => {
     }
 
     for (const d of data) {
-        const bar: TickBar = {
-            o: d.o,
-            h: d.h,
-            l: d.l,
-            c: d.c,
-            a: d.a,
-            t: d.s,
-            v: d.v,
-        };
+        const bar: TickBar = getBar(d);
 
         try {
             await insertBar(bar, d.sym);
