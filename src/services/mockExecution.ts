@@ -209,6 +209,13 @@ export class MockBroker implements Broker {
 
     private constructor() {}
 
+    cancelOrder(oid: string): Promise<{}> {
+        return Promise.resolve({});
+    }
+    getOrderByClientId(oid: string): Promise<AlpacaOrder> {
+        throw new Error("Method not implemented.");
+    }
+
     async createOrder(params: AlpacaTradeConfig): Promise<AlpacaOrder> {
         throw new Error("Method not implemented.");
     }
