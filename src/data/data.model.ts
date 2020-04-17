@@ -100,27 +100,6 @@ export interface FilledTradeConfig extends TradeConfig {
     status: OrderStatus;
 }
 
-export interface PositionConfig extends TradePlan {
-    hasHardStop: boolean;
-    originalQuantity: number;
-}
-
-export interface FilledPositionConfig extends PositionConfig {
-    trades: FilledTradeConfig[];
-    averageEntryPrice?: number;
-}
-
-export interface ClosedPositionConfig extends FilledPositionConfig {
-    pnl: number;
-}
-
-export interface Order {
-    symbol: string;
-    filledQuantity: number;
-    averagePrice: number;
-    status: OrderStatus;
-}
-
 export interface TradeUpdate {
     sym: string;
     i: number;

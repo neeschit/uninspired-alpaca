@@ -1,7 +1,6 @@
 import {
     Bar,
     TradeConfig,
-    FilledPositionConfig,
     FilledTradeConfig,
     PlannedTradeConfig,
 } from "../data/data.model";
@@ -21,6 +20,9 @@ import {
 import { alpaca } from "../resources/alpaca";
 import { TradeManagement, isClosingOrder } from "./tradeManagement";
 import { LOGGER } from "../instrumentation/log";
+import { FilledPositionConfig } from "../resources/position";
+
+let id = 0;
 
 export const liquidatePosition = (
     position: FilledPositionConfig,
@@ -75,12 +77,12 @@ export const executeSingleTrade = (
         let unfilledPosition = {
             symbol: symbol,
             originalQuantity: tradePlan.quantity,
-            hasHardStop: false,
             plannedEntryPrice,
             plannedStopPrice: exit,
             plannedQuantity: tradePlan.quantity,
             side: side,
             quantity: tradePlan.quantity,
+            id: id++
         };
 
         if (bar.h > tradePlan.price && tradePlan.side === TradeDirection.buy) {

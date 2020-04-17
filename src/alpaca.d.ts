@@ -73,6 +73,7 @@ declare module "@neeschit/alpaca-trade-api" {
         extended_hours: boolean;
     }
     export interface AlpacaTradeConfig {
+        client_order_id?: string;
         symbol: string;
         qty: number;
         side: TradeDirection;
@@ -124,6 +125,8 @@ declare module "@neeschit/alpaca-trade-api" {
     export interface Broker {
         createOrder(params: AlpacaTradeConfig): Promise<AlpacaOrder>;
         cancelAllOrders(): Promise<{}>;
+        cancelOrder(oid: string): Promise<{}>;
+        getOrderByClientId(oid: string): Promise<AlpacaOrder>;
         getOrders(params: GetOrdersParams): Promise<AlpacaOrder[]>;
         getPositions(): Promise<AlpacaPosition[]>;
         getPosition(symbol: string): Promise<AlpacaPosition>;
@@ -152,6 +155,8 @@ declare module "@neeschit/alpaca-trade-api" {
 
     class Alpaca implements Broker {
         websocket: AlpacaStreamingClient;
+        cancelOrder(oid: string): Promise<{}>;
+        getOrderByClientId(oid: string): Promise<AlpacaOrder>;
         createOrder(params: AlpacaTradeConfig): Promise<AlpacaOrder>;
         cancelAllOrders(): Promise<{}>;
         getOrders(params: GetOrdersParams): Promise<AlpacaOrder[]>;

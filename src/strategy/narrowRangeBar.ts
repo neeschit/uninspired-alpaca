@@ -99,26 +99,28 @@ export class NarrowRangeBarStrategy {
         return this.bars[this.bars.length - 1].c;
     }
 
-    checkIfFitsStrategy(strict = false) {
+    checkIfFitsStrategy(strict = true) {
         const ranges = this.tr.slice(-this.period);
-        const isNarrowRangeBar = strict
-            ? this.isVeryNarrowRangeBar(ranges)
-            : this.isNarrowRangeBar(ranges);
+        const isNarrowRangeBar = this.isNarrowRangeBar(ranges, strict);
         return isNarrowRangeBar;
     }
 
-    isNarrowRangeBar(tr: number[]) {
-        const { min } = this.getMinMaxPeriodRange(tr);
-
-        return tr[tr.length - 1] === min;
-    }
-
-    isVeryNarrowRangeBar(tr: number[]) {
+    isNarrowRangeBar(tr: number[], strict: boolean) {
         const { min, max } = this.getMinMaxPeriodRange(tr);
 
+        const isNarrowRangeBar = tr[tr.length - 1] === min;
+
+        if (isNarrowRangeBar && strict) {
+            return this.isVeryNarrowRangeBar(max, min);
+        }
+
+        return isNarrowRangeBar;
+    }
+
+    isVeryNarrowRangeBar(max:number, min: number) {
         LOGGER.info(max / min);
 
-        return tr[tr.length - 1] === min && max / min > 3;
+        return max / min > 3;
     }
 
     private getMinMaxPeriodRange(tr: number[]) {
@@ -155,9 +157,9 @@ export class NarrowRangeBarStrategy {
 
         let tr = this.tr.slice(-this.period - strength, this.tr.length - strength);
 
-        while (this.isNarrowRangeBar(tr)) {
+        while (this.isNarrowRangeBar(tr, true)) {
             strength++;
-            tr = this.tr.slice(-this.period - strength, this.tr.length - strength);
+            tr = this.tr.slice(-this.period - strength, this.tr .length - strength);
         }
 
         return strength;

@@ -1,9 +1,7 @@
 import {
     TradeConfig,
-    PositionConfig,
     Bar,
     TradePlan,
-    FilledPositionConfig,
     TradeType,
     PositionDirection,
     TradeDirection,
@@ -14,6 +12,8 @@ import { alpaca } from "../resources/alpaca";
 import { AlpacaOrder, AlpacaTradeConfig, Broker } from "@neeschit/alpaca-trade-api";
 import { LOGGER } from "../instrumentation/log";
 import { isMarketClosing } from "../util/market";
+import { insertOrder } from "../resources/order";
+import { insertPlannedPosition, FilledPositionConfig, PositionConfig } from "../resources/position";
 
 export const isClosingOrder = (currentPosition: FilledPositionConfig, tradeConfig: TradeConfig) => {
     if (currentPosition.side === PositionDirection.long) {
@@ -150,7 +150,7 @@ export const orderToLiquidatePosition = (position: FilledPositionConfig): TradeC
 };
 
 export class TradeManagement {
-    position: PositionConfig;
+    position?: PositionConfig;
     filledPosition?: FilledPositionConfig;
 
     constructor(
@@ -158,12 +158,28 @@ export class TradeManagement {
         public plan: TradePlan,
         private partialProfitRatio: number,
         private broker: Broker = alpaca
-    ) {
-        this.position = {
-            plannedEntryPrice: plan.plannedEntryPrice,
-            plannedStopPrice: plan.plannedStopPrice,
-            symbol: config.symbol,
-        } as PositionConfig;
+    ) {}
+    
+    async getPosition() {
+        if (!this.position) {
+            this.position = await insertPlannedPosition(this.plan);
+        }
+
+        return this.position;
+    }
+
+    async cancelPendingTrades() {
+        const position = await this.getPosition();
+
+        if (!position.pendingOrders || !position.pendingOrders.length) {
+            return null;
+        }
+
+        for (const order of position.pendingOrders) {
+            const alpacaOrder = await this.broker.getOrderByClientId(order.id.toString());
+
+            await this.broker.cancelOrder(alpacaOrder.id);
+        }
     }
 
     async executeAndRecord() {
@@ -177,7 +193,21 @@ export class TradeManagement {
     }
 
     async queueTrade() {
-        return this.broker.createOrder(processOrderFromStrategy(this.config));
+        const position = await this.getPosition();
+
+        const order = processOrderFromStrategy(this.config);
+
+        const insertedOrder = await insertOrder(order, position, OrderStatus.new);
+
+        order.client_order_id = insertedOrder.id.toString();
+
+        const alpacaOrder = await this.broker.createOrder(order);
+
+        position.pendingOrders = position.pendingOrders || [];
+
+        position.pendingOrders.push(insertedOrder);
+
+        return alpacaOrder;
     }
 
     async onTickUpdate(currentBar: Bar) {
@@ -204,29 +234,21 @@ export class TradeManagement {
     }
 
     async fetchCurrentPosition() {
-        const position = await this.broker.getPosition(this.plan.symbol);
+        const alpacaPosition = await this.broker.getPosition(this.plan.symbol);
 
-        this.position = {
-            ...this.plan,
-            hasHardStop: false,
-            originalQuantity: this.plan.quantity,
-            quantity: Number(position.qty),
-        };
+        const position = await this.getPosition();
 
-        return this.position;
+        position.quantity = Number(alpacaPosition.qty);
+
+        return position;
     }
 
-    recordTradeOnceFilled(order: AlpacaOrder): FilledPositionConfig {
+    async recordTradeOnceFilled(order: AlpacaOrder): Promise<FilledPositionConfig> {
         const { symbol, status } = order;
-        this.position = {
-            ...this.plan,
-            symbol: order.symbol,
-            quantity: order.filled_qty,
-            hasHardStop: false,
-            originalQuantity: order.filled_qty,
-        };
 
-        this.filledPosition = Object.assign(this.position, {
+        const position = await this.getPosition();
+
+        this.filledPosition = Object.assign({}, position, {
             trades: [
                 {
                     ...this.config,
@@ -255,11 +277,12 @@ export class TradeManagement {
         if (liquidate) {
             order = orderToLiquidatePosition(this.filledPosition);
         } else {
+            const position = await this.getPosition();
             order = await rebalancePosition(
                 {
                     averageEntryPrice: Number(this.filledPosition.averageEntryPrice),
                     symbol: this.plan.symbol,
-                    side: this.position.side,
+                    side: position.side,
                     quantity: Number(this.filledPosition.trades[0].filledQuantity),
                     ...this.plan,
                     originalQuantity: this.plan.quantity,
