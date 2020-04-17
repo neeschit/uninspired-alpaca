@@ -81,4 +81,12 @@ socket.onStockAggSec(async (subject: string, data: any) => {
     }
 });
 
+socket.onPolygonDisconnect(() => {
+    LOGGER.error(`Polygon disconnected at ${new Date().toLocaleTimeString()}`);
+});
+
+socket.onPolygonConnect(() => {
+    LOGGER.error(`Polygon connected at ${new Date().toLocaleTimeString()}`);
+});
+
 socket.connect();

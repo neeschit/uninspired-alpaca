@@ -1,4 +1,4 @@
-declare module "@alpacahq/alpaca-trade-api" {
+declare module "@neeschit/alpaca-trade-api" {
     export interface AlpacaParams {
         keyId: string;
         secretKey: string;
@@ -14,19 +14,19 @@ declare module "@alpacahq/alpaca-trade-api" {
 
     export enum TradeDirection {
         buy = "buy",
-        sell = "sell"
+        sell = "sell",
     }
 
     export enum PositionDirection {
         long = "long",
-        short = "short"
+        short = "short",
     }
 
     export enum TradeType {
         market = "market",
         limit = "limit",
         stop = "stop",
-        stop_limit = "stop_limit"
+        stop_limit = "stop_limit",
     }
 
     export enum TimeInForce {
@@ -35,7 +35,7 @@ declare module "@alpacahq/alpaca-trade-api" {
         opg = "opg",
         cls = "cls",
         ioc = "ioc",
-        fok = "fok"
+        fok = "fok",
     }
     export enum OrderStatus {
         new = "new",
@@ -45,7 +45,7 @@ declare module "@alpacahq/alpaca-trade-api" {
         expired = "expired",
         pending_cancel = "pending_cancel",
         pending_replace = "pending_replace",
-        done_for_day = "done_for_day"
+        done_for_day = "done_for_day",
     }
 
     export interface AlpacaOrder {
@@ -139,6 +139,8 @@ declare module "@alpacahq/alpaca-trade-api" {
         subscribe(params: string[]): void;
         unsubscribe(params: string[]): void;
         onConnect(cb: () => void): void;
+        onPolygonDisconnect(cb: () => void): void;
+        onPolygonConnect(cb: () => void): void;
         onDisconnect(): void;
         onStateChange(cb: (newState: any) => void): void;
         onOrderUpdate(cb: (subject: string, data: string) => void): void;

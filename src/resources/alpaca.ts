@@ -1,4 +1,4 @@
-import Alpaca from "@alpacahq/alpaca-trade-api";
+import Alpaca from "@neeschit/alpaca-trade-api";
 import * as dotenv from "dotenv";
 
 const config = dotenv.config().parsed;

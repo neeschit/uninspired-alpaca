@@ -14,7 +14,7 @@ import {
 } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
 import { convertToLocalTime } from "../util/date";
-import { Broker } from "@alpacahq/alpaca-trade-api";
+import { Broker } from "@neeschit/alpaca-trade-api";
 import { alpaca } from "../resources/alpaca";
 
 export class NarrowRangeBarStrategy {

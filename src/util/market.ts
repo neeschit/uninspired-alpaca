@@ -2,7 +2,7 @@ import { isWeekend, set, isSameDay, isAfter, isBefore, isEqual, parse, parseISO 
 import { TimestampType, MarketTimezone } from "../data/data.model";
 import { convertToLocalTime } from "./date";
 import { format, zonedTimeToUtc } from "date-fns-tz";
-import { Calendar } from "@alpacahq/alpaca-trade-api";
+import { Calendar } from "@neeschit/alpaca-trade-api";
 
 const marketHolidays = [
     "01-01-2015",

@@ -13,7 +13,6 @@ const getCreateAggregatedBarsTableSql = (tablename: string) => `create table ${t
     a numeric not null,
     vw numeric not null,
     av numeric not null,
-    op numeric not null,
     v integer not null
 );
 
@@ -78,7 +77,7 @@ create index orders_status_idx on orders (status);
 
 `;
 
-const getStockDataQuery = (symbol: string, timestring = "5 minutes") => {
+const getStockDataQuery = (tablename: string, timestring = "5 minutes") => {
     return `
         select 
             time_bucket('${timestring}', t) as time_bucket, 
@@ -87,7 +86,7 @@ const getStockDataQuery = (symbol: string, timestring = "5 minutes") => {
             max(h) as h,
             last(c, t) as c,
             first(o, t) as o 
-        from tick_${symbol.toLowerCase()} 
+        from ${tablename.toLowerCase()} 
         group by time_bucket 
         order by time_bucket desc;
     `;
@@ -197,7 +196,6 @@ export const insertBar = async (bar: TickBar, symbol: string, isMinute = false) 
         ${bar.a}, 
         ${bar.vw}, 
         ${bar.av}, 
-        ${bar.op}, 
         ${bar.v}
     );`;
 

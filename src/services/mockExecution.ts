@@ -17,7 +17,7 @@ import {
     GetAssetsParams,
     Asset,
     Calendar,
-} from "@alpacahq/alpaca-trade-api";
+} from "@neeschit/alpaca-trade-api";
 import { alpaca } from "../resources/alpaca";
 import { TradeManagement, isClosingOrder } from "./tradeManagement";
 import { LOGGER } from "../instrumentation/log";

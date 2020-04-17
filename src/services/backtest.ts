@@ -6,7 +6,7 @@ import {
     addHours,
     differenceInMonths,
     addMonths,
-    set
+    set,
 } from "date-fns";
 import Sinon from "sinon";
 import {
@@ -14,18 +14,18 @@ import {
     DefaultDuration,
     PeriodType,
     FilledPositionConfig,
-    Bar
+    Bar,
 } from "../data/data.model";
 import { isMarketOpening, isAfterMarketClose, confirmMarketOpen } from "../util/market";
 import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
 import { getBarsByDate } from "../data/bars";
 import { TradeManagement } from "./tradeManagement";
 import { LOGGER } from "../instrumentation/log";
-import { executeSingleTrade, liquidatePosition, MockBroker } from "./mockExecution";
+import { MockBroker } from "./mockExecution";
 import { getSymbolDataGenerator } from "../resources/polygon";
 import { alpaca } from "../resources/alpaca";
 import { getDetailedPerformanceReport } from "./performance";
-import { Calendar } from "@alpacahq/alpaca-trade-api";
+import { Calendar } from "@neeschit/alpaca-trade-api";
 
 export class Backtester {
     currentDate: Date;
@@ -61,9 +61,9 @@ export class Backtester {
     async screenSymbols(configuredSymbols: string[]) {
         const positions = await this.broker.getPositions();
         const symbols = configuredSymbols.filter(
-            symbol =>
-                this.strategyInstances.every(i => i.symbol !== symbol) &&
-                positions.every(p => p.symbol !== symbol)
+            (symbol) =>
+                this.strategyInstances.every((i) => i.symbol !== symbol) &&
+                positions.every((p) => p.symbol !== symbol)
         );
 
         for (const symbol of symbols) {
@@ -75,14 +75,14 @@ export class Backtester {
                     continue;
                 }
 
-                const bars = stockBars.filter(b => b.t < startOfDay(this.currentDate).getTime());
+                const bars = stockBars.filter((b) => b.t < startOfDay(this.currentDate).getTime());
                 const nrbInstance = new NarrowRangeBarStrategy({
                     period: this.period,
                     symbol,
                     bars,
                     useSimpleRange: this.useSimpleRange,
                     counterTrend: this.counterTrend,
-                    broker: this.broker
+                    broker: this.broker,
                 });
                 this.strategyInstances.push(nrbInstance);
             } catch (e) {
@@ -91,9 +91,9 @@ export class Backtester {
         }
 
         const shouldBeAdded = this.strategyInstances.filter(
-            instance =>
+            (instance) =>
                 instance.checkIfFitsStrategy(this.minMaxRatio > 1) &&
-                this.activeStrategyInstances.every(i => i.symbol !== instance.symbol)
+                this.activeStrategyInstances.every((i) => i.symbol !== instance.symbol)
         );
 
         this.activeStrategyInstances.push(...shouldBeAdded);
@@ -108,7 +108,7 @@ export class Backtester {
     getTimeSeriesGenerator({ endDate }: { startDate: Date; endDate: Date }) {
         const context = this;
 
-        return function*() {
+        return function* () {
             for (
                 let i = context.currentDate.getTime();
                 i < endDate.getTime();
@@ -132,7 +132,7 @@ export class Backtester {
     async simulate(batchSize = 100, logPerformance = true) {
         this.calendar = await alpaca.getCalendar({
             start: this.startDate,
-            end: this.endDate
+            end: this.endDate,
         });
 
         const batches = Backtester.getBatches(
@@ -182,7 +182,7 @@ export class Backtester {
 
         for await (const bar of screenerBars()) {
             Object.assign(this.screenerBars, {
-                [bar.symbol]: bar.bars
+                [bar.symbol]: bar.bars,
             });
         }
 
@@ -196,7 +196,7 @@ export class Backtester {
 
         for await (const bar of replayBars()) {
             Object.assign(this.replayBars, {
-                [bar.symbol]: bar.bars
+                [bar.symbol]: bar.bars,
             });
         }
 
@@ -209,7 +209,7 @@ export class Backtester {
 
         const gen = this.getTimeSeriesGenerator({
             startDate,
-            endDate
+            endDate,
         });
 
         for await (const {} of gen()) {
@@ -217,11 +217,11 @@ export class Backtester {
                 this.tradeUpdater.emit("interval_hit");
 
                 const pendingTradeConfigs = await this.broker.getOrders({
-                    status: "open"
+                    status: "open",
                 });
 
-                const filteredInstances = this.activeStrategyInstances.filter(i => {
-                    return pendingTradeConfigs.every(c => c.symbol !== i.symbol);
+                const filteredInstances = this.activeStrategyInstances.filter((i) => {
+                    return pendingTradeConfigs.every((c) => c.symbol !== i.symbol);
                 });
 
                 try {
@@ -237,7 +237,7 @@ export class Backtester {
                     LOGGER.warn(e.message);
                 }
 
-                const potentialTradesToPlace = filteredInstances.map(async i => {
+                const potentialTradesToPlace = filteredInstances.map(async (i) => {
                     const bars = this.replayBars[i.symbol];
 
                     try {
@@ -365,7 +365,7 @@ export class Backtester {
     ): Bar {
         const aggregate = this.updateIntervalMillis / 60000;
 
-        const barIndex = bars.findIndex(b => b.t >= time);
+        const barIndex = bars.findIndex((b) => b.t >= time);
 
         if (barIndex === -1) {
             const err = `couldnt find bar ${symbol} after retries at ${this.currentDate.toLocaleString()}`;
@@ -408,7 +408,7 @@ export class Backtester {
                     l: Number.MAX_SAFE_INTEGER,
                     c: 0,
                     v: 0,
-                    t: 0
+                    t: 0,
                 }
             );
         } else {
@@ -476,10 +476,10 @@ export class Backtester {
             if (position) {
                 manager.filledPosition = position;
                 this.activeStrategyInstances = this.activeStrategyInstances.filter(
-                    s => s.symbol !== symbol
+                    (s) => s.symbol !== symbol
                 );
                 this.managers = this.managers.filter(
-                    m => m.plan.symbol !== position.symbol || m.filledPosition
+                    (m) => m.plan.symbol !== position.symbol || m.filledPosition
                 );
             }
         }
@@ -488,7 +488,7 @@ export class Backtester {
     }
 
     private async findPositionConfigAndRebalance(tradeConfig: TradeConfig) {
-        const manager = this.managers.find(p => p.position.symbol === tradeConfig.symbol);
+        const manager = this.managers.find((p) => p.position.symbol === tradeConfig.symbol);
 
         if (!manager || !manager.filledPosition) {
             return null;
@@ -510,7 +510,7 @@ export class Backtester {
             return [];
         }
 
-        const symbols = currentPositionConfigs.map(p => p.symbol);
+        const symbols = currentPositionConfigs.map((p) => p.symbol);
 
         const trades = [];
 
@@ -529,7 +529,7 @@ export class Backtester {
                 continue;
             }
 
-            const manager = this.managers.find(p => p.plan.symbol === symbol);
+            const manager = this.managers.find((p) => p.plan.symbol === symbol);
 
             if (!manager) {
                 LOGGER.warn("no trace for ", symbol);
@@ -560,8 +560,8 @@ export class Backtester {
                     startDate,
                     endDate,
                     symbols,
-                    batchId: 0
-                }
+                    batchId: 0,
+                },
             ];
         }
         const batches = [];
@@ -578,7 +578,7 @@ export class Backtester {
             }
             durations.push({
                 startDate: batchStartDate,
-                endDate: batchedEndDate
+                endDate: batchedEndDate,
             });
             batchStartDate = batchedEndDate;
         }
@@ -589,7 +589,7 @@ export class Backtester {
                     startDate: duration.startDate,
                     endDate: duration.endDate,
                     symbols: symbols.slice(i, i + batchSize),
-                    batchId: i
+                    batchId: i,
                 });
             }
         }
