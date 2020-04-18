@@ -1,16 +1,16 @@
-import test from 'ava';
-import { insertPlannedPosition } from './position';
-import { PositionDirection } from '../data/data.model';
+import test from "ava";
+import { insertPlannedPosition } from "./position";
+import { PositionDirection } from "../data/data.model";
 
-test('insert position into database and generates position id', async t => {
+test.skip("insert position into database and generates position id", async (t) => {
     const result = await insertPlannedPosition({
         plannedEntryPrice: 300,
         plannedStopPrice: 290,
-        symbol: 'AAPL',
+        symbol: "AAPL",
         quantity: 10,
         side: PositionDirection.long,
-        riskAtrRatio: 2
+        riskAtrRatio: 2,
     });
 
     t.truthy(result.id);
-})
+});
