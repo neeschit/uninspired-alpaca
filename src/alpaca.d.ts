@@ -48,6 +48,25 @@ declare module "@neeschit/alpaca-trade-api" {
         done_for_day = "done_for_day",
     }
 
+    export interface AlpacaStreamingOrderUpdate {
+        event: OrderUpdateEvent;
+        order: AlpacaOrder;
+        timestamp: number;
+        price: number;
+        position_qty: number;
+    }
+
+    export enum OrderUpdateEvent {
+        new = 'new',
+        fill = 'fill',
+        canceled = 'canceled',
+        expired = 'expired',
+        done_for_day = 'done_for_day',
+        replaced = 'replaced',
+        partial_fill = 'partial_fill',
+
+    }
+
     export interface AlpacaOrder {
         id: string;
         client_order_id: string;

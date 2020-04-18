@@ -589,7 +589,7 @@ test.skip("trade management - handle trade update - non empty fill", (t) => {
     );
 });
 
-test.cb.skip('queue & cancel trade', t => {
+test.cb('queue & cancel trade', t => {
     const manager = new TradeManagement(
         {
             symbol,

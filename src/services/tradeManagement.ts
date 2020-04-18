@@ -197,7 +197,7 @@ export class TradeManagement {
 
         const order = processOrderFromStrategy(this.config);
 
-        const insertedOrder = await insertOrder(order, position, OrderStatus.new);
+        const insertedOrder = await insertOrder(order, position);
 
         order.client_order_id = insertedOrder.id.toString();
 

@@ -27,11 +27,18 @@ export const getCreatePositionsTableSql = () => `create table positions (
     side varchar(8) not null,
     planned_quantity smallint not null,
     quantity smallint,
-    average_entry_price numeric
+    average_entry_price numeric,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 create index positions_symbol_idx on positions (symbol);
 create index positions_side_idx on positions (side);
+
+CREATE TRIGGER set_timestamp
+BEFORE UPDATE ON positions
+FOR EACH ROW
+EXECUTE PROCEDURE trigger_set_timestamp();
 
 `;
 
@@ -45,6 +52,8 @@ const getUnfilledPositionInsert = (position: TradePlan) => {
             '${position.side}', 
             ${position.quantity},
             DEFAULT,
+            DEFAULT,
+            DEFAULT,
             DEFAULT
         ) returning id;
     `;
@@ -54,8 +63,6 @@ export const insertPlannedPosition = async (plan: TradePlan): Promise<PositionCo
     const pool = getConnection();
 
     const query = getUnfilledPositionInsert(plan);
-
-    LOGGER.info(query);
 
     const result = await pool.query(query);
 
