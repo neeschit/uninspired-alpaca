@@ -10,7 +10,7 @@ export interface IndicatorValue<X> {
 
 export const getAverageDirectionalIndex = (
     bars: Bar[],
-    useSimpleRange = true,
+    useSimpleRange = false,
     period = DEFAULT_DMI_PERIOD
 ) => {
     const { pdmi, ndmi } = getDirectionalMovementIndex(bars);
@@ -54,7 +54,7 @@ export const getAverageDirectionalIndex = (
 
     const adx = getExponentialAverage(adxToBe, 27).map((v, index, adxArray) => ({
         value: v * 100,
-        t: bars[bars.length - adxArray.length].t
+        t: bars[bars.length - adxArray.length].t,
     }));
 
     return { adx, pdx: mappedPdx, ndx: mappedNdx, atr, tr };

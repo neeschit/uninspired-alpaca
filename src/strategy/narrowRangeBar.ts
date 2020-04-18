@@ -16,92 +16,34 @@ import { LOGGER } from "../instrumentation/log";
 import { convertToLocalTime } from "../util/date";
 import { Broker } from "@neeschit/alpaca-trade-api";
 import { alpaca } from "../resources/alpaca";
+import { getAverageTrueRange } from "../indicator/trueRange";
 
 export class NarrowRangeBarStrategy {
-    period: number;
     symbol: string;
-    bars: Bar[];
-    adx: IndicatorValue<number>[];
-    pdx: number[];
-    ndx: number[];
-    atr: IndicatorValue<number>[];
-    tr: number[];
-
-    volumeProfile: VolumeProfileBar[];
-
-    overallTrend: TrendType;
-    recentTrend: TrendType;
-    counterTrend: boolean;
-    entryEpochTrigger: {
-        hours: number;
-        minutes: number;
-        seconds: number;
-    };
     broker: Broker;
+    atr: number;
+    nrbTimestamps: number[] = [];
 
     constructor({
-        period = 7,
         symbol,
-        bars,
-        useSimpleRange = false,
-        counterTrend = false,
         broker = alpaca,
+        bars,
     }: {
-        period: number;
         symbol: string;
-        bars: Bar[];
-        useSimpleRange: boolean;
-        counterTrend: boolean;
         broker: Broker;
+        bars: Bar[];
     }) {
-        if (period < 3) {
-            throw new Error("fix da shiz");
-        }
-        if (!bars) {
-            throw new Error("need bars");
-        }
-        this.period = period;
         this.symbol = symbol;
-        this.bars = bars;
-
         this.broker = broker;
 
-        if (bars.length < 15) {
-            throw new Error(`not a proper narrow range bar for symbol ${symbol}`);
-        }
+        const atr = getAverageTrueRange(bars, false).atr;
 
-        const { adx, pdx, ndx, atr, tr } = getAverageDirectionalIndex(this.bars, useSimpleRange);
-        this.adx = adx;
-        this.pdx = pdx;
-        this.ndx = ndx;
-
-        this.atr = atr;
-        this.tr = tr;
-        this.volumeProfile = getVolumeProfile(this.bars);
-
-        this.overallTrend = getOverallTrend(this.bars);
-        this.recentTrend = getRecentTrend(this.bars.slice(-2));
-
-        this.counterTrend = counterTrend;
-
-        this.entryEpochTrigger = {
-            hours: 9,
-            minutes: 35,
-            seconds: 0,
-        };
+        this.atr = atr[atr.length - 1].value;
     }
 
-    get atrValue() {
-        return this.atr[this.atr.length - 1].value;
-    }
-
-    get currentPrice() {
-        return this.bars[this.bars.length - 1].c;
-    }
-
-    checkIfFitsStrategy(strict = true) {
-        const ranges = this.tr.slice(-this.period);
-        const isNarrowRangeBar = this.isNarrowRangeBar(ranges, strict);
+    screenForNarrowRangeBars(bars: Bar[], strict = true) {
+        const { adx, pdx, ndx, atr, tr } = getAverageDirectionalIndex(bars);
+        const isNarrowRangeBar = this.isNarrowRangeBar(tr, strict);
         return isNarrowRangeBar;
     }
 
@@ -117,7 +59,7 @@ export class NarrowRangeBarStrategy {
         return isNarrowRangeBar;
     }
 
-    isVeryNarrowRangeBar(max:number, min: number) {
+    isVeryNarrowRangeBar(max: number, min: number) {
         LOGGER.info(max / min);
 
         return max / min > 3;
@@ -150,19 +92,6 @@ export class NarrowRangeBarStrategy {
                 max: 0,
             }
         );
-    }
-
-    checkStrength() {
-        let strength = 0;
-
-        let tr = this.tr.slice(-this.period - strength, this.tr.length - strength);
-
-        while (this.isNarrowRangeBar(tr, true)) {
-            strength++;
-            tr = this.tr.slice(-this.period - strength, this.tr .length - strength);
-        }
-
-        return strength;
     }
 
     isTimeForEntry(now: TimestampType) {
@@ -233,7 +162,7 @@ export class NarrowRangeBarStrategy {
             return null;
         }
 
-        const riskAtrRatio = unitRisk / this.atrValue;
+        const riskAtrRatio = unitRisk / this.atr;
 
         if (currentBar.h > entryBar.h) {
             return {

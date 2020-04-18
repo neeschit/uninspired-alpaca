@@ -3,9 +3,9 @@ import { alpaca } from "../resources/alpaca";
 import { getHighVolumeCompanies } from "../data/filters";
 import { subscribeToTickLevelUpdates, getSocketManager } from "../resources/polygon";
 import { LOGGER } from "../instrumentation/log";
-import { TickBar, TradeUpdate } from "../data/data.model";
+import { TickBar, TradeUpdate, OrderUpdateEvent } from "../data/data.model";
 import { insertBar, insertTrade } from "../resources/stockData";
-import { AlpacaStreamingOrderUpdate, OrderUpdateEvent } from "@neeschit/alpaca-trade-api";
+import { AlpacaStreamingOrderUpdate } from "@neeschit/alpaca-trade-api";
 import { updateOrder } from "../resources/order";
 
 const highVolCompanies = getHighVolumeCompanies();
@@ -28,12 +28,8 @@ socket.onStateChange((newState) => {
     }
 });
 
-socket.onOrderUpdate((data: string) => {
-    const orderUpdate: AlpacaStreamingOrderUpdate = JSON.parse(data);
-
-    if (orderUpdate.event === OrderUpdateEvent.fill || orderUpdate.event === OrderUpdateEvent.partial_fill) {
-        updateOrder(orderUpdate.order, orderUpdate.position_qty, orderUpdate.price).catch(LOGGER.error);
-    }
+socket.onOrderUpdate((orderUpdate) => {
+    updateOrder(orderUpdate.order, orderUpdate.position_qty, orderUpdate.price).catch(LOGGER.error);
 });
 
 socket.onStockTrades(async (subject: string, data: string) => {

@@ -36,11 +36,7 @@ const instance = new Backtester(
     zonedStartDate,
     zonedEndDate,
     LARGE_CAPS,
-    pr,
-    rangeRatio,
-    simpleRange,
-    counterTrend,
-    nrbPeriod
+    pr
 );
 
 async function run() {

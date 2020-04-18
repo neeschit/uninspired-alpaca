@@ -57,14 +57,13 @@ declare module "@neeschit/alpaca-trade-api" {
     }
 
     export enum OrderUpdateEvent {
-        new = 'new',
-        fill = 'fill',
-        canceled = 'canceled',
-        expired = 'expired',
-        done_for_day = 'done_for_day',
-        replaced = 'replaced',
-        partial_fill = 'partial_fill',
-
+        new = "new",
+        fill = "fill",
+        canceled = "canceled",
+        expired = "expired",
+        done_for_day = "done_for_day",
+        replaced = "replaced",
+        partial_fill = "partial_fill",
     }
 
     export interface AlpacaOrder {
@@ -165,7 +164,7 @@ declare module "@neeschit/alpaca-trade-api" {
         onPolygonConnect(cb: () => void): void;
         onDisconnect(): void;
         onStateChange(cb: (newState: any) => void): void;
-        onOrderUpdate(cb: (subject: string, data: string) => void): void;
+        onOrderUpdate(cb: (subject: AlpacaStreamingOrderUpdate) => void): void;
         onStockTrades(cb: (subject: string, data: string) => void): void;
         onStockQuotes(cb: (subject: string, data: string) => void): void;
         onStockAggSec(cb: (subject: string, data: string) => void): void;
