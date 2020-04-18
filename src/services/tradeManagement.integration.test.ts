@@ -7,6 +7,8 @@ import {
     PositionDirection,
     OrderStatus,
 } from "../data/data.model";
+import { alpaca } from "../resources/alpaca";
+import { LOGGER } from "../instrumentation/log";
 const symbol = "AAPL";
 
 test("processOrderFromStrategy - simple mapping", (t) => {
@@ -385,7 +387,7 @@ test("rebalancePosition - close position after partial", async (t) => {
     });
 });
 
-test("trade management - init and recordOnceUpdateReceived", (t) => {
+test("trade management - init and recordOnceUpdateReceived", async (t) => {
     const orderDefinition = {
         symbol,
         status: OrderStatus.partial_fill,
@@ -413,7 +415,7 @@ test("trade management - init and recordOnceUpdateReceived", (t) => {
         0.9
     );
 
-    const filledPositionConfig = manager.recordTradeOnceFilled({
+    const filledPositionConfig = await manager.recordTradeOnceFilled({
         symbol,
         status: OrderStatus.partial_fill,
         id: "904837e3-3b76-47ec-b432-046db621571b",
@@ -438,9 +440,11 @@ test("trade management - init and recordOnceUpdateReceived", (t) => {
         extended_hours: false,
     });
 
+    const position = await manager.getPosition();
+
     t.deepEqual(filledPositionConfig, {
         averageEntryPrice: 200.06,
-        hasHardStop: false,
+        id: position.id,
         symbol,
         plannedStopPrice: 190,
         plannedEntryPrice: 200,
@@ -465,7 +469,7 @@ test("trade management - init and recordOnceUpdateReceived", (t) => {
     });
 });
 
-test.skip("trade management - handle trade update - empty fill", async (t) => {
+test("trade management - handle trade update - empty fill", async (t) => {
     const manager = new TradeManagement(
         {
             symbol,
@@ -488,7 +492,7 @@ test.skip("trade management - handle trade update - empty fill", async (t) => {
     );
 
     manager.position = {
-        hasHardStop: false,
+        id: 1,
         symbol,
         plannedStopPrice: 190,
         plannedEntryPrice: 200,
@@ -549,7 +553,7 @@ test("trade management - handle trade update - non empty fill", (t) => {
     );
 
     manager.position = {
-        hasHardStop: false,
+        id: 1,
         symbol,
         plannedStopPrice: 190,
         plannedEntryPrice: 200,
@@ -583,4 +587,47 @@ test("trade management - handle trade update - non empty fill", (t) => {
             t: Date.now(),
         })
     );
+});
+
+test.cb("queue & cancel trade", (t) => {
+    const manager = new TradeManagement(
+        {
+            symbol,
+            side: TradeDirection.buy,
+            type: TradeType.stop,
+            tif: TimeInForce.day,
+            price: 300,
+            quantity: 300,
+            t: Date.now(),
+        },
+        {
+            plannedEntryPrice: 300,
+            riskAtrRatio: 1,
+            plannedStopPrice: 290,
+            symbol,
+            quantity: 100,
+            side: PositionDirection.long,
+        },
+        0.9
+    );
+
+    manager
+        .queueTrade()
+        .then((trade) => t.truthy(trade.id))
+        .then(() => {
+            return manager.cancelPendingTrades();
+        })
+        .then(() => {
+            setTimeout(async () => {
+                const orders = await alpaca.getOrders({
+                    status: "open",
+                });
+
+                LOGGER.info(orders);
+
+                t.falsy(orders.length);
+
+                t.end();
+            }, 100);
+        });
 });

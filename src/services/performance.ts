@@ -1,11 +1,9 @@
 import {
-    FilledPositionConfig,
     PositionDirection,
     TradeDirection,
-    ClosedPositionConfig
 } from "../data/data.model";
-import { getMonth, isSameMonth, isAfter } from "date-fns";
-import { promises } from "dns";
+import { isSameMonth, isAfter } from "date-fns";
+import { FilledPositionConfig, ClosedPositionConfig } from "../resources/position";
 
 export interface Performance {
     profit: number;

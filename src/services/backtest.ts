@@ -13,7 +13,6 @@ import {
     TradeConfig,
     DefaultDuration,
     PeriodType,
-    FilledPositionConfig,
     Bar,
 } from "../data/data.model";
 import { isMarketOpening, isAfterMarketClose, confirmMarketOpen } from "../util/market";
@@ -26,6 +25,7 @@ import { getSymbolDataGenerator } from "../resources/polygon";
 import { alpaca } from "../resources/alpaca";
 import { getDetailedPerformanceReport } from "./performance";
 import { Calendar } from "@neeschit/alpaca-trade-api";
+import { FilledPositionConfig } from "../resources/position";
 
 export class Backtester {
     currentDate: Date;
@@ -269,7 +269,7 @@ export class Backtester {
                         }
 
                         const nextBar = await this.findOrFetchBarByDate(
-                            set(this.currentDate.getTime(), i.entryEpochTrigger).getTime(),
+                            this.currentDate.getTime(),
                             i.symbol,
                             bars,
                             offset,
@@ -457,7 +457,7 @@ export class Backtester {
             const bars = this.replayBars[symbol];
 
             if (manager.filledPosition) {
-                return null;
+                continue;
             }
 
             if (!bars) {
@@ -488,7 +488,7 @@ export class Backtester {
     }
 
     private async findPositionConfigAndRebalance(tradeConfig: TradeConfig) {
-        const manager = this.managers.find((p) => p.position.symbol === tradeConfig.symbol);
+        const manager = this.managers.find((p) => p.plan.symbol === tradeConfig.symbol);
 
         if (!manager || !manager.filledPosition) {
             return null;

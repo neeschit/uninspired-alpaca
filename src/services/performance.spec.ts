@@ -1,6 +1,5 @@
 import test from "ava";
 import {
-    FilledPositionConfig,
     OrderStatus,
     PositionDirection,
     TradeDirection,
@@ -9,6 +8,7 @@ import {
 } from "../data/data.model";
 import { analyzeClosedPositions, getDetailedPerformanceReport } from "./performance";
 import perfReport from "../fixtures/perfReport";
+import { FilledPositionConfig } from "../resources/position";
 
 test.skip("assess performance at a deeper level", (t) => {
     const insight = getDetailedPerformanceReport(perfReport);
@@ -29,7 +29,7 @@ test("successful long trade report", (t) => {
         {
             symbol: "ABMD",
             originalQuantity: 1,
-            hasHardStop: false,
+            id: 1,
             riskAtrRatio: 1,
             plannedEntryPrice: 218,
             plannedStopPrice: 210,
@@ -74,7 +74,7 @@ test("successful long trade with partial report", (t) => {
         {
             symbol: "ABMD",
             originalQuantity: 5,
-            hasHardStop: false,
+            id: 1,
             riskAtrRatio: 1,
             plannedEntryPrice: 218,
             plannedStopPrice: 210,
@@ -132,7 +132,7 @@ test("successful long trade with failed partial report", (t) => {
         {
             symbol: "ABMD",
             originalQuantity: 5,
-            hasHardStop: false,
+            id: 1,
             riskAtrRatio: 1,
             plannedEntryPrice: 218,
             plannedStopPrice: 210,
@@ -190,7 +190,7 @@ test("unsuccessful long trade report", (t) => {
         {
             symbol: "ABMD",
             originalQuantity: 1,
-            hasHardStop: false,
+            id: 1,
             riskAtrRatio: 1,
             plannedEntryPrice: 218,
             plannedStopPrice: 215,
@@ -236,7 +236,7 @@ test("successful short trade report", (t) => {
         {
             symbol: "CVS",
             originalQuantity: 3,
-            hasHardStop: false,
+            id: 1,
             riskAtrRatio: 1,
             plannedEntryPrice: 58,
             plannedStopPrice: 61,
@@ -282,7 +282,7 @@ test("unsuccessful short trade report", (t) => {
         {
             symbol: "EIX",
             originalQuantity: 5,
-            hasHardStop: false,
+            id: 1,
             riskAtrRatio: 1,
             plannedEntryPrice: 66,
             plannedStopPrice: 68,
@@ -328,7 +328,7 @@ test("successful list of 8 positions", (t) => {
         {
             symbol: "HON",
             originalQuantity: 6,
-            hasHardStop: false,
+            id: 1,
             riskAtrRatio: 1,
             plannedEntryPrice: 154.5,
             plannedStopPrice: 153,
@@ -376,7 +376,7 @@ test("successful list of 8 positions", (t) => {
         {
             symbol: "ECL",
             originalQuantity: 4,
-            hasHardStop: false,
+            id: 1,
             riskAtrRatio: 1,
             plannedEntryPrice: 169.5,
             plannedStopPrice: 167,

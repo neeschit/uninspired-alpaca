@@ -77,8 +77,9 @@ async function manage() {
                         ...plan.config
                     });
 
-                    manager.position.originalQuantity = plan.plan.quantity;
-                    manager.position.side = position.side;
+                    const managedPosition = await manager.getPosition();
+
+                    managedPosition.side = position.side;
 
                     const order = await manager.onTickUpdate(lastBar);
 
