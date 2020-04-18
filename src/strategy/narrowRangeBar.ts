@@ -30,7 +30,7 @@ export class NarrowRangeBarStrategy {
         bars,
     }: {
         symbol: string;
-        broker: Broker;
+        broker?: Broker;
         bars: Bar[];
     }) {
         this.symbol = symbol;
@@ -42,7 +42,7 @@ export class NarrowRangeBarStrategy {
     }
 
     screenForNarrowRangeBars(bars: Bar[], strict = true) {
-        const { adx, pdx, ndx, atr, tr } = getAverageDirectionalIndex(bars);
+        const { atr, tr } = getAverageTrueRange(bars);
         const isNarrowRangeBar = this.isNarrowRangeBar(tr, strict);
         return isNarrowRangeBar;
     }
