@@ -140,7 +140,7 @@ export const updateOrder = async (
         order.status
     );
 
-    LOGGER.info(query);
+    LOGGER.debug(query);
 
     try {
         const result = await pool.query(query);
