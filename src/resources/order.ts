@@ -120,13 +120,16 @@ const getUpdateOrdersSql = (
     if (!id) {
         throw new Error("need a client id");
     }
-    return `update orders set filled_quantity = ${positionQuantity}, average_price = ${price} where id = ${id};`;
+    return `update orders set status = '${status}'
+        ${positionQuantity ? "filled_quantity =" + positionQuantity : ""} 
+        ${price ? "average_price = " + price : ""} 
+        where id = ${id};`;
 };
 
 export const updateOrder = async (
     order: AlpacaOrder,
-    positionQuantity: string | number,
-    price: string | number
+    positionQuantity?: string | number,
+    price?: string | number
 ) => {
     const pool = getConnection();
 
@@ -136,6 +139,8 @@ export const updateOrder = async (
         Number(price),
         order.status
     );
+
+    LOGGER.debug(query);
 
     try {
         const result = await pool.query(query);

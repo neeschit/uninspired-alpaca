@@ -2,7 +2,6 @@
   "name": "alpaca-play",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "dependencies": {
     "@neeschit/alpaca-trade-api": "^1.2.9",
     "date-fns": "^2.9.0",
@@ -30,8 +29,8 @@
     "typescript": "^3.7.5"
   },
   "scripts": {
-    "test": "TS_NODE_PROJECT=tsconfig.test.json ava --watch --verbose",
-    "test:ci": "TS_NODE_PROJECT=tsconfig.test.json LOGLEVEL=4 ava **/*.spec.ts --verbose",
+    "test": "ava --watch --verbose",
+    "test:ci": "LOGLEVEL=4 ava **/*.spec.ts --verbose",
     "build": "tsc",
     "backtest": "node --enable-source-maps build/scripts/backtest.js",
     "narrowRangeScreener": "node --enable-source-maps build/scripts/narrowRangeScreener.js",

@@ -110,3 +110,13 @@ export interface TradeUpdate {
     z: number;
     c: number[];
 }
+
+export enum OrderUpdateEvent {
+    new = "new",
+    fill = "fill",
+    canceled = "canceled",
+    expired = "expired",
+    done_for_day = "done_for_day",
+    replaced = "replaced",
+    partial_fill = "partial_fill",
+}

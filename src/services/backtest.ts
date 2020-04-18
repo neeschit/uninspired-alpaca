@@ -6,15 +6,9 @@ import {
     addHours,
     differenceInMonths,
     addMonths,
-    set,
 } from "date-fns";
 import Sinon from "sinon";
-import {
-    TradeConfig,
-    DefaultDuration,
-    PeriodType,
-    Bar,
-} from "../data/data.model";
+import { TradeConfig, DefaultDuration, PeriodType, Bar } from "../data/data.model";
 import { isMarketOpening, isAfterMarketClose, confirmMarketOpen } from "../util/market";
 import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
 import { getBarsByDate } from "../data/bars";
@@ -48,11 +42,7 @@ export class Backtester {
         private startDate: Date,
         private endDate: Date,
         private configuredSymbols: string[],
-        private profitRatio: number = 1,
-        private minMaxRatio: number = 1,
-        private useSimpleRange: boolean = false,
-        private counterTrend: boolean = false,
-        private period: number = 7
+        private profitRatio: number = 1
     ) {
         this.currentDate = startDate;
         this.clock = Sinon.useFakeTimers(startDate);
@@ -77,11 +67,8 @@ export class Backtester {
 
                 const bars = stockBars.filter((b) => b.t < startOfDay(this.currentDate).getTime());
                 const nrbInstance = new NarrowRangeBarStrategy({
-                    period: this.period,
                     symbol,
                     bars,
-                    useSimpleRange: this.useSimpleRange,
-                    counterTrend: this.counterTrend,
                     broker: this.broker,
                 });
                 this.strategyInstances.push(nrbInstance);
@@ -89,20 +76,10 @@ export class Backtester {
                 LOGGER.error(e.message);
             }
         }
-
-        const shouldBeAdded = this.strategyInstances.filter(
-            (instance) =>
-                instance.checkIfFitsStrategy(this.minMaxRatio > 1) &&
-                this.activeStrategyInstances.every((i) => i.symbol !== instance.symbol)
-        );
-
-        this.activeStrategyInstances.push(...shouldBeAdded);
     }
 
     async getScreenedSymbols(symbols: string[]) {
         await this.screenSymbols(symbols);
-
-        return this.activeStrategyInstances;
     }
 
     getTimeSeriesGenerator({ endDate }: { startDate: Date; endDate: Date }) {
@@ -241,44 +218,14 @@ export class Backtester {
                     const bars = this.replayBars[i.symbol];
 
                     try {
-                        let offset = 0;
-                        let bar = await this.findOrFetchBarByDate(
-                            set(this.currentDate.getTime(), i.entryEpochTrigger).getTime(),
-                            i.symbol,
-                            bars,
-                            offset
-                        );
+                        let bar = bars[bars.length - 1];
 
                         if (!bar) {
                             LOGGER.warn(`no bar found`);
                             return;
                         }
 
-                        if (bar.v < 25000) {
-                            offset++;
-                            bar = await this.findOrFetchBarByDate(
-                                set(this.currentDate.getTime(), i.entryEpochTrigger).getTime(),
-                                i.symbol,
-                                bars,
-                                offset
-                            );
-                        }
-
-                        if (!bar) {
-                            throw new Error("no bar found");
-                        }
-
-                        const nextBar = await this.findOrFetchBarByDate(
-                            this.currentDate.getTime(),
-                            i.symbol,
-                            bars,
-                            offset,
-                            false
-                        );
-
-                        if (!nextBar) {
-                            throw new Error("Shoulda found the next bar for " + i.symbol);
-                        }
+                        const nextBar = bar;
 
                         return i.rebalance(nextBar, bar, this.currentDate);
                     } catch (e) {
