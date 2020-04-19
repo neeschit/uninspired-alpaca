@@ -220,7 +220,7 @@ const getDataQuery = (tablename: string, fromTimestamp?: number, timestring = "5
         from ${tablename.toLowerCase()} 
         ${fromTimestamp ? "where t > " + getTimestampValue(fromTimestamp) : ""}
         group by time_bucket 
-        order by time_bucket desc;
+        order by time_bucket asc;
     `;
 };
 
@@ -231,7 +231,7 @@ export const getData = async (symbol: string, fromTimestamp: number): Promise<Ba
 
     const query = getDataQuery(tableName, fromTimestamp);
 
-    LOGGER.info(query);
+    LOGGER.debug(query);
 
     const result = await pool.query(query);
 

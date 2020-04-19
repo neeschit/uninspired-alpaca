@@ -29,5 +29,9 @@ const narrowRangeBarStrategyInstance = new NarrowRangeBarStrategy({
 });
 test("screener should find all narrow range bars", async (t) => {
     const data = await getData(narrowRangeBarStrategyInstance.symbol, 1587130200000);
-    const things = narrowRangeBarStrategyInstance.screenForNarrowRangeBars(data);
+
+    narrowRangeBarStrategyInstance.screenForNarrowRangeBars(data, 1587130200000);
+    t.truthy(narrowRangeBarStrategyInstance.nrbTimestamps.length);
+
+    t.is(narrowRangeBarStrategyInstance.nrbTimestamps[0], 1587131100000);
 });

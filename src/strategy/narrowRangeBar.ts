@@ -16,13 +16,14 @@ import { LOGGER } from "../instrumentation/log";
 import { convertToLocalTime } from "../util/date";
 import { Broker } from "@neeschit/alpaca-trade-api";
 import { alpaca } from "../resources/alpaca";
-import { getAverageTrueRange } from "../indicator/trueRange";
+import { getAverageTrueRange, getTrueRange } from "../indicator/trueRange";
 
 export class NarrowRangeBarStrategy {
     symbol: string;
     broker: Broker;
     atr: number;
     nrbTimestamps: number[] = [];
+    lastScreenedTimestamp = 0;
 
     constructor({
         symbol,
@@ -41,26 +42,42 @@ export class NarrowRangeBarStrategy {
         this.atr = atr[atr.length - 1].value;
     }
 
-    screenForNarrowRangeBars(bars: Bar[], strict = true) {
-        const { atr, tr } = getAverageTrueRange(bars);
-        const isNarrowRangeBar = this.isNarrowRangeBar(tr, strict);
-        return isNarrowRangeBar;
+    screenForNarrowRangeBars(bars: Bar[], currentEpoch = Date.now()) {
+        const filteredBars = bars.filter((b) => isMarketOpen(b.t));
+        const { tr } = getAverageTrueRange(filteredBars);
+
+        const filteredRanges = tr.filter(
+            (range) => range.t >= this.lastScreenedTimestamp && range.t >= currentEpoch
+        );
+
+        for (const range of filteredRanges) {
+            const index = tr.findIndex((r) => r.t === range.t);
+
+            if (index < 0) {
+                throw new Error("boohoo");
+            }
+
+            const ranges = tr.slice(Math.max(0, index - 7), index + 1).map((r) => r.value);
+
+            if (this.isNarrowRangeBar(ranges)) {
+                this.nrbTimestamps.push(range.t);
+                LOGGER.info(range);
+            }
+        }
     }
 
-    isNarrowRangeBar(tr: number[], strict: boolean) {
-        const { min, max } = this.getMinMaxPeriodRange(tr);
+    isNarrowRangeBar(tr: number[]) {
+        const { max } = this.getMinMaxPeriodRange(tr.slice(-7));
+
+        const { min } = this.getMinMaxPeriodRange(tr.slice(-3));
 
         const isNarrowRangeBar = tr[tr.length - 1] === min;
 
-        if (isNarrowRangeBar && strict) {
-            return this.isVeryNarrowRangeBar(max, min);
-        }
-
-        return isNarrowRangeBar;
+        return isNarrowRangeBar && this.isVeryNarrowRangeBar(max, min);
     }
 
     isVeryNarrowRangeBar(max: number, min: number) {
-        LOGGER.info(max / min);
+        LOGGER.trace(max / min);
 
         return max / min > 3;
     }
@@ -68,23 +85,19 @@ export class NarrowRangeBarStrategy {
     private getMinMaxPeriodRange(tr: number[]) {
         return tr.reduce(
             ({ min, max }: { min: number; max: number }, range: number) => {
+                let newMin = min;
+                let newMax = max;
                 if (range < min) {
-                    return {
-                        min: range,
-                        max,
-                    };
+                    newMin = range;
                 }
 
                 if (range > max) {
-                    return {
-                        min,
-                        max: range,
-                    };
+                    newMax = range;
                 }
 
                 return {
-                    min,
-                    max,
+                    min: newMin,
+                    max: newMax,
                 };
             },
             {
@@ -95,12 +108,7 @@ export class NarrowRangeBarStrategy {
     }
 
     isTimeForEntry(now: TimestampType) {
-        if (!isMarketOpen(now)) {
-            LOGGER.debug("market ain't open biiatch", now);
-            return null;
-        }
-
-        const timeStart = convertToLocalTime(now, " 09:34:45.000");
+        const timeStart = convertToLocalTime(now, " 09:44:45.000");
 
         const nowMillis = now instanceof Date ? now.getTime() : now;
 

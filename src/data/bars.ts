@@ -11,6 +11,18 @@ export const getDayBars = (symbols: string[], days = 100, lookback = 100) => {
     return getBars(PeriodType.day, symbols, days, lookback);
 };
 
+export const getDayBarsFormatted = (symbols: string[], days = 100, lookback = 100) => {
+    return getDayBars(symbols, days, lookback).then((responses) => {
+        const bars: { [index: string]: Bar[] } = {};
+
+        responses.map((response) => {
+            Object.assign(bars, response);
+        });
+
+        return bars;
+    });
+};
+
 export const getIntradayBars = (
     symbols: string[],
     days = 100,
@@ -37,15 +49,17 @@ const getBars = (
     days: number,
     lookback: number,
     duration: DefaultDuration = DefaultDuration.one
-): Promise<{
-    [index: string]: Bar[];
-}[]> => {
+): Promise<
+    {
+        [index: string]: Bar[];
+    }[]
+> => {
     if (!symbols || !symbols.length || !Array.isArray(symbols)) {
         throw new Error("require an array");
     }
     const start = startOfDay(addDays(date, -(days + lookback)));
     const end = addDays(date, -lookback + 1);
-    const promises = symbols.map(symbol => getPolyonData(symbol, start, end, period, duration));
+    const promises = symbols.map((symbol) => getPolyonData(symbol, start, end, period, duration));
 
     return Promise.all(promises);
 };

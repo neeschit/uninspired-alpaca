@@ -22,13 +22,19 @@ export const getAverageTrueRange = (bars: Bar[], useSimpleRange = true, period =
     const tr = [];
 
     for (let index = 0; index < bars.length - 1; index++) {
-        tr.push(getTrueRange(bars.slice(index, index + 2), useSimpleRange));
+        tr.push({
+            value: getTrueRange(bars.slice(index, index + 2), useSimpleRange),
+            t: bars[index + 1].t,
+        });
     }
 
-    const atr = getExponentialAverage(tr, period).map((value, index, array) => {
+    const atr = getExponentialAverage(
+        tr.map((r) => r.value),
+        period
+    ).map((value, index, array) => {
         return {
             value,
-            t: bars[bars.length - array.length + index].t
+            t: bars[bars.length - array.length + index].t,
         };
     });
 
