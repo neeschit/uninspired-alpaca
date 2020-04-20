@@ -46,9 +46,11 @@ export class NarrowRangeBarStrategy {
         const filteredBars = bars.filter((b) => isMarketOpen(b.t));
         const { tr } = getAverageTrueRange(filteredBars);
 
-        const filteredRanges = tr.filter(
-            (range) => range.t >= this.lastScreenedTimestamp && range.t >= currentEpoch
-        );
+        const filteredRanges = tr.filter((range) => range.t <= currentEpoch);
+
+        if (!filteredRanges || filteredRanges.length < 2) {
+            return;
+        }
 
         for (const range of filteredRanges) {
             const index = tr.findIndex((r) => r.t === range.t);
@@ -60,8 +62,8 @@ export class NarrowRangeBarStrategy {
             const ranges = tr.slice(Math.max(0, index - 7), index + 1).map((r) => r.value);
 
             if (this.isNarrowRangeBar(ranges)) {
-                this.nrbTimestamps.push(range.t);
-                LOGGER.info(range);
+                const index = this.nrbTimestamps.findIndex((t) => t === range.t);
+                index < 0 ? this.nrbTimestamps.push(range.t) : LOGGER.debug("already found it");
             }
         }
 

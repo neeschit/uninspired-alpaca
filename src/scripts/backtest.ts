@@ -28,14 +28,14 @@ const counterTrend = false;
 
 const nrbPeriod = 7;
 
-const updateInterval = 60000;
+const updateInterval = 300000;
 
 const instance = new Backtester(
     MockBroker.getInstance(),
     updateInterval,
     zonedStartDate,
     zonedEndDate,
-    LARGE_CAPS,
+    ["AAPL"],
     pr
 );
 

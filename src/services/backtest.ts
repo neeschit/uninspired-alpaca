@@ -25,7 +25,6 @@ export class Backtester {
     currentDate: Date;
     managers: TradeManagement[] = [];
     strategyInstances: NarrowRangeBarStrategy[] = [];
-    activeStrategyInstances: NarrowRangeBarStrategy[] = [];
     daysElapsed: number = 0;
     clock: Sinon.SinonFakeTimers;
     replayBars: {
@@ -48,15 +47,15 @@ export class Backtester {
         this.clock = Sinon.useFakeTimers(startDate);
     }
 
-    async screenSymbols(configuredSymbols: string[]) {
-        const positions = await this.broker.getPositions();
+    async gatherDailyDataForSymbols(configuredSymbols: string[]) {
+        /* const positions = await this.broker.getPositions();
         const symbols = configuredSymbols.filter(
             (symbol) =>
                 this.strategyInstances.every((i) => i.symbol !== symbol) &&
                 positions.every((p) => p.symbol !== symbol)
-        );
+        ); */
 
-        for (const symbol of symbols) {
+        for (const symbol of configuredSymbols) {
             try {
                 const stockBars = this.screenerBars[symbol];
 
@@ -76,10 +75,6 @@ export class Backtester {
                 LOGGER.error(e.message);
             }
         }
-    }
-
-    async getScreenedSymbols(symbols: string[]) {
-        await this.screenSymbols(symbols);
     }
 
     getTimeSeriesGenerator({ endDate }: { startDate: Date; endDate: Date }) {
@@ -173,7 +168,9 @@ export class Backtester {
 
         for await (const bar of replayBars()) {
             Object.assign(this.replayBars, {
-                [bar.symbol]: bar.bars,
+                [bar.symbol]: bar.bars.filter((b) => {
+                    return confirmMarketOpen(this.calendar, b.t);
+                }),
             });
         }
 
@@ -197,9 +194,9 @@ export class Backtester {
                     status: "open",
                 });
 
-                const filteredInstances = this.activeStrategyInstances.filter((i) => {
-                    return pendingTradeConfigs.every((c) => c.symbol !== i.symbol);
-                });
+                const filteredInstances = this.strategyInstances.filter((i) =>
+                    pendingTradeConfigs.every((c) => c.symbol !== i.symbol)
+                );
 
                 try {
                     const rebalancingPositionTrades = await this.closeAndRebalance();
@@ -212,6 +209,15 @@ export class Backtester {
                     }
                 } catch (e) {
                     LOGGER.warn(e.message);
+                }
+
+                for (const i of this.strategyInstances) {
+                    const bars = this.replayBars[i.symbol].filter(
+                        (b) => b.t < this.currentDate.getTime()
+                    );
+                    bars &&
+                        bars.length > 1 &&
+                        i.screenForNarrowRangeBars(bars, this.currentDate.getTime());
                 }
 
                 const potentialTradesToPlace = filteredInstances.map(async (i) => {
@@ -251,7 +257,7 @@ export class Backtester {
 
             if (isMarketOpening(this.currentDate)) {
                 this.tradeUpdater.emit("market_opening");
-                await this.getScreenedSymbols(symbols);
+                await this.gatherDailyDataForSymbols(symbols);
             }
 
             if (isAfterMarketClose(this.currentDate)) {
@@ -389,7 +395,6 @@ export class Backtester {
 
     private reset() {
         this.strategyInstances = [];
-        this.activeStrategyInstances = [];
         this.managers = [];
         this.broker.cancelAllOrders();
     }
@@ -422,9 +427,6 @@ export class Backtester {
 
             if (position) {
                 manager.filledPosition = position;
-                this.activeStrategyInstances = this.activeStrategyInstances.filter(
-                    (s) => s.symbol !== symbol
-                );
                 this.managers = this.managers.filter(
                     (m) => m.plan.symbol !== position.symbol || m.filledPosition
                 );
