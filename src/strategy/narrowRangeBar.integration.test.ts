@@ -29,9 +29,21 @@ const narrowRangeBarStrategyInstance = new NarrowRangeBarStrategy({
 });
 test("screener should find all narrow range bars", async (t) => {
     const data = await getData(narrowRangeBarStrategyInstance.symbol, 1587130200000);
+    const endIndex = Math.max(Math.ceil(data.length / 2), 1);
+    const dataSliced = data.slice(0, endIndex);
 
-    narrowRangeBarStrategyInstance.screenForNarrowRangeBars(data, 1587130200000);
+    narrowRangeBarStrategyInstance.screenForNarrowRangeBars(dataSliced, 1587130200000);
     t.truthy(narrowRangeBarStrategyInstance.nrbTimestamps.length);
+    const previousNarrowRangeBarLength = narrowRangeBarStrategyInstance.nrbTimestamps.length;
 
     t.is(narrowRangeBarStrategyInstance.nrbTimestamps[0], 1587131100000);
+    t.is(narrowRangeBarStrategyInstance.lastScreenedTimestamp, dataSliced[dataSliced.length - 1].t);
+
+    narrowRangeBarStrategyInstance.screenForNarrowRangeBars(
+        data.slice(endIndex),
+        dataSliced[dataSliced.length - 1].t
+    );
+
+    t.truthy(narrowRangeBarStrategyInstance.nrbTimestamps.length > previousNarrowRangeBarLength);
+    t.is(narrowRangeBarStrategyInstance.lastScreenedTimestamp, 1587153300000);
 });

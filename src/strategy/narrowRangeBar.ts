@@ -64,6 +64,8 @@ export class NarrowRangeBarStrategy {
                 LOGGER.info(range);
             }
         }
+
+        this.lastScreenedTimestamp = filteredRanges[filteredRanges.length - 1].t;
     }
 
     isNarrowRangeBar(tr: number[]) {
