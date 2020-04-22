@@ -17,12 +17,14 @@ import { convertToLocalTime } from "../util/date";
 import { Broker } from "@neeschit/alpaca-trade-api";
 import { alpaca } from "../resources/alpaca";
 import { getAverageTrueRange, getTrueRange } from "../indicator/trueRange";
+import { roundHalf } from "../util";
 
 export class NarrowRangeBarStrategy {
     symbol: string;
     broker: Broker;
     atr: number;
     nrbTimestamps: number[] = [];
+    nrbs: Bar[] = [];
     lastScreenedTimestamp = 0;
 
     constructor({
@@ -61,23 +63,70 @@ export class NarrowRangeBarStrategy {
 
             const ranges = tr.slice(Math.max(0, index - 7), index + 1).map((r) => r.value);
 
-            if (this.isNarrowRangeBar(ranges)) {
+            if (this.isNarrowRangeBar(ranges, filteredBars, range)) {
                 const index = this.nrbTimestamps.findIndex((t) => t === range.t);
-                index < 0 ? this.nrbTimestamps.push(range.t) : LOGGER.debug("already found it");
+                if (index < 0) {
+                    this.nrbTimestamps.push(range.t);
+                    const bar = bars.find((b) => b.t === range.t);
+
+                    if (bar) {
+                        this.nrbs.push(bar);
+                    }
+                }
             }
         }
 
         this.lastScreenedTimestamp = filteredRanges[filteredRanges.length - 1].t;
     }
 
-    isNarrowRangeBar(tr: number[]) {
+    get direction() {
+        const entryBar = this.nrbs[this.nrbs.length - 1];
+        const roundedLow = Math.round(entryBar.l);
+        const roundedHigh = Math.round(entryBar.h);
+
+        if (roundedHigh === entryBar.h && roundedLow === entryBar.l) {
+            LOGGER.warn(
+                `This is a weird one ${this.symbol} at ${new Date(entryBar.t).toLocaleString()}`
+            );
+        }
+
+        if (roundedHigh === entryBar.h) {
+            return TradeDirection.buy;
+        }
+
+        if (roundedLow === entryBar.l) {
+            return TradeDirection.sell;
+        }
+    }
+
+    isNarrowRangeBar(
+        tr: number[],
+        bars: Bar[],
+        range: {
+            value: number;
+            t: number;
+        }
+    ) {
         const { max } = this.getMinMaxPeriodRange(tr.slice(-7));
 
         const { min } = this.getMinMaxPeriodRange(tr.slice(-3));
 
-        const isNarrowRangeBar = tr[tr.length - 1] === min;
+        const isNarrowRangeBar = range.value === min;
 
-        return isNarrowRangeBar && this.isVeryNarrowRangeBar(max, min);
+        const bar = bars.find((b) => b.t === range.t);
+
+        if (!bar) {
+            return false;
+        }
+
+        const roundedLow = Math.round(bar.l);
+        const roundedHigh = Math.round(bar.h);
+
+        return (
+            isNarrowRangeBar &&
+            (roundedLow === bar.l || roundedHigh === bar.h) &&
+            this.isVeryNarrowRangeBar(max, min)
+        );
     }
 
     isVeryNarrowRangeBar(max: number, min: number) {
@@ -113,10 +162,12 @@ export class NarrowRangeBarStrategy {
 
     isTimeForEntry(now: TimestampType) {
         const timeStart = convertToLocalTime(now, " 09:44:45.000");
+        const timeEnd = convertToLocalTime(now, " 15:30:00.000");
 
         const nowMillis = now instanceof Date ? now.getTime() : now;
 
-        const isWithinEntryRange = timeStart.getTime() <= nowMillis;
+        const isWithinEntryRange =
+            timeStart.getTime() <= nowMillis && timeEnd.getTime() >= nowMillis;
 
         if (!isWithinEntryRange) {
             LOGGER.debug("come back later hooomie", nowMillis);
@@ -125,13 +176,12 @@ export class NarrowRangeBarStrategy {
         return isWithinEntryRange;
     }
 
-    async onTradeUpdate(currentBar: Bar, entryBar: Bar, now: TimestampType = Date.now()) {
-        return this.rebalance(currentBar, entryBar, now);
+    async onTradeUpdate(currentBar: Bar, now: TimestampType = Date.now()) {
+        return this.rebalance(currentBar, now);
     }
 
     async rebalance(
         currentBar: Bar,
-        entryBar: Bar,
         now: TimestampType = Date.now()
     ): Promise<PlannedTradeConfig | null> {
         if (!this.isTimeForEntry(now)) {
@@ -150,7 +200,7 @@ export class NarrowRangeBarStrategy {
         }
 
         try {
-            return this.getPlan(entryBar, currentBar, now);
+            return this.getPlan(currentBar, now);
         } catch (e) {
             LOGGER.error(e);
             return null;
@@ -163,7 +213,13 @@ export class NarrowRangeBarStrategy {
         };
     }
 
-    getPlan(entryBar: Bar, currentBar: Bar, now = Date.now()) {
+    getPlan(currentBar: Bar, now = Date.now()) {
+        if (!this.nrbs.length) {
+            return null;
+        }
+
+        const entryBar = this.nrbs[this.nrbs.length - 1];
+
         const { entryLong, entryShort } = this.getEntryPrices(entryBar);
         const unitRisk = Math.abs(entryLong - entryShort);
 
@@ -176,7 +232,7 @@ export class NarrowRangeBarStrategy {
 
         const riskAtrRatio = unitRisk / this.atr;
 
-        if (currentBar.h > entryBar.h) {
+        if (this.direction === TradeDirection.buy && currentBar.h > entryBar.h) {
             return {
                 plan: {
                     plannedEntryPrice: entryLong,
@@ -196,7 +252,7 @@ export class NarrowRangeBarStrategy {
                     t: now,
                 },
             };
-        } else if (currentBar.l < entryBar.l) {
+        } else if (this.direction === TradeDirection.sell && currentBar.l < entryBar.l) {
             return {
                 plan: {
                     plannedEntryPrice: entryShort,

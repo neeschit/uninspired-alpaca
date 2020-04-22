@@ -208,10 +208,10 @@ export const createTradeDataTableForSymbol = (symbol: string, pool = getConnecti
     return pool.query(query);
 };
 
-const getDataQuery = (tablename: string, fromTimestamp?: number, timestring = "5 minutes") => {
+const getDataQuery = (tablename: string, fromTimestamp?: number, timeBucket = "5 minutes") => {
     return `
         select 
-            time_bucket('${timestring}', t) as time_bucket, 
+            time_bucket('${timeBucket}', t) as time_bucket, 
             sum(v) as v,
             min(l) as l,
             max(h) as h,
@@ -224,12 +224,16 @@ const getDataQuery = (tablename: string, fromTimestamp?: number, timestring = "5
     `;
 };
 
-export const getData = async (symbol: string, fromTimestamp: number): Promise<Bar[]> => {
+export const getData = async (
+    symbol: string,
+    fromTimestamp: number,
+    timeBucket?: string
+): Promise<Bar[]> => {
     const pool = getConnection();
 
     const tableName = getAggregatedMinuteTableNameForSymbol(symbol);
 
-    const query = getDataQuery(tableName, fromTimestamp);
+    const query = getDataQuery(tableName, fromTimestamp, timeBucket);
 
     LOGGER.debug(query);
 
@@ -237,11 +241,11 @@ export const getData = async (symbol: string, fromTimestamp: number): Promise<Ba
 
     return result.rows.map((r) => {
         return {
-            v: r.v,
-            c: r.c,
-            o: r.o,
-            h: r.h,
-            l: r.l,
+            v: Number(r.v),
+            c: Number(r.c),
+            o: Number(r.o),
+            h: Number(r.h),
+            l: Number(r.l),
             t: new Date(r.time_bucket).getTime(),
         };
     });
