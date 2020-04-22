@@ -1,5 +1,5 @@
 import { getConnection } from "../connection/pg";
-import { TickBar, TradeUpdate } from "../data/data.model";
+import { TickBar, TradeUpdate, Bar } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
 import { getCreateOrdersTableSql } from "./order";
 import { getCreatePositionsTableSql } from "./position";
@@ -39,21 +39,6 @@ SELECT create_hypertable('${tablename}', 't');
 
 SELECT set_chunk_time_interval('${tablename}', interval '1 day');
 `;
-
-const getStockDataQuery = (tablename: string, timestring = "5 minutes") => {
-    return `
-        select 
-            time_bucket('${timestring}', t) as time_bucket, 
-            sum(v) as v,
-            min(l) as l,
-            max(h) as h,
-            last(c, t) as c,
-            first(o, t) as o 
-        from ${tablename.toLowerCase()} 
-        group by time_bucket 
-        order by time_bucket desc;
-    `;
-};
 
 const checkIfTableExists = async (tablename: string) => {
     const pool = getConnection();
@@ -143,6 +128,10 @@ export const createMetadataTables = async () => {
     }
 };
 
+const getTimestampValue = (t: number) => {
+    return `to_timestamp(${t}::double precision / 1000)`;
+};
+
 export const insertBar = async (bar: TickBar, symbol: string, isMinute = false) => {
     const pool = getConnection();
 
@@ -151,7 +140,7 @@ export const insertBar = async (bar: TickBar, symbol: string, isMinute = false) 
         : getAggregatedTickTableNameForSymbol(symbol);
 
     const query = `insert into ${tablename} values (
-        to_timestamp(${bar.t}::double precision / 1000), 
+        ${getTimestampValue(bar.t)}, 
         ${bar.o}, 
         ${bar.h}, 
         ${bar.l}, 
@@ -217,4 +206,47 @@ export const createAggregatedMinutesDataTableForSymbol = (
 export const createTradeDataTableForSymbol = (symbol: string, pool = getConnection()) => {
     const query = getCreateTradesTableSql(getTradeTableNameForSymbol(symbol));
     return pool.query(query);
+};
+
+const getDataQuery = (tablename: string, fromTimestamp?: number, timeBucket = "5 minutes") => {
+    return `
+        select 
+            time_bucket('${timeBucket}', t) as time_bucket, 
+            sum(v) as v,
+            min(l) as l,
+            max(h) as h,
+            last(c, t) as c,
+            first(o, t) as o 
+        from ${tablename.toLowerCase()} 
+        ${fromTimestamp ? "where t > " + getTimestampValue(fromTimestamp) : ""}
+        group by time_bucket 
+        order by time_bucket asc;
+    `;
+};
+
+export const getData = async (
+    symbol: string,
+    fromTimestamp: number,
+    timeBucket?: string
+): Promise<Bar[]> => {
+    const pool = getConnection();
+
+    const tableName = getAggregatedMinuteTableNameForSymbol(symbol);
+
+    const query = getDataQuery(tableName, fromTimestamp, timeBucket);
+
+    LOGGER.debug(query);
+
+    const result = await pool.query(query);
+
+    return result.rows.map((r) => {
+        return {
+            v: Number(r.v),
+            c: Number(r.c),
+            o: Number(r.o),
+            h: Number(r.h),
+            l: Number(r.l),
+            t: new Date(r.time_bucket).getTime(),
+        };
+    });
 };

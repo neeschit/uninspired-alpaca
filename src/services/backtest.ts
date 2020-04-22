@@ -25,10 +25,12 @@ export class Backtester {
     currentDate: Date;
     managers: TradeManagement[] = [];
     strategyInstances: NarrowRangeBarStrategy[] = [];
-    activeStrategyInstances: NarrowRangeBarStrategy[] = [];
     daysElapsed: number = 0;
     clock: Sinon.SinonFakeTimers;
     replayBars: {
+        [index: string]: Bar[];
+    } = {};
+    screenerDailyBars: {
         [index: string]: Bar[];
     } = {};
     screenerBars: {
@@ -48,17 +50,10 @@ export class Backtester {
         this.clock = Sinon.useFakeTimers(startDate);
     }
 
-    async screenSymbols(configuredSymbols: string[]) {
-        const positions = await this.broker.getPositions();
-        const symbols = configuredSymbols.filter(
-            (symbol) =>
-                this.strategyInstances.every((i) => i.symbol !== symbol) &&
-                positions.every((p) => p.symbol !== symbol)
-        );
-
-        for (const symbol of symbols) {
+    async gatherDailyDataForSymbols(configuredSymbols: string[]) {
+        for (const symbol of configuredSymbols) {
             try {
-                const stockBars = this.screenerBars[symbol];
+                const stockBars = this.screenerDailyBars[symbol];
 
                 if (!stockBars || stockBars.length < 15) {
                     LOGGER.warn(`No bars for ${symbol} on ${this.currentDate.toLocaleString()}`);
@@ -76,10 +71,6 @@ export class Backtester {
                 LOGGER.error(e.message);
             }
         }
-    }
-
-    async getScreenedSymbols(symbols: string[]) {
-        await this.screenSymbols(symbols);
     }
 
     getTimeSeriesGenerator({ endDate }: { startDate: Date; endDate: Date }) {
@@ -149,7 +140,7 @@ export class Backtester {
     }
 
     async batchSimulate(startDate: Date, endDate: Date, symbols: string[]) {
-        const screenerBars = getSymbolDataGenerator(
+        const screenerDailyBars = getSymbolDataGenerator(
             symbols,
             DefaultDuration.one,
             PeriodType.day,
@@ -157,15 +148,15 @@ export class Backtester {
             addDays(endDate, 1)
         );
 
-        for await (const bar of screenerBars()) {
-            Object.assign(this.screenerBars, {
+        for await (const bar of screenerDailyBars()) {
+            Object.assign(this.screenerDailyBars, {
                 [bar.symbol]: bar.bars,
             });
         }
 
         const replayBars = getSymbolDataGenerator(
             symbols,
-            this.updateIntervalMillis === 60000 ? DefaultDuration.one : DefaultDuration.five,
+            DefaultDuration.one,
             PeriodType.minute,
             startDate,
             endDate
@@ -173,7 +164,25 @@ export class Backtester {
 
         for await (const bar of replayBars()) {
             Object.assign(this.replayBars, {
-                [bar.symbol]: bar.bars,
+                [bar.symbol]: bar.bars.filter((b) => {
+                    return confirmMarketOpen(this.calendar, b.t);
+                }),
+            });
+        }
+
+        const screenerBars = getSymbolDataGenerator(
+            symbols,
+            DefaultDuration.fifteen,
+            PeriodType.minute,
+            startDate,
+            endDate
+        );
+
+        for await (const bar of screenerBars()) {
+            Object.assign(this.screenerBars, {
+                [bar.symbol]: bar.bars.filter((b) => {
+                    return confirmMarketOpen(this.calendar, b.t);
+                }),
             });
         }
 
@@ -197,9 +206,9 @@ export class Backtester {
                     status: "open",
                 });
 
-                const filteredInstances = this.activeStrategyInstances.filter((i) => {
-                    return pendingTradeConfigs.every((c) => c.symbol !== i.symbol);
-                });
+                const filteredInstances = this.strategyInstances.filter((i) =>
+                    pendingTradeConfigs.every((c) => c.symbol !== i.symbol)
+                );
 
                 try {
                     const rebalancingPositionTrades = await this.closeAndRebalance();
@@ -214,20 +223,31 @@ export class Backtester {
                     LOGGER.warn(e.message);
                 }
 
+                for (const i of this.strategyInstances) {
+                    const bars = this.screenerBars[i.symbol].filter(
+                        (b) => b.t < this.currentDate.getTime()
+                    );
+                    bars &&
+                        bars.length > 1 &&
+                        i.screenForNarrowRangeBars(bars, this.currentDate.getTime());
+                }
+
                 const potentialTradesToPlace = filteredInstances.map(async (i) => {
                     const bars = this.replayBars[i.symbol];
 
                     try {
-                        let bar = bars[bars.length - 1];
+                        const bar = await this.findOrFetchBarByDate(
+                            this.currentDate.getTime(),
+                            i.symbol,
+                            bars
+                        );
 
                         if (!bar) {
                             LOGGER.warn(`no bar found`);
                             return;
                         }
 
-                        const nextBar = bar;
-
-                        return i.rebalance(nextBar, bar, this.currentDate);
+                        return i.rebalance(bar, this.currentDate);
                     } catch (e) {
                         LOGGER.warn(e);
                     }
@@ -251,7 +271,7 @@ export class Backtester {
 
             if (isMarketOpening(this.currentDate)) {
                 this.tradeUpdater.emit("market_opening");
-                await this.getScreenedSymbols(symbols);
+                await this.gatherDailyDataForSymbols(symbols);
             }
 
             if (isAfterMarketClose(this.currentDate)) {
@@ -260,21 +280,33 @@ export class Backtester {
         }
     }
 
-    async refreshBars(symbol: string, time = this.currentDate.getTime()): Promise<Bar> {
+    async refreshBars(
+        symbol: string,
+        useLongerBars = false,
+        time = this.currentDate.getTime()
+    ): Promise<Bar> {
         LOGGER.warn(
             `Detected need to refresh bars at ${this.currentDate.toLocaleString()} for ${symbol}`
         );
-        const bars = await getBarsByDate(
+        const minuteBars = await getBarsByDate(
             symbol,
             addDays(this.currentDate, -1),
             this.endDate,
-            this.updateIntervalMillis === 60000 ? DefaultDuration.one : DefaultDuration.five,
+            DefaultDuration.one,
+            PeriodType.minute
+        );
+        const fifteenBars = await getBarsByDate(
+            symbol,
+            addDays(this.currentDate, -1),
+            this.endDate,
+            DefaultDuration.fifteen,
             PeriodType.minute
         );
 
-        this.replayBars[symbol] = bars;
+        this.replayBars[symbol] = minuteBars;
+        this.screenerBars[symbol] = fifteenBars;
 
-        return this.findBarByDate(time, symbol, bars);
+        return this.findBarByDate(time, symbol, useLongerBars ? fifteenBars : minuteBars);
     }
 
     async findOrFetchBarByDate(
@@ -282,6 +314,7 @@ export class Backtester {
         symbol: string,
         bars: Bar[],
         offset?: number,
+        useLongerBars = false,
         shouldForceAggregate = true
     ): Promise<Bar | null> {
         try {
@@ -294,7 +327,7 @@ export class Backtester {
 
         try {
             if (confirmMarketOpen(this.calendar, time)) {
-                return this.refreshBars(symbol, time);
+                return this.refreshBars(symbol, useLongerBars, time);
             }
         } catch (e) {
             LOGGER.warn(e.message);
@@ -389,7 +422,6 @@ export class Backtester {
 
     private reset() {
         this.strategyInstances = [];
-        this.activeStrategyInstances = [];
         this.managers = [];
         this.broker.cancelAllOrders();
     }
@@ -401,7 +433,7 @@ export class Backtester {
 
         for (const manager of this.managers) {
             const symbol = manager.plan.symbol;
-            const bars = this.replayBars[symbol];
+            const bars = this.screenerBars[symbol];
 
             if (manager.filledPosition) {
                 continue;
@@ -411,7 +443,14 @@ export class Backtester {
                 LOGGER.error(`No bars for ${JSON.stringify(manager.plan)}`);
                 continue;
             }
-            const bar = await this.findOrFetchBarByDate(this.currentDate.getTime(), symbol, bars);
+            const bar = await this.findOrFetchBarByDate(
+                this.currentDate.getTime(),
+                symbol,
+                bars,
+                0,
+                false,
+                false
+            );
 
             if (!bar) {
                 LOGGER.error(`No bars for ${JSON.stringify(manager.plan)}`);
@@ -422,9 +461,6 @@ export class Backtester {
 
             if (position) {
                 manager.filledPosition = position;
-                this.activeStrategyInstances = this.activeStrategyInstances.filter(
-                    (s) => s.symbol !== symbol
-                );
                 this.managers = this.managers.filter(
                     (m) => m.plan.symbol !== position.symbol || m.filledPosition
                 );

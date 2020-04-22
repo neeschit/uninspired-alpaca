@@ -1,14 +1,13 @@
 import { createReadStream, createWriteStream } from "fs";
 import { alpaca } from "../resources/alpaca";
-import { getHighVolumeCompanies } from "../data/filters";
+import { getHighVolumeCompanies, getLargeCaps } from "../data/filters";
 import { subscribeToTickLevelUpdates, getSocketManager } from "../resources/polygon";
 import { LOGGER } from "../instrumentation/log";
 import { TickBar, TradeUpdate, OrderUpdateEvent } from "../data/data.model";
 import { insertBar, insertTrade } from "../resources/stockData";
-import { AlpacaStreamingOrderUpdate } from "@neeschit/alpaca-trade-api";
 import { updateOrder } from "../resources/order";
 
-const highVolCompanies = getHighVolumeCompanies();
+const highVolCompanies = getLargeCaps();
 
 highVolCompanies.push("SPY");
 

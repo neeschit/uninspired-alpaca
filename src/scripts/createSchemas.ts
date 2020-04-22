@@ -6,14 +6,15 @@ import {
 } from "../resources/stockData";
 import { LOGGER } from "../instrumentation/log";
 import { endPooledConnection } from "../connection/pg";
-import { getHighVolumeCompanies } from "../data/filters";
+import { getHighVolumeCompanies, getLargeCaps } from "../data/filters";
+import { readFileSync } from "fs";
 
 const drop = process.argv[2] && Boolean(process.argv[2]);
 
 async function run() {
     const newSymbols = [];
 
-    const symbols = getHighVolumeCompanies();
+    const symbols = getLargeCaps();
 
     symbols.push("SPY");
 
