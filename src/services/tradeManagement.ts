@@ -115,8 +115,8 @@ export const rebalancePosition = async (
 
     const pnl =
         positionSide === PositionDirection.long
-            ? currentBar.c - averageEntryPrice
-            : averageEntryPrice - currentBar.c;
+            ? currentBar.h - averageEntryPrice
+            : averageEntryPrice - currentBar.l;
 
     const currentProfitRatio = pnl / plannedRiskUnits;
 
@@ -159,7 +159,7 @@ export class TradeManagement {
         private partialProfitRatio: number,
         private broker: Broker = alpaca
     ) {}
-    
+
     async getPosition() {
         if (!this.position) {
             this.position = await insertPlannedPosition(this.plan);

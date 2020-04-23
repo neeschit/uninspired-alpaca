@@ -6,6 +6,7 @@ import {
     addHours,
     differenceInMonths,
     addMonths,
+    isSameDay,
 } from "date-fns";
 import Sinon from "sinon";
 import { TradeConfig, DefaultDuration, PeriodType, Bar } from "../data/data.model";
@@ -61,6 +62,7 @@ export class Backtester {
                 }
 
                 const bars = stockBars.filter((b) => b.t < startOfDay(this.currentDate).getTime());
+
                 const nrbInstance = new NarrowRangeBarStrategy({
                     symbol,
                     bars,
@@ -206,9 +208,19 @@ export class Backtester {
                     status: "open",
                 });
 
-                const filteredInstances = this.strategyInstances.filter((i) =>
-                    pendingTradeConfigs.every((c) => c.symbol !== i.symbol)
+                const filteredInstances = this.strategyInstances.filter(
+                    (i) =>
+                        pendingTradeConfigs.every((c) => c.symbol !== i.symbol) &&
+                        this.managers.every((m) => !m.filledPosition && m.plan.symbol !== i.symbol)
                 );
+
+                const currentPositions = await this.broker.getPositions();
+
+                for (const i of this.strategyInstances) {
+                    if (currentPositions.some((s) => s.symbol === i.symbol)) {
+                        i.resetEntryNrbs();
+                    }
+                }
 
                 try {
                     const rebalancingPositionTrades = await this.closeAndRebalance();
@@ -225,8 +237,19 @@ export class Backtester {
 
                 for (const i of this.strategyInstances) {
                     const bars = this.screenerBars[i.symbol].filter(
-                        (b) => b.t < this.currentDate.getTime()
+                        (b) =>
+                            b.t < this.currentDate.getTime() &&
+                            isSameDay(b.t, this.currentDate.getTime())
                     );
+
+                    if (
+                        i.lastScreenedTimestamp &&
+                        bars.length &&
+                        bars[bars.length - 1].t === i.lastScreenedTimestamp
+                    ) {
+                        continue;
+                    }
+
                     bars &&
                         bars.length > 1 &&
                         i.screenForNarrowRangeBars(bars, this.currentDate.getTime());
@@ -239,7 +262,10 @@ export class Backtester {
                         const bar = await this.findOrFetchBarByDate(
                             this.currentDate.getTime(),
                             i.symbol,
-                            bars
+                            bars,
+                            0,
+                            false,
+                            false
                         );
 
                         if (!bar) {
@@ -421,8 +447,8 @@ export class Backtester {
     }
 
     private reset() {
-        this.strategyInstances = [];
         this.managers = [];
+        this.strategyInstances = [];
         this.broker.cancelAllOrders();
     }
 
@@ -473,7 +499,7 @@ export class Backtester {
     private async findPositionConfigAndRebalance(tradeConfig: TradeConfig) {
         const manager = this.managers.find((p) => p.plan.symbol === tradeConfig.symbol);
 
-        if (!manager || !manager.filledPosition) {
+        if (!manager || !manager.filledPosition || !manager.filledPosition.quantity) {
             return null;
         }
 
@@ -484,7 +510,14 @@ export class Backtester {
             bars
         );
 
-        return this.broker.rebalanceHeldPosition(manager, bar, this.currentDate);
+        const position = await this.broker.rebalanceHeldPosition(
+            manager,
+            bar,
+            tradeConfig,
+            this.currentDate
+        );
+
+        return position;
     }
 
     public async closeAndRebalance(): Promise<Array<TradeConfig | null>> {

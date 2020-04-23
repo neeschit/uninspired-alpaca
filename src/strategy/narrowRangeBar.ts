@@ -65,7 +65,7 @@ export class NarrowRangeBarStrategy {
 
             if (this.isNarrowRangeBar(ranges, filteredBars, range)) {
                 const index = this.nrbTimestamps.findIndex((t) => t === range.t);
-                if (index < 0) {
+                if (index < 0 && this.lastScreenedTimestamp < range.t) {
                     this.nrbTimestamps.push(range.t);
                     const bar = bars.find((b) => b.t === range.t);
 
@@ -196,6 +196,7 @@ export class NarrowRangeBarStrategy {
             currentPositions.findIndex((p) => p.symbol === this.symbol) === -1;
 
         if (!notCurrentPosition) {
+            this.nrbs = [];
             return null;
         }
 
@@ -275,5 +276,10 @@ export class NarrowRangeBarStrategy {
         }
 
         return null;
+    }
+
+    resetEntryNrbs() {
+        this.nrbs = [];
+        this.nrbTimestamps = [];
     }
 }

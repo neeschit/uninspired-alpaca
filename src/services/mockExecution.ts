@@ -1,9 +1,4 @@
-import {
-    Bar,
-    TradeConfig,
-    FilledTradeConfig,
-    PlannedTradeConfig,
-} from "../data/data.model";
+import { Bar, TradeConfig, FilledTradeConfig, PlannedTradeConfig } from "../data/data.model";
 import { TradeDirection, PositionDirection, OrderStatus, TradeType } from "../data/data.model";
 import { formatInEasternTimeForDisplay } from "../util/date";
 import {
@@ -82,7 +77,7 @@ export const executeSingleTrade = (
             plannedQuantity: tradePlan.quantity,
             side: side,
             quantity: tradePlan.quantity,
-            id: id++
+            id: id++,
         };
 
         if (bar.h > tradePlan.price && tradePlan.side === TradeDirection.buy) {
@@ -129,8 +124,8 @@ export const executeSingleTrade = (
     }
 
     if (tradePlan.type === TradeType.market) {
-        return executeMarkerOrder(tradePlan, symbol, bar, position);
-    } else {
+        return executeMarketOrder(tradePlan, symbol, bar, position);
+    } else if (tradePlan.type === TradeType.stop) {
         if (bar.h > tradePlan.price && tradePlan.side === TradeDirection.buy) {
             const order = {
                 filledQuantity: tradePlan.quantity,
@@ -298,7 +293,12 @@ export class MockBroker implements Broker {
         return null;
     }
 
-    async rebalanceHeldPosition(manager: TradeManagement, bar: Bar | null, date?: Date) {
+    async rebalanceHeldPosition(
+        manager: TradeManagement,
+        bar: Bar | null,
+        tradeConfig: TradeConfig,
+        date?: Date
+    ) {
         if (!bar) {
             LOGGER.error(
                 `Couldn't find bar when trying to rebalance on ${date?.toLocaleString()} for ${
@@ -312,8 +312,6 @@ export class MockBroker implements Broker {
         if (!manager || !manager.filledPosition || !manager.filledPosition.quantity) {
             return null;
         }
-
-        const tradeConfig = await manager.rebalancePosition(bar, date?.getTime());
 
         if (!tradeConfig) {
             return null;
@@ -333,7 +331,7 @@ export class MockBroker implements Broker {
 
         this.pastTradeConfigs.push({
             ...tradeConfig,
-            averagePrice: executedClose.trades[executedClose.trades.length - 1].price,
+            averagePrice: executedClose.trades[executedClose.trades.length - 1].averagePrice,
             filledQuantity: executedClose.trades[executedClose.trades.length - 1].quantity,
             status: executedClose.trades[executedClose.trades.length - 1].status,
         });
@@ -365,7 +363,7 @@ export class MockBroker implements Broker {
         return MockBroker.instance;
     }
 }
-function executeMarkerOrder(
+function executeMarketOrder(
     tradePlan: TradeConfig,
     symbol: string,
     bar: Bar,
@@ -377,12 +375,41 @@ function executeMarkerOrder(
         averagePrice: bar.c,
         status: OrderStatus.filled,
     };
+
+    if (position.side === PositionDirection.long && position.plannedStopPrice < bar.l) {
+        position.trades.push({
+            /* order, */
+            ...tradePlan,
+            filledQuantity: order.filledQuantity,
+            status: order.status,
+            averagePrice: bar.h,
+        });
+        position.quantity -= order.filledQuantity;
+        return position;
+    } else if (position.side === PositionDirection.short && position.plannedStopPrice > bar.h) {
+        position.trades.push({
+            /* order, */
+            ...tradePlan,
+            filledQuantity: order.filledQuantity,
+            status: order.status,
+            averagePrice: bar.l,
+        });
+        position.quantity -= order.filledQuantity;
+        return position;
+    }
+
+    const averagePrice =
+        position.side === PositionDirection.short
+            ? Math.min(bar.h, position.plannedStopPrice + position.plannedEntryPrice / 100)
+            : Math.max(bar.l, position.plannedStopPrice - position.plannedEntryPrice / 100);
+
+    LOGGER.info(averagePrice);
+
     position.trades.push({
-        /* order, */
         ...tradePlan,
         filledQuantity: order.filledQuantity,
         status: order.status,
-        averagePrice: order.averagePrice,
+        averagePrice,
     });
     position.quantity -= order.filledQuantity;
     return position;
