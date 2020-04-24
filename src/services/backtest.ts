@@ -101,7 +101,7 @@ export class Backtester {
 
     async simulate(batchSize = 100, logPerformance = true) {
         this.calendar = await alpaca.getCalendar({
-            start: this.startDate,
+            start: addDays(this.startDate, -1),
             end: this.endDate,
         });
 
@@ -176,7 +176,7 @@ export class Backtester {
             symbols,
             DefaultDuration.fifteen,
             PeriodType.minute,
-            startDate,
+            addDays(startDate, -1),
             endDate
         );
 
@@ -237,9 +237,7 @@ export class Backtester {
 
                 for (const i of this.strategyInstances) {
                     const bars = this.screenerBars[i.symbol].filter(
-                        (b) =>
-                            b.t < this.currentDate.getTime() &&
-                            isSameDay(b.t, this.currentDate.getTime())
+                        (b) => b.t < this.currentDate.getTime()
                     );
 
                     if (
@@ -273,7 +271,11 @@ export class Backtester {
                             return;
                         }
 
-                        return i.rebalance(bar, this.currentDate);
+                        const recentBars = this.screenerBars[i.symbol].filter(
+                            (b) => b.t < this.currentDate.getTime()
+                        );
+
+                        return i.rebalance(recentBars, bar, this.currentDate);
                     } catch (e) {
                         LOGGER.warn(e);
                     }

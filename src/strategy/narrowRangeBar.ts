@@ -18,6 +18,7 @@ import { Broker } from "@neeschit/alpaca-trade-api";
 import { alpaca } from "../resources/alpaca";
 import { getAverageTrueRange, getTrueRange } from "../indicator/trueRange";
 import { roundHalf } from "../util";
+import { isSameDay } from "date-fns";
 
 export class NarrowRangeBarStrategy {
     symbol: string;
@@ -26,6 +27,13 @@ export class NarrowRangeBarStrategy {
     nrbTimestamps: number[] = [];
     nrbs: Bar[] = [];
     lastScreenedTimestamp = 0;
+    di: {
+        pdx: number;
+        ndx: number;
+    } = {
+        ndx: 0,
+        pdx: 0,
+    };
 
     constructor({
         symbol,
@@ -46,7 +54,10 @@ export class NarrowRangeBarStrategy {
 
     screenForNarrowRangeBars(bars: Bar[], currentEpoch = Date.now()) {
         const filteredBars = bars.filter((b) => isMarketOpen(b.t));
-        const { tr } = getAverageTrueRange(filteredBars);
+
+        const todaysBars = filteredBars.filter((b) => isSameDay(b.t, currentEpoch));
+
+        const { tr } = getAverageTrueRange(todaysBars);
 
         const filteredRanges = tr.filter((range) => range.t <= currentEpoch);
 
@@ -63,7 +74,7 @@ export class NarrowRangeBarStrategy {
 
             const ranges = tr.slice(Math.max(0, index - 7), index + 1).map((r) => r.value);
 
-            if (this.isNarrowRangeBar(ranges, filteredBars, range)) {
+            if (this.isNarrowRangeBar(ranges, todaysBars, range)) {
                 const index = this.nrbTimestamps.findIndex((t) => t === range.t);
                 if (index < 0 && this.lastScreenedTimestamp < range.t) {
                     this.nrbTimestamps.push(range.t);
@@ -124,7 +135,7 @@ export class NarrowRangeBarStrategy {
 
         return (
             isNarrowRangeBar &&
-            (roundedLow === bar.l || roundedHigh === bar.h) &&
+            (Math.abs(roundedLow - bar.l) < 0.04 || Math.abs(roundedHigh - bar.h) < 0.04) &&
             this.isVeryNarrowRangeBar(max, min)
         );
     }
@@ -132,7 +143,7 @@ export class NarrowRangeBarStrategy {
     isVeryNarrowRangeBar(max: number, min: number) {
         LOGGER.trace(max / min);
 
-        return max / min > 3;
+        return max / min > 5;
     }
 
     private getMinMaxPeriodRange(tr: number[]) {
@@ -176,11 +187,12 @@ export class NarrowRangeBarStrategy {
         return isWithinEntryRange;
     }
 
-    async onTradeUpdate(currentBar: Bar, now: TimestampType = Date.now()) {
-        return this.rebalance(currentBar, now);
+    async onTradeUpdate(recentBars: Bar[], currentBar: Bar, now: TimestampType = Date.now()) {
+        return this.rebalance(recentBars, currentBar, now);
     }
 
     async rebalance(
+        recentBars: Bar[],
         currentBar: Bar,
         now: TimestampType = Date.now()
     ): Promise<PlannedTradeConfig | null> {
@@ -189,6 +201,10 @@ export class NarrowRangeBarStrategy {
             return null;
         }
         now = now instanceof Date ? now.getTime() : now;
+
+        const { pdx, ndx } = getAverageDirectionalIndex(recentBars, false);
+
+        const trend = pdx[pdx.length - 1] > ndx[ndx.length - 1] ? TrendType.up : TrendType.down;
 
         const currentPositions = await this.broker.getPositions();
 
@@ -201,7 +217,7 @@ export class NarrowRangeBarStrategy {
         }
 
         try {
-            return this.getPlan(currentBar, now);
+            return this.getPlan(trend, currentBar, now);
         } catch (e) {
             LOGGER.error(e);
             return null;
@@ -214,8 +230,14 @@ export class NarrowRangeBarStrategy {
         };
     }
 
-    getPlan(currentBar: Bar, now = Date.now()) {
+    getPlan(trend: TrendType, currentBar: Bar, now = Date.now()) {
         if (!this.nrbs.length) {
+            return null;
+        }
+
+        if (trend === TrendType.up && this.direction === TradeDirection.sell) {
+            return null;
+        } else if (trend === TrendType.down && this.direction === TradeDirection.buy) {
             return null;
         }
 
