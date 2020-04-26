@@ -1,29 +1,51 @@
-import { getHighVolumeCompanies } from "../data/filters";
-import { getBarsByDate } from "../data/bars";
+import { getMegaCaps } from "../data/filters";
 import { DefaultDuration, PeriodType } from "../data/data.model";
 import { addDays, startOfDay } from "date-fns";
 import { LOGGER } from "../instrumentation/log";
-import { createWriteStream } from "fs";
-import { getCacheDataName, verifyBarData } from "../util";
+import { getPolyonData } from "../resources/polygon";
+import { insertBar, insertDailyBar } from "../resources/stockData";
 
-const highVolCompanies = getHighVolumeCompanies();
+const companies: string[] = getMegaCaps();
 
-async function run(verify = false, duration = DefaultDuration.one, period = PeriodType.day) {
-    for (const symbol of highVolCompanies) {
+companies.push("SPY");
+
+async function run(duration = DefaultDuration.one, period = PeriodType.minute) {
+    for (const symbol of companies) {
         const startDate = startOfDay(addDays(Date.now(), -365));
         const endDate = startOfDay(addDays(Date.now(), 1));
-        const dailyBars = await getBarsByDate(symbol, startDate, endDate, duration, period);
 
-        const isValid = verifyBarData(dailyBars);
+        for (let date = startDate; date.getTime() < endDate.getTime(); date = addDays(date, 1)) {
+            const daysMinutes = await getPolyonData(symbol, date, date, period, duration);
 
-        if (verify && !isValid) {
-            LOGGER.warn(`Inconsistent data for ${symbol}`);
-        } else {
-            const writeStream = createWriteStream(
-                getCacheDataName(symbol, duration, period, startDate, endDate)
+            for (let tick of daysMinutes[symbol]) {
+                try {
+                    await insertBar(tick, symbol, true);
+                } catch (e) {
+                    LOGGER.error(`Error inserting ${JSON.stringify(tick)} for ${symbol}`, e);
+                }
+            }
+        }
+
+        for (let date = startDate; date.getTime() < endDate.getTime(); date = addDays(date, 90)) {
+            const daysMinutes = await getPolyonData(
+                symbol,
+                date,
+                addDays(date, 90),
+                period,
+                duration
             );
-            writeStream.write(JSON.stringify(dailyBars));
-            writeStream.close();
+
+            if (!daysMinutes[symbol] || !daysMinutes[symbol].length) {
+                continue;
+            }
+
+            for (let tick of daysMinutes[symbol]) {
+                try {
+                    await insertDailyBar(tick, symbol);
+                } catch (e) {
+                    LOGGER.error(`Error inserting ${JSON.stringify(tick)} for ${symbol}`, e);
+                }
+            }
         }
     }
 }

@@ -1,7 +1,7 @@
 import * as dotenv from "dotenv";
 import { format } from "date-fns";
 import { get } from "../util/get";
-import { PeriodType, DefaultDuration, Bar } from "../data/data.model";
+import { PeriodType, DefaultDuration, Bar, PolygonBar } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
 import WebSocket from "ws";
 import { EventEmitter } from "events";
@@ -31,7 +31,7 @@ export const getPolyonData = (
     end: Date,
     period: PeriodType = PeriodType.day,
     duration: DefaultDuration = DefaultDuration.one
-): Promise<{ [index: string]: Bar[] }> => {
+): Promise<{ [index: string]: PolygonBar[] }> => {
     const modifiedStart = format(start, dateFormat);
     const modifiedEnd = format(end, dateFormat);
     const resource = `aggs/ticker/${symbol}/range/${duration}/${period}/${modifiedStart}/${modifiedEnd}`;

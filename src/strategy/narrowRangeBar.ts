@@ -53,6 +53,9 @@ export class NarrowRangeBarStrategy {
     }
 
     screenForNarrowRangeBars(bars: Bar[], currentEpoch = Date.now()) {
+        if (!this.isTimeForEntry(currentEpoch)) {
+            return;
+        }
         const filteredBars = bars.filter((b) => isMarketOpen(b.t));
 
         const todaysBars = filteredBars.filter((b) => isSameDay(b.t, currentEpoch));
@@ -143,7 +146,7 @@ export class NarrowRangeBarStrategy {
     isVeryNarrowRangeBar(max: number, min: number) {
         LOGGER.trace(max / min);
 
-        return max / min > 5;
+        return max / min > 3;
     }
 
     private getMinMaxPeriodRange(tr: number[]) {
@@ -181,7 +184,7 @@ export class NarrowRangeBarStrategy {
             timeStart.getTime() <= nowMillis && timeEnd.getTime() >= nowMillis;
 
         if (!isWithinEntryRange) {
-            LOGGER.debug("come back later hooomie", nowMillis);
+            LOGGER.trace("come back later hooomie", nowMillis);
         }
 
         return isWithinEntryRange;
@@ -197,7 +200,7 @@ export class NarrowRangeBarStrategy {
         now: TimestampType = Date.now()
     ): Promise<PlannedTradeConfig | null> {
         if (!this.isTimeForEntry(now)) {
-            LOGGER.warn(`not the time to enter for ${this.symbol} at ${new Date(now)}`);
+            LOGGER.trace(`not the time to enter for ${this.symbol} at ${new Date(now)}`);
             return null;
         }
         now = now instanceof Date ? now.getTime() : now;

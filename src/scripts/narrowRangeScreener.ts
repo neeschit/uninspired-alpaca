@@ -27,7 +27,7 @@ async function run() {
             addDays(Date.now(), 0),
             addDays(Date.now(), 0),
             PeriodType.minute,
-            DefaultDuration.fifteen
+            DefaultDuration.five
         );
 
         narrowRangeBarStrategyInstance.screenForNarrowRangeBars(data[symbol], Date.now());

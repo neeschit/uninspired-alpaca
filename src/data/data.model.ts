@@ -47,11 +47,22 @@ export interface Bar {
     t: number;
     n?: number;
 }
-export interface TickBar extends Omit<Bar, "n"> {
-    a: number;
+
+export interface PolygonBar {
+    o: number;
+    h: number;
+    l: number;
+    c: number;
+    v: number;
+    t: number;
     vw: number;
-    av: number;
-    op: number;
+}
+
+export interface TickBar extends Omit<Bar, "n"> {
+    a?: number;
+    vw: number;
+    av?: number;
+    op?: number;
 }
 
 export enum PeriodType {

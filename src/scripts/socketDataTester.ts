@@ -1,9 +1,8 @@
-import { createReadStream, createWriteStream } from "fs";
 import { alpaca } from "../resources/alpaca";
-import { getHighVolumeCompanies, getLargeCaps } from "../data/filters";
-import { subscribeToTickLevelUpdates, getSocketManager } from "../resources/polygon";
+import { getLargeCaps } from "../data/filters";
+import { subscribeToTickLevelUpdates } from "../resources/polygon";
 import { LOGGER } from "../instrumentation/log";
-import { TickBar, TradeUpdate, OrderUpdateEvent } from "../data/data.model";
+import { TickBar, TradeUpdate } from "../data/data.model";
 import { insertBar, insertTrade } from "../resources/stockData";
 import { updateOrder } from "../resources/order";
 
@@ -12,8 +11,6 @@ const highVolCompanies = getLargeCaps();
 highVolCompanies.push("SPY");
 
 const socket = alpaca.websocket;
-
-const logOfTrades = createWriteStream("./tradeUpdates.log");
 
 socket.onConnect(() => {
     const mappedAggMins = subscribeToTickLevelUpdates(highVolCompanies, "AM");

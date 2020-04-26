@@ -52,17 +52,17 @@ const marketHolidays = [
     "12-25-2019",
     "01-01-2020",
     "01-20-2020",
-    "02-17-2020",
+    "02-18-2020",
     "04-10-2020",
     "05-25-2020",
     "07-03-2020",
     "09-03-2020",
     "11-26-2020",
-    "12-25-2020"
+    "12-25-2020",
 ];
 
 export const isMarketHoliday = (now: TimestampType = Date.now()) => {
-    return marketHolidays.some(day => isSameDay(now, new Date(day)));
+    return marketHolidays.some((day) => isSameDay(now, new Date(day)));
 };
 
 export const isMarketOpen = (now: TimestampType = Date.now()) => {
@@ -134,7 +134,7 @@ export const confirmMarketOpen = (calendar: Calendar[], currentTimeEpoch: number
     const dateFormat = "yyyy-MM-dd";
     const timeFormat = "HH:mm";
     const currentDateString = format(currentTimeEpoch, dateFormat);
-    const currentCalendarObject = calendar.find(c => c.date === currentDateString);
+    const currentCalendarObject = calendar.find((c) => c.date === currentDateString);
 
     if (!currentCalendarObject) {
         return false;

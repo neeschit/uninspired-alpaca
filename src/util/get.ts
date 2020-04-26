@@ -5,14 +5,14 @@ const logError = ({
     url,
     count,
     reject,
-    response
+    response,
 }: {
     response: any;
     url: string;
     count: number;
     reject: any;
 }) => {
-    LOGGER.error(url);
+    /* LOGGER.error(url); */
     LOGGER.error(count);
     return reject(
         `response: ${Object.keys(response)}`,
@@ -42,11 +42,11 @@ export const get = (url: string) => {
                     return logError({ url, response, reject, count });
                 }
                 let body: any[] = [];
-                response.on("data", function(chunk: any) {
+                response.on("data", function (chunk: any) {
                     body.push(chunk);
                 });
 
-                response.on("end", function() {
+                response.on("end", function () {
                     try {
                         body = JSON.parse(Buffer.concat(body).toString());
                     } catch (e) {

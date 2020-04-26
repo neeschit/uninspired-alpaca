@@ -6,21 +6,26 @@ import {
     addHours,
     differenceInMonths,
     addMonths,
-    isSameDay,
+    addBusinessDays,
 } from "date-fns";
 import Sinon from "sinon";
 import { TradeConfig, DefaultDuration, PeriodType, Bar } from "../data/data.model";
-import { isMarketOpening, isAfterMarketClose, confirmMarketOpen } from "../util/market";
+import {
+    isMarketOpening,
+    isAfterMarketClose,
+    confirmMarketOpen,
+    isMarketOpen,
+} from "../util/market";
 import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
 import { getBarsByDate } from "../data/bars";
 import { TradeManagement } from "./tradeManagement";
 import { LOGGER } from "../instrumentation/log";
 import { MockBroker } from "./mockExecution";
-import { getSymbolDataGenerator } from "../resources/polygon";
 import { alpaca } from "../resources/alpaca";
 import { getDetailedPerformanceReport } from "./performance";
 import { Calendar } from "@neeschit/alpaca-trade-api";
 import { FilledPositionConfig } from "../resources/position";
+import { getSimpleData, getData } from "../resources/stockData";
 
 export class Backtester {
     currentDate: Date;
@@ -101,7 +106,7 @@ export class Backtester {
 
     async simulate(batchSize = 100, logPerformance = true) {
         this.calendar = await alpaca.getCalendar({
-            start: addDays(this.startDate, -1),
+            start: addBusinessDays(this.startDate, -3),
             end: this.endDate,
         });
 
@@ -142,58 +147,52 @@ export class Backtester {
     }
 
     async batchSimulate(startDate: Date, endDate: Date, symbols: string[]) {
-        const screenerDailyBars = getSymbolDataGenerator(
-            symbols,
-            DefaultDuration.one,
-            PeriodType.day,
-            addDays(startDate, -150),
-            addDays(endDate, 1)
-        );
-
-        for await (const bar of screenerDailyBars()) {
-            Object.assign(this.screenerDailyBars, {
-                [bar.symbol]: bar.bars,
-            });
+        const dailyPromises = [];
+        for (const symbol of symbols) {
+            dailyPromises.push(
+                getSimpleData(symbol, addDays(startDate, -25).getTime()).then((data) => {
+                    Object.assign(this.screenerDailyBars, {
+                        [symbol]: data,
+                    });
+                })
+            );
         }
 
-        const replayBars = getSymbolDataGenerator(
-            symbols,
-            DefaultDuration.one,
-            PeriodType.minute,
-            startDate,
-            endDate
-        );
+        await Promise.all(dailyPromises);
 
-        for await (const bar of replayBars()) {
-            Object.assign(this.replayBars, {
-                [bar.symbol]: bar.bars.filter((b) => {
-                    return confirmMarketOpen(this.calendar, b.t);
-                }),
-            });
+        const replayPromises = [];
+
+        for (const symbol of symbols) {
+            replayPromises.push(
+                getSimpleData(symbol, startDate.getTime(), true).then((data) => {
+                    Object.assign(this.replayBars, {
+                        [symbol]: data.filter((b) => {
+                            return confirmMarketOpen(this.calendar, b.t);
+                        }),
+                    });
+                })
+            );
         }
 
-        const screenerBars = getSymbolDataGenerator(
-            symbols,
-            DefaultDuration.fifteen,
-            PeriodType.minute,
-            addDays(startDate, -1),
-            endDate
-        );
+        await Promise.all(replayPromises);
 
-        for await (const bar of screenerBars()) {
-            Object.assign(this.screenerBars, {
-                [bar.symbol]: bar.bars.filter((b) => {
-                    return confirmMarketOpen(this.calendar, b.t);
-                }),
-            });
+        const screenerPromises = [];
+
+        for (const symbol of symbols) {
+            screenerPromises.push(
+                getData(symbol, addBusinessDays(startDate, -3).getTime(), "5 minutes").then(
+                    (data) => {
+                        Object.assign(this.screenerBars, {
+                            [symbol]: data.filter((b) => {
+                                return confirmMarketOpen(this.calendar, b.t);
+                            }),
+                        });
+                    }
+                )
+            );
         }
 
-        /* for (const symbol of symbols) {
-            const cacheFileName = getCacheDataName(symbol, DefaultDuration.one, PeriodType.day);
-            Object.assign(this.screenerBars, {
-                [symbol]: JSON.parse(readFileSync(cacheFileName).toString())
-            });
-        } */
+        await Promise.all(screenerPromises);
 
         const gen = this.getTimeSeriesGenerator({
             startDate,
@@ -201,7 +200,16 @@ export class Backtester {
         });
 
         for await (const {} of gen()) {
-            if (confirmMarketOpen(this.calendar, this.currentDate.getTime())) {
+            if (
+                confirmMarketOpen(this.calendar, this.currentDate.getTime()) &&
+                isMarketOpen(this.currentDate.getTime())
+            ) {
+                Sinon.clock.restore();
+
+                const startMarket = Date.now();
+
+                Sinon.useFakeTimers(this.currentDate);
+
                 this.tradeUpdater.emit("interval_hit");
 
                 const pendingTradeConfigs = await this.broker.getOrders({
@@ -235,9 +243,17 @@ export class Backtester {
                     LOGGER.warn(e.message);
                 }
 
+                Sinon.clock.restore();
+
+                const now = Date.now();
+
+                Sinon.useFakeTimers(this.currentDate);
+
                 for (const i of this.strategyInstances) {
                     const bars = this.screenerBars[i.symbol].filter(
-                        (b) => b.t < this.currentDate.getTime()
+                        (b) =>
+                            b.t < this.currentDate.getTime() &&
+                            b.t > addBusinessDays(this.currentDate, -2).getTime()
                     );
 
                     if (
@@ -252,6 +268,14 @@ export class Backtester {
                         bars.length > 1 &&
                         i.screenForNarrowRangeBars(bars, this.currentDate.getTime());
                 }
+
+                Sinon.clock.restore();
+
+                const now1 = Date.now();
+
+                Sinon.useFakeTimers(this.currentDate);
+
+                LOGGER.debug(`took  ${(now1 - now) / 1000}`);
 
                 const potentialTradesToPlace = filteredInstances.map(async (i) => {
                     const bars = this.replayBars[i.symbol];
@@ -281,6 +305,14 @@ export class Backtester {
                     }
                 });
 
+                Sinon.clock.restore();
+
+                const now2 = Date.now();
+
+                Sinon.useFakeTimers(this.currentDate);
+
+                LOGGER.debug(`rebalancing took ${(now2 - now1) / 1000}`);
+
                 for await (const trade of potentialTradesToPlace) {
                     if (trade) {
                         const manager = new TradeManagement(
@@ -295,6 +327,18 @@ export class Backtester {
                 }
 
                 await this.executeAndRecord();
+
+                Sinon.clock.restore();
+
+                const endMarket = Date.now();
+
+                LOGGER.info(
+                    `whole shebang took ${
+                        (endMarket - startMarket) / 1000
+                    } seconds at ${this.currentDate.toLocaleString()}`
+                );
+
+                Sinon.useFakeTimers(this.currentDate);
             }
 
             if (isMarketOpening(this.currentDate)) {
@@ -303,7 +347,23 @@ export class Backtester {
             }
 
             if (isAfterMarketClose(this.currentDate)) {
+                Object.keys(this.screenerBars).map((symbol) => {
+                    this.screenerBars[symbol] = this.screenerBars[symbol].filter(
+                        (b) => b.t > addBusinessDays(this.currentDate, -3).getTime()
+                    );
+                });
+                Object.keys(this.replayBars).map((symbol) => {
+                    this.replayBars[symbol] = this.replayBars[symbol].filter(
+                        (b) => b.t > addBusinessDays(this.currentDate, -3).getTime()
+                    );
+                });
+                Object.keys(this.screenerDailyBars).map((symbol) => {
+                    this.screenerDailyBars[symbol] = this.screenerDailyBars[symbol].filter(
+                        (b) => b.t > addBusinessDays(this.currentDate, -25).getTime()
+                    );
+                });
                 this.goToNextDay();
+                LOGGER.info(`Going to next day at ${this.currentDate.toLocaleString()}`);
             }
         }
     }
@@ -327,7 +387,7 @@ export class Backtester {
             symbol,
             addDays(this.currentDate, -1),
             this.endDate,
-            DefaultDuration.fifteen,
+            DefaultDuration.five,
             PeriodType.minute
         );
 

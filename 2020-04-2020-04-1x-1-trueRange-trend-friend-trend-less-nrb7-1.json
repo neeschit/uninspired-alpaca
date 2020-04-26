@@ -1,0 +1,225 @@
+{
+    "summary": {
+        "profit": 61.365000000001146,
+        "longs": 2,
+        "shorts": 3,
+        "winners": 5,
+        "total": 5
+    },
+    "monthly": [
+        {
+            "profit": 61.365000000001146,
+            "longs": 2,
+            "shorts": 3,
+            "winners": 5,
+            "total": 5
+        }
+    ],
+    "sortedPositions": [
+        {
+            "symbol": "COST",
+            "originalQuantity": 15,
+            "plannedEntryPrice": 315.99,
+            "plannedStopPrice": 316.69,
+            "plannedQuantity": 15,
+            "side": "short",
+            "quantity": 0,
+            "id": 0,
+            "averageEntryPrice": 315.98,
+            "riskAtrRatio": 1,
+            "trades": [
+                {
+                    "symbol": "COST",
+                    "quantity": 15,
+                    "side": "sell",
+                    "type": "stop",
+                    "tif": "day",
+                    "price": 315.99,
+                    "t": 1587390900000,
+                    "estString": "2020-04-20 09:55:00",
+                    "filledQuantity": 15,
+                    "averagePrice": 315.98,
+                    "status": "filled"
+                },
+                {
+                    "symbol": "COST",
+                    "price": 0,
+                    "type": "market",
+                    "side": "buy",
+                    "tif": "gtc",
+                    "quantity": 15,
+                    "t": 1587391380000,
+                    "estString": "2020-04-20 10:03:00",
+                    "filledQuantity": 15,
+                    "status": "filled",
+                    "averagePrice": 315.25
+                }
+            ],
+            "pnl": 10.950000000000728
+        },
+        {
+            "symbol": "NOW",
+            "originalQuantity": 7,
+            "plannedEntryPrice": 295.99,
+            "plannedStopPrice": 297.445,
+            "plannedQuantity": 7,
+            "side": "short",
+            "quantity": 0,
+            "id": 1,
+            "averageEntryPrice": 295.98,
+            "riskAtrRatio": 1,
+            "trades": [
+                {
+                    "symbol": "NOW",
+                    "quantity": 7,
+                    "side": "sell",
+                    "type": "stop",
+                    "tif": "day",
+                    "price": 295.99,
+                    "t": 1587478140000,
+                    "estString": "2020-04-21 10:09:00",
+                    "filledQuantity": 7,
+                    "averagePrice": 295.98,
+                    "status": "filled"
+                },
+                {
+                    "symbol": "NOW",
+                    "price": 0,
+                    "type": "market",
+                    "side": "buy",
+                    "tif": "gtc",
+                    "quantity": 7,
+                    "t": 1587478620000,
+                    "estString": "2020-04-21 10:17:00",
+                    "filledQuantity": 7,
+                    "status": "filled",
+                    "averagePrice": 293.705
+                }
+            ],
+            "pnl": 15.925000000000182
+        },
+        {
+            "symbol": "BSX",
+            "originalQuantity": 36,
+            "plannedEntryPrice": 34.99,
+            "plannedStopPrice": 35.269999999999996,
+            "plannedQuantity": 36,
+            "side": "short",
+            "quantity": 0,
+            "id": 2,
+            "averageEntryPrice": 34.980000000000004,
+            "riskAtrRatio": 1,
+            "trades": [
+                {
+                    "symbol": "BSX",
+                    "quantity": 36,
+                    "side": "sell",
+                    "type": "stop",
+                    "tif": "day",
+                    "price": 34.99,
+                    "t": 1587563160000,
+                    "estString": "2020-04-22 09:46:00",
+                    "filledQuantity": 36,
+                    "averagePrice": 34.980000000000004,
+                    "status": "filled"
+                },
+                {
+                    "symbol": "BSX",
+                    "price": 0,
+                    "type": "market",
+                    "side": "buy",
+                    "tif": "gtc",
+                    "quantity": 36,
+                    "t": 1587564540000,
+                    "estString": "2020-04-22 10:09:00",
+                    "filledQuantity": 36,
+                    "status": "filled",
+                    "averagePrice": 34.68
+                }
+            ],
+            "pnl": 10.800000000000182
+        },
+        {
+            "symbol": "GOOG",
+            "originalQuantity": 5,
+            "plannedEntryPrice": 1285.01,
+            "plannedStopPrice": 1282.754,
+            "plannedQuantity": 5,
+            "side": "long",
+            "quantity": 0,
+            "id": 3,
+            "averageEntryPrice": 1285.02,
+            "riskAtrRatio": 1,
+            "trades": [
+                {
+                    "symbol": "GOOG",
+                    "quantity": 5,
+                    "side": "buy",
+                    "type": "stop",
+                    "tif": "day",
+                    "price": 1285.01,
+                    "t": 1587651540000,
+                    "estString": "2020-04-23 10:19:00",
+                    "filledQuantity": 5,
+                    "averagePrice": 1285.02,
+                    "status": "filled"
+                },
+                {
+                    "symbol": "GOOG",
+                    "price": 0,
+                    "type": "market",
+                    "side": "sell",
+                    "tif": "gtc",
+                    "quantity": 5,
+                    "t": 1587651780000,
+                    "estString": "2020-04-23 10:23:00",
+                    "filledQuantity": 5,
+                    "status": "filled",
+                    "averagePrice": 1287.35
+                }
+            ],
+            "pnl": 11.649999999999636
+        },
+        {
+            "symbol": "NFLX",
+            "originalQuantity": 7,
+            "plannedEntryPrice": 423.01,
+            "plannedStopPrice": 421.49,
+            "plannedQuantity": 7,
+            "side": "long",
+            "quantity": 0,
+            "id": 4,
+            "averageEntryPrice": 423.02,
+            "riskAtrRatio": 1,
+            "trades": [
+                {
+                    "symbol": "NFLX",
+                    "quantity": 7,
+                    "side": "buy",
+                    "type": "stop",
+                    "tif": "day",
+                    "price": 423.01,
+                    "t": 1587738660000,
+                    "estString": "2020-04-24 10:31:00",
+                    "filledQuantity": 7,
+                    "averagePrice": 423.02,
+                    "status": "filled"
+                },
+                {
+                    "symbol": "NFLX",
+                    "price": 0,
+                    "type": "market",
+                    "side": "sell",
+                    "tif": "gtc",
+                    "quantity": 7,
+                    "t": 1587738720000,
+                    "estString": "2020-04-24 10:32:00",
+                    "filledQuantity": 7,
+                    "status": "filled",
+                    "averagePrice": 424.74
+                }
+            ],
+            "pnl": 12.040000000000418
+        }
+    ]
+}
