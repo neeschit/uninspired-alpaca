@@ -85,14 +85,14 @@ export class NarrowRangeBarStrategy {
             const ranges = tr.slice(Math.max(0, index - 7), index + 1).map((r) => r.value);
 
             if (this.isNarrowRangeBar(ranges, todaysBars, range)) {
-                /* postHttps({
+                postHttps({
                     ...slackHookOptions,
                     data: {
                         text: `Looking like a good entry for ${this.symbol} at ${new Date(
                             range.t
                         ).toISOString()}`,
                     },
-                }); */
+                });
                 const index = this.nrbTimestamps.findIndex((t) => t === range.t);
                 if (index < 0 && this.lastScreenedTimestamp < range.t) {
                     this.nrbTimestamps.push(range.t);

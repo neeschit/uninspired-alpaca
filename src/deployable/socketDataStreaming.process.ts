@@ -2,7 +2,7 @@ import { alpaca } from "../resources/alpaca";
 import { getLargeCaps } from "../data/filters";
 import { subscribeToTickLevelUpdates } from "../resources/polygon";
 import { LOGGER } from "../instrumentation/log";
-import { TickBar, TradeUpdate } from "../data/data.model";
+import { TickBar, TradeUpdate, Bar } from "../data/data.model";
 import { insertBar, insertTrade } from "../resources/stockData";
 import { updateOrder } from "../resources/order";
 import { postHttp } from "../util/post";
@@ -50,18 +50,24 @@ const getBar = (d: any) => ({
 
 socket.onStockAggMin(async (subject: string, data: any) => {
     if (typeof data === "string") {
-        data = JSON.parse(data);
+        data = JSON.parse(data) as any[];
     }
+
+    const mappedData: { [index: string]: Bar } = {};
 
     for (const d of data) {
         const bar: TickBar = getBar(d);
 
         try {
             await insertBar(bar, d.sym, true);
+            mappedData[d.sym] = bar;
         } catch (e) {
             /* LOGGER.error(`Could not insert ${JSON.stringify(bar)} for ${d.sym}`); */
         }
     }
+
+    notifyService(Service.management, "/aggregates", mappedData).catch(LOGGER.error);
+    notifyService(Service.screener, "/aggregates", {}).catch(LOGGER.error);
 });
 
 socket.onStockAggSec(async (subject: string, data: any) => {
@@ -87,8 +93,5 @@ socket.onPolygonDisconnect(() => {
 socket.onPolygonConnect(() => {
     LOGGER.error(`Polygon connected at ${new Date().toLocaleTimeString()}`);
 });
-
-notifyService(Service.management, "/aggregates", {}).catch(LOGGER.error);
-notifyService(Service.screener, "/aggregates", {}).catch(LOGGER.error);
 
 socket.connect();

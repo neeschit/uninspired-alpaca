@@ -4,6 +4,7 @@ import { alpaca } from "../resources/alpaca";
 import { Service } from "../util/api";
 import { TradePlan, TradeConfig, TickBar, Bar } from "../data/data.model";
 import { TradeManagement } from "../services/tradeManagement";
+import { LOGGER } from "../instrumentation/log";
 
 const managers: TradeManagement[] = [];
 
@@ -14,7 +15,7 @@ const server = fastify({
 
 server.post("/aggregates", async (request, reply) => {
     const positions = await alpaca.getPositions();
-    const barUpdates = request.body as { [index: string]: Bar[] };
+    const barUpdates = request.body as { [index: string]: Bar };
 
     for (const position of positions) {
         let manager = managers.find(
@@ -23,15 +24,17 @@ server.post("/aggregates", async (request, reply) => {
         );
 
         if (manager) {
-            const bars = barUpdates[manager.plan.symbol];
+            const bar = barUpdates[manager.plan.symbol];
 
-            if (bars) {
-                const order = await manager.rebalancePosition(bars[bars.length - 1]);
+            if (bar) {
+                const order = await manager.rebalancePosition(bar);
 
                 if (order) {
                     manager.queueTrade(order);
                 }
             }
+        } else {
+            LOGGER.error(`No manager found for symbol ${position.symbol}`);
         }
     }
 

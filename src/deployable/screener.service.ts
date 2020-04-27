@@ -104,8 +104,6 @@ const postEntry = async (symbol: string, timestamp: number, plan: TradePlan) => 
         timestamp
     ).toISOString()} with plan = ${JSON.stringify(plan)}`;
 
-    return LOGGER.info(text);
-
     return postHttps({
         ...slackHookOptions,
         data: {
