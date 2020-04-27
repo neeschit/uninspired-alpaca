@@ -5,11 +5,10 @@ import { Service, notifyService } from "../util/api";
 import { getMegaCaps } from "../data/filters";
 import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
 import { getData, getSimpleData } from "../resources/stockData";
-import { set, addBusinessDays } from "date-fns";
+import { set, addBusinessDays, getMinutes } from "date-fns";
 import { LOGGER } from "../instrumentation/log";
 import { TradePlan } from "../data/data.model";
 import { postHttps } from "../util/post";
-import { processOrderFromStrategy } from "../services/tradeManagement";
 
 const server = fastify({
     logger: true,
@@ -31,7 +30,8 @@ megacaps.map(async (symbol) => {
 });
 
 server.post("/aggregates", async (request, reply) => {
-    const promises = screenSymbols(megacaps);
+    const symbols = Object.keys(request.body);
+    const promises = screenSymbols(symbols);
 
     const trades = [];
 
@@ -80,10 +80,21 @@ const screenSymbol = async (symbol: string) => {
 
     const currentEpoch = Date.now();
 
+    const minutes = getMinutes(currentEpoch);
+
+    const floored = Math.floor(minutes / 5) * 5;
+
+    const endEpoch = set(currentEpoch, {
+        minutes: floored,
+        seconds: 0,
+        milliseconds: 0,
+    }).getTime();
+
     const screenerData = await getData(
         symbol,
         addBusinessDays(currentEpoch, -1).getTime(),
-        "5 minutes"
+        "5 minutes",
+        endEpoch
     );
 
     strategy.screenForNarrowRangeBars(screenerData, currentEpoch);

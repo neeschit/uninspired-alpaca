@@ -17,10 +17,11 @@ server.post("/aggregates", async (request, reply) => {
     const positions = await alpaca.getPositions();
     const barUpdates = request.body as { [index: string]: Bar };
 
-    for (const position of positions) {
+    const symbols = Object.keys(request.body).filter((s) => positions.some((p) => p.symbol === s));
+
+    for (const symbol of symbols) {
         let manager = managers.find(
-            (m) =>
-                m.plan.symbol === position.symbol && m.filledPosition && m.filledPosition.quantity
+            (m) => m.plan.symbol === symbol && m.filledPosition && m.filledPosition.quantity
         );
 
         if (manager) {
@@ -33,10 +34,10 @@ server.post("/aggregates", async (request, reply) => {
                     manager.queueTrade(order);
                 }
             } else {
-                LOGGER.error(`No bar found for symbol ${position.symbol}`);
+                LOGGER.error(`No bar found for symbol ${symbol}`);
             }
         } else {
-            LOGGER.error(`No manager found for symbol ${position.symbol}`);
+            LOGGER.error(`No manager found for symbol ${symbol}`);
         }
     }
 
@@ -70,6 +71,8 @@ server.post("/trades", async (request, reply) => {
             manager = new TradeManagement(trade.config, trade.plan, 1);
 
             await manager.queueEntry();
+
+            managers.push(manager);
         }
     }
 

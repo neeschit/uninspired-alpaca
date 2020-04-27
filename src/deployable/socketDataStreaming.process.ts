@@ -67,7 +67,7 @@ socket.onStockAggMin(async (subject: string, data: any) => {
     }
 
     notifyService(Service.management, "/aggregates", mappedData).catch(LOGGER.error);
-    notifyService(Service.screener, "/aggregates", {}).catch(LOGGER.error);
+    notifyService(Service.screener, "/aggregates", mappedData).catch(LOGGER.error);
 });
 
 socket.onStockAggSec(async (subject: string, data: any) => {
