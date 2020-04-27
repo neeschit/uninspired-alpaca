@@ -32,6 +32,8 @@ server.post("/aggregates", async (request, reply) => {
                 if (order) {
                     manager.queueTrade(order);
                 }
+            } else {
+                LOGGER.error(`No bar found for symbol ${position.symbol}`);
             }
         } else {
             LOGGER.error(`No manager found for symbol ${position.symbol}`);
