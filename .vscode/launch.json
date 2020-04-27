@@ -49,7 +49,7 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "main",
+            "name": "streamer",
             "program": "${workspaceFolder}/src/deployable/socketDataStreaming.process.ts",
             "args": ["--enable-source-maps"],
             "sourceMaps": true,
@@ -83,22 +83,6 @@
             "request": "launch",
             "name": "screener",
             "program": "${workspaceFolder}/src/deployable/screener.service.ts",
-            "args": ["--enable-source-maps"],
-            "sourceMaps": true,
-            "outFiles": ["${workspaceFolder}/build/**/*.js"],
-            "cwd": "${workspaceFolder}",
-            "smartStep": true,
-            "internalConsoleOptions": "openOnSessionStart",
-            "env": {
-                "LOGLEVEL": "4"
-            },
-            "skipFiles": ["<node_internals>/**"]
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "socketDataTester",
-            "program": "${workspaceFolder}/src/scripts/socketDataTester.ts",
             "args": ["--enable-source-maps"],
             "sourceMaps": true,
             "outFiles": ["${workspaceFolder}/build/**/*.js"],

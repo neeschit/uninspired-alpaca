@@ -121,8 +121,8 @@ const getUpdateOrdersSql = (
         throw new Error("need a client id");
     }
     return `update orders set status = '${status}'
-        ${positionQuantity ? "filled_quantity =" + positionQuantity : ""} 
-        ${price ? "average_price = " + price : ""} 
+        ${positionQuantity ? ", filled_quantity =" + positionQuantity : ""} 
+        ${price ? ", average_price = " + price : ""} 
         where id = ${id};`;
 };
 
