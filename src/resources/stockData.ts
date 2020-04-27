@@ -249,7 +249,7 @@ export const createTradeDataTableForSymbol = (symbol: string, pool = getConnecti
     return pool.query(query);
 };
 
-const getDataQuery = (tablename: string, fromTimestamp?: number, timeBucket = "5 minutes") => {
+const getDataQuery = (tablename: string, fromTimestamp: number, timeBucket: string) => {
     return `
         select 
             time_bucket('${timeBucket}', t) as time_bucket, 
@@ -278,7 +278,7 @@ const getSimpleDataQuery = (tablename: string, fromTimestamp?: number) => {
 export const getData = async (
     symbol: string,
     fromTimestamp: number,
-    timeBucket?: string
+    timeBucket = "5 minutes"
 ): Promise<Bar[]> => {
     const pool = getConnection();
 

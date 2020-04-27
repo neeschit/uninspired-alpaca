@@ -14,6 +14,7 @@ import { LOGGER } from "../instrumentation/log";
 import { isMarketClosing } from "../util/market";
 import { insertOrder } from "../resources/order";
 import { insertPlannedPosition, FilledPositionConfig, PositionConfig } from "../resources/position";
+import { ceilHalf, roundHalf } from "../util";
 
 export const isClosingOrder = (currentPosition: FilledPositionConfig, tradeConfig: TradeConfig) => {
     if (currentPosition.side === PositionDirection.long) {
@@ -23,7 +24,10 @@ export const isClosingOrder = (currentPosition: FilledPositionConfig, tradeConfi
     }
 };
 
-export const processOrderFromStrategy = (order: TradeConfig): AlpacaTradeConfig => {
+export const processOrderFromStrategy = (
+    order: TradeConfig,
+    tradePlan?: TradePlan
+): AlpacaTradeConfig => {
     const { quantity, tif, price, type, side, symbol, stopPrice = price } = order;
 
     if (type === TradeType.stop_limit && stopPrice === price) {
@@ -48,6 +52,25 @@ export const processOrderFromStrategy = (order: TradeConfig): AlpacaTradeConfig 
 
     if (type === TradeType.stop || type === TradeType.stop_limit) {
         trade.stop_price = stop;
+    }
+
+    if (tradePlan) {
+        let riskUnits = Math.abs(tradePlan.plannedEntryPrice - tradePlan.plannedStopPrice);
+
+        riskUnits = riskUnits > 0.4 ? roundHalf(riskUnits) : riskUnits;
+
+        const profitPrice =
+            tradePlan.side === PositionDirection.short
+                ? tradePlan.plannedEntryPrice - riskUnits + 0.02
+                : tradePlan.plannedEntryPrice + riskUnits - 0.02;
+
+        trade.order_class = "bracket";
+        trade.stop_loss = {
+            stop_price: tradePlan.plannedStopPrice,
+        };
+        trade.take_profit = {
+            limit_price: profitPrice,
+        };
     }
 
     return trade;

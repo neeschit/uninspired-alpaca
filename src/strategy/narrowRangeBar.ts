@@ -1,6 +1,5 @@
-import { getAverageDirectionalIndex, IndicatorValue } from "../indicator/adx";
-import { getOverallTrend, getRecentTrend, TrendType } from "../pattern/trend/trendIdentifier";
-import { getVolumeProfile, VolumeProfileBar } from "../indicator/volumeProfile";
+import { getAverageDirectionalIndex } from "../indicator/adx";
+import { TrendType, getOverallTrendWithSuppliedAdx } from "../pattern/trend/trendIdentifier";
 import { TRADING_RISK_UNIT_CONSTANT } from "../services/riskManagement";
 import { isMarketOpen } from "../util/market";
 import {
@@ -11,14 +10,21 @@ import {
     TimeInForce,
     PlannedTradeConfig,
     PositionDirection,
+    TradePlan,
 } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
 import { convertToLocalTime } from "../util/date";
 import { Broker } from "@neeschit/alpaca-trade-api";
 import { alpaca } from "../resources/alpaca";
-import { getAverageTrueRange, getTrueRange } from "../indicator/trueRange";
-import { roundHalf } from "../util";
+import { getAverageTrueRange } from "../indicator/trueRange";
 import { isSameDay } from "date-fns";
+import { postHttps } from "../util/post";
+import { roundHalf, floorHalf, ceilHalf } from "../util";
+
+const slackHookOptions = {
+    hostname: "hooks.slack.com",
+    path: "/services/T4EKRGB54/B0138S9A3LY/VuZ8iHEDOw9mjzHKPI1HQLwD",
+};
 
 export class NarrowRangeBarStrategy {
     symbol: string;
@@ -27,6 +33,7 @@ export class NarrowRangeBarStrategy {
     nrbTimestamps: number[] = [];
     nrbs: Bar[] = [];
     lastScreenedTimestamp = 0;
+    lastEntryAttemptedTimestamp = 0;
     di: {
         pdx: number;
         ndx: number;
@@ -78,6 +85,14 @@ export class NarrowRangeBarStrategy {
             const ranges = tr.slice(Math.max(0, index - 7), index + 1).map((r) => r.value);
 
             if (this.isNarrowRangeBar(ranges, todaysBars, range)) {
+                /* postHttps({
+                    ...slackHookOptions,
+                    data: {
+                        text: `Looking like a good entry for ${this.symbol} at ${new Date(
+                            range.t
+                        ).toISOString()}`,
+                    },
+                }); */
                 const index = this.nrbTimestamps.findIndex((t) => t === range.t);
                 if (index < 0 && this.lastScreenedTimestamp < range.t) {
                     this.nrbTimestamps.push(range.t);
@@ -104,11 +119,11 @@ export class NarrowRangeBarStrategy {
             );
         }
 
-        if (roundedHigh === entryBar.h) {
+        if (Math.abs(roundedHigh - entryBar.h) < 0.04) {
             return TradeDirection.buy;
         }
 
-        if (roundedLow === entryBar.l) {
+        if (Math.abs(roundedLow - entryBar.l) < 0.04) {
             return TradeDirection.sell;
         }
     }
@@ -180,6 +195,8 @@ export class NarrowRangeBarStrategy {
 
         const nowMillis = now instanceof Date ? now.getTime() : now;
 
+        return true;
+
         const isWithinEntryRange =
             timeStart.getTime() <= nowMillis && timeEnd.getTime() >= nowMillis;
 
@@ -191,12 +208,11 @@ export class NarrowRangeBarStrategy {
     }
 
     async onTradeUpdate(recentBars: Bar[], currentBar: Bar, now: TimestampType = Date.now()) {
-        return this.rebalance(recentBars, currentBar, now);
+        return this.rebalance(recentBars, now);
     }
 
     async rebalance(
         recentBars: Bar[],
-        currentBar: Bar,
         now: TimestampType = Date.now()
     ): Promise<PlannedTradeConfig | null> {
         if (!this.isTimeForEntry(now)) {
@@ -205,9 +221,13 @@ export class NarrowRangeBarStrategy {
         }
         now = now instanceof Date ? now.getTime() : now;
 
-        const { pdx, ndx } = getAverageDirectionalIndex(recentBars, false);
+        const { adx, pdx, ndx, atr, tr } = getAverageDirectionalIndex(recentBars, false);
 
-        const trend = pdx[pdx.length - 1] > ndx[ndx.length - 1] ? TrendType.up : TrendType.down;
+        const trend = getOverallTrendWithSuppliedAdx({
+            adx,
+            pdx,
+            ndx,
+        });
 
         const currentPositions = await this.broker.getPositions();
 
@@ -220,7 +240,11 @@ export class NarrowRangeBarStrategy {
         }
 
         try {
-            return this.getPlan(trend, currentBar, now);
+            return this.getPlan(
+                trend,
+                atr[atr.length - 1].value,
+                recentBars[recentBars.length - 1]
+            );
         } catch (e) {
             LOGGER.error(e);
             return null;
@@ -228,13 +252,21 @@ export class NarrowRangeBarStrategy {
     }
     getEntryPrices(entryBar: Bar): { entryLong: any; entryShort: any } {
         return {
-            entryLong: entryBar.h + 0.01,
-            entryShort: entryBar.l - 0.01,
+            entryLong: Math.max(Math.round(entryBar.h), entryBar.h) + 0.01,
+            entryShort: Math.min(Math.round(entryBar.l), entryBar.l) - 0.01,
         };
     }
 
-    getPlan(trend: TrendType, currentBar: Bar, now = Date.now()) {
+    getPlan(trend: TrendType, atr: number, lastBar: Bar) {
         if (!this.nrbs.length) {
+            return null;
+        }
+
+        if (!this.direction) {
+            return null;
+        }
+
+        if (trend === TrendType.sideways) {
             return null;
         }
 
@@ -247,27 +279,43 @@ export class NarrowRangeBarStrategy {
         const entryBar = this.nrbs[this.nrbs.length - 1];
 
         const { entryLong, entryShort } = this.getEntryPrices(entryBar);
-        const unitRisk = Math.abs(entryLong - entryShort);
 
-        const quantity = Math.ceil(TRADING_RISK_UNIT_CONSTANT / unitRisk);
-
-        if (!quantity || quantity < 0) {
-            LOGGER.error(`Expected an order for ${this.symbol} at ${now}`);
+        if (lastBar.c > entryLong && this.direction === TradeDirection.buy) {
             return null;
         }
 
-        const riskAtrRatio = unitRisk / this.atr;
+        if (lastBar.c < entryShort && this.direction === TradeDirection.sell) {
+            return null;
+        }
 
-        if (this.direction === TradeDirection.buy && currentBar.h > entryBar.h) {
+        const stopUnits = 2 * atr;
+
+        const stopLong = atr > 0.4 ? floorHalf(entryLong - stopUnits) : entryLong - stopUnits;
+        const stopShort = atr > 0.4 ? ceilHalf(entryShort + stopUnits) : entryShort + stopUnits;
+        const unitRisk = stopUnits;
+
+        const quantity = Math.ceil(TRADING_RISK_UNIT_CONSTANT / stopUnits);
+
+        if (!quantity || quantity < 0) {
+            LOGGER.error(`Expected an order for ${this.symbol} at ${lastBar.t}`);
+            return null;
+        }
+
+        const riskAtrRatio = atr / unitRisk;
+
+        if (this.direction === TradeDirection.buy) {
+            this.lastEntryAttemptedTimestamp = lastBar.t;
+            const plan = {
+                plannedEntryPrice: entryLong,
+                plannedStopPrice: stopLong,
+                riskAtrRatio,
+                quantity,
+                side: PositionDirection.long,
+                symbol: this.symbol,
+            };
+
             return {
-                plan: {
-                    plannedEntryPrice: entryLong,
-                    plannedStopPrice: entryShort,
-                    riskAtrRatio,
-                    quantity,
-                    side: PositionDirection.long,
-                    symbol: this.symbol,
-                },
+                plan,
                 config: {
                     symbol: this.symbol,
                     quantity,
@@ -275,19 +323,22 @@ export class NarrowRangeBarStrategy {
                     type: TradeType.stop,
                     tif: TimeInForce.day,
                     price: entryLong,
-                    t: now,
+                    t: lastBar.t,
                 },
             };
-        } else if (this.direction === TradeDirection.sell && currentBar.l < entryBar.l) {
+        } else if (this.direction === TradeDirection.sell) {
+            this.lastEntryAttemptedTimestamp = lastBar.t;
+            const plan = {
+                plannedEntryPrice: entryShort,
+                plannedStopPrice: stopShort,
+                riskAtrRatio,
+                quantity,
+                side: PositionDirection.short,
+                symbol: this.symbol,
+            };
+
             return {
-                plan: {
-                    plannedEntryPrice: entryShort,
-                    plannedStopPrice: entryLong,
-                    riskAtrRatio,
-                    quantity,
-                    side: PositionDirection.short,
-                    symbol: this.symbol,
-                },
+                plan,
                 config: {
                     symbol: this.symbol,
                     quantity,
@@ -295,7 +346,7 @@ export class NarrowRangeBarStrategy {
                     type: TradeType.stop,
                     tif: TimeInForce.day,
                     price: entryShort,
-                    t: now,
+                    t: lastBar.t,
                 },
             };
         }

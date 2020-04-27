@@ -5,6 +5,8 @@ import { LOGGER } from "../instrumentation/log";
 import { TickBar, TradeUpdate } from "../data/data.model";
 import { insertBar, insertTrade } from "../resources/stockData";
 import { updateOrder } from "../resources/order";
+import { postHttp } from "../util/post";
+import { notifyService, Service } from "../util/api";
 
 const highVolCompanies = getLargeCaps();
 
@@ -14,8 +16,7 @@ const socket = alpaca.websocket;
 
 socket.onConnect(() => {
     const mappedAggMins = subscribeToTickLevelUpdates(highVolCompanies, "AM");
-    const mappedAggSecs = subscribeToTickLevelUpdates(highVolCompanies, "A");
-    socket.subscribe(["trade_updates", "account_updates", ...mappedAggMins, ...mappedAggSecs]);
+    socket.subscribe(["trade_updates", "account_updates", ...mappedAggMins]);
 });
 socket.onStateChange((newState) => {
     console.log(`State changed to ${newState} at ${new Date().toLocaleTimeString()}`);
@@ -86,5 +87,8 @@ socket.onPolygonDisconnect(() => {
 socket.onPolygonConnect(() => {
     LOGGER.error(`Polygon connected at ${new Date().toLocaleTimeString()}`);
 });
+
+notifyService(Service.management, "/aggregates", {}).catch(LOGGER.error);
+notifyService(Service.screener, "/aggregates", {}).catch(LOGGER.error);
 
 socket.connect();

@@ -299,7 +299,7 @@ export class Backtester {
                             (b) => b.t < this.currentDate.getTime()
                         );
 
-                        return i.rebalance(recentBars, bar, this.currentDate);
+                        return i.rebalance(recentBars, this.currentDate);
                     } catch (e) {
                         LOGGER.warn(e);
                     }
