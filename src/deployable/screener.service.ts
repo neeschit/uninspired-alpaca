@@ -1,7 +1,7 @@
 import fastify from "fastify";
 import { Server, IncomingMessage, ServerResponse } from "http";
 import { alpaca } from "../resources/alpaca";
-import { Service } from "../util/api";
+import { Service, notifyService } from "../util/api";
 import { getMegaCaps } from "../data/filters";
 import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
 import { getData, getSimpleData } from "../resources/stockData";
@@ -40,15 +40,16 @@ server.post("/aggregates", async (request, reply) => {
             const trade = await tradePromise;
 
             if (trade) {
-                const order = processOrderFromStrategy(trade.config);
-
-                const response = await alpaca.createOrder(order);
                 await postEntry(trade.plan.symbol, trade.config.t, trade.plan);
                 trades.push(trade);
             }
         } catch (e) {
             server.log.error(e);
         }
+    }
+
+    if (trades.length) {
+        await notifyService(Service.management, "/trades", trades);
     }
 
     return {
