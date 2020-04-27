@@ -1,14 +1,14 @@
 import { alpaca } from "../resources/alpaca";
-import { getLargeCaps } from "../data/filters";
+import { getLargeCaps, getMegaCaps } from "../data/filters";
 import { subscribeToTickLevelUpdates } from "../resources/polygon";
 import { LOGGER } from "../instrumentation/log";
-import { TickBar, TradeUpdate, Bar } from "../data/data.model";
+import { TickBar, TradeUpdate, Bar, OrderUpdateEvent } from "../data/data.model";
 import { insertBar, insertTrade } from "../resources/stockData";
 import { updateOrder } from "../resources/order";
 import { postHttp } from "../util/post";
 import { notifyService, Service } from "../util/api";
 
-const highVolCompanies = getLargeCaps();
+const highVolCompanies = getMegaCaps();
 
 highVolCompanies.push("SPY");
 
@@ -27,6 +27,12 @@ socket.onStateChange((newState) => {
 
 socket.onOrderUpdate((orderUpdate) => {
     updateOrder(orderUpdate.order, orderUpdate.position_qty, orderUpdate.price).catch(LOGGER.error);
+    if (
+        orderUpdate.event === OrderUpdateEvent.fill ||
+        orderUpdate.event === OrderUpdateEvent.partial_fill
+    ) {
+        notifyService(Service.management, "/orders", orderUpdate);
+    }
 });
 
 socket.onStockTrades(async (subject: string, data: string) => {

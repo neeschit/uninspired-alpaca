@@ -3,7 +3,6 @@ import { getConnection } from "../connection/pg";
 import { LOGGER } from "../instrumentation/log";
 import { Order } from "./order";
 
-
 export interface PositionConfig extends TradePlan {
     id: number;
     originalQuantity: number;
@@ -42,6 +41,17 @@ EXECUTE PROCEDURE trigger_set_timestamp();
 
 `;
 
+export interface Position {
+    id: number;
+    planned_stop_price: number;
+    planned_entry_price: number;
+    symbol: string;
+    side: string;
+    planned_quantity: number;
+    quantity: number;
+    average_entry_price: number;
+}
+
 const getUnfilledPositionInsert = (position: TradePlan) => {
     return `
         insert into positions values (
@@ -72,6 +82,44 @@ export const insertPlannedPosition = async (plan: TradePlan): Promise<PositionCo
         ...plan,
         quantity: 0,
         originalQuantity: 0,
-        id: rows[0].id
+        id: rows[0].id,
+    };
+};
+
+export const getPosition = async (id: number): Promise<Position> => {
+    if (!id) {
+        throw new Error("No position id");
     }
+    const pool = getConnection();
+
+    const result = await pool.query(`
+        select * from positions where id=${id}
+    `);
+
+    return result.rows[0];
+};
+
+export const getOpenPositions = async (): Promise<Position[]> => {
+    const pool = getConnection();
+
+    const result = await pool.query(`
+        select * from positions where quantity > 0
+    `);
+
+    return result.rows;
+};
+
+export const updatePosition = async (quantity: number, id: number, price?: number) => {
+    if (!id) {
+        throw new Error("No position id");
+    }
+    const pool = getConnection();
+
+    const result = await pool.query(`
+        update positions set quantity=${quantity} ${
+        price ? ", average_entry_price=" + price : ""
+    } where id=${id}
+    `);
+
+    return result;
 };
