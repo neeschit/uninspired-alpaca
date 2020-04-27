@@ -78,9 +78,13 @@ const screenSymbol = async (symbol: string) => {
         return null;
     }
 
-    const screenerData = await getData(symbol, 1587662940000, "5 minutes");
+    const currentEpoch = Date.now();
 
-    const currentEpoch = new Date("2020-04-24T17:55:00.000Z").getTime();
+    const screenerData = await getData(
+        symbol,
+        addBusinessDays(currentEpoch, -1).getTime(),
+        "5 minutes"
+    );
 
     strategy.screenForNarrowRangeBars(screenerData, currentEpoch);
 
