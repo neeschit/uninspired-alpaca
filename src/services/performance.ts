@@ -1,8 +1,5 @@
-import {
-    PositionDirection,
-    TradeDirection,
-} from "../data/data.model";
-import { isSameMonth, isAfter } from "date-fns";
+import { PositionDirection, TradeDirection } from "../data/data.model";
+import { isSameMonth, isAfter, isSameDay } from "date-fns";
 import { FilledPositionConfig, ClosedPositionConfig } from "../resources/position";
 
 export interface Performance {
@@ -11,6 +8,11 @@ export interface Performance {
     shorts: number;
     winners: number;
     total: number;
+}
+
+export interface MonthlyPerformance {
+    dailyPerformances: Performance[];
+    summary: Performance;
 }
 
 const getDatePositionEntered = (position: FilledPositionConfig) => {
@@ -22,30 +24,39 @@ export const getDetailedPerformanceReport = (positions: FilledPositionConfig[]) 
         throw new Error("Wrong number");
     }
     let currentMonth = getDatePositionEntered(positions[0]);
-    const monthlyPerformances: Performance[] = [];
+    let currentDate = currentMonth;
+    const monthlyPerformances: MonthlyPerformance[] = [];
+    const dailyPerformances: Performance[] = [];
 
     const positionsAnalyzer = (
         position: FilledPositionConfig,
         performance: Performance,
         index: number
     ) => {
-        const positionMonth = getDatePositionEntered(position);
+        const positionDate = getDatePositionEntered(position);
 
-        if (!isSameMonth(positionMonth, currentMonth) || index === positions.length - 1) {
-            currentMonth = positionMonth;
+        if (!isSameDay(currentDate, positionDate)) {
+            currentDate = positionDate;
+        }
+
+        if (!isSameMonth(positionDate, currentMonth) || index === positions.length - 1) {
+            currentMonth = positionDate;
             if (!monthlyPerformances.length) {
-                monthlyPerformances.push(performance);
+                monthlyPerformances.push({
+                    summary: performance,
+                    dailyPerformances: [performance],
+                });
             } else {
                 const perfSoFar = monthlyPerformances.reduce(
                     (agg, p) => {
                         if (!agg) {
-                            return p;
+                            return p.summary;
                         } else {
-                            agg.profit += p.profit;
-                            agg.longs += p.longs;
-                            agg.shorts += p.shorts;
-                            agg.total += p.total;
-                            agg.winners += p.winners;
+                            agg.profit += p.summary.profit;
+                            agg.longs += p.summary.longs;
+                            agg.shorts += p.summary.shorts;
+                            agg.total += p.summary.total;
+                            agg.winners += p.summary.winners;
 
                             return agg;
                         }
@@ -55,16 +66,19 @@ export const getDetailedPerformanceReport = (positions: FilledPositionConfig[]) 
                         longs: 0,
                         shorts: 0,
                         winners: 0,
-                        total: 0
+                        total: 0,
                     }
                 );
 
                 monthlyPerformances.push({
-                    profit: performance.profit - perfSoFar.profit,
-                    longs: performance.longs - perfSoFar.longs,
-                    shorts: performance.shorts - perfSoFar.shorts,
-                    total: performance.total - perfSoFar.total,
-                    winners: performance.winners - perfSoFar.winners
+                    summary: {
+                        profit: performance.profit - perfSoFar.profit,
+                        longs: performance.longs - perfSoFar.longs,
+                        shorts: performance.shorts - perfSoFar.shorts,
+                        total: performance.total - perfSoFar.total,
+                        winners: performance.winners - perfSoFar.winners,
+                    },
+                    dailyPerformances: [],
                 });
             }
         }
@@ -77,10 +91,10 @@ export const getDetailedPerformanceReport = (positions: FilledPositionConfig[]) 
 
             return isAfter(d1, d2) ? 1 : -1;
         })
-        .map<ClosedPositionConfig>(p => {
+        .map<ClosedPositionConfig>((p) => {
             return {
                 ...p,
-                pnl: getPnL(p)
+                pnl: getPnL(p),
             };
         });
 
@@ -89,7 +103,7 @@ export const getDetailedPerformanceReport = (positions: FilledPositionConfig[]) 
     return {
         summary: simpleAnalysis,
         monthly: monthlyPerformances,
-        sortedPositions
+        sortedPositions,
     };
 };
 
@@ -122,7 +136,7 @@ export const analyzeClosedPositions = (
                 longs,
                 shorts,
                 winners,
-                total: longs + shorts
+                total: longs + shorts,
             };
 
             if (onNextPositionCallback) {
@@ -136,7 +150,7 @@ export const analyzeClosedPositions = (
             longs: 0,
             shorts: 0,
             winners: 0,
-            total: 0
+            total: 0,
         }
     );
 
@@ -145,7 +159,7 @@ export const analyzeClosedPositions = (
         longs,
         shorts,
         winners,
-        total
+        total,
     };
 };
 function getPnL(position: FilledPositionConfig) {

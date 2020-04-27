@@ -7,6 +7,7 @@ import {
     differenceInMonths,
     addMonths,
     addBusinessDays,
+    endOfMonth,
 } from "date-fns";
 import Sinon from "sinon";
 import { TradeConfig, DefaultDuration, PeriodType, Bar } from "../data/data.model";
@@ -150,7 +151,12 @@ export class Backtester {
         const dailyPromises = [];
         for (const symbol of symbols) {
             dailyPromises.push(
-                getSimpleData(symbol, addDays(startDate, -25).getTime()).then((data) => {
+                getSimpleData(
+                    symbol,
+                    addDays(startDate, -25).getTime(),
+                    false,
+                    endDate.getTime()
+                ).then((data) => {
                     Object.assign(this.screenerDailyBars, {
                         [symbol]: data,
                     });
@@ -164,7 +170,7 @@ export class Backtester {
 
         for (const symbol of symbols) {
             replayPromises.push(
-                getSimpleData(symbol, startDate.getTime(), true).then((data) => {
+                getSimpleData(symbol, startDate.getTime(), true, endDate.getTime()).then((data) => {
                     Object.assign(this.replayBars, {
                         [symbol]: data.filter((b) => {
                             return confirmMarketOpen(this.calendar, b.t);
@@ -180,15 +186,18 @@ export class Backtester {
 
         for (const symbol of symbols) {
             screenerPromises.push(
-                getData(symbol, addBusinessDays(startDate, -3).getTime(), "5 minutes").then(
-                    (data) => {
-                        Object.assign(this.screenerBars, {
-                            [symbol]: data.filter((b) => {
-                                return confirmMarketOpen(this.calendar, b.t);
-                            }),
-                        });
-                    }
-                )
+                getData(
+                    symbol,
+                    addBusinessDays(startDate, -3).getTime(),
+                    "5 minutes",
+                    endDate.getTime()
+                ).then((data) => {
+                    Object.assign(this.screenerBars, {
+                        [symbol]: data.filter((b) => {
+                            return confirmMarketOpen(this.calendar, b.t);
+                        }),
+                    });
+                })
             );
         }
 
@@ -264,9 +273,9 @@ export class Backtester {
                         continue;
                     }
 
-                    bars &&
-                        bars.length > 1 &&
+                    if (bars && bars.length > 1) {
                         i.screenForNarrowRangeBars(bars, this.currentDate.getTime());
+                    }
                 }
 
                 Sinon.clock.restore();
@@ -332,11 +341,15 @@ export class Backtester {
 
                 const endMarket = Date.now();
 
-                LOGGER.info(
-                    `whole shebang took ${
-                        (endMarket - startMarket) / 1000
-                    } seconds at ${this.currentDate.toLocaleString()}`
-                );
+                const text = `whole shebang took ${
+                    (endMarket - startMarket) / 1000
+                } seconds at ${this.currentDate.toLocaleString()}`;
+
+                if (this.currentDate.getTime() % 300000 === 0) {
+                    LOGGER.info(text);
+                } else {
+                    LOGGER.debug(text);
+                }
 
                 Sinon.useFakeTimers(this.currentDate);
             }
@@ -376,19 +389,17 @@ export class Backtester {
         LOGGER.warn(
             `Detected need to refresh bars at ${this.currentDate.toLocaleString()} for ${symbol}`
         );
-        const minuteBars = await getBarsByDate(
+        const minuteBars = await getSimpleData(
             symbol,
-            addDays(this.currentDate, -1),
-            this.endDate,
-            DefaultDuration.one,
-            PeriodType.minute
+            addBusinessDays(this.currentDate, -1).getTime(),
+            true,
+            endOfMonth(this.currentDate).getTime()
         );
-        const fifteenBars = await getBarsByDate(
+        const fifteenBars = await getData(
             symbol,
-            addDays(this.currentDate, -1),
-            this.endDate,
-            DefaultDuration.five,
-            PeriodType.minute
+            addBusinessDays(this.currentDate, -1).getTime(),
+            "5 minutes",
+            endOfMonth(this.currentDate).getTime()
         );
 
         this.replayBars[symbol] = minuteBars;
@@ -632,7 +643,7 @@ export class Backtester {
     ): BacktestBatch[] {
         const months = differenceInMonths(startDate, endDate);
 
-        if (Math.abs(months) < 5 && symbols.length < batchSize) {
+        if (Math.abs(months) <= 1 && symbols.length < batchSize) {
             return [
                 {
                     startDate,
@@ -649,7 +660,7 @@ export class Backtester {
         const durations = [];
 
         while (batchStartDate.getTime() < endDate.getTime()) {
-            let batchedEndDate = addMonths(batchStartDate, 6);
+            let batchedEndDate = addMonths(batchStartDate, 1);
 
             if (batchedEndDate.getTime() > endDate.getTime()) {
                 batchedEndDate = endDate;

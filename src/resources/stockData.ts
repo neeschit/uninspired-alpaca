@@ -249,7 +249,12 @@ export const createTradeDataTableForSymbol = (symbol: string, pool = getConnecti
     return pool.query(query);
 };
 
-const getDataQuery = (tablename: string, fromTimestamp: number, timeBucket: string) => {
+const getDataQuery = (
+    tablename: string,
+    fromTimestamp: number,
+    timeBucket: string,
+    endTimeStamp?: number
+) => {
     return `
         select 
             time_bucket('${timeBucket}', t) as time_bucket, 
@@ -260,17 +265,21 @@ const getDataQuery = (tablename: string, fromTimestamp: number, timeBucket: stri
             first(o, t) as o 
         from ${tablename.toLowerCase()} 
         ${fromTimestamp ? "where t > " + getTimestampValue(fromTimestamp) : ""}
+        ${endTimeStamp ? "and t < " + getTimestampValue(endTimeStamp) : ""}
         group by time_bucket 
         order by time_bucket asc;
     `;
 };
 
-const getSimpleDataQuery = (tablename: string, fromTimestamp?: number) => {
+const getSimpleDataQuery = (tablename: string, fromTimestamp?: number, endTimeStamp?: number) => {
     return `
         select 
             *
-        from ${tablename.toLowerCase()} 
+        from ${tablename.toLowerCase()}  
         ${fromTimestamp ? "where t > " + getTimestampValue(fromTimestamp) : ""}
+        ${fromTimestamp && endTimeStamp ? "and " : ""}
+        ${!fromTimestamp && endTimeStamp ? "where " : ""}
+        ${endTimeStamp ? " t < " + getTimestampValue(endTimeStamp) : ""}
         order by t asc;
     `;
 };
@@ -278,13 +287,14 @@ const getSimpleDataQuery = (tablename: string, fromTimestamp?: number) => {
 export const getData = async (
     symbol: string,
     fromTimestamp: number,
-    timeBucket = "5 minutes"
+    timeBucket = "5 minutes",
+    endTimeStamp: number = Date.now()
 ): Promise<Bar[]> => {
     const pool = getConnection();
 
     const tableName = getAggregatedMinuteTableNameForSymbol(symbol);
 
-    const query = getDataQuery(tableName, fromTimestamp, timeBucket);
+    const query = getDataQuery(tableName, fromTimestamp, timeBucket, endTimeStamp);
 
     LOGGER.debug(query);
 
@@ -302,14 +312,19 @@ export const getData = async (
     });
 };
 
-export const getSimpleData = async (symbol: string, fromTimestamp: number, isMinute = false) => {
+export const getSimpleData = async (
+    symbol: string,
+    fromTimestamp: number,
+    isMinute = false,
+    endTimeStamp: number = Date.now()
+) => {
     const pool = getConnection();
 
     const tableName = isMinute
         ? getAggregatedMinuteTableNameForSymbol(symbol)
         : getDailyTableNameForSymbol(symbol);
 
-    const query = getSimpleDataQuery(tableName, fromTimestamp);
+    const query = getSimpleDataQuery(tableName, fromTimestamp, endTimeStamp);
 
     LOGGER.debug(query);
 
