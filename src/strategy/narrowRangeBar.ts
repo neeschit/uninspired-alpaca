@@ -195,8 +195,6 @@ export class NarrowRangeBarStrategy {
 
         const nowMillis = now instanceof Date ? now.getTime() : now;
 
-        return true;
-
         const isWithinEntryRange =
             timeStart.getTime() <= nowMillis && timeEnd.getTime() >= nowMillis;
 

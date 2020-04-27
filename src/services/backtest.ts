@@ -219,7 +219,7 @@ export class Backtester {
                 const filteredInstances = this.strategyInstances.filter(
                     (i) =>
                         pendingTradeConfigs.every((c) => c.symbol !== i.symbol) &&
-                        this.managers.every((m) => !m.filledPosition && m.plan.symbol !== i.symbol)
+                        this.managers.every((m) => m.plan.symbol !== i.symbol || !m.filledPosition)
                 );
 
                 const currentPositions = await this.broker.getPositions();
