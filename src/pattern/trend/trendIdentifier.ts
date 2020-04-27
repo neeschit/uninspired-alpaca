@@ -101,8 +101,8 @@ export const getOverallTrendWithSuppliedAdx = ({
         return TrendType.sideways;
     }
 
-    LOGGER.debug(pdx[pdx.length - 1]);
-    LOGGER.debug(ndx[ndx.length - 1]);
+    LOGGER.trace(pdx[pdx.length - 1]);
+    LOGGER.trace(ndx[ndx.length - 1]);
 
     return Math.abs(pdx[pdx.length - 1]) > Math.abs(ndx[ndx.length - 1])
         ? TrendType.up
