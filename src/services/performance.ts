@@ -26,7 +26,9 @@ export const getDetailedPerformanceReport = (positions: FilledPositionConfig[]) 
     let currentMonth = getDatePositionEntered(positions[0]);
     let currentDate = currentMonth;
     const monthlyPerformances: MonthlyPerformance[] = [];
-    const dailyPerformances: Performance[] = [];
+    let dailyPerformances: Performance[] = [];
+
+    let lastDayPerformance: Performance | null;
 
     const positionsAnalyzer = (
         position: FilledPositionConfig,
@@ -37,6 +39,19 @@ export const getDetailedPerformanceReport = (positions: FilledPositionConfig[]) 
 
         if (!isSameDay(currentDate, positionDate)) {
             currentDate = positionDate;
+
+            if (!lastDayPerformance) {
+                lastDayPerformance = performance;
+            } else {
+                lastDayPerformance.profit += performance.profit;
+                lastDayPerformance.longs += performance.longs;
+                lastDayPerformance.shorts += performance.shorts;
+                lastDayPerformance.total += performance.total;
+                lastDayPerformance.winners += performance.winners;
+            }
+        } else {
+            if (lastDayPerformance) dailyPerformances.push(lastDayPerformance);
+            lastDayPerformance = null;
         }
 
         if (!isSameMonth(positionDate, currentMonth) || index === positions.length - 1) {
@@ -44,7 +59,7 @@ export const getDetailedPerformanceReport = (positions: FilledPositionConfig[]) 
             if (!monthlyPerformances.length) {
                 monthlyPerformances.push({
                     summary: performance,
-                    dailyPerformances: [performance],
+                    dailyPerformances: dailyPerformances,
                 });
             } else {
                 const perfSoFar = monthlyPerformances.reduce(
@@ -78,7 +93,7 @@ export const getDetailedPerformanceReport = (positions: FilledPositionConfig[]) 
                         total: performance.total - perfSoFar.total,
                         winners: performance.winners - perfSoFar.winners,
                     },
-                    dailyPerformances: [],
+                    dailyPerformances: dailyPerformances,
                 });
             }
         }
