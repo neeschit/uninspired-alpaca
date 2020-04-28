@@ -11,7 +11,7 @@ companies.push("SPY");
 
 async function run(duration = DefaultDuration.one, period = PeriodType.minute) {
     for (const symbol of companies) {
-        const startDate = startOfDay(addDays(Date.now(), -365));
+        const startDate = startOfDay(addDays(Date.now(), 0));
         const endDate = startOfDay(addDays(Date.now(), 1));
 
         for (let date = startDate; date.getTime() < endDate.getTime(); date = addDays(date, 1)) {

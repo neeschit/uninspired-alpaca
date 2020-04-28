@@ -283,7 +283,7 @@ export class NarrowRangeBarStrategy {
             return null;
         }
 
-        const stopUnits = 2 * atr;
+        const stopUnits = Math.min(atr, 0.2);
 
         const stopLong = atr > 0.4 ? floorHalf(entryLong - stopUnits) : entryLong - stopUnits;
         const stopShort = atr > 0.4 ? ceilHalf(entryShort + stopUnits) : entryShort + stopUnits;
@@ -297,6 +297,8 @@ export class NarrowRangeBarStrategy {
         }
 
         const riskAtrRatio = atr / unitRisk;
+
+        const allowedSlippage = Number((atr / 10).toFixed(2));
 
         if (this.direction === TradeDirection.buy) {
             this.lastEntryAttemptedTimestamp = lastBar.t;
@@ -315,9 +317,10 @@ export class NarrowRangeBarStrategy {
                     symbol: this.symbol,
                     quantity,
                     side: TradeDirection.buy,
-                    type: TradeType.stop,
+                    type: TradeType.stop_limit,
                     tif: TimeInForce.day,
-                    price: entryLong,
+                    stopPrice: entryLong,
+                    price: entryLong + allowedSlippage,
                     t: lastBar.t,
                 },
             };
@@ -340,7 +343,8 @@ export class NarrowRangeBarStrategy {
                     side: TradeDirection.sell,
                     type: TradeType.stop,
                     tif: TimeInForce.day,
-                    price: entryShort,
+                    stopPrice: entryShort,
+                    price: entryShort - allowedSlippage,
                     t: lastBar.t,
                 },
             };
