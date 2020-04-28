@@ -1,12 +1,14 @@
 import { alpaca } from "../resources/alpaca";
-import { getLargeCaps } from "../data/filters";
+import { getLargeCaps, getMegaCaps } from "../data/filters";
 import { subscribeToTickLevelUpdates } from "../resources/polygon";
 import { LOGGER } from "../instrumentation/log";
-import { TickBar, TradeUpdate } from "../data/data.model";
+import { TickBar, TradeUpdate, Bar, OrderUpdateEvent } from "../data/data.model";
 import { insertBar, insertTrade } from "../resources/stockData";
 import { updateOrder } from "../resources/order";
+import { postHttp } from "../util/post";
+import { notifyService, Service } from "../util/api";
 
-const highVolCompanies = getLargeCaps();
+const highVolCompanies = getMegaCaps();
 
 highVolCompanies.push("SPY");
 
@@ -14,8 +16,7 @@ const socket = alpaca.websocket;
 
 socket.onConnect(() => {
     const mappedAggMins = subscribeToTickLevelUpdates(highVolCompanies, "AM");
-    const mappedAggSecs = subscribeToTickLevelUpdates(highVolCompanies, "A");
-    socket.subscribe(["trade_updates", "account_updates", ...mappedAggMins, ...mappedAggSecs]);
+    socket.subscribe(["trade_updates", "account_updates", ...mappedAggMins]);
 });
 socket.onStateChange((newState) => {
     console.log(`State changed to ${newState} at ${new Date().toLocaleTimeString()}`);
@@ -26,6 +27,12 @@ socket.onStateChange((newState) => {
 
 socket.onOrderUpdate((orderUpdate) => {
     updateOrder(orderUpdate.order, orderUpdate.position_qty, orderUpdate.price).catch(LOGGER.error);
+    if (
+        orderUpdate.event === OrderUpdateEvent.fill ||
+        orderUpdate.event === OrderUpdateEvent.partial_fill
+    ) {
+        notifyService(Service.management, "/orders", orderUpdate);
+    }
 });
 
 socket.onStockTrades(async (subject: string, data: string) => {
@@ -49,18 +56,24 @@ const getBar = (d: any) => ({
 
 socket.onStockAggMin(async (subject: string, data: any) => {
     if (typeof data === "string") {
-        data = JSON.parse(data);
+        data = JSON.parse(data) as any[];
     }
+
+    const mappedData: { [index: string]: Bar } = {};
 
     for (const d of data) {
         const bar: TickBar = getBar(d);
 
         try {
             await insertBar(bar, d.sym, true);
+            mappedData[d.sym] = bar;
         } catch (e) {
             /* LOGGER.error(`Could not insert ${JSON.stringify(bar)} for ${d.sym}`); */
         }
     }
+
+    notifyService(Service.management, "/aggregates", mappedData).catch(LOGGER.error);
+    notifyService(Service.screener, "/aggregates", mappedData).catch(LOGGER.error);
 });
 
 socket.onStockAggSec(async (subject: string, data: any) => {

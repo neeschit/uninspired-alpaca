@@ -125,7 +125,7 @@ export const executeSingleTrade = (
 
     if (tradePlan.type === TradeType.market) {
         return executeMarketOrder(tradePlan, symbol, bar, position);
-    } else if (tradePlan.type === TradeType.stop) {
+    } else if (tradePlan.type === TradeType.stop || tradePlan.type === TradeType.stop_limit) {
         if (bar.h > tradePlan.price && tradePlan.side === TradeDirection.buy) {
             const order = {
                 filledQuantity: tradePlan.quantity,

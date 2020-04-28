@@ -8,10 +8,10 @@ import { getDetailedPerformanceReport } from "../services/performance";
 import { getHighVolumeCompanies, getMegaCaps } from "../data/filters";
 import { MockBroker } from "../services/mockExecution";
 
-const startDate = "2020-04-20 9:00:00.000";
+const startDate = "2020-01-01 9:00:00.000";
 const zonedStartDate = zonedTimeToUtc(startDate, MarketTimezone);
 
-const endDate = parseISO("2020-04-24 16:10:00.000");
+const endDate = parseISO("2020-04-27 16:10:00.000");
 
 const zonedEndDate = zonedTimeToUtc(endDate, MarketTimezone);
 
@@ -43,9 +43,7 @@ async function run() {
     const filename = `./${format(zonedStartDate, "yyyy-MM")}-${format(
         zonedEndDate,
         "yyyy-MM"
-    )}-${pr}x-${rangeRatio}-${simpleRange ? "simpleRange" : "trueRange"}-${
-        counterTrend ? "counter" : "trend-friend"
-    }-trend-less-nrb${nrbPeriod}-${updateInterval / 60000}.json`;
+    )}-${pr}x-daytrade.json`;
 
     /* const pastPositionConfigs = JSON.parse(readFileSync(filename).toString()).sortedPositions;
 

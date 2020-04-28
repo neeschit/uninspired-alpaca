@@ -49,8 +49,8 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "main",
-            "program": "${workspaceFolder}/src/deployable_services/main.ts",
+            "name": "streamer",
+            "program": "${workspaceFolder}/src/deployable/socketDataStreaming.process.ts",
             "args": ["--enable-source-maps"],
             "sourceMaps": true,
             "outFiles": ["${workspaceFolder}/build/**/*.js"],
@@ -65,8 +65,8 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "narrowRangeScreener",
-            "program": "${workspaceFolder}/src/scripts/narrowRangeScreener.ts",
+            "name": "management",
+            "program": "${workspaceFolder}/src/deployable/management.service.ts",
             "args": ["--enable-source-maps"],
             "sourceMaps": true,
             "outFiles": ["${workspaceFolder}/build/**/*.js"],
@@ -81,24 +81,8 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "intradayNarrowRangeScreener",
-            "program": "${workspaceFolder}/src/scripts/intradayNarrowRangeScreener.ts",
-            "args": ["--enable-source-maps"],
-            "sourceMaps": true,
-            "outFiles": ["${workspaceFolder}/build/**/*.js"],
-            "cwd": "${workspaceFolder}",
-            "smartStep": true,
-            "internalConsoleOptions": "openOnSessionStart",
-            "env": {
-                "LOGLEVEL": "4"
-            },
-            "skipFiles": ["<node_internals>/**"]
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "socketDataTester",
-            "program": "${workspaceFolder}/src/scripts/socketDataTester.ts",
+            "name": "screener",
+            "program": "${workspaceFolder}/src/deployable/screener.service.ts",
             "args": ["--enable-source-maps"],
             "sourceMaps": true,
             "outFiles": ["${workspaceFolder}/build/**/*.js"],

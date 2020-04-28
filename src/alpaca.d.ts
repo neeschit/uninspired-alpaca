@@ -101,6 +101,13 @@ declare module "@neeschit/alpaca-trade-api" {
         stop_price?: number;
         extended_hours: boolean;
         order_class: "simple" | "bracket";
+        take_profit?: {
+            limit_price: number;
+        };
+        stop_loss?: {
+            stop_price: number;
+            limit_price?: number;
+        };
     }
 
     export interface AlpacaPosition {

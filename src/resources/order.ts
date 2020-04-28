@@ -19,6 +19,21 @@ export interface Order {
     type: TradeType;
 }
 
+interface OrderDb {
+    id: number;
+    position_id: number;
+    symbol: string;
+    status: string;
+    side: string;
+    type: string;
+    tif: string;
+    quantity: number;
+    stop_price: number;
+    limit_price: number;
+    filled_quantity: number;
+    average_price: number;
+}
+
 export const getCreateOrdersTableSql = () => `
 CREATE OR REPLACE FUNCTION trigger_set_timestamp()
 RETURNS TRIGGER AS $$
@@ -121,8 +136,8 @@ const getUpdateOrdersSql = (
         throw new Error("need a client id");
     }
     return `update orders set status = '${status}'
-        ${positionQuantity ? "filled_quantity =" + positionQuantity : ""} 
-        ${price ? "average_price = " + price : ""} 
+        ${positionQuantity ? ", filled_quantity =" + positionQuantity : ""} 
+        ${price ? ", average_price = " + price : ""} 
         where id = ${id};`;
 };
 
@@ -148,4 +163,37 @@ export const updateOrder = async (
     } catch (e) {
         LOGGER.error(e);
     }
+};
+
+export const getOrder = async (id: number): Promise<Order | null> => {
+    const pool = getConnection();
+
+    const query = `select * from orders where id = ${Number(id)}`;
+
+    try {
+        const result = await pool.query(query);
+        if (result.rowCount !== 1) {
+            throw new Error("Couldnt find order for " + id);
+        }
+
+        const order: OrderDb = result.rows[0];
+
+        return {
+            id,
+            positionId: order.position_id,
+            symbol: order.symbol,
+            filledQuantity: order.filled_quantity,
+            stopPrice: order.stop_price,
+            limitPrice: order.limit_price,
+            side: order.side as TradeDirection,
+            status: order.status as OrderStatus,
+            tif: order.tif as TimeInForce,
+            type: order.type as TradeType,
+            quantity: order.quantity,
+        };
+    } catch (e) {
+        LOGGER.error(e);
+    }
+
+    return null;
 };

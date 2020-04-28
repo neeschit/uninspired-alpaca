@@ -398,9 +398,10 @@ test("trade management - init and recordOnceUpdateReceived", async (t) => {
         {
             symbol,
             side: TradeDirection.buy,
-            type: TradeType.stop,
+            type: TradeType.stop_limit,
             tif: TimeInForce.day,
-            price: 200,
+            stopPrice: 200,
+            price: 200.05,
             quantity: 200,
             t: Date.now(),
         },
@@ -594,9 +595,10 @@ test.cb("queue & cancel trade", (t) => {
         {
             symbol,
             side: TradeDirection.buy,
-            type: TradeType.stop,
+            type: TradeType.stop_limit,
             tif: TimeInForce.day,
-            price: 300,
+            price: 300.05,
+            stopPrice: 300,
             quantity: 300,
             t: Date.now(),
         },
@@ -612,7 +614,7 @@ test.cb("queue & cancel trade", (t) => {
     );
 
     manager
-        .queueTrade()
+        .queueEntry()
         .then((trade) => t.truthy(trade.id))
         .then(() => {
             return manager.cancelPendingTrades();

@@ -5,7 +5,7 @@ import { LOGGER } from "../../instrumentation/log";
 export enum TrendType {
     up = "up",
     down = "down",
-    sideways = "sideways"
+    sideways = "sideways",
 }
 
 const getMaxMin = (bars: Bar[]) => {
@@ -22,12 +22,12 @@ const getMaxMin = (bars: Bar[]) => {
 
             return {
                 max: prevMax,
-                min: prevMin
+                min: prevMin,
             };
         },
         {
             min: Number.MAX_SAFE_INTEGER,
-            max: Number.MIN_SAFE_INTEGER
+            max: Number.MIN_SAFE_INTEGER,
         }
     );
 };
@@ -53,13 +53,13 @@ export const getRecentTrend = (bars: Bar[]) => {
             return {
                 closingTrend: newClosingTrend,
                 highsTrend: newHighsTrend,
-                lowsTrend: newLowsTrend
+                lowsTrend: newLowsTrend,
             };
         },
         {
             closingTrend: firstBarTrend,
             highsTrend: firstBarTrend,
-            lowsTrend: firstBarTrend
+            lowsTrend: firstBarTrend,
         }
     );
 
@@ -77,6 +77,32 @@ export const getOverallTrend = (bars: Bar[]) => {
 
     LOGGER.debug(pdx[pdx.length - 1]);
     LOGGER.debug(ndx[ndx.length - 1]);
+
+    return Math.abs(pdx[pdx.length - 1]) > Math.abs(ndx[ndx.length - 1])
+        ? TrendType.up
+        : TrendType.down;
+};
+
+export const getOverallTrendWithSuppliedAdx = ({
+    adx,
+    ndx,
+    pdx,
+}: {
+    adx: {
+        value: number;
+        t: number;
+    }[];
+    pdx: number[];
+    ndx: number[];
+}) => {
+    const lastBarAdx = adx[adx.length - 1];
+
+    if (lastBarAdx.value < 20) {
+        return TrendType.sideways;
+    }
+
+    LOGGER.trace(pdx[pdx.length - 1]);
+    LOGGER.trace(ndx[ndx.length - 1]);
 
     return Math.abs(pdx[pdx.length - 1]) > Math.abs(ndx[ndx.length - 1])
         ? TrendType.up
