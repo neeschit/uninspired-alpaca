@@ -283,7 +283,7 @@ export class NarrowRangeBarStrategy {
             return null;
         }
 
-        const stopUnits = Math.min(atr, 0.2);
+        const stopUnits = Math.max(atr, 0.2);
 
         const stopLong = atr > 0.4 ? floorHalf(entryLong - stopUnits) : entryLong - stopUnits;
         const stopShort = atr > 0.4 ? ceilHalf(entryShort + stopUnits) : entryShort + stopUnits;
