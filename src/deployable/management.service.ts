@@ -13,6 +13,10 @@ import {
     getOpenPositions,
     PositionConfig,
 } from "../resources/position";
+import { getTodaysData } from "../resources/stockData";
+import { postEntry } from "../util/slack";
+
+const pr = 2;
 
 const managers: TradeManagement[] = [];
 
@@ -35,7 +39,7 @@ server.post("/aggregates", async (request, reply) => {
         );
 
         if (!manager) {
-            LOGGER.error(`no manager for symbol ${symbol}`);
+            LOGGER.trace(`no manager for symbol ${symbol}`);
 
             const position = dbPositions.find((p) => p.symbol === symbol);
 
@@ -63,6 +67,7 @@ server.post("/aggregates", async (request, reply) => {
                 ...unfilledPosition,
                 originalQuantity: unfilledPosition.quantity,
                 quantity: position.quantity,
+                averageEntryPrice: position.average_entry_price,
                 trades: [],
             };
         }
@@ -77,6 +82,46 @@ server.post("/aggregates", async (request, reply) => {
             }
         } else {
             LOGGER.error(`No bar found for symbol ${symbol}`);
+        }
+    }
+
+    const openOrders = await alpaca.getOrders({ status: "open" });
+
+    const openingPositionOrders = openOrders.filter((o) =>
+        positions.every((p) => p.symbol !== o.symbol)
+    );
+
+    for (const order of openingPositionOrders) {
+        const myOrder = await getOrder(Number(order.client_order_id));
+
+        if (myOrder) {
+            const plannedPosition = await getPosition(myOrder.positionId);
+
+            if (plannedPosition) {
+                const unfilledPosition: PositionConfig = {
+                    id: plannedPosition.id,
+                    plannedEntryPrice: plannedPosition.planned_entry_price,
+                    plannedStopPrice: plannedPosition.planned_stop_price,
+                    riskAtrRatio: 1,
+                    side: plannedPosition.side as PositionDirection,
+                    quantity: plannedPosition.planned_quantity,
+                    symbol: order.symbol,
+                    originalQuantity: plannedPosition.planned_quantity,
+                };
+
+                const manager = new TradeManagement({} as TradeConfig, unfilledPosition, 1);
+                manager.position = {
+                    ...unfilledPosition,
+                };
+
+                const data = await getTodaysData(order.symbol);
+
+                await manager.detectTrendChange(data, myOrder);
+            } else {
+                server.log.error(`no planned position for order`, order);
+            }
+        } else {
+            server.log.error(`no trace for order`, order);
         }
     }
 
@@ -107,7 +152,9 @@ server.post("/trades", async (request, reply) => {
         );
 
         if (!manager || !manager.filledPosition) {
-            manager = new TradeManagement(trade.config, trade.plan, 1);
+            manager = new TradeManagement(trade.config, trade.plan, pr);
+
+            await postEntry(trade.plan.symbol, trade.config.t, trade.plan);
 
             await manager.queueEntry();
 

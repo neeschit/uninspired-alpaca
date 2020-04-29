@@ -150,7 +150,7 @@ export const updateOrder = async (
 
     const query = getUpdateOrdersSql(
         order.client_order_id,
-        Number(positionQuantity),
+        Math.abs(Number(positionQuantity)),
         Number(price),
         order.status
     );

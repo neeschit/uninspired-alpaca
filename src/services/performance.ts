@@ -28,8 +28,6 @@ export const getDetailedPerformanceReport = (positions: FilledPositionConfig[]) 
     const monthlyPerformances: MonthlyPerformance[] = [];
     let dailyPerformances: Performance[] = [];
 
-    let lastDayPerformance: Performance | null;
-
     const positionsAnalyzer = (
         position: FilledPositionConfig,
         performance: Performance,
@@ -37,21 +35,42 @@ export const getDetailedPerformanceReport = (positions: FilledPositionConfig[]) 
     ) => {
         const positionDate = getDatePositionEntered(position);
 
-        if (!isSameDay(currentDate, positionDate)) {
+        if (!isSameDay(currentDate, positionDate) || index === positions.length - 1) {
             currentDate = positionDate;
-
-            if (!lastDayPerformance) {
-                lastDayPerformance = performance;
+            if (!dailyPerformances.length) {
+                dailyPerformances.push(performance);
             } else {
-                lastDayPerformance.profit += performance.profit;
-                lastDayPerformance.longs += performance.longs;
-                lastDayPerformance.shorts += performance.shorts;
-                lastDayPerformance.total += performance.total;
-                lastDayPerformance.winners += performance.winners;
+                const perfSoFar = dailyPerformances.reduce(
+                    (agg, p) => {
+                        if (!agg) {
+                            return p;
+                        } else {
+                            agg.profit += p.profit;
+                            agg.longs += p.longs;
+                            agg.shorts += p.shorts;
+                            agg.total += p.total;
+                            agg.winners += p.winners;
+
+                            return agg;
+                        }
+                    },
+                    {
+                        profit: 0,
+                        longs: 0,
+                        shorts: 0,
+                        winners: 0,
+                        total: 0,
+                    }
+                );
+
+                dailyPerformances.push({
+                    profit: performance.profit - perfSoFar.profit,
+                    longs: performance.longs - perfSoFar.longs,
+                    shorts: performance.shorts - perfSoFar.shorts,
+                    total: performance.total - perfSoFar.total,
+                    winners: performance.winners - perfSoFar.winners,
+                });
             }
-        } else {
-            if (lastDayPerformance) dailyPerformances.push(lastDayPerformance);
-            lastDayPerformance = null;
         }
 
         if (!isSameMonth(positionDate, currentMonth) || index === positions.length - 1) {

@@ -4,7 +4,7 @@ import { alpaca } from "../resources/alpaca";
 import { Service, notifyService } from "../util/api";
 import { getMegaCaps } from "../data/filters";
 import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
-import { getData, getSimpleData } from "../resources/stockData";
+import { getData, getSimpleData, getTodaysData } from "../resources/stockData";
 import { set, addBusinessDays, getMinutes } from "date-fns";
 import { LOGGER } from "../instrumentation/log";
 import { TradePlan } from "../data/data.model";
@@ -19,15 +19,17 @@ const megacaps = getMegaCaps();
 
 const strategies: NarrowRangeBarStrategy[] = [];
 
-megacaps.map(async (symbol) => {
-    const dailyBars = await getSimpleData(symbol, addBusinessDays(Date.now(), -18).getTime());
-    strategies.push(
-        new NarrowRangeBarStrategy({
-            symbol,
-            bars: dailyBars,
-        })
-    );
-});
+Promise.all(
+    megacaps.map(async (symbol) => {
+        const dailyBars = await getSimpleData(symbol, addBusinessDays(Date.now(), -18).getTime());
+        strategies.push(
+            new NarrowRangeBarStrategy({
+                symbol,
+                bars: dailyBars,
+            })
+        );
+    })
+);
 
 server.post("/aggregates", async (request, reply) => {
     const symbols = Object.keys(request.body);
@@ -40,7 +42,6 @@ server.post("/aggregates", async (request, reply) => {
             const trade = await tradePromise;
 
             if (trade) {
-                await postEntry(trade.plan.symbol, trade.config.t, trade.plan);
                 trades.push(trade);
             }
         } catch (e) {
@@ -78,51 +79,16 @@ const screenSymbol = async (symbol: string) => {
         return null;
     }
 
-    const currentEpoch = Date.now();
+    const currentEpoch = 1588101839000;
+    Date.now();
 
-    const minutes = getMinutes(currentEpoch);
-
-    const floored = Math.floor(minutes / 5) * 5;
-
-    const endEpoch = set(currentEpoch, {
-        minutes: floored,
-        seconds: 0,
-        milliseconds: 0,
-    }).getTime();
-
-    const screenerData = await getData(
-        symbol,
-        addBusinessDays(currentEpoch, -1).getTime(),
-        "5 minutes",
-        endEpoch
-    );
+    const screenerData = await getTodaysData(symbol, currentEpoch);
 
     strategy.screenForNarrowRangeBars(screenerData, currentEpoch);
 
-    return strategy.rebalance(
-        screenerData.filter((b) => b.t < currentEpoch),
-        currentEpoch
-    );
+    return strategy.rebalance(screenerData, currentEpoch);
 };
 
 const screenSymbols = (symbols: string[]) => {
     return symbols.map(screenSymbol);
-};
-
-const slackHookOptions = {
-    hostname: "hooks.slack.com",
-    path: "/services/T4EKRGB54/B0138S9A3LY/VuZ8iHEDOw9mjzHKPI1HQLwD",
-};
-
-const postEntry = async (symbol: string, timestamp: number, plan: TradePlan) => {
-    const text = `Looking like a good entry for ${symbol} at ${new Date(
-        timestamp
-    ).toISOString()} with plan = ${JSON.stringify(plan)}`;
-
-    return postHttps({
-        ...slackHookOptions,
-        data: {
-            text,
-        },
-    });
 };

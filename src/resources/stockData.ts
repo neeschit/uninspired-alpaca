@@ -3,6 +3,7 @@ import { TickBar, TradeUpdate, Bar } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
 import { getCreateOrdersTableSql } from "./order";
 import { getCreatePositionsTableSql } from "./position";
+import { set, getMinutes } from "date-fns";
 const getAggregatedTickTableNameForSymbol = (symbol: string) => `tick_${symbol.toLowerCase()}`;
 
 const getCreateAggregatedBarsTableSql = (tablename: string) => `create table ${tablename} (
@@ -340,4 +341,25 @@ export const getSimpleData = async (
             t: new Date(r.t).getTime(),
         };
     });
+};
+
+export const getTodaysData = (symbol: string, currentEpoch = Date.now()) => {
+    const minutes = getMinutes(currentEpoch);
+
+    const floored = Math.floor(minutes / 5) * 5;
+
+    const startEpoch = set(currentEpoch, {
+        minutes: 30,
+        seconds: 0,
+        milliseconds: 0,
+        hours: 9,
+    });
+
+    const endEpoch = set(currentEpoch, {
+        minutes: floored,
+        seconds: 0,
+        milliseconds: 0,
+    });
+
+    return getData(symbol, startEpoch.getTime(), "5 minutes", endEpoch.getTime() + 1000);
 };

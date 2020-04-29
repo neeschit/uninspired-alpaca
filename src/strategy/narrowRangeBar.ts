@@ -18,7 +18,6 @@ import { Broker } from "@neeschit/alpaca-trade-api";
 import { alpaca } from "../resources/alpaca";
 import { getAverageTrueRange } from "../indicator/trueRange";
 import { isSameDay } from "date-fns";
-import { postHttps } from "../util/post";
 import { roundHalf, floorHalf, ceilHalf } from "../util";
 
 const slackHookOptions = {
@@ -85,11 +84,11 @@ export class NarrowRangeBarStrategy {
             const ranges = tr.slice(Math.max(0, index - 7), index + 1).map((r) => r.value);
 
             if (this.isNarrowRangeBar(ranges, todaysBars, range)) {
-                LOGGER.debug(
-                    `Looking like a good entry for ${this.symbol} at ${new Date(
-                        range.t
-                    ).toISOString()}`
-                );
+                const text = `Looking like a good entry for ${this.symbol} at ${new Date(
+                    range.t
+                ).toISOString()}`;
+                LOGGER.debug(text);
+
                 const index = this.nrbTimestamps.findIndex((t) => t === range.t);
                 if (index < 0 && this.lastScreenedTimestamp < range.t) {
                     this.nrbTimestamps.push(range.t);
@@ -283,10 +282,11 @@ export class NarrowRangeBarStrategy {
             return null;
         }
 
-        const stopUnits = Math.max(atr, 0.2);
+        const stopUnits = lastBar.c < 30 ? Math.max(atr, 0.2) : Math.max(atr, 0.5);
 
-        const stopLong = atr > 0.4 ? floorHalf(entryLong - stopUnits) : entryLong - stopUnits;
-        const stopShort = atr > 0.4 ? ceilHalf(entryShort + stopUnits) : entryShort + stopUnits;
+        const stopLong = stopUnits > 0.2 ? roundHalf(entryLong - stopUnits) : entryLong - stopUnits;
+        const stopShort =
+            stopUnits > 0.2 ? roundHalf(entryShort + stopUnits) : entryShort + stopUnits;
         const unitRisk = stopUnits;
 
         const quantity = Math.ceil(TRADING_RISK_UNIT_CONSTANT / stopUnits);
@@ -341,7 +341,7 @@ export class NarrowRangeBarStrategy {
                     symbol: this.symbol,
                     quantity,
                     side: TradeDirection.sell,
-                    type: TradeType.stop,
+                    type: TradeType.stop_limit,
                     tif: TimeInForce.day,
                     stopPrice: entryShort,
                     price: entryShort - allowedSlippage,
