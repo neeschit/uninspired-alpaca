@@ -61,7 +61,7 @@ const getUnfilledPositionInsert = (position: TradePlan) => {
             '${position.symbol}', 
             '${position.side}', 
             ${position.quantity},
-            DEFAULT,
+            0,
             DEFAULT,
             DEFAULT,
             DEFAULT
@@ -116,7 +116,7 @@ export const updatePosition = async (quantity: number, id: number, price?: numbe
     const pool = getConnection();
 
     const result = await pool.query(`
-        update positions set quantity=${quantity} ${
+        update positions set quantity=${Math.abs(Number(quantity))} ${
         price ? ", average_entry_price=" + price : ""
     } where id=${id}
     `);

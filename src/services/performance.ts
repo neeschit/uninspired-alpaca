@@ -26,7 +26,7 @@ export const getDetailedPerformanceReport = (positions: FilledPositionConfig[]) 
     let currentMonth = getDatePositionEntered(positions[0]);
     let currentDate = currentMonth;
     const monthlyPerformances: MonthlyPerformance[] = [];
-    const dailyPerformances: Performance[] = [];
+    let dailyPerformances: Performance[] = [];
 
     const positionsAnalyzer = (
         position: FilledPositionConfig,
@@ -35,8 +35,42 @@ export const getDetailedPerformanceReport = (positions: FilledPositionConfig[]) 
     ) => {
         const positionDate = getDatePositionEntered(position);
 
-        if (!isSameDay(currentDate, positionDate)) {
+        if (!isSameDay(currentDate, positionDate) || index === positions.length - 1) {
             currentDate = positionDate;
+            if (!dailyPerformances.length) {
+                dailyPerformances.push(performance);
+            } else {
+                const perfSoFar = dailyPerformances.reduce(
+                    (agg, p) => {
+                        if (!agg) {
+                            return p;
+                        } else {
+                            agg.profit += p.profit;
+                            agg.longs += p.longs;
+                            agg.shorts += p.shorts;
+                            agg.total += p.total;
+                            agg.winners += p.winners;
+
+                            return agg;
+                        }
+                    },
+                    {
+                        profit: 0,
+                        longs: 0,
+                        shorts: 0,
+                        winners: 0,
+                        total: 0,
+                    }
+                );
+
+                dailyPerformances.push({
+                    profit: performance.profit - perfSoFar.profit,
+                    longs: performance.longs - perfSoFar.longs,
+                    shorts: performance.shorts - perfSoFar.shorts,
+                    total: performance.total - perfSoFar.total,
+                    winners: performance.winners - perfSoFar.winners,
+                });
+            }
         }
 
         if (!isSameMonth(positionDate, currentMonth) || index === positions.length - 1) {
@@ -44,7 +78,7 @@ export const getDetailedPerformanceReport = (positions: FilledPositionConfig[]) 
             if (!monthlyPerformances.length) {
                 monthlyPerformances.push({
                     summary: performance,
-                    dailyPerformances: [performance],
+                    dailyPerformances: dailyPerformances,
                 });
             } else {
                 const perfSoFar = monthlyPerformances.reduce(
@@ -78,7 +112,7 @@ export const getDetailedPerformanceReport = (positions: FilledPositionConfig[]) 
                         total: performance.total - perfSoFar.total,
                         winners: performance.winners - perfSoFar.winners,
                     },
-                    dailyPerformances: [],
+                    dailyPerformances: dailyPerformances,
                 });
             }
         }

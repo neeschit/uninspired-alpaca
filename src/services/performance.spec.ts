@@ -10,18 +10,12 @@ import { analyzeClosedPositions, getDetailedPerformanceReport } from "./performa
 import perfReport from "../fixtures/perfReport";
 import { FilledPositionConfig } from "../resources/position";
 
-test.skip("assess performance at a deeper level", (t) => {
+test("assess performance at a deeper level", (t) => {
     const insight = getDetailedPerformanceReport(perfReport);
 
-    t.is(5, insight.monthly.length);
+    t.is(1, insight.monthly.length);
 
-    /* t.deepEqual(insight.monthly, [
-        { profit: 102.05014937739405, longs: 113, shorts: 45, winners: 87, total: 158 },
-        { profit: 50.94668223219146, longs: 28, shorts: 13, total: 41, winners: 16 },
-        { profit: 313.0047939610212, longs: 10, shorts: 18, total: 28, winners: 18 },
-        { profit: 228.75189631903174, longs: 2, shorts: 32, total: 34, winners: 23 },
-        { profit: 447.10344784745257, longs: 0, shorts: 28, total: 28, winners: 26 }
-    ]); */
+    t.is(2, insight.monthly[0].dailyPerformances.length);
 });
 
 test("successful long trade report", (t) => {
