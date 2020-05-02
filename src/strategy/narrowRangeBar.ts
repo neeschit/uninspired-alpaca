@@ -14,7 +14,7 @@ import {
 } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
 import { convertToLocalTime } from "../util/date";
-import { Broker } from "@neeschit/alpaca-trade-api";
+import { Broker, AlpacaPosition } from "@neeschit/alpaca-trade-api";
 import { alpaca } from "../resources/alpaca";
 import { getAverageTrueRange } from "../indicator/trueRange";
 import { isSameDay } from "date-fns";
@@ -207,7 +207,8 @@ export class NarrowRangeBarStrategy {
 
     async rebalance(
         recentBars: Bar[],
-        now: TimestampType = Date.now()
+        now: TimestampType = Date.now(),
+        currentPositions?: AlpacaPosition[]
     ): Promise<PlannedTradeConfig | null> {
         if (!this.isTimeForEntry(now)) {
             LOGGER.trace(`not the time to enter for ${this.symbol} at ${new Date(now)}`);
@@ -223,7 +224,9 @@ export class NarrowRangeBarStrategy {
             ndx,
         });
 
-        const currentPositions = await this.broker.getPositions();
+        if (!currentPositions) {
+            currentPositions = await this.broker.getPositions();
+        }
 
         const notCurrentPosition =
             currentPositions.findIndex((p) => p.symbol === this.symbol) === -1;

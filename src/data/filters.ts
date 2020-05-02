@@ -9,7 +9,7 @@ export const getLargeCaps = (): string[] => {
 };
 
 export const getMegaCaps = (): string[] => {
-    return JSON.parse(readFileSync("./megacaps.json").toString());
+    return JSON.parse(readFileSync("./megacaps-filtered.json").toString());
 };
 
 export const getFilteredHighVolumeCompanies = (): string[] => {

@@ -4,11 +4,17 @@ import { alpaca } from "../resources/alpaca";
 import { Service, notifyService } from "../util/api";
 import { getMegaCaps } from "../data/filters";
 import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
-import { getData, getSimpleData, getTodaysData } from "../resources/stockData";
+import {
+    getData,
+    getSimpleData,
+    getTodaysData,
+    getYesterdaysEndingBars,
+} from "../resources/stockData";
 import { set, addBusinessDays, getMinutes } from "date-fns";
 import { LOGGER } from "../instrumentation/log";
 import { TradePlan } from "../data/data.model";
 import { postHttps } from "../util/post";
+import { AlpacaPosition, AlpacaOrder } from "@neeschit/alpaca-trade-api";
 
 const server = fastify({
     logger: true,
@@ -18,6 +24,14 @@ const server = fastify({
 const megacaps = getMegaCaps();
 
 const strategies: NarrowRangeBarStrategy[] = [];
+
+let positions: AlpacaPosition[] = [];
+let openOrders: AlpacaOrder[] = [];
+
+setInterval(async () => {
+    positions = await alpaca.getPositions();
+    openOrders = await alpaca.getOrders({ status: "open" });
+}, 2000);
 
 Promise.all(
     megacaps.map(async (symbol) => {
@@ -79,14 +93,19 @@ const screenSymbol = async (symbol: string) => {
         return null;
     }
 
-    const currentEpoch = 1588101839000;
-    Date.now();
+    const currentEpoch = Date.now();
 
-    const screenerData = await getTodaysData(symbol, currentEpoch);
+    const today = await getTodaysData(symbol, currentEpoch);
+    const yday = await getYesterdaysEndingBars(symbol, currentEpoch);
+
+    const screenerData = [];
+
+    screenerData.push(...yday.reverse());
+    screenerData.push(...today);
 
     strategy.screenForNarrowRangeBars(screenerData, currentEpoch);
 
-    return strategy.rebalance(screenerData, currentEpoch);
+    return strategy.rebalance(screenerData, currentEpoch, positions);
 };
 
 const screenSymbols = (symbols: string[]) => {

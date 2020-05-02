@@ -6,6 +6,27 @@
     "configurations": [
         {
             "type": "node",
+            "request": "attach",
+            "name": "Debug Streamer",
+            "port": 9696,
+            "skipFiles": ["<node_internals>/**"]
+        },
+        {
+            "type": "node",
+            "request": "attach",
+            "name": "Debug manager",
+            "port": 9697,
+            "skipFiles": ["<node_internals>/**"]
+        },
+        {
+            "type": "node",
+            "request": "attach",
+            "name": "Debug screener",
+            "port": 9698,
+            "skipFiles": ["<node_internals>/**"]
+        },
+        {
+            "type": "node",
             "request": "launch",
             "name": "Debug AVA test file",
             "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/ava",

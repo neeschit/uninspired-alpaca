@@ -3,7 +3,7 @@ import { TickBar, TradeUpdate, Bar } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
 import { getCreateOrdersTableSql } from "./order";
 import { getCreatePositionsTableSql } from "./position";
-import { set, getMinutes } from "date-fns";
+import { set, getMinutes, addBusinessDays } from "date-fns";
 const getAggregatedTickTableNameForSymbol = (symbol: string) => `tick_${symbol.toLowerCase()}`;
 
 const getCreateAggregatedBarsTableSql = (tablename: string) => `create table ${tablename} (
@@ -361,5 +361,54 @@ export const getTodaysData = (symbol: string, currentEpoch = Date.now()) => {
         milliseconds: 0,
     });
 
-    return getData(symbol, startEpoch.getTime(), "5 minutes", endEpoch.getTime() + 1000);
+    return getData(symbol, startEpoch.getTime(), "5 minutes", endEpoch.getTime() - 1000);
+};
+
+export const getYesterdaysEndingBars = async (symbol: string, currentEpoch = Date.now()) => {
+    const startEpoch = set(addBusinessDays(currentEpoch, -2), {
+        minutes: 30,
+        seconds: 0,
+        milliseconds: 0,
+        hours: 9,
+    });
+    const endEpoch = set(addBusinessDays(currentEpoch, -1), {
+        minutes: 0,
+        seconds: 0,
+        milliseconds: 0,
+        hours: 16,
+    });
+
+    const tablename = getAggregatedMinuteTableNameForSymbol(symbol);
+
+    const query = `
+        select 
+            time_bucket('5 minutes', t) as time_bucket, 
+            sum(v) as v,
+            min(l) as l,
+            max(h) as h,
+            last(c, t) as c,
+            first(o, t) as o 
+        from ${tablename.toLowerCase()} 
+        where t > ${getTimestampValue(startEpoch.getTime())}
+        and t < ${getTimestampValue(endEpoch.getTime())}
+        group by time_bucket 
+        order by time_bucket desc limit 10;
+    `;
+
+    LOGGER.debug(query);
+
+    const pool = getConnection();
+
+    const result = await pool.query(query);
+
+    return result.rows.map((r) => {
+        return {
+            v: Number(r.v),
+            c: Number(r.c),
+            o: Number(r.o),
+            h: Number(r.h),
+            l: Number(r.l),
+            t: new Date(r.time_bucket).getTime(),
+        };
+    });
 };

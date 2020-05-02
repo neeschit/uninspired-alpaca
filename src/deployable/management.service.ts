@@ -5,7 +5,11 @@ import { Service } from "../util/api";
 import { TradePlan, TradeConfig, TickBar, Bar, PositionDirection } from "../data/data.model";
 import { TradeManagement } from "../services/tradeManagement";
 import { LOGGER } from "../instrumentation/log";
-import { AlpacaStreamingOrderUpdate } from "@neeschit/alpaca-trade-api";
+import {
+    AlpacaStreamingOrderUpdate,
+    AlpacaPosition,
+    AlpacaOrder,
+} from "@neeschit/alpaca-trade-api";
 import { getOrder } from "../resources/order";
 import {
     getPosition,
@@ -14,9 +18,9 @@ import {
     PositionConfig,
 } from "../resources/position";
 import { getTodaysData } from "../resources/stockData";
-import { postEntry } from "../util/slack";
+import { postPartial, postEntry } from "../util/slack";
 
-const pr = 2;
+const pr = 1;
 
 const managers: TradeManagement[] = [];
 
@@ -25,8 +29,15 @@ const server = fastify({
     ignoreTrailingSlash: true,
 });
 
+let positions: AlpacaPosition[] = [];
+let openOrders: AlpacaOrder[] = [];
+
+setInterval(async () => {
+    positions = await alpaca.getPositions();
+    openOrders = await alpaca.getOrders({ status: "open" });
+}, 2000);
+
 server.post("/aggregates", async (request, reply) => {
-    const positions = await alpaca.getPositions();
     const barUpdates = request.body as { [index: string]: Bar };
 
     const symbols = Object.keys(request.body).filter((s) => positions.some((p) => p.symbol === s));
@@ -48,6 +59,11 @@ server.post("/aggregates", async (request, reply) => {
                 continue;
             }
 
+            if (openOrders.some((o) => o.symbol === symbol)) {
+                LOGGER.warn(`profit order already exists`);
+                continue;
+            }
+
             const unfilledPosition: PositionConfig = {
                 id: position.id,
                 plannedEntryPrice: position.planned_entry_price,
@@ -65,7 +81,7 @@ server.post("/aggregates", async (request, reply) => {
             };
             manager.filledPosition = {
                 ...unfilledPosition,
-                originalQuantity: unfilledPosition.quantity,
+                originalQuantity: position.planned_quantity,
                 quantity: position.quantity,
                 averageEntryPrice: position.average_entry_price,
                 trades: [],
@@ -75,24 +91,26 @@ server.post("/aggregates", async (request, reply) => {
         const bar = barUpdates[manager.plan.symbol];
 
         if (bar) {
-            const order = await manager.rebalancePosition(bar);
+            const order = await manager.onTickUpdate(bar);
 
-            if (order) {
-                await manager.queueTrade(order);
-            }
+            if (order) await postPartial(order);
         } else {
             LOGGER.error(`No bar found for symbol ${symbol}`);
         }
     }
-
-    const openOrders = await alpaca.getOrders({ status: "open" });
-
     const openingPositionOrders = openOrders.filter((o) =>
         positions.every((p) => p.symbol !== o.symbol)
     );
 
+    let index = 0;
+
     for (const order of openingPositionOrders) {
         const myOrder = await getOrder(Number(order.client_order_id));
+
+        if (openingPositionOrders.findIndex((or) => or.symbol === order.symbol) !== index++) {
+            await alpaca.cancelOrder(order.id);
+            continue;
+        }
 
         if (myOrder) {
             const plannedPosition = await getPosition(myOrder.positionId);
@@ -116,7 +134,7 @@ server.post("/aggregates", async (request, reply) => {
 
                 const data = await getTodaysData(order.symbol);
 
-                await manager.detectTrendChange(data, myOrder);
+                await manager.detectTrendChange(data, order);
             } else {
                 server.log.error(`no planned position for order`, order);
             }
@@ -131,9 +149,6 @@ server.post("/aggregates", async (request, reply) => {
 });
 
 server.post("/trades", async (request, reply) => {
-    const positions = await alpaca.getPositions();
-    const openOrders = await alpaca.getOrders({ status: "open" });
-
     const currentPositions = positions.map((p) => p.symbol);
     const openOrderSymbols = openOrders.map((o) => o.symbol);
 
@@ -154,11 +169,19 @@ server.post("/trades", async (request, reply) => {
         if (!manager || !manager.filledPosition) {
             manager = new TradeManagement(trade.config, trade.plan, pr);
 
-            await postEntry(trade.plan.symbol, trade.config.t, trade.plan);
-
             await manager.queueEntry();
 
             managers.push(manager);
+
+            try {
+                await postEntry(trade.plan.symbol, trade.config.t, trade.plan);
+            } catch (e) {
+                LOGGER.error(
+                    `Trying to enter ${trade.plan.symbol} at ${new Date()} with ${JSON.stringify(
+                        trade.plan
+                    )}`
+                );
+            }
         }
     }
 
