@@ -1,37 +1,17 @@
-import fastify from "fastify";
-import { Server, IncomingMessage, ServerResponse } from "http";
-import { alpaca } from "../resources/alpaca";
-import { Service, notifyService } from "../util/api";
+import { Service, messageService, getApiServer, getFromService } from "../util/api";
 import { getMegaCaps } from "../data/filters";
 import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
-import {
-    getData,
-    getSimpleData,
-    getTodaysData,
-    getYesterdaysEndingBars,
-} from "../resources/stockData";
-import { set, addBusinessDays, getMinutes } from "date-fns";
+import { getSimpleData } from "../resources/stockData";
+import { addBusinessDays } from "date-fns";
 import { LOGGER } from "../instrumentation/log";
-import { TradePlan } from "../data/data.model";
-import { postHttps } from "../util/post";
-import { AlpacaPosition, AlpacaOrder } from "@neeschit/alpaca-trade-api";
+import { AlpacaPosition } from "@neeschit/alpaca-trade-api";
+import { Bar } from "../data/data.model";
 
-const server = fastify({
-    logger: true,
-    ignoreTrailingSlash: true,
-});
+const server = getApiServer(Service.screener);
 
 const megacaps = getMegaCaps();
 
 const strategies: NarrowRangeBarStrategy[] = [];
-
-let positions: AlpacaPosition[] = [];
-let openOrders: AlpacaOrder[] = [];
-
-setInterval(async () => {
-    positions = await alpaca.getPositions();
-    openOrders = await alpaca.getOrders({ status: "open" });
-}, 2000);
 
 Promise.all(
     megacaps.map(async (symbol) => {
@@ -43,28 +23,17 @@ Promise.all(
             })
         );
     })
-);
+)
+    .then(() => screenSymbol("AAPL"))
+    .catch(LOGGER.error);
 
-server.post("/aggregates", async (request, reply) => {
-    const symbols = Object.keys(request.body);
-    const promises = screenSymbols(symbols);
+server.post("/screen/:symbol", async (request) => {
+    const symbol = request.params && request.params.symbol;
 
-    const trades = [];
+    const order = await screenSymbol(symbol);
 
-    for (const tradePromise of promises) {
-        try {
-            const trade = await tradePromise;
-
-            if (trade) {
-                trades.push(trade);
-            }
-        } catch (e) {
-            server.log.error(e);
-        }
-    }
-
-    if (trades.length) {
-        await notifyService(Service.management, "/trades", trades);
+    if (order) {
+        await messageService(Service.management, `/order/${symbol}`, order);
     }
 
     return {
@@ -72,21 +41,13 @@ server.post("/aggregates", async (request, reply) => {
     };
 });
 
-server.get("/healthcheck", async (request, reply) => {
-    return "all is well";
-});
-
-server.listen(Service.screener, (err) => {
-    const serverAddress = server.server && server.server.address();
-    if (err || !serverAddress || typeof serverAddress === "string") {
-        server.log.error(err);
-        process.exit(1);
-    }
-    server.log.info(`server listening on ${serverAddress.port}`);
-});
-
 const screenSymbol = async (symbol: string) => {
     const strategy = strategies.find((s) => s.symbol === symbol);
+
+    const { positions }: { positions: AlpacaPosition[] } = (await getFromService(
+        Service.management,
+        "/currentState"
+    )) as any;
 
     if (!strategy) {
         LOGGER.warn(`Is this possible? ${symbol}`);
@@ -95,13 +56,9 @@ const screenSymbol = async (symbol: string) => {
 
     const currentEpoch = Date.now();
 
-    const today = await getTodaysData(symbol, currentEpoch);
-    const yday = await getYesterdaysEndingBars(symbol, currentEpoch);
-
-    const screenerData = [];
-
-    screenerData.push(...yday.reverse());
-    screenerData.push(...today);
+    const screenerData: Bar[] = (await getFromService(Service.data, "/bars/" + symbol, {
+        epoch: currentEpoch,
+    })) as any;
 
     strategy.screenForNarrowRangeBars(screenerData, currentEpoch);
 

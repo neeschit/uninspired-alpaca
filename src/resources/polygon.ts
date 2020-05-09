@@ -1,6 +1,6 @@
 import * as dotenv from "dotenv";
 import { format } from "date-fns";
-import { get } from "../util/get";
+import { getHttps } from "../util/get";
 import { PeriodType, DefaultDuration, Bar, PolygonBar } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
 import WebSocket from "ws";
@@ -20,7 +20,7 @@ export const getTickerDetails = (symbol: string) => {
     const resourceUrl = `meta/symbols/${symbol.toUpperCase()}/company`;
     const url = getPolygonApiUrl(resourceUrl);
 
-    return get(url);
+    return getHttps(url);
 };
 
 const dateFormat = "yyyy-MM-dd";
@@ -38,7 +38,7 @@ export const getPolyonData = (
 
     const url = getPolygonApiUrl(resource, "v2");
 
-    return get(url).then((response: any) => {
+    return getHttps(url).then((response: any) => {
         if (!response.results) {
             LOGGER.debug(url);
         }
@@ -61,7 +61,7 @@ export const getSimplePolygonData = (
 
     const url = getPolygonApiUrl(resource, "v2");
 
-    return get(url).then((response: any) => {
+    return getHttps(url).then((response: any) => {
         if (!response.results) {
             LOGGER.warn(url);
         }

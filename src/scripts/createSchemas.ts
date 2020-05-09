@@ -6,14 +6,14 @@ import {
 } from "../resources/stockData";
 import { LOGGER } from "../instrumentation/log";
 import { endPooledConnection } from "../connection/pg";
-import { getHighVolumeCompanies, getLargeCaps, getMegaCaps } from "../data/filters";
+import { getUnfilteredMegaCaps } from "../data/filters";
 
 const drop = process.argv[2] && Boolean(process.argv[2]);
 
 async function run() {
     const newSymbols = [];
 
-    const symbols = getMegaCaps();
+    const symbols = getUnfilteredMegaCaps();
 
     symbols.push("SPY");
 

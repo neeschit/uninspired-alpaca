@@ -31,8 +31,8 @@ async function run(duration = DefaultDuration.one, period = PeriodType.minute) {
                 symbol,
                 date,
                 addDays(date, 90),
-                period,
-                duration
+                PeriodType.day,
+                DefaultDuration.one
             );
 
             if (!daysMinutes[symbol] || !daysMinutes[symbol].length) {

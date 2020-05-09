@@ -35,9 +35,10 @@
     "build": "tsc",
     "backtest": "node --enable-source-maps build/scripts/backtest.js",
     "narrowRangeScreener": "node --enable-source-maps build/scripts/narrowRangeScreener.js",
-    "data": "node --inspect=9696 --enable-source-maps build/deployable/socketDataStreaming.process.js",
+    "streamer": "node --inspect=9696 --enable-source-maps build/deployable/socketDataStreaming.service.js",
     "manager": "node --inspect=9697 --enable-source-maps build/deployable/management.service.js",
-    "screener": "node --inspect=9698 --enable-source-maps build/deployable/screener.service.js"
+    "screener": "node --inspect=9698 --enable-source-maps build/deployable/screener.service.js",
+    "data": "node --inspect=9699 --enable-source-maps build/deployable/data.service.js"
   },
   "ava": {
     "extensions": [

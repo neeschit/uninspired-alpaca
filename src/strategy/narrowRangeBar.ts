@@ -208,7 +208,7 @@ export class NarrowRangeBarStrategy {
     async rebalance(
         recentBars: Bar[],
         now: TimestampType = Date.now(),
-        currentPositions?: AlpacaPosition[]
+        currentPositions?: { symbol: string }[]
     ): Promise<PlannedTradeConfig | null> {
         if (!this.isTimeForEntry(now)) {
             LOGGER.trace(`not the time to enter for ${this.symbol} at ${new Date(now)}`);
@@ -287,9 +287,10 @@ export class NarrowRangeBarStrategy {
 
         const stopUnits = lastBar.c < 30 ? Math.max(atr, 0.2) : Math.max(atr, 0.5);
 
-        const stopLong = stopUnits > 0.2 ? roundHalf(entryLong - stopUnits) : entryLong - stopUnits;
+        const stopLong =
+            stopUnits > 0.2 ? roundHalf(entryLong - stopUnits) - 0.05 : entryLong - stopUnits;
         const stopShort =
-            stopUnits > 0.2 ? roundHalf(entryShort + stopUnits) : entryShort + stopUnits;
+            stopUnits > 0.2 ? roundHalf(entryShort + stopUnits) + 0.05 : entryShort + stopUnits;
         const unitRisk = stopUnits;
 
         const quantity = Math.ceil(TRADING_RISK_UNIT_CONSTANT / stopUnits);

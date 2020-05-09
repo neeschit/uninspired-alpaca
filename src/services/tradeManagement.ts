@@ -166,7 +166,7 @@ export const rebalancePosition = async (
             type: TradeType.limit,
             side: closingOrderSide,
             tif: TimeInForce.gtc,
-            quantity: Math.ceil(quantity * 0.75),
+            quantity: Math.ceil(quantity * 0.8),
             t,
         };
     }
@@ -363,5 +363,7 @@ export class TradeManagement {
         if (cancel) {
             await this.broker.cancelOrder(alpacaOrder.id);
         }
+
+        return !cancel;
     }
 }

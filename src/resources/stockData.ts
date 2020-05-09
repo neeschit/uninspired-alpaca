@@ -131,6 +131,11 @@ export const dropStorageTables = async (symbols: string[]) => {
         } catch (e) {
             LOGGER.error(e);
         }
+        try {
+            results.push(await pool.query(`drop table ${getDailyTableNameForSymbol(symbol)};`));
+        } catch (e) {
+            LOGGER.error(e);
+        }
     }
 
     return results;
@@ -343,12 +348,17 @@ export const getSimpleData = async (
     });
 };
 
-export const getTodaysData = (symbol: string, currentEpoch = Date.now()) => {
+export const getTodaysData = (
+    symbol: string,
+    currentEpoch = Date.now(),
+    startEpochOverride = currentEpoch,
+    timeBucket = "5 minutes"
+) => {
     const minutes = getMinutes(currentEpoch);
 
     const floored = Math.floor(minutes / 5) * 5;
 
-    const startEpoch = set(currentEpoch, {
+    const startEpoch = set(startEpochOverride, {
         minutes: 30,
         seconds: 0,
         milliseconds: 0,
@@ -361,10 +371,14 @@ export const getTodaysData = (symbol: string, currentEpoch = Date.now()) => {
         milliseconds: 0,
     });
 
-    return getData(symbol, startEpoch.getTime(), "5 minutes", endEpoch.getTime() - 1000);
+    return getData(symbol, startEpoch.getTime(), timeBucket, endEpoch.getTime() - 1000);
 };
 
-export const getYesterdaysEndingBars = async (symbol: string, currentEpoch = Date.now()) => {
+export const getYesterdaysEndingBars = async (
+    symbol: string,
+    currentEpoch = Date.now(),
+    timeBucket = "5 minutes"
+) => {
     const startEpoch = set(addBusinessDays(currentEpoch, -2), {
         minutes: 30,
         seconds: 0,
@@ -382,7 +396,7 @@ export const getYesterdaysEndingBars = async (symbol: string, currentEpoch = Dat
 
     const query = `
         select 
-            time_bucket('5 minutes', t) as time_bucket, 
+            time_bucket(${timeBucket}, t) as time_bucket, 
             sum(v) as v,
             min(l) as l,
             max(h) as h,

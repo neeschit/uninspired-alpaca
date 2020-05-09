@@ -1,7 +1,7 @@
 import { VolumeProfileBar } from "../indicator/volumeProfile";
 import { IndicatorValue } from "../indicator/adx";
 
-export const TRADING_RISK_UNIT_CONSTANT = 10;
+export const TRADING_RISK_UNIT_CONSTANT = 100;
 
 export const assessRisk = (
     volumeProfile: VolumeProfileBar[],
@@ -20,7 +20,7 @@ export const assessRisk = (
 
     const isSafe = isShort ? proposedStopPrice > simpleStop : proposedStopPrice < simpleStop;
 
-    const nearestVolumeProfileStop = volumeProfile.find(bar => {
+    const nearestVolumeProfileStop = volumeProfile.find((bar) => {
         return bar.low <= proposedStopPrice && bar.high >= proposedStopPrice;
     });
 
