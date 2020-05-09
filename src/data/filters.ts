@@ -19,3 +19,7 @@ export const getUnfilteredMegaCaps = (): string[] => {
 export const getFilteredHighVolumeCompanies = (): string[] => {
     return JSON.parse(readFileSync("./filteredLargeCapsHighVolume.json").toString());
 };
+
+export const currentTradingSymbols = getMegaCaps();
+
+export const currentStreamingSymbols = [...currentTradingSymbols, "SPY"];

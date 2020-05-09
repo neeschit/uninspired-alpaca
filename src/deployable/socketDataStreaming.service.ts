@@ -1,34 +1,23 @@
 import { alpaca } from "../resources/alpaca";
-import { getLargeCaps, getMegaCaps } from "../data/filters";
-import { subscribeToTickLevelUpdates } from "../resources/polygon";
 import { LOGGER } from "../instrumentation/log";
-import { TickBar, TradeUpdate, Bar, OrderUpdateEvent } from "../data/data.model";
-import { insertBar, insertTrade } from "../resources/stockData";
+import { TickBar, TradeUpdate, OrderUpdateEvent } from "../data/data.model";
+import { insertTrade } from "../resources/stockData";
 import { updateOrder } from "../resources/order";
-import { messageService, Service, getApiServer, getFromService } from "../util/api";
-import { AlpacaPosition } from "@neeschit/alpaca-trade-api";
-
-const highVolCompanies = getMegaCaps();
-
-highVolCompanies.push("SPY");
+import { messageService, Service, getApiServer } from "../util/api";
+import {
+    defaultSubscriptions,
+    SecondAggregateSubscription,
+    handleSubscriptionRequest,
+} from "./socketDataStreaming.handlers";
 
 const server = getApiServer(Service.streamer);
 
 const socket = alpaca.websocket;
 
-interface SecondAggregateSubscription {
-    symbol: string;
-    callbackUrl: string;
-}
-
-const currentSubscriptions: { [symbol: string]: string } = {};
-const defaultSubscriptions: string[] = ["trade_updates", "account_updates"].concat(
-    ...subscribeToTickLevelUpdates(highVolCompanies, "AM")
-);
-
 socket.onConnect(() => {
     socket.subscribe(defaultSubscriptions);
 });
+
 socket.onStateChange((newState) => {
     console.log(`State changed to ${newState} at ${new Date().toLocaleTimeString()}`);
     if (newState === "disconnected") {
@@ -111,41 +100,8 @@ socket.onPolygonConnect(() => {
 
 socket.connect();
 
-const handleSubscriptionRequest = async (subscriptionRequests: SecondAggregateSubscription[]) => {
-    const { positions }: { positions: AlpacaPosition[] } = (await getFromService(
-        Service.management,
-        "/currentState"
-    )) as any;
-
-    const filteredRequests = subscriptionRequests.filter(
-        (s) => s.callbackUrl && !currentSubscriptions[s.symbol]
-    );
-
-    for (const req of filteredRequests) {
-        currentSubscriptions[req.symbol] = req.callbackUrl;
-    }
-
-    const filteredSymbols = Object.keys(currentSubscriptions).filter((s) => {
-        const isCurrentPosition = positions.some((p) => p.symbol === s);
-
-        if (!isCurrentPosition) {
-            LOGGER.warn(`Symbol ${s} is not a current position, not listening to tick updates`);
-        }
-
-        return isCurrentPosition;
-    });
-
-    const newSubscriptions = subscribeToTickLevelUpdates(filteredSymbols, "A");
-
-    socket.subscribe(defaultSubscriptions.concat(newSubscriptions));
-
-    return {
-        success: true,
-    };
-};
-
-server.post("/subscribe", async (request, reply) => {
+server.post("/subscribe", async (request) => {
     const subscriptionRequests: SecondAggregateSubscription[] = request.body;
 
-    return handleSubscriptionRequest(subscriptionRequests);
+    return handleSubscriptionRequest(subscriptionRequests, socket);
 });
