@@ -30,8 +30,8 @@
     "typescript": "^3.7.5"
   },
   "scripts": {
-    "test": "ava --watch --verbose",
-    "test:ci": "LOGLEVEL=4 ava **/*.spec.ts --verbose",
+    "test": "NODE_ENV=test ava --watch --verbose",
+    "test:ci": "NODE_ENV=test LOGLEVEL=4 ava **/*.spec.ts --verbose",
     "build": "tsc",
     "backtest": "node --enable-source-maps build/scripts/backtest.js",
     "narrowRangeScreener": "node --enable-source-maps build/scripts/narrowRangeScreener.js",

@@ -1,12 +1,27 @@
-import { AlpacaOrder, PositionDirection, AlpacaPosition } from "@neeschit/alpaca-trade-api";
+import {
+    AlpacaOrder,
+    PositionDirection,
+    AlpacaPosition,
+    AlpacaStreamingOrderUpdate,
+} from "@neeschit/alpaca-trade-api";
 import { getOrder } from "../resources/order";
 import { LOGGER } from "../instrumentation/log";
 import { alpaca } from "../resources/alpaca";
-import { getPosition, PositionConfig, Position, getOpenPositions } from "../resources/position";
+import {
+    getPosition,
+    PositionConfig,
+    Position,
+    getOpenPositions,
+    updatePosition,
+} from "../resources/position";
 import { TradeManagement } from "../services/tradeManagement";
-import { TradeConfig, SymbolContainingConfig, Bar } from "../data/data.model";
+import { TradeConfig, SymbolContainingConfig, Bar, TradePlan } from "../data/data.model";
 import { getTodaysData } from "../resources/stockData";
 import { postPartial } from "../util/slack";
+import { postSubscriptionRequestForTickUpdates } from "./socketDataStreaming.service";
+import { Service } from "../util/api";
+
+const pr = 1;
 
 export const managerCache: TradeManagement[] = [];
 
@@ -149,4 +164,43 @@ export const getManager = async (symbol: string) => {
     }
 
     return manager;
+};
+
+export const handlePositionEntry = async (trade: { plan: TradePlan; config: TradeConfig }) => {
+    let manager = await getManager(trade.plan.symbol);
+
+    if (!manager || !manager.filledPosition) {
+        manager = new TradeManagement(trade.config, trade.plan, pr);
+
+        await manager.queueEntry();
+
+        managerCache.push(manager);
+    }
+};
+
+export const handleOrderUpdateForSymbol = async (orderUpdate: AlpacaStreamingOrderUpdate) => {
+    const order = await getOrder(Number(orderUpdate.order.client_order_id));
+
+    if (!order) {
+        return null;
+    }
+
+    const position = await getPosition(Number(order.positionId));
+
+    if (!position) {
+        LOGGER.error("Didnt find position for order");
+        return null;
+    }
+
+    await updatePosition(orderUpdate.position_qty, position.id, orderUpdate.price);
+
+    await refreshPositions();
+
+    postSubscriptionRequestForTickUpdates();
+
+    LOGGER.debug(`Position of ${position.id} updated for ${position.symbol}`);
+};
+
+export const getCallbackUrlForPositionUpdates = (symbol: string) => {
+    return `http://localhost:${Service.management}/orders/${symbol}`;
 };

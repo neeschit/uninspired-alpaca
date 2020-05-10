@@ -4,11 +4,14 @@ import { TickBar, TradeUpdate, OrderUpdateEvent } from "../data/data.model";
 import { insertTrade } from "../resources/stockData";
 import { updateOrder } from "../resources/order";
 import { messageService, Service, getApiServer } from "../util/api";
+import { defaultSubscriptions, handleSubscriptionRequest } from "./socketDataStreaming.handlers";
 import {
-    defaultSubscriptions,
-    SecondAggregateSubscription,
-    handleSubscriptionRequest,
-} from "./socketDataStreaming.handlers";
+    postOrderToManage,
+    postRequestToManageOpenPosition,
+    postRequestToManageOpenOrders,
+} from "./management.service";
+import { postAggregatedMinuteUpdate } from "./data.service";
+import { postRequestScreenSymbol } from "./screener.service";
 
 const server = getApiServer(Service.streamer);
 
@@ -31,7 +34,7 @@ socket.onOrderUpdate((orderUpdate) => {
         orderUpdate.event === OrderUpdateEvent.fill ||
         orderUpdate.event === OrderUpdateEvent.partial_fill
     ) {
-        messageService(Service.management, "/orders/" + orderUpdate.order.symbol, orderUpdate);
+        postOrderToManage(orderUpdate).catch(LOGGER.error);
     }
 });
 
@@ -64,14 +67,12 @@ socket.onStockAggMin(async (subject: string, data: any) => {
 
         try {
             try {
-                await messageService(Service.data, `/bar/${d.sym}`, bar);
+                await postAggregatedMinuteUpdate(d.sym, bar);
             } catch (e) {
                 LOGGER.error(e);
             }
-            messageService(Service.screener, `/screen/${d.sym}`, bar).catch(LOGGER.error);
-            messageService(Service.management, `/manage_open_order/${d.sym}`, bar).catch(
-                LOGGER.error
-            );
+            postRequestScreenSymbol(d.sym).catch(LOGGER.error);
+            postRequestToManageOpenOrders(d.sym, bar).catch(LOGGER.error);
         } catch (e) {
             /* LOGGER.error(`Could not insert ${JSON.stringify(bar)} for ${d.sym}`); */
         }
@@ -86,7 +87,7 @@ socket.onStockAggSec(async (subject: string, data: any) => {
     for (const d of data) {
         const bar: TickBar = getBar(d);
 
-        messageService(Service.management, `/manage_open_order/${d.sym}`, bar).catch(LOGGER.error);
+        postRequestToManageOpenPosition(d.sym, bar);
     }
 });
 
@@ -100,8 +101,18 @@ socket.onPolygonConnect(() => {
 
 socket.connect();
 
-server.post("/subscribe", async (request) => {
-    const subscriptionRequests: SecondAggregateSubscription[] = request.body;
+export const postSubscriptionRequestForTickUpdates = () => {
+    return messageService(Service.screener, "/subscribe");
+};
 
-    return handleSubscriptionRequest(subscriptionRequests, socket);
+server.post("/subscribe", async () => {
+    try {
+        await handleSubscriptionRequest(socket);
+    } catch (e) {
+        LOGGER.error(e);
+    }
+
+    return {
+        success: true,
+    };
 });

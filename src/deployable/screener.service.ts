@@ -1,10 +1,11 @@
-import { Service, messageService, getApiServer } from "../util/api";
-import { getMegaCaps, currentTradingSymbols } from "../data/filters";
+import { Service, getApiServer, messageService } from "../util/api";
+import { currentTradingSymbols } from "../data/filters";
 import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
 import { getSimpleData } from "../resources/stockData";
 import { addBusinessDays } from "date-fns";
 import { LOGGER } from "../instrumentation/log";
 import { screenSymbol } from "./screener.handlers";
+import { postNewTrade } from "./management.service";
 
 const server = getApiServer(Service.screener);
 
@@ -24,6 +25,12 @@ Promise.all(
     })
 ).catch(LOGGER.error);
 
+export const postRequestScreenSymbol = (symbol: string, epoch = Date.now()) => {
+    return messageService(Service.screener, `/screen/${symbol}`, {
+        epoch,
+    });
+};
+
 server.post("/screen/:symbol", async (request) => {
     const symbol = request.params && request.params.symbol;
     const { epoch = Date.now() } = request.body || {};
@@ -31,7 +38,7 @@ server.post("/screen/:symbol", async (request) => {
     const order = await screenSymbol(strategies, symbol, epoch);
 
     if (order) {
-        await messageService(Service.management, `/order/${symbol}`, order);
+        await postNewTrade(order);
     }
 
     return {

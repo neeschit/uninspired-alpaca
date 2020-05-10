@@ -36,6 +36,9 @@
             "type": "node",
             "request": "launch",
             "name": "Debug AVA test file",
+            "env": {
+                "NODE_ENV": "test"
+            },
             "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/ava",
             "runtimeArgs": ["debug", "--break", "${file}"],
             "port": 9229,

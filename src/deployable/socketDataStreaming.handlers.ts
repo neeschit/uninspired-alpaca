@@ -1,8 +1,10 @@
-import Alpaca, { AlpacaPosition, AlpacaStreamingClient } from "@neeschit/alpaca-trade-api";
-import { getFromService, Service } from "../util/api";
-import { LOGGER } from "../instrumentation/log";
+import { AlpacaStreamingClient } from "@neeschit/alpaca-trade-api";
 import { subscribeToTickLevelUpdates } from "../resources/polygon";
 import { currentStreamingSymbols } from "../data/filters";
+import { getCachedCurrentState } from "./management.service";
+import { SymbolContainingConfig } from "../data/data.model";
+import { getCallbackUrlForPositionUpdates } from "./management.handlers";
+import { LOGGER } from "../instrumentation/log";
 
 export interface SecondAggregateSubscription {
     symbol: string;
@@ -10,42 +12,49 @@ export interface SecondAggregateSubscription {
 }
 const currentSubscriptionsCache: { [symbol: string]: string } = {};
 
+export const missingCallbackError = new Error("callback_url_missing");
+
 export const defaultSubscriptions: string[] = ["trade_updates", "account_updates"].concat(
     ...subscribeToTickLevelUpdates(currentStreamingSymbols, "AM")
 );
 
-export const handleSubscriptionRequest = async (
-    subscriptionRequests: SecondAggregateSubscription[],
-    socket: AlpacaStreamingClient
-) => {
-    const { positions }: { positions: AlpacaPosition[] } = (await getFromService(
-        Service.management,
-        "/currentState"
-    )) as any;
+export const handleSubscriptionRequest = async (socket: AlpacaStreamingClient) => {
+    const { positions }: { positions: SymbolContainingConfig[] } = await getCachedCurrentState();
 
-    const filteredRequests = subscriptionRequests.filter(
-        (s) => s.callbackUrl && !currentSubscriptionsCache[s.symbol]
-    );
+    const newSubscriptions = refreshSecondAggregateSubscribers(positions);
+    socket.subscribe(defaultSubscriptions.concat(newSubscriptions));
+};
 
-    for (const req of filteredRequests) {
-        currentSubscriptionsCache[req.symbol] = req.callbackUrl;
-    }
+export const refreshSecondAggregateSubscribers = (positions: SymbolContainingConfig[]) => {
+    const currentPositionsMap = positions.reduce((map, p) => {
+        const url = getCallbackUrlForPositionUpdates(p.symbol);
+        currentSubscriptionsCache[p.symbol] = url;
 
-    const filteredSymbols = Object.keys(currentSubscriptionsCache).filter((s) => {
-        const isCurrentPosition = positions.some((p) => p.symbol === s);
+        map[p.symbol] = 1;
 
-        if (!isCurrentPosition) {
-            LOGGER.warn(`Symbol ${s} is not a current position, not listening to tick updates`);
-        }
+        return map;
+    }, {} as { [index: string]: number });
 
-        return isCurrentPosition;
+    Object.keys(currentSubscriptionsCache).map((symbol) => {
+        currentSubscriptionsCache[symbol] = currentPositionsMap[symbol]
+            ? currentSubscriptionsCache[symbol]
+            : "";
     });
 
-    const newSubscriptions = subscribeToTickLevelUpdates(filteredSymbols, "A");
+    const symbols = Object.keys(currentSubscriptionsCache).filter(
+        (s) => currentSubscriptionsCache[s]
+    );
+    const newSubscriptions = subscribeToTickLevelUpdates(symbols, "A");
 
-    socket.subscribe(defaultSubscriptions.concat(newSubscriptions));
+    return newSubscriptions;
+};
 
-    return {
-        success: true,
-    };
+export const getCacheItems = () => {
+    return Object.keys(currentSubscriptionsCache).reduce((cache, symbol) => {
+        if (currentSubscriptionsCache[symbol]) {
+            cache[symbol] = currentSubscriptionsCache[symbol];
+        }
+
+        return cache;
+    }, {} as { [symbol: string]: string });
 };
