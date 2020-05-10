@@ -1,6 +1,6 @@
 import { Bar, TickBar } from "../data/data.model";
 import { insertBar, getTodaysData, getYesterdaysEndingBars } from "../resources/stockData";
-import { getMinutes } from "date-fns";
+import { getMinutes, isSameDay } from "date-fns";
 import { LOGGER } from "../instrumentation/log";
 
 export const fiveMinuteDataCache: { [symbol: string]: Bar[] } = {};
@@ -20,10 +20,15 @@ export const handleAggregateDataPosted = async (bar: TickBar, symbol: string) =>
 
     const data = fiveMinuteDataCache[symbol];
 
-    const lastEpoch = data && data[data.length - 1].t;
+    const lastTime = data && data[data.length - 1].t + 300000;
 
-    if (isRefreshMinute) {
-        const bars = await getTodaysData(symbol, bar.t + 1000);
+    const cacheAge = Math.abs(lastTime - bar.t);
+
+    const needsRefresh = isRefreshMinute || cacheAge >= 298000;
+
+    if (needsRefresh) {
+        const refreshTime = isSameDay(lastTime, bar.t) ? Math.min(lastTime, bar.t) : bar.t;
+        const bars = await getTodaysData(symbol, refreshTime + 1000);
 
         fiveMinuteDataCache[symbol].push(...bars);
     }

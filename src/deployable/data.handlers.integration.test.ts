@@ -26,4 +26,19 @@ test("ensure correct bars are cached and refreshed on new data posted", async (t
     );
 
     t.is(fiveMinuteDataCache["SPY"].length, 11);
+
+    await handleAggregateDataPosted(
+        {
+            v: 386134,
+            vw: 290.4994,
+            c: 290.63,
+            l: 290.34,
+            h: 290.675,
+            o: 290.59,
+            t: 1588945200000,
+        },
+        "SPY"
+    );
+
+    t.is(fiveMinuteDataCache["SPY"].length, 12);
 });
