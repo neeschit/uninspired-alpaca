@@ -268,9 +268,10 @@ const getDataQuery = (
             min(l) as l,
             max(h) as h,
             last(c, t) as c,
-            first(o, t) as o 
+            first(o, t) as o,
+            count(*) as n
         from ${tablename.toLowerCase()} 
-        ${fromTimestamp ? "where t > " + getTimestampValue(fromTimestamp) : ""}
+        ${fromTimestamp ? "where t >= " + getTimestampValue(fromTimestamp) : ""}
         ${endTimeStamp ? "and t < " + getTimestampValue(endTimeStamp) : ""}
         group by time_bucket 
         order by time_bucket asc;
@@ -282,7 +283,7 @@ const getSimpleDataQuery = (tablename: string, fromTimestamp?: number, endTimeSt
         select 
             *
         from ${tablename.toLowerCase()}  
-        ${fromTimestamp ? "where t > " + getTimestampValue(fromTimestamp) : ""}
+        ${fromTimestamp ? "where t >= " + getTimestampValue(fromTimestamp) : ""}
         ${fromTimestamp && endTimeStamp ? "and " : ""}
         ${!fromTimestamp && endTimeStamp ? "where " : ""}
         ${endTimeStamp ? " t < " + getTimestampValue(endTimeStamp) : ""}
@@ -306,16 +307,18 @@ export const getData = async (
 
     const result = await pool.query(query);
 
-    return result.rows.map((r) => {
-        return {
-            v: Number(r.v),
-            c: Number(r.c),
-            o: Number(r.o),
-            h: Number(r.h),
-            l: Number(r.l),
-            t: new Date(r.time_bucket).getTime(),
-        };
-    });
+    return result.rows
+        .filter((r) => r.n == 5)
+        .map((r) => {
+            return {
+                v: Number(r.v),
+                c: Number(r.c),
+                o: Number(r.o),
+                h: Number(r.h),
+                l: Number(r.l),
+                t: new Date(r.time_bucket).getTime(),
+            };
+        });
 };
 
 export const getSimpleData = async (
@@ -354,10 +357,6 @@ export const getTodaysData = (
     startEpochOverride = currentEpoch,
     timeBucket = "5 minutes"
 ) => {
-    const minutes = getMinutes(currentEpoch);
-
-    const floored = Math.floor(minutes / 5) * 5;
-
     const startEpoch = set(startEpochOverride, {
         minutes: 30,
         seconds: 0,
@@ -365,13 +364,7 @@ export const getTodaysData = (
         hours: 9,
     });
 
-    const endEpoch = set(currentEpoch, {
-        minutes: floored,
-        seconds: 0,
-        milliseconds: 0,
-    });
-
-    return getData(symbol, startEpoch.getTime(), timeBucket, endEpoch.getTime() - 1000);
+    return getData(symbol, startEpoch.getTime(), timeBucket, currentEpoch);
 };
 
 export const getYesterdaysEndingBars = async (
@@ -396,14 +389,15 @@ export const getYesterdaysEndingBars = async (
 
     const query = `
         select 
-            time_bucket(${timeBucket}, t) as time_bucket, 
+            time_bucket('${timeBucket}', t) as time_bucket, 
             sum(v) as v,
             min(l) as l,
             max(h) as h,
             last(c, t) as c,
-            first(o, t) as o 
+            first(o, t) as o,
+            count(*) as n 
         from ${tablename.toLowerCase()} 
-        where t > ${getTimestampValue(startEpoch.getTime())}
+        where t >= ${getTimestampValue(startEpoch.getTime())}
         and t < ${getTimestampValue(endEpoch.getTime())}
         group by time_bucket 
         order by time_bucket desc limit 10;

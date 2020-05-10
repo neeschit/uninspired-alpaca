@@ -1,11 +1,16 @@
 import { Bar, TickBar } from "../data/data.model";
 import { insertBar, getTodaysData, getYesterdaysEndingBars } from "../resources/stockData";
 import { getMinutes } from "date-fns";
+import { LOGGER } from "../instrumentation/log";
 
 export const fiveMinuteDataCache: { [symbol: string]: Bar[] } = {};
 
 export const handleAggregateDataPosted = async (bar: TickBar, symbol: string) => {
-    await insertBar(bar, symbol, true);
+    try {
+        await insertBar(bar, symbol, true);
+    } catch (e) {
+        LOGGER.error(e);
+    }
 
     const minutes = getMinutes(bar.t);
 
@@ -18,7 +23,7 @@ export const handleAggregateDataPosted = async (bar: TickBar, symbol: string) =>
     const lastEpoch = data && data[data.length - 1].t;
 
     if (isRefreshMinute) {
-        const bars = await getTodaysData(symbol, bar.t, lastEpoch);
+        const bars = await getTodaysData(symbol, bar.t + 1000);
 
         fiveMinuteDataCache[symbol].push(...bars);
     }
@@ -42,8 +47,11 @@ export const getBarsForSymbol = async (symbol: string, epoch = Date.now()) => {
             await cacheBars(symbol, epoch);
         }
 
-        return fiveMinuteDataCache[symbol].filter((b) => b.t <= epoch);
+        const bars = fiveMinuteDataCache[symbol];
+
+        return bars.filter((b) => b.t <= epoch);
     } catch (e) {
+        LOGGER.error(e);
         return [];
     }
 };
