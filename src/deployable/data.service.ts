@@ -1,12 +1,17 @@
 import { getApiServer, Service, getFromService, messageService } from "../util/api";
-import { getTodaysData, getYesterdaysEndingBars, insertBar } from "../resources/stockData";
 import { Bar, TickBar } from "../data/data.model";
-import { getMinutes } from "date-fns";
-import { handleAggregateDataPosted, getBarsForSymbol, getLastBarForSymbol } from "./data.handlers";
+import {
+    handleAggregateDataPosted,
+    getBarsForSymbol,
+    getLastBarForSymbol,
+    cacheBars,
+} from "./data.handlers";
+import { currentTradingSymbols } from "../data/filters";
+import { LOGGER } from "../instrumentation/log";
 
 const server = getApiServer(Service.data);
 
-server.get("/adx", async (request, reply) => {});
+server.get("/adx", async () => {});
 
 export const getBarsFromDataService = async (
     symbol: string,
@@ -19,7 +24,7 @@ export const getBarsFromDataService = async (
     return bars;
 };
 
-server.get("/bars/:symbol", async (request, reply) => {
+server.get("/bars/:symbol", async (request) => {
     const symbol = request.params && request.params.symbol;
     const { epoch = Date.now() } = request.query || {};
 
@@ -41,7 +46,7 @@ export const getBarFromDataService = async (
     return bar;
 };
 
-server.get("/bar/:symbol", async (request, reply) => {
+server.get("/bar/:symbol", async (request) => {
     const symbol = request.params && request.params.symbol;
     const { epoch = Date.now() } = request.query || {};
 
@@ -52,7 +57,7 @@ export const postAggregatedMinuteUpdate = (symbol: string, bar: TickBar): Promis
     return messageService(Service.data, `/bar/${symbol}`, bar);
 };
 
-server.post("/bar/:symbol", async (request, reply) => {
+server.post("/bar/:symbol", async (request) => {
     const symbol = request.params && request.params.symbol;
 
     const bar: TickBar = request.body;
@@ -63,3 +68,5 @@ server.post("/bar/:symbol", async (request, reply) => {
         success: true,
     };
 });
+
+Promise.all(currentTradingSymbols.map((symbol) => cacheBars(symbol))).catch(LOGGER.error);

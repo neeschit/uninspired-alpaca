@@ -114,3 +114,5 @@ server.post("/subscribe", async () => {
         success: true,
     };
 });
+
+process.env.SERVICE_NAME === "streamer" && socket.connect();
