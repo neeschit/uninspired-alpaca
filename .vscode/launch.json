@@ -81,7 +81,7 @@
             "type": "node",
             "request": "launch",
             "name": "streamer",
-            "program": "${workspaceFolder}/src/deployable/socketDataStreaming.process.ts",
+            "program": "${workspaceFolder}/src/deployable/streamer.process.ts",
             "args": ["--enable-source-maps"],
             "sourceMaps": true,
             "outFiles": ["${workspaceFolder}/build/**/*.js"],
@@ -89,15 +89,16 @@
             "smartStep": true,
             "internalConsoleOptions": "openOnSessionStart",
             "env": {
-                "LOGLEVEL": "4"
+                "LOGLEVEL": "4",
+                "SERVICE_NAME": "streamer"
             },
             "skipFiles": ["<node_internals>/**"]
         },
         {
             "type": "node",
             "request": "launch",
-            "name": "management",
-            "program": "${workspaceFolder}/src/deployable/management.service.ts",
+            "name": "manager",
+            "program": "${workspaceFolder}/src/deployable/manager.service.ts",
             "args": ["--enable-source-maps"],
             "sourceMaps": true,
             "outFiles": ["${workspaceFolder}/build/**/*.js"],
@@ -105,7 +106,8 @@
             "smartStep": true,
             "internalConsoleOptions": "openOnSessionStart",
             "env": {
-                "LOGLEVEL": "4"
+                "LOGLEVEL": "4",
+                "SERVICE_NAME": "manager"
             },
             "skipFiles": ["<node_internals>/**"]
         },
@@ -121,7 +123,8 @@
             "smartStep": true,
             "internalConsoleOptions": "openOnSessionStart",
             "env": {
-                "LOGLEVEL": "4"
+                "LOGLEVEL": "4",
+                "SERVICE_NAME": "screener"
             },
             "skipFiles": ["<node_internals>/**"]
         },
@@ -137,7 +140,8 @@
             "smartStep": true,
             "internalConsoleOptions": "openOnSessionStart",
             "env": {
-                "LOGLEVEL": "4"
+                "LOGLEVEL": "4",
+                "SERVICE_NAME": "data"
             },
             "skipFiles": ["<node_internals>/**"]
         }

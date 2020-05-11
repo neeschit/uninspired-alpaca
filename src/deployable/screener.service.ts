@@ -5,7 +5,7 @@ import { getSimpleData } from "../resources/stockData";
 import { addBusinessDays } from "date-fns";
 import { LOGGER } from "../instrumentation/log";
 import { screenSymbol } from "./screener.handlers";
-import { postNewTrade } from "./management.service";
+import { postNewTrade } from "./manager.service";
 
 const server = getApiServer(Service.screener);
 

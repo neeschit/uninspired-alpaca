@@ -1,9 +1,9 @@
 import { AlpacaStreamingClient } from "@neeschit/alpaca-trade-api";
 import { subscribeToTickLevelUpdates } from "../resources/polygon";
 import { currentStreamingSymbols } from "../data/filters";
-import { getCachedCurrentState } from "./management.service";
+import { getCachedCurrentState } from "./manager.service";
 import { SymbolContainingConfig } from "../data/data.model";
-import { getCallbackUrlForPositionUpdates } from "./management.handlers";
+import { getCallbackUrlForPositionUpdates } from "./manager.handlers";
 import { LOGGER } from "../instrumentation/log";
 
 export interface SecondAggregateSubscription {

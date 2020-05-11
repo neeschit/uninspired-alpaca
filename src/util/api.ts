@@ -5,10 +5,17 @@ import { Server, IncomingMessage, ServerResponse } from "http";
 
 export enum Service {
     streamer = 6968,
-    management = 6969,
+    manager = 6969,
     screener = 6970,
     data = 6971,
 }
+
+const serviceMap = {
+    [Service.streamer]: "streamer",
+    [Service.manager]: "manager",
+    [Service.screener]: "screener",
+    [Service.data]: "data",
+};
 
 export const messageService = (service: Service, path: string, data?: any) => {
     return postHttp({
@@ -28,12 +35,17 @@ export const getFromService = <T>(service: Service, path: string, data?: any) =>
     });
 };
 
+const fakeServer = ({
+    post: () => {},
+    get: () => {},
+} as any) as fastify.FastifyInstance<Server, IncomingMessage, ServerResponse>;
+
 export const getApiServer = (service: Service) => {
+    if (process.env.SERVICE_NAME !== serviceMap[service]) {
+        return fakeServer;
+    }
     if (process.env.NODE_ENV === "test") {
-        return ({
-            post: () => {},
-            get: () => {},
-        } as any) as fastify.FastifyInstance<Server, IncomingMessage, ServerResponse>;
+        return fakeServer;
     }
     const server = fastify({
         logger: true,

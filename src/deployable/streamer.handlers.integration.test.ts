@@ -3,7 +3,7 @@ import {
     getCacheItems,
     refreshSecondAggregateSubscribers,
     defaultSubscriptions,
-} from "./socketDataStreaming.handlers";
+} from "./streamer.handlers";
 
 test("refresh subscriptions", (t) => {
     const subs = refreshSecondAggregateSubscribers([{ symbol: "AAPL" }]);

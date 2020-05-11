@@ -4,12 +4,12 @@ import { TickBar, TradeUpdate, OrderUpdateEvent } from "../data/data.model";
 import { insertTrade } from "../resources/stockData";
 import { updateOrder } from "../resources/order";
 import { messageService, Service, getApiServer } from "../util/api";
-import { defaultSubscriptions, handleSubscriptionRequest } from "./socketDataStreaming.handlers";
+import { defaultSubscriptions, handleSubscriptionRequest } from "./streamer.handlers";
 import {
     postOrderToManage,
     postRequestToManageOpenPosition,
     postRequestToManageOpenOrders,
-} from "./management.service";
+} from "./manager.service";
 import { postAggregatedMinuteUpdate } from "./data.service";
 import { postRequestScreenSymbol } from "./screener.service";
 
@@ -22,7 +22,7 @@ socket.onConnect(() => {
 });
 
 socket.onStateChange((newState) => {
-    console.log(`State changed to ${newState} at ${new Date().toLocaleTimeString()}`);
+    LOGGER.info(`State changed to ${newState} at ${new Date().toLocaleTimeString()}`);
     if (newState === "disconnected") {
         socket.reconnect();
     }
@@ -98,8 +98,6 @@ socket.onPolygonDisconnect(() => {
 socket.onPolygonConnect(() => {
     LOGGER.error(`Polygon connected at ${new Date().toLocaleTimeString()}`);
 });
-
-socket.connect();
 
 export const postSubscriptionRequestForTickUpdates = () => {
     return messageService(Service.screener, "/subscribe");

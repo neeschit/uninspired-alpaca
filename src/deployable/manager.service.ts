@@ -17,9 +17,9 @@ import {
     dbPositionCache,
     handleOrderUpdateForSymbol,
     handlePositionEntry,
-} from "./management.handlers";
+} from "./manager.handlers";
 
-const server = getApiServer(Service.management);
+const server = getApiServer(Service.manager);
 
 export interface CurrentState {
     positions: AlpacaPosition[];
@@ -28,7 +28,7 @@ export interface CurrentState {
 }
 
 export const postRequestToManageOpenPosition = (symbol: string, bar: TickBar) => {
-    return messageService(Service.management, `/manage_open_position/${symbol}`, bar);
+    return messageService(Service.manager, `/manage_open_position/${symbol}`, bar);
 };
 
 server.post("/manage_open_position/:symbol", async (request) => {
@@ -47,7 +47,7 @@ server.post("/manage_open_position/:symbol", async (request) => {
 });
 
 export const postRequestToManageOpenOrders = (symbol: string, bar: TickBar) => {
-    return messageService(Service.management, `/manage_open_order/${symbol}`, bar);
+    return messageService(Service.manager, `/manage_open_order/${symbol}`, bar);
 };
 
 server.post("/manage_open_order/:symbol", async (request) => {
@@ -61,7 +61,7 @@ server.post("/manage_open_order/:symbol", async (request) => {
 });
 
 export const postNewTrade = (trade: { plan: TradePlan; config: TradeConfig }) => {
-    return messageService(Service.management, "/trade/" + trade.plan.symbol, trade);
+    return messageService(Service.manager, "/trade/" + trade.plan.symbol, trade);
 };
 
 server.post("/trade/:symbol", async (request) => {
@@ -101,7 +101,7 @@ server.post("/trade/:symbol", async (request) => {
 });
 
 export const getCachedCurrentState = async (): Promise<CurrentState> => {
-    const state = await getFromService(Service.management, "/currentState");
+    const state = await getFromService(Service.manager, "/currentState");
 
     return state as CurrentState;
 };
@@ -115,7 +115,7 @@ server.get("/currentState", async () => {
 });
 
 export const postOrderToManage = async (orderUpdate: AlpacaStreamingOrderUpdate) => {
-    return messageService(Service.management, "/orders/" + orderUpdate.order.symbol, orderUpdate);
+    return messageService(Service.manager, "/orders/" + orderUpdate.order.symbol, orderUpdate);
 };
 
 server.post("/orders/:symbol", async (request) => {

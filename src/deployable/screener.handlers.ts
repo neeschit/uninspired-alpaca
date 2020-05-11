@@ -2,7 +2,7 @@ import { AlpacaPosition } from "@neeschit/alpaca-trade-api";
 import { LOGGER } from "../instrumentation/log";
 import { Bar } from "../data/data.model";
 import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
-import { getCachedCurrentState } from "./management.service";
+import { getCachedCurrentState } from "./manager.service";
 import { getBarsFromDataService } from "./data.service";
 
 export const screenSymbol = async (

@@ -18,7 +18,7 @@ import { TradeManagement } from "../services/tradeManagement";
 import { TradeConfig, SymbolContainingConfig, Bar, TradePlan } from "../data/data.model";
 import { getTodaysData } from "../resources/stockData";
 import { postPartial } from "../util/slack";
-import { postSubscriptionRequestForTickUpdates } from "./socketDataStreaming.service";
+import { postSubscriptionRequestForTickUpdates } from "./streamer.service";
 import { Service } from "../util/api";
 
 const pr = 1;
@@ -202,5 +202,5 @@ export const handleOrderUpdateForSymbol = async (orderUpdate: AlpacaStreamingOrd
 };
 
 export const getCallbackUrlForPositionUpdates = (symbol: string) => {
-    return `http://localhost:${Service.management}/orders/${symbol}`;
+    return `http://localhost:${Service.manager}/orders/${symbol}`;
 };
