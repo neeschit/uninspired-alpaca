@@ -62,7 +62,6 @@ export const getApiServer = (service: Service) => {
             server.log.error(err);
             process.exit(1);
         }
-        server.log.info(`server listening on ${serverAddress.port}`);
     });
 
     return server;
