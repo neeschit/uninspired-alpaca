@@ -4,7 +4,7 @@ import { TickBar, TradeUpdate, OrderUpdateEvent } from "../data/data.model";
 import { insertTrade } from "../resources/stockData";
 import { updateOrder } from "../resources/order";
 import { messageService, Service, getApiServer } from "../util/api";
-import { defaultSubscriptions, handleSubscriptionRequest } from "./streamer.handlers";
+import { handleSubscriptionRequest } from "./streamer.handlers";
 import {
     postOrderToManage,
     postRequestToManageOpenPosition,
@@ -18,7 +18,7 @@ const server = getApiServer(Service.streamer);
 const socket = alpaca.websocket;
 
 socket.onConnect(() => {
-    socket.subscribe(defaultSubscriptions);
+    handleSubscriptionRequest(socket);
 });
 
 socket.onStateChange((newState) => {
@@ -100,7 +100,7 @@ socket.onPolygonConnect(() => {
 });
 
 export const postSubscriptionRequestForTickUpdates = () => {
-    return messageService(Service.screener, "/subscribe");
+    return messageService(Service.streamer, "/subscribe");
 };
 
 server.post("/subscribe", async () => {

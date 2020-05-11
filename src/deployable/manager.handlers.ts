@@ -28,6 +28,7 @@ export const managerCache: TradeManagement[] = [];
 export const positionCache: AlpacaPosition[] = [];
 export const openOrderCache: AlpacaOrder[] = [];
 export const dbPositionCache: Position[] = [];
+let recentOrders: string[] = [];
 
 export const refreshPositions = async () => {
     const pos = await alpaca.getPositions();
@@ -36,16 +37,22 @@ export const refreshPositions = async () => {
 
     positionCache.push(...pos);
 
+    await refreshOpenOrders();
+
+    const dbPos = await getOpenPositions();
+
+    dbPositionCache.length = 0;
+    dbPositionCache.push(...dbPos);
+};
+
+const refreshOpenOrders = async () => {
     const orders = await alpaca.getOrders({ status: "open" });
 
     openOrderCache.length = 0;
 
     openOrderCache.push(...orders);
 
-    const dbPos = await getOpenPositions();
-
-    dbPositionCache.length = 0;
-    dbPositionCache.push(...dbPos);
+    recentOrders = [];
 };
 
 export async function checkIfOrderIsValid(
@@ -169,12 +176,23 @@ export const getManager = async (symbol: string) => {
 export const handlePositionEntry = async (trade: { plan: TradePlan; config: TradeConfig }) => {
     let manager = await getManager(trade.plan.symbol);
 
+    if (recentOrders.some((s) => s === trade.plan.symbol)) {
+        return null;
+    }
+
     if (!manager || !manager.filledPosition) {
         manager = new TradeManagement(trade.config, trade.plan, pr);
 
-        await manager.queueEntry();
+        recentOrders.push(trade.plan.symbol);
 
-        managerCache.push(manager);
+        const order = await manager.queueEntry();
+
+        if (order) {
+            managerCache.push(manager);
+
+            await refreshOpenOrders();
+        }
+        return order;
     }
 };
 

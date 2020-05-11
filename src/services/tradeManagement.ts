@@ -159,7 +159,7 @@ export const rebalancePosition = async (
             ? roundHalf(plannedEntryPrice + plannedRiskUnits) - 0.01
             : roundHalf(plannedEntryPrice - plannedRiskUnits) + 0.01;
 
-    if (currentProfitRatio >= partialProfitRatio * 0.7 && positionPercentageLeft >= 0.3) {
+    if (currentProfitRatio >= partialProfitRatio * 0.7 && positionPercentageLeft > 0.2) {
         return {
             symbol,
             price: plannedExitPrice,
@@ -329,10 +329,8 @@ export class TradeManagement {
                     averageEntryPrice: Number(this.filledPosition.averageEntryPrice),
                     symbol: this.plan.symbol,
                     side: position.side,
-                    quantity: Number(
-                        this.filledPosition.quantity || this.filledPosition.trades[0].filledQuantity
-                    ),
                     ...this.plan,
+                    quantity: this.filledPosition.quantity,
                     originalQuantity: this.plan.quantity,
                 },
                 bar,

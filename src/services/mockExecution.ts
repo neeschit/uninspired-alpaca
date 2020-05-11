@@ -80,7 +80,7 @@ export const executeSingleTrade = (
             id: id++,
         };
 
-        if (bar.h > tradePlan.price && tradePlan.side === TradeDirection.buy) {
+        if (bar.h > tradePlan.stopPrice! && tradePlan.side === TradeDirection.buy) {
             const order = {
                 filledQuantity: tradePlan.quantity,
                 symbol: symbol,
@@ -99,7 +99,7 @@ export const executeSingleTrade = (
                     },
                 ],
             };
-        } else if (bar.l < tradePlan.price && tradePlan.side === TradeDirection.sell) {
+        } else if (bar.l < tradePlan.stopPrice! && tradePlan.side === TradeDirection.sell) {
             const order = {
                 filledQuantity: tradePlan.quantity,
                 symbol: symbol,
@@ -125,30 +125,12 @@ export const executeSingleTrade = (
 
     if (tradePlan.type === TradeType.market) {
         return executeMarketOrder(tradePlan, symbol, bar, position);
-    } else if (tradePlan.type === TradeType.stop || tradePlan.type === TradeType.stop_limit) {
-        if (bar.h > tradePlan.price && tradePlan.side === TradeDirection.buy) {
+    } else if (tradePlan.type === TradeType.limit) {
+        if (bar.h > tradePlan.price || bar.l < tradePlan.price) {
             const order = {
                 filledQuantity: tradePlan.quantity,
                 symbol: symbol,
-                averagePrice: bar.h + 0.01,
-                status: OrderStatus.filled,
-            };
-
-            position.trades.push({
-                /* order, */
-                ...tradePlan,
-                filledQuantity: order.filledQuantity,
-                status: order.status,
-                averagePrice: order.averagePrice,
-            });
-            position.quantity -= order.filledQuantity;
-
-            return position;
-        } else if (bar.l < tradePlan.price && tradePlan.side === TradeDirection.sell) {
-            const order = {
-                filledQuantity: tradePlan.quantity,
-                symbol: symbol,
-                averagePrice: bar.l - 0.01,
+                averagePrice: tradePlan.price,
                 status: OrderStatus.filled,
             };
 

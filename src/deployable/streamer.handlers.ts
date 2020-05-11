@@ -22,7 +22,8 @@ export const handleSubscriptionRequest = async (socket: AlpacaStreamingClient) =
     const { positions }: { positions: SymbolContainingConfig[] } = await getCachedCurrentState();
 
     const newSubscriptions = refreshSecondAggregateSubscribers(positions);
-    socket.subscribe(defaultSubscriptions.concat(newSubscriptions));
+    const subs = defaultSubscriptions.concat(newSubscriptions);
+    socket.subscribe(subs);
 };
 
 export const refreshSecondAggregateSubscribers = (positions: SymbolContainingConfig[]) => {
@@ -41,12 +42,7 @@ export const refreshSecondAggregateSubscribers = (positions: SymbolContainingCon
             : "";
     });
 
-    const symbols = Object.keys(currentSubscriptionsCache).filter(
-        (s) => currentSubscriptionsCache[s]
-    );
-    const newSubscriptions = subscribeToTickLevelUpdates(symbols, "A");
-
-    return newSubscriptions;
+    return getPositionSubscriptions();
 };
 
 export const getCacheItems = () => {
@@ -57,4 +53,12 @@ export const getCacheItems = () => {
 
         return cache;
     }, {} as { [symbol: string]: string });
+};
+
+export const getPositionSubscriptions = () => {
+    const symbols = Object.keys(currentSubscriptionsCache).filter(
+        (s) => currentSubscriptionsCache[s]
+    );
+    const newSubscriptions = subscribeToTickLevelUpdates(symbols, "A");
+    return newSubscriptions;
 };

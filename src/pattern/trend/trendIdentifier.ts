@@ -67,7 +67,7 @@ export const getRecentTrend = (bars: Bar[]) => {
 };
 
 export const getOverallTrend = (bars: Bar[]) => {
-    const { adx, pdx, ndx } = getAverageDirectionalIndex(bars, true);
+    const { adx, pdx, ndx } = getAverageDirectionalIndex(bars, false);
 
     const lastBarAdx = adx[adx.length - 1];
 

@@ -81,7 +81,7 @@
             "type": "node",
             "request": "launch",
             "name": "streamer",
-            "program": "${workspaceFolder}/src/deployable/streamer.process.ts",
+            "program": "${workspaceFolder}/src/deployable/streamer.service.ts",
             "args": ["--enable-source-maps"],
             "sourceMaps": true,
             "outFiles": ["${workspaceFolder}/build/**/*.js"],

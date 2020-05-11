@@ -20,17 +20,22 @@ export const handleAggregateDataPosted = async (bar: TickBar, symbol: string) =>
 
     const data = fiveMinuteDataCache[symbol];
 
-    const lastTime = data && data[data.length - 1].t + 300000;
+    const lastTime = data && data[data.length - 1].t;
 
-    const cacheAge = Math.abs(lastTime - bar.t);
+    const cacheAge = Math.abs(lastTime + 300000 - bar.t);
 
     const needsRefresh = isRefreshMinute || cacheAge >= 298000;
 
     if (needsRefresh) {
-        const refreshTime = isSameDay(lastTime, bar.t) ? Math.min(lastTime, bar.t) : bar.t;
-        const bars = await getTodaysData(symbol, refreshTime + 1000);
+        const bars = await getTodaysData(symbol);
 
-        fiveMinuteDataCache[symbol].push(...bars);
+        const data = fiveMinuteDataCache[symbol];
+
+        const lastTime = data && data[data.length - 1].t;
+
+        const newBars = bars.filter((b) => b.t > lastTime);
+
+        fiveMinuteDataCache[symbol].push(...newBars);
     }
 };
 

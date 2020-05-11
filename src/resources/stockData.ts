@@ -357,14 +357,14 @@ export const getTodaysData = (
     startEpochOverride = currentEpoch,
     timeBucket = "5 minutes"
 ) => {
-    const startEpoch = set(startEpochOverride, {
+    const startEpoch = set(currentEpoch, {
         minutes: 30,
         seconds: 0,
         milliseconds: 0,
         hours: 9,
-    });
+    }).getTime();
 
-    return getData(symbol, startEpoch.getTime(), timeBucket, currentEpoch);
+    return getData(symbol, startEpoch, timeBucket, currentEpoch);
 };
 
 export const getYesterdaysEndingBars = async (

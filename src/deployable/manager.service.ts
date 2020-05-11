@@ -75,7 +75,7 @@ server.post("/trade/:symbol", async (request) => {
     const pendingOrders =
         currentPositions.indexOf(symbol) !== -1 || openOrderSymbols.indexOf(symbol) !== -1;
 
-    if (!pendingOrders) {
+    if (pendingOrders) {
         return {
             success: true,
             orderRejected: true,
@@ -84,17 +84,18 @@ server.post("/trade/:symbol", async (request) => {
         };
     }
 
-    await handlePositionEntry(trade);
-    try {
-        await postEntry(trade.plan.symbol, trade.config.t, trade.plan);
-    } catch (e) {
-        LOGGER.error(
-            `Trying to enter ${trade.plan.symbol} at ${new Date()} with ${JSON.stringify(
-                trade.plan
-            )}`
-        );
+    const order = await handlePositionEntry(trade);
+    if (order) {
+        try {
+            await postEntry(trade.plan.symbol, trade.config.t, trade.plan);
+        } catch (e) {
+            LOGGER.error(
+                `Trying to enter ${trade.plan.symbol} at ${new Date()} with ${JSON.stringify(
+                    trade.plan
+                )}`
+            );
+        }
     }
-
     return {
         success: true,
     };
