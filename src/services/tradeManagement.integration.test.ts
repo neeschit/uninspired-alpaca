@@ -615,7 +615,7 @@ test.cb("queue & cancel trade", (t) => {
 
     manager
         .queueEntry()
-        .then((trade) => t.truthy(trade.id))
+        .then((trade) => t.truthy(trade!.id))
         .then(() => {
             return manager.cancelPendingTrades();
         })

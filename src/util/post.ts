@@ -5,7 +5,7 @@ export const postHttp = <T extends any>({
     hostname,
     path,
     port,
-    data = null,
+    data = {} as T,
 }: {
     hostname: string;
     path: string;

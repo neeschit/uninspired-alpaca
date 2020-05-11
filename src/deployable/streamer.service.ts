@@ -1,25 +1,28 @@
 import { alpaca } from "../resources/alpaca";
-import { getLargeCaps, getMegaCaps } from "../data/filters";
-import { subscribeToTickLevelUpdates } from "../resources/polygon";
 import { LOGGER } from "../instrumentation/log";
-import { TickBar, TradeUpdate, Bar, OrderUpdateEvent } from "../data/data.model";
-import { insertBar, insertTrade } from "../resources/stockData";
+import { TickBar, TradeUpdate, OrderUpdateEvent } from "../data/data.model";
+import { insertTrade } from "../resources/stockData";
 import { updateOrder } from "../resources/order";
-import { postHttp } from "../util/post";
-import { notifyService, Service } from "../util/api";
+import { messageService, Service, getApiServer } from "../util/api";
+import { handleSubscriptionRequest } from "./streamer.handlers";
+import {
+    postOrderToManage,
+    postRequestToManageOpenPosition,
+    postRequestToManageOpenOrders,
+} from "./manager.service";
+import { postAggregatedMinuteUpdate } from "./data.service";
+import { postRequestScreenSymbol } from "./screener.service";
 
-const highVolCompanies = getMegaCaps();
-
-highVolCompanies.push("SPY");
+const server = getApiServer(Service.streamer);
 
 const socket = alpaca.websocket;
 
 socket.onConnect(() => {
-    const mappedAggMins = subscribeToTickLevelUpdates(highVolCompanies, "AM");
-    socket.subscribe(["trade_updates", "account_updates", ...mappedAggMins]);
+    handleSubscriptionRequest(socket);
 });
+
 socket.onStateChange((newState) => {
-    console.log(`State changed to ${newState} at ${new Date().toLocaleTimeString()}`);
+    LOGGER.info(`State changed to ${newState} at ${new Date().toLocaleTimeString()}`);
     if (newState === "disconnected") {
         socket.reconnect();
     }
@@ -31,7 +34,7 @@ socket.onOrderUpdate((orderUpdate) => {
         orderUpdate.event === OrderUpdateEvent.fill ||
         orderUpdate.event === OrderUpdateEvent.partial_fill
     ) {
-        notifyService(Service.management, "/orders", orderUpdate);
+        postOrderToManage(orderUpdate).catch(LOGGER.error);
     }
 });
 
@@ -59,21 +62,21 @@ socket.onStockAggMin(async (subject: string, data: any) => {
         data = JSON.parse(data) as any[];
     }
 
-    const mappedData: { [index: string]: Bar } = {};
-
     for (const d of data) {
         const bar: TickBar = getBar(d);
 
         try {
-            await insertBar(bar, d.sym, true);
-            mappedData[d.sym] = bar;
+            try {
+                await postAggregatedMinuteUpdate(d.sym, bar);
+            } catch (e) {
+                LOGGER.error(e);
+            }
+            postRequestScreenSymbol(d.sym).catch(LOGGER.error);
+            postRequestToManageOpenOrders(d.sym, bar).catch(LOGGER.error);
         } catch (e) {
             /* LOGGER.error(`Could not insert ${JSON.stringify(bar)} for ${d.sym}`); */
         }
     }
-
-    notifyService(Service.management, "/aggregates", mappedData).catch(LOGGER.error);
-    notifyService(Service.screener, "/aggregates", mappedData).catch(LOGGER.error);
 });
 
 socket.onStockAggSec(async (subject: string, data: any) => {
@@ -84,11 +87,7 @@ socket.onStockAggSec(async (subject: string, data: any) => {
     for (const d of data) {
         const bar: TickBar = getBar(d);
 
-        try {
-            await insertBar(bar, d.sym);
-        } catch (e) {
-            /* LOGGER.error(`Could not insert ${JSON.stringify(bar)} for ${d.sym}`); */
-        }
+        postRequestToManageOpenPosition(d.sym, bar);
     }
 });
 
@@ -100,4 +99,20 @@ socket.onPolygonConnect(() => {
     LOGGER.error(`Polygon connected at ${new Date().toLocaleTimeString()}`);
 });
 
-socket.connect();
+export const postSubscriptionRequestForTickUpdates = () => {
+    return messageService(Service.streamer, "/subscribe");
+};
+
+server.post("/subscribe", async () => {
+    try {
+        await handleSubscriptionRequest(socket);
+    } catch (e) {
+        LOGGER.error(e);
+    }
+
+    return {
+        success: true,
+    };
+});
+
+process.env.SERVICE_NAME === "streamer" && socket.connect();

@@ -228,7 +228,11 @@ export class Backtester {
                 const filteredInstances = this.strategyInstances.filter(
                     (i) =>
                         pendingTradeConfigs.every((c) => c.symbol !== i.symbol) &&
-                        this.managers.every((m) => m.plan.symbol !== i.symbol || !m.filledPosition)
+                        this.managers.every(
+                            (m) =>
+                                m.plan.symbol !== i.symbol ||
+                                (m.filledPosition && m.filledPosition.quantity === 0)
+                        )
                 );
 
                 const currentPositions = await this.broker.getPositions();
@@ -570,7 +574,12 @@ export class Backtester {
     }
 
     private async findPositionConfigAndRebalance(tradeConfig: TradeConfig) {
-        const manager = this.managers.find((p) => p.plan.symbol === tradeConfig.symbol);
+        const manager = this.managers.find(
+            (p) =>
+                p.plan.symbol === tradeConfig.symbol &&
+                p.filledPosition &&
+                p.filledPosition.quantity
+        );
 
         if (!manager || !manager.filledPosition || !manager.filledPosition.quantity) {
             return null;
@@ -618,7 +627,9 @@ export class Backtester {
                 continue;
             }
 
-            const manager = this.managers.find((p) => p.plan.symbol === symbol);
+            const manager = this.managers.find(
+                (p) => p.plan.symbol === symbol && p.filledPosition && p.filledPosition.quantity
+            );
 
             if (!manager) {
                 LOGGER.warn("no trace for ", symbol);

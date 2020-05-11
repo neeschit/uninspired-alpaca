@@ -10,5 +10,5 @@ const SECRET_KEY = (config && config.ALPACA_SECRET_KEY) || process.env.ALPACA_SE
 export const alpaca = new Alpaca({
     keyId: API_KEY,
     secretKey: SECRET_KEY,
-    paper: true
+    paper: true,
 });

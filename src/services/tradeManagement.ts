@@ -94,12 +94,18 @@ export const rebalancePosition = async (
 ): Promise<TradeConfig | null> => {
     const {
         symbol,
-        plannedStopPrice,
-        plannedEntryPrice,
+        plannedStopPrice: plannedStopPriceStr,
+        plannedEntryPrice: plannedEntryPriceStr,
         side: positionSide,
         quantity,
-        averageEntryPrice,
+        averageEntryPrice: averageEntryPriceStr,
+        originalQuantity: originalQuantityStr,
     } = position;
+
+    const averageEntryPrice = averageEntryPriceStr && Number(averageEntryPriceStr);
+    const plannedStopPrice = plannedStopPriceStr && Number(plannedStopPriceStr);
+    const plannedEntryPrice = plannedEntryPriceStr && Number(plannedEntryPriceStr);
+    const originalQuantity = originalQuantityStr && Number(originalQuantityStr);
 
     if (!quantity || quantity < 0) {
         return null;
@@ -137,21 +143,30 @@ export const rebalancePosition = async (
         };
     }
 
+    const exitPrice = positionSide === PositionDirection.long ? currentBar.h : currentBar.l;
+
     const pnl =
         positionSide === PositionDirection.long
-            ? currentBar.h - averageEntryPrice
-            : averageEntryPrice - currentBar.l;
+            ? exitPrice - averageEntryPrice
+            : averageEntryPrice - exitPrice;
 
     const currentProfitRatio = pnl / plannedRiskUnits;
 
-    if (currentProfitRatio >= partialProfitRatio) {
+    const positionPercentageLeft = quantity / originalQuantity;
+
+    const plannedExitPrice =
+        positionSide === PositionDirection.long
+            ? roundHalf(plannedEntryPrice + plannedRiskUnits) - 0.01
+            : roundHalf(plannedEntryPrice - plannedRiskUnits) + 0.01;
+
+    if (currentProfitRatio >= partialProfitRatio * 0.7 && positionPercentageLeft > 0.2) {
         return {
             symbol,
-            price: 0,
-            type: TradeType.market,
+            price: plannedExitPrice,
+            type: TradeType.limit,
             side: closingOrderSide,
             tif: TimeInForce.gtc,
-            quantity,
+            quantity: Math.ceil(quantity * 0.8),
             t,
         };
     }
@@ -209,7 +224,7 @@ export class TradeManagement {
     async executeAndRecord() {
         const order = await this.queueEntry();
 
-        if (order.status !== OrderStatus.new) {
+        if (order && order.status !== OrderStatus.new) {
             LOGGER.error(`could not verify order for ${JSON.stringify(this.plan)}`);
         }
 
@@ -225,7 +240,14 @@ export class TradeManagement {
         position.pendingOrders = position.pendingOrders || [];
         position.pendingOrders.push(insertedOrder);
 
-        return this.broker.createOrder(order);
+        try {
+            const placedOrder = await this.broker.createOrder(order);
+            return placedOrder;
+        } catch (e) {
+            LOGGER.error(e);
+        }
+
+        return null;
     }
 
     async queueEntry() {
@@ -254,7 +276,7 @@ export class TradeManagement {
             return;
         }
 
-        return this.broker.createOrder(processOrderFromStrategy(config));
+        return this.queueTrade(config);
     }
 
     async fetchCurrentPosition() {
@@ -307,10 +329,8 @@ export class TradeManagement {
                     averageEntryPrice: Number(this.filledPosition.averageEntryPrice),
                     symbol: this.plan.symbol,
                     side: position.side,
-                    quantity: Number(
-                        this.filledPosition.quantity || this.filledPosition.trades[0].filledQuantity
-                    ),
                     ...this.plan,
+                    quantity: this.filledPosition.quantity,
                     originalQuantity: this.plan.quantity,
                 },
                 bar,
@@ -330,15 +350,18 @@ export class TradeManagement {
         return isClosingOrder(this.filledPosition, tradeConfig);
     }
 
-    async detectTrendChange(recentBars: Bar[], pendingOrder: Order) {
+    async detectTrendChange(recentBars: Bar[], alpacaOrder: AlpacaOrder) {
         const trend = getOverallTrend(recentBars);
 
         const cancel =
-            (trend === TrendType.up && pendingOrder.side === TradeDirection.sell) ||
-            (trend === TrendType.down && pendingOrder.side === TradeDirection.buy);
+            (trend === TrendType.up && alpacaOrder.side === TradeDirection.sell) ||
+            (trend === TrendType.down && alpacaOrder.side === TradeDirection.buy) ||
+            trend === TrendType.sideways;
 
         if (cancel) {
-            await this.broker.cancelOrder(pendingOrder.id.toString());
+            await this.broker.cancelOrder(alpacaOrder.id);
         }
+
+        return !cancel;
     }
 }

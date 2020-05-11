@@ -30,14 +30,15 @@
     "typescript": "^3.7.5"
   },
   "scripts": {
-    "test": "ava --watch --verbose",
-    "test:ci": "LOGLEVEL=4 ava **/*.spec.ts --verbose",
+    "test": "NODE_ENV=test ava --watch --verbose",
+    "test:ci": "NODE_ENV=test LOGLEVEL=4 ava **/*.spec.ts --verbose",
     "build": "tsc",
     "backtest": "node --enable-source-maps build/scripts/backtest.js",
     "narrowRangeScreener": "node --enable-source-maps build/scripts/narrowRangeScreener.js",
-    "data": "node --enable-source-maps build/deployable/socketDataStreaming.process.js",
-    "manager": "node --enable-source-maps build/deployable/management.service.js",
-    "screener": "node --enable-source-maps build/deployable/screener.service.js"
+    "streamer": "SERVICE_NAME=streamer node --inspect=9696 --enable-source-maps build/deployable/streamer.service.js",
+    "manager": "SERVICE_NAME=manager node --inspect=9697 --enable-source-maps build/deployable/manager.service.js",
+    "screener": "SERVICE_NAME=screener node --inspect=9698 --enable-source-maps build/deployable/screener.service.js",
+    "data": "SERVICE_NAME=data node --inspect=9699 --enable-source-maps build/deployable/data.service.js"
   },
   "ava": {
     "extensions": [
