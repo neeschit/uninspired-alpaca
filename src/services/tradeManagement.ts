@@ -143,7 +143,7 @@ export const rebalancePosition = async (
         };
     }
 
-    const exitPrice = positionSide === PositionDirection.long ? currentBar.h : currentBar.l;
+    const exitPrice = currentBar.c;
 
     const pnl =
         positionSide === PositionDirection.long
@@ -256,11 +256,34 @@ export class TradeManagement {
         return alpacaOrder;
     }
 
-    async onTickUpdate(currentBar: Bar) {
-        if (!this.filledPosition) {
+    async onTickUpdate(currentBar: Bar, openOrders: AlpacaOrder[]) {
+        if (
+            !this.filledPosition ||
+            !this.filledPosition.quantity ||
+            !this.filledPosition.averageEntryPrice
+        ) {
             LOGGER.error("no position or order was never fulfilled");
             return;
         }
+        const plannedRiskUnits = Math.abs(this.plan.plannedEntryPrice - this.plan.plannedStopPrice);
+
+        const exitPrice = currentBar.c;
+
+        const pnl =
+            this.filledPosition.side === PositionDirection.long
+                ? exitPrice - this.filledPosition.averageEntryPrice
+                : this.filledPosition.averageEntryPrice - exitPrice;
+
+        const currentProfitRatio = pnl / plannedRiskUnits;
+
+        try {
+            if (currentProfitRatio < this.partialProfitRatio / 3) {
+                Promise.all(openOrders.map((o) => this.broker.cancelOrder(o.id)));
+            }
+        } catch (e) {
+            LOGGER.error(e);
+        }
+
         const config: TradeConfig | null = await rebalancePosition(
             this.filledPosition,
             currentBar,

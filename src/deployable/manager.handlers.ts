@@ -15,7 +15,7 @@ import {
     updatePosition,
 } from "../resources/position";
 import { TradeManagement } from "../services/tradeManagement";
-import { TradeConfig, SymbolContainingConfig, Bar, TradePlan } from "../data/data.model";
+import { TradeConfig, Bar, TradePlan } from "../data/data.model";
 import { getTodaysData } from "../resources/stockData";
 import { postPartial } from "../util/slack";
 import { postSubscriptionRequestForTickUpdates } from "./streamer.service";
@@ -123,9 +123,12 @@ export const handlePriceUpdateForPosition = async (symbol: string, bar: Bar) => 
         LOGGER.error(`no manager for symbol ${symbol}`);
         return;
     }
-    const order = await manager.onTickUpdate(bar);
+    const openOrders = openOrderCache.filter((o) => o.symbol === symbol);
+    const order = await manager.onTickUpdate(bar, openOrders);
 
-    if (order) await postPartial(order);
+    if (order) {
+        await postPartial(order);
+    }
 };
 
 export const getManager = async (symbol: string) => {
@@ -138,11 +141,6 @@ export const getManager = async (symbol: string) => {
 
         if (!position) {
             LOGGER.error(`aww hell`);
-            return null;
-        }
-
-        if (openOrderCache.some((o) => o.symbol === symbol)) {
-            LOGGER.warn(`profit order already exists`);
             return null;
         }
 
@@ -180,7 +178,7 @@ export const handlePositionEntry = async (trade: { plan: TradePlan; config: Trad
         return null;
     }
 
-    if (!manager || !manager.filledPosition) {
+    if (!manager || !manager.filledPosition || !manager.filledPosition.quantity) {
         manager = new TradeManagement(trade.config, trade.plan, pr);
 
         recentOrders.push(trade.plan.symbol);

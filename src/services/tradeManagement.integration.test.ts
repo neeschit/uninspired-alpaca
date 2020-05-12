@@ -520,14 +520,17 @@ test("trade management - handle trade update - empty fill", async (t) => {
 
     t.is(
         undefined,
-        await manager.onTickUpdate({
-            c: 189.91,
-            h: 191,
-            l: 189.3,
-            v: 30000,
-            o: 190.4,
-            t: Date.now(),
-        })
+        await manager.onTickUpdate(
+            {
+                c: 189.91,
+                h: 191,
+                l: 189.3,
+                v: 30000,
+                o: 190.4,
+                t: Date.now(),
+            },
+            []
+        )
     );
 });
 
@@ -579,14 +582,17 @@ test("trade management - handle trade update - non empty fill", (t) => {
     );
 
     t.truthy(
-        manager.onTickUpdate({
-            c: 189.91,
-            h: 191,
-            l: 189.3,
-            v: 30000,
-            o: 190.4,
-            t: Date.now(),
-        })
+        manager.onTickUpdate(
+            {
+                c: 189.91,
+                h: 191,
+                l: 189.3,
+                v: 30000,
+                o: 190.4,
+                t: Date.now(),
+            },
+            []
+        )
     );
 });
 
