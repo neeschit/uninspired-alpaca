@@ -280,7 +280,7 @@ export class TradeManagement {
             !this.filledPosition.averageEntryPrice
         ) {
             LOGGER.error("no position or order was never fulfilled");
-            return;
+            return null;
         }
         const plannedRiskUnits = Math.abs(this.plan.plannedEntryPrice - this.plan.plannedStopPrice);
 
@@ -315,16 +315,19 @@ export class TradeManagement {
                     currentBar
                 )}`
             );
-            return;
+            return null;
         } else {
-            const isOrderDifferent = openOrders.length > 1 || openOrders[0].type !== config.type;
+            const isOrderDifferent =
+                !openOrders.length ||
+                (openOrders.length && openOrders.some((o) => o.type !== config.type));
 
             if (isOrderDifferent) {
                 await Promise.all(openOrders.map((o) => this.broker.cancelOrder(o.id)));
+                return this.queueTrade(config);
             }
         }
 
-        return this.queueTrade(config);
+        return null;
     }
 
     async fetchCurrentPosition() {
