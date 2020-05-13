@@ -27,16 +27,20 @@ export const handleAggregateDataPosted = async (bar: TickBar, symbol: string) =>
     const needsRefresh = isRefreshMinute || cacheAge >= 298000;
 
     if (needsRefresh) {
-        const bars = await getTodaysData(symbol);
-
-        const data = fiveMinuteDataCache[symbol];
-
-        const lastTime = data && data[data.length - 1].t;
-
-        const newBars = bars.filter((b) => b.t > lastTime);
-
-        fiveMinuteDataCache[symbol].push(...newBars);
+        await refreshBars(symbol);
     }
+};
+
+const refreshBars = async (symbol: string) => {
+    const bars = await getTodaysData(symbol);
+
+    const data = fiveMinuteDataCache[symbol];
+
+    const lastTime = data && data[data.length - 1].t;
+
+    const newBars = bars.filter((b) => b.t > lastTime);
+
+    fiveMinuteDataCache[symbol].push(...newBars);
 };
 
 export const cacheBars = async (symbol: string, currentEpoch = Date.now()) => {

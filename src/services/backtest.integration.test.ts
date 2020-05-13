@@ -59,8 +59,8 @@ test("Backtester - simulate batching", (t) => {
 
     const result = Backtester.getBatches(zonedStartDate, zonedEndDate, test);
 
-    t.is(result.length, 2);
-    const batchedEnd = addMonths(zonedStartDate, 6);
+    t.is(result.length, 9);
+    const batchedEnd = addMonths(zonedStartDate, 1);
     t.deepEqual(result[0], {
         startDate: zonedStartDate,
         endDate: batchedEnd,
@@ -70,7 +70,7 @@ test("Backtester - simulate batching", (t) => {
 
     t.deepEqual(result[1], {
         startDate: batchedEnd,
-        endDate: zonedEndDate,
+        endDate: addMonths(batchedEnd, 1),
         symbols: test,
         batchId: 0,
     });
@@ -83,9 +83,9 @@ test("Backtester - simulate batching with symbols needing batching as well", asy
 
     const result = Backtester.getBatches(zonedStartDate, zonedEndDate, test, 1);
 
-    t.is(result.length, 6);
+    t.is(result.length, 27);
 
-    const batchedEnd = addMonths(zonedStartDate, 6);
+    const batchedEnd = addMonths(zonedStartDate, 1);
     t.deepEqual(result[0], {
         startDate: zonedStartDate,
         endDate: batchedEnd,
@@ -106,19 +106,19 @@ test("Backtester - simulate batching with symbols needing batching as well", asy
     });
     t.deepEqual(result[3], {
         startDate: batchedEnd,
-        endDate: zonedEndDate,
+        endDate: addMonths(batchedEnd, 1),
         symbols: ["ECL"],
         batchId: 0,
     });
     t.deepEqual(result[4], {
         startDate: batchedEnd,
-        endDate: zonedEndDate,
+        endDate: addMonths(batchedEnd, 1),
         symbols: ["AAPL"],
         batchId: 1,
     });
     t.deepEqual(result[5], {
         startDate: batchedEnd,
-        endDate: zonedEndDate,
+        endDate: addMonths(batchedEnd, 1),
         symbols: ["HON"],
         batchId: 2,
     });

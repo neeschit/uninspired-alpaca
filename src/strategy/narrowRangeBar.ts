@@ -17,6 +17,7 @@ import { alpaca } from "../resources/alpaca";
 import { getAverageTrueRange } from "../indicator/trueRange";
 import { isSameDay } from "date-fns";
 import { roundHalf } from "../util";
+import { validatePositionEntryPlan } from "../services/tradeManagement";
 
 export class NarrowRangeBarStrategy {
     symbol: string;
@@ -231,11 +232,21 @@ export class NarrowRangeBarStrategy {
         const trend = lastBar.c > this.closePrice ? TrendType.up : TrendType.down;
 
         try {
-            return this.getPlan(trend, atr[atr.length - 1].value, lastBar);
+            const plan = this.getPlan(trend, atr[atr.length - 1].value, lastBar);
+
+            if (plan) {
+                const isInvalid = validatePositionEntryPlan(recentBars, plan?.config.side);
+
+                if (!isInvalid) {
+                    return plan;
+                }
+            }
         } catch (e) {
             LOGGER.error(e);
             return null;
         }
+
+        return null;
     }
     getEntryPrices(entryBar: Bar): { entryLong: any; entryShort: any } {
         return {

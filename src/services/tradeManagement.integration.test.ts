@@ -299,10 +299,10 @@ test("rebalancePosition - simple partial", async (t) => {
 
     t.deepEqual(order, {
         symbol,
-        price: 0,
+        price: 209.99,
         tif: TimeInForce.gtc,
-        type: TradeType.market,
-        quantity: 200,
+        type: TradeType.limit,
+        quantity: 160,
         side: TradeDirection.sell,
         t: order!.t,
     });
@@ -449,22 +449,23 @@ test("trade management - init and recordOnceUpdateReceived", async (t) => {
         symbol,
         plannedStopPrice: 190,
         plannedEntryPrice: 200,
-        originalQuantity: 150,
+        originalQuantity: 0,
         riskAtrRatio: 1,
         side: PositionDirection.long,
-        quantity: 150,
+        quantity: 0,
         trades: [
             {
                 averagePrice: 200.06,
                 filledQuantity: 150,
-                price: 200,
+                stopPrice: 200,
+                price: 200.05,
                 quantity: 150,
                 side: TradeDirection.buy,
                 status: OrderStatus.partial_fill,
                 symbol: "AAPL",
                 t: filledPositionConfig.trades[0].t,
                 tif: TimeInForce.day,
-                type: TradeType.stop,
+                type: TradeType.stop_limit,
             },
         ],
     });
@@ -518,8 +519,7 @@ test("trade management - handle trade update - empty fill", async (t) => {
         manager.position
     );
 
-    t.is(
-        undefined,
+    t.falsy(
         await manager.onTickUpdate(
             {
                 c: 189.91,
@@ -594,48 +594,4 @@ test("trade management - handle trade update - non empty fill", (t) => {
             []
         )
     );
-});
-
-test.cb("queue & cancel trade", (t) => {
-    const manager = new TradeManagement(
-        {
-            symbol,
-            side: TradeDirection.buy,
-            type: TradeType.stop_limit,
-            tif: TimeInForce.day,
-            price: 300.05,
-            stopPrice: 300,
-            quantity: 300,
-            t: Date.now(),
-        },
-        {
-            plannedEntryPrice: 300,
-            riskAtrRatio: 1,
-            plannedStopPrice: 290,
-            symbol,
-            quantity: 100,
-            side: PositionDirection.long,
-        },
-        0.9
-    );
-
-    manager
-        .queueEntry()
-        .then((trade) => t.truthy(trade!.id))
-        .then(() => {
-            return manager.cancelPendingTrades();
-        })
-        .then(() => {
-            setTimeout(async () => {
-                const orders = await alpaca.getOrders({
-                    status: "open",
-                });
-
-                LOGGER.info(orders);
-
-                t.falsy(orders.length);
-
-                t.end();
-            }, 100);
-        });
 });

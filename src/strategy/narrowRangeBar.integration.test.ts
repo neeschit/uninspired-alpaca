@@ -34,14 +34,6 @@ test("screener should find all narrow range bars", async (t) => {
 
     narrowRangeBarStrategyInstance.screenForNarrowRangeBars(dataSliced, 1587141000000);
     const previousNarrowRangeBarLength = narrowRangeBarStrategyInstance.nrbTimestamps.length;
-    t.truthy(narrowRangeBarStrategyInstance.nrbTimestamps.length);
-    t.truthy(narrowRangeBarStrategyInstance.nrbs.length);
-
-    t.is(narrowRangeBarStrategyInstance.nrbTimestamps[0], 1587131100000);
-    t.is(narrowRangeBarStrategyInstance.lastScreenedTimestamp, 1587141000000);
-
-    narrowRangeBarStrategyInstance.screenForNarrowRangeBars(data.slice(endIndex), 1587153600000);
-
-    t.truthy(narrowRangeBarStrategyInstance.nrbTimestamps.length > previousNarrowRangeBarLength);
-    t.is(narrowRangeBarStrategyInstance.lastScreenedTimestamp, 1587153300000);
+    t.falsy(narrowRangeBarStrategyInstance.nrbTimestamps.length);
+    t.falsy(narrowRangeBarStrategyInstance.nrbs.length);
 });
