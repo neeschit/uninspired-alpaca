@@ -7,10 +7,6 @@ export const getDirectionalMovementIndex = (bars: Bar[], period = DEFAULT_DMI_PE
         throw new Error("fix some shiz cos no bars");
     }
 
-    if (bars.length < period + 1) {
-        throw new Error("fix need more bars shiz");
-    }
-
     const [pdmi, ndmi] = bars.reduce(
         (movementsArray: number[][], currentBar: Bar, index) => {
             const [positiveDirectionalMovements, negativeDirectionalMovements] = movementsArray;

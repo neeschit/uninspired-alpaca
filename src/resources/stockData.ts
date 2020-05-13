@@ -199,6 +199,32 @@ export const insertBar = async (bar: TickBar, symbol: string, isMinute = false) 
     return pool.query(query);
 };
 
+export const batchInsertBars = async (bars: TickBar[], symbol: string, isMinute = false) => {
+    const pool = getConnection();
+
+    const tablename = isMinute
+        ? getAggregatedMinuteTableNameForSymbol(symbol)
+        : getAggregatedTickTableNameForSymbol(symbol);
+
+    const queries: string[] = [];
+
+    for (const bar of bars) {
+        const query = `insert into ${tablename} values (
+            ${getTimestampValue(bar.t)}, 
+            ${bar.o}, 
+            ${bar.h}, 
+            ${bar.l}, 
+            ${bar.c}, 
+            ${bar.vw}, 
+            ${bar.v}
+        );`;
+        LOGGER.debug(query);
+        queries.push(query);
+    }
+
+    return pool.query(queries.join("\n"));
+};
+
 export const insertTrade = async (trades: TradeUpdate[]) => {
     const pool = getConnection();
 
