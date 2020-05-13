@@ -235,14 +235,6 @@ export class Backtester {
                         )
                 );
 
-                const currentPositions = await this.broker.getPositions();
-
-                for (const i of this.strategyInstances) {
-                    if (currentPositions.some((s) => s.symbol === i.symbol)) {
-                        i.resetEntryNrbs();
-                    }
-                }
-
                 try {
                     const rebalancingPositionTrades = await this.closeAndRebalance();
 

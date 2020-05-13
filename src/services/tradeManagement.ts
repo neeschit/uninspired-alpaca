@@ -12,10 +12,11 @@ import { alpaca } from "../resources/alpaca";
 import { AlpacaOrder, AlpacaTradeConfig, Broker } from "@neeschit/alpaca-trade-api";
 import { LOGGER } from "../instrumentation/log";
 import { isMarketClosing } from "../util/market";
-import { insertOrder, Order } from "../resources/order";
+import { insertOrder } from "../resources/order";
 import { insertPlannedPosition, FilledPositionConfig, PositionConfig } from "../resources/position";
-import { ceilHalf, roundHalf } from "../util";
-import { getOverallTrend, TrendType } from "../pattern/trend/trendIdentifier";
+import { roundHalf } from "../util";
+import { TrendType } from "../pattern/trend/trendIdentifier";
+import { getDirectionalMovementIndex } from "../indicator/dmi";
 
 export const isClosingOrder = (currentPosition: FilledPositionConfig, tradeConfig: TradeConfig) => {
     if (currentPosition.side === PositionDirection.long) {
@@ -169,6 +170,22 @@ export const rebalancePosition = async (
             quantity: Math.ceil(quantity * 0.8),
             t,
         };
+    } else if (currentProfitRatio > partialProfitRatio * 1.5) {
+        const partialRiskUnits = plannedRiskUnits * 2;
+        const plannedExitPrice =
+            positionSide === PositionDirection.long
+                ? roundHalf(plannedEntryPrice + partialRiskUnits) - 0.05
+                : roundHalf(plannedEntryPrice - partialRiskUnits) + 0.05;
+
+        return {
+            symbol,
+            price: plannedExitPrice,
+            type: TradeType.limit,
+            side: closingOrderSide,
+            tif: TimeInForce.gtc,
+            quantity: quantity,
+            t,
+        };
     }
 
     return null;
@@ -297,6 +314,8 @@ export class TradeManagement {
                 )}`
             );
             return;
+        } else {
+            await Promise.all(openOrders.map((o) => this.broker.cancelOrder(o.id)));
         }
 
         return this.queueTrade(config);
@@ -374,12 +393,13 @@ export class TradeManagement {
     }
 
     async detectTrendChange(recentBars: Bar[], alpacaOrder: AlpacaOrder) {
-        const trend = getOverallTrend(recentBars);
+        const { pdmi, ndmi } = getDirectionalMovementIndex(recentBars);
+
+        const trend = pdmi[pdmi.length - 1] > ndmi[ndmi.length - 1] ? TrendType.up : TrendType.down;
 
         const cancel =
             (trend === TrendType.up && alpacaOrder.side === TradeDirection.sell) ||
-            (trend === TrendType.down && alpacaOrder.side === TradeDirection.buy) ||
-            trend === TrendType.sideways;
+            (trend === TrendType.down && alpacaOrder.side === TradeDirection.buy);
 
         if (cancel) {
             await this.broker.cancelOrder(alpacaOrder.id);

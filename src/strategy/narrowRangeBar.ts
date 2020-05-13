@@ -1,5 +1,4 @@
-import { getAverageDirectionalIndex } from "../indicator/adx";
-import { TrendType, getOverallTrendWithSuppliedAdx } from "../pattern/trend/trendIdentifier";
+import { TrendType } from "../pattern/trend/trendIdentifier";
 import { TRADING_RISK_UNIT_CONSTANT } from "../services/riskManagement";
 import { isMarketOpen } from "../util/market";
 import {
@@ -10,20 +9,14 @@ import {
     TimeInForce,
     PlannedTradeConfig,
     PositionDirection,
-    TradePlan,
 } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
 import { convertToLocalTime } from "../util/date";
-import { Broker, AlpacaPosition } from "@neeschit/alpaca-trade-api";
+import { Broker } from "@neeschit/alpaca-trade-api";
 import { alpaca } from "../resources/alpaca";
 import { getAverageTrueRange } from "../indicator/trueRange";
 import { isSameDay } from "date-fns";
-import { roundHalf, floorHalf, ceilHalf } from "../util";
-
-const slackHookOptions = {
-    hostname: "hooks.slack.com",
-    path: "/services/T4EKRGB54/B0138S9A3LY/VuZ8iHEDOw9mjzHKPI1HQLwD",
-};
+import { roundHalf } from "../util";
 
 export class NarrowRangeBarStrategy {
     symbol: string;
@@ -33,6 +26,7 @@ export class NarrowRangeBarStrategy {
     nrbs: Bar[] = [];
     lastScreenedTimestamp = 0;
     lastEntryAttemptedTimestamp = 0;
+    closePrice = 0;
     di: {
         pdx: number;
         ndx: number;
@@ -53,7 +47,9 @@ export class NarrowRangeBarStrategy {
         this.symbol = symbol;
         this.broker = broker;
 
-        const atr = getAverageTrueRange(bars, false).atr;
+        const { atr } = getAverageTrueRange(bars, false);
+
+        this.closePrice = bars[bars.length - 1].c;
 
         this.atr = atr[atr.length - 1].value;
     }
@@ -201,7 +197,7 @@ export class NarrowRangeBarStrategy {
         return isWithinEntryRange;
     }
 
-    async onTradeUpdate(recentBars: Bar[], currentBar: Bar, now: TimestampType = Date.now()) {
+    async onTradeUpdate(recentBars: Bar[], now: TimestampType = Date.now()) {
         return this.rebalance(recentBars, now);
     }
 
@@ -216,13 +212,7 @@ export class NarrowRangeBarStrategy {
         }
         now = now instanceof Date ? now.getTime() : now;
 
-        const { adx, pdx, ndx, atr, tr } = getAverageDirectionalIndex(recentBars, false);
-
-        const trend = getOverallTrendWithSuppliedAdx({
-            adx,
-            pdx,
-            ndx,
-        });
+        const { atr } = getAverageTrueRange(recentBars, false);
 
         if (!currentPositions) {
             currentPositions = await this.broker.getPositions();
@@ -236,12 +226,12 @@ export class NarrowRangeBarStrategy {
             return null;
         }
 
+        const lastBar = recentBars[recentBars.length - 1];
+
+        const trend = lastBar.c > this.closePrice ? TrendType.up : TrendType.down;
+
         try {
-            return this.getPlan(
-                trend,
-                atr[atr.length - 1].value,
-                recentBars[recentBars.length - 1]
-            );
+            return this.getPlan(trend, atr[atr.length - 1].value, lastBar);
         } catch (e) {
             LOGGER.error(e);
             return null;
