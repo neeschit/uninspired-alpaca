@@ -214,7 +214,7 @@ export const handleOrderUpdateForSymbol = async (orderUpdate: AlpacaStreamingOrd
         return null;
     }
 
-    await updatePosition(orderUpdate.position_qty, position.id, orderUpdate.price);
+    await updatePosition(position, orderUpdate.position_qty, orderUpdate.price);
 
     await refreshPositions();
 
