@@ -109,17 +109,39 @@ export const getOpenPositions = async (): Promise<Position[]> => {
     return result.rows;
 };
 
-export const updatePosition = async (quantity: number, id: number, price?: number) => {
-    if (!id) {
-        throw new Error("No position id");
+const updatePositionSql = (quantity: number, id: number, price?: number) => {
+    return `
+    update positions set quantity=${Math.abs(Number(quantity))} ${
+        price ? ", average_entry_price=" + price : ""
+    } where id=${id}
+`;
+};
+
+export const getUpdatePositionQuery = (
+    originalPosition: Position,
+    quantity: number,
+    price?: number
+) => {
+    if (!originalPosition.quantity) {
+        return updatePositionSql(quantity, originalPosition.id, price);
+    }
+
+    return updatePositionSql(quantity, originalPosition.id);
+};
+
+export const updatePosition = async (
+    originalPosition: Position,
+    quantity: number,
+    price?: number
+) => {
+    if (!originalPosition) {
+        throw new Error("No position");
     }
     const pool = getConnection();
 
-    const result = await pool.query(`
-        update positions set quantity=${Math.abs(Number(quantity))} ${
-        price ? ", average_entry_price=" + price : ""
-    } where id=${id}
-    `);
+    const query = getUpdatePositionQuery(originalPosition, quantity, price);
+
+    const result = await pool.query(query);
 
     return result;
 };
