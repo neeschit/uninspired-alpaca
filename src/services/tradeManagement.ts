@@ -26,6 +26,18 @@ export const isClosingOrder = (currentPosition: FilledPositionConfig, tradeConfi
     }
 };
 
+export const validatePositionEntryPlan = (recentBars: Bar[], side: TradeDirection) => {
+    const { pdmi, ndmi } = getDirectionalMovementIndex(recentBars);
+
+    const trend = pdmi[pdmi.length - 1] > ndmi[ndmi.length - 1] ? TrendType.up : TrendType.down;
+
+    const cancel =
+        (trend === TrendType.up && side === TradeDirection.sell) ||
+        (trend === TrendType.down && side === TradeDirection.buy);
+
+    return cancel;
+};
+
 export const processOrderFromStrategy = (
     order: TradeConfig,
     tradePlan?: TradePlan
@@ -221,7 +233,7 @@ export class TradeManagement {
             this.position = await insertPlannedPosition(this.plan);
         }
 
-        return this.position;
+        return this.filledPosition || this.position;
     }
 
     async cancelPendingTrades() {
@@ -273,7 +285,11 @@ export class TradeManagement {
         return alpacaOrder;
     }
 
-    async onTickUpdate(currentBar: Bar, openOrders: AlpacaOrder[]) {
+    async onTickUpdate(currentBar: Bar, unfilteredOpenOrders: AlpacaOrder[]) {
+        const openOrders = unfilteredOpenOrders.filter(
+            (o) => o.symbol !== this.plan.symbol && o.status !== OrderStatus.pending_cancel
+        );
+
         if (
             !this.filledPosition ||
             !this.filledPosition.quantity ||
@@ -367,7 +383,7 @@ export class TradeManagement {
             return null;
         }
 
-        const liquidate = isMarketClosing(bar.t);
+        const liquidate = isMarketClosing(now);
 
         let order: TradeConfig | null;
 
@@ -401,19 +417,13 @@ export class TradeManagement {
         return isClosingOrder(this.filledPosition, tradeConfig);
     }
 
-    async detectTrendChange(recentBars: Bar[], alpacaOrder: AlpacaOrder) {
-        const { pdmi, ndmi } = getDirectionalMovementIndex(recentBars);
-
-        const trend = pdmi[pdmi.length - 1] > ndmi[ndmi.length - 1] ? TrendType.up : TrendType.down;
-
-        const cancel =
-            (trend === TrendType.up && alpacaOrder.side === TradeDirection.sell) ||
-            (trend === TrendType.down && alpacaOrder.side === TradeDirection.buy);
+    checkIfPositionEntryIsInvalid(recentBars: Bar[], alpacaOrder: AlpacaOrder) {
+        const cancel = validatePositionEntryPlan(recentBars, alpacaOrder.side);
 
         if (cancel) {
-            await this.broker.cancelOrder(alpacaOrder.id);
+            this.broker.cancelOrder(alpacaOrder.id);
         }
 
-        return !cancel;
+        return cancel;
     }
 }

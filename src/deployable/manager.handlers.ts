@@ -3,6 +3,7 @@ import {
     PositionDirection,
     AlpacaPosition,
     AlpacaStreamingOrderUpdate,
+    OrderStatus,
 } from "@neeschit/alpaca-trade-api";
 import { getOrder } from "../resources/order";
 import { LOGGER } from "../instrumentation/log";
@@ -97,12 +98,15 @@ export async function checkIfOrderIsValid(
         ...unfilledPosition,
     };
     const data = await getTodaysData(order.symbol);
-    return manager.detectTrendChange(data, order);
+    return manager.checkIfPositionEntryIsInvalid(data, order);
 }
 
 export const manageOpenOrder = async (symbol: string) => {
     const openingPositionOrders = openOrderCache.filter(
-        (o) => o.symbol === symbol && positionCache.every((p) => p.symbol !== o.symbol)
+        (o) =>
+            o.symbol === symbol &&
+            positionCache.every((p) => p.symbol !== o.symbol) &&
+            o.status !== OrderStatus.pending_cancel
     );
 
     try {
