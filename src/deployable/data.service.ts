@@ -17,11 +17,17 @@ export const getBarsFromDataService = async (
     symbol: string,
     currentEpoch = Date.now()
 ): Promise<Bar[]> => {
-    const bars: Bar[] = (await getFromService(Service.data, "/bars/" + symbol, {
-        epoch: currentEpoch,
-    })) as any;
+    try {
+        const bars: Bar[] = (await getFromService(Service.data, "/bars/" + symbol, {
+            epoch: currentEpoch,
+        })) as any;
 
-    return bars;
+        return bars;
+    } catch (e) {
+        LOGGER.error(e);
+    }
+
+    return [];
 };
 
 server.get("/bars/:symbol", async (request) => {
@@ -38,12 +44,18 @@ server.get("/bars/:symbol", async (request) => {
 export const getBarFromDataService = async (
     symbol: string,
     currentEpoch = Date.now()
-): Promise<Bar> => {
-    const bar: Bar = (await getFromService(Service.data, "/bar/" + symbol, {
-        epoch: currentEpoch,
-    })) as any;
+): Promise<Bar | null> => {
+    try {
+        const bar: Bar = (await getFromService(Service.data, "/bar/" + symbol, {
+            epoch: currentEpoch,
+        })) as any;
 
-    return bar;
+        return bar;
+    } catch (e) {
+        LOGGER.error(e);
+    }
+
+    return null;
 };
 
 server.get("/bar/:symbol", async (request) => {
@@ -53,8 +65,17 @@ server.get("/bar/:symbol", async (request) => {
     return getLastBarForSymbol(symbol, epoch);
 });
 
-export const postAggregatedMinuteUpdate = (symbol: string, bar: TickBar): Promise<unknown> => {
-    return messageService(Service.data, `/bar/${symbol}`, bar);
+export const postAggregatedMinuteUpdate = async (
+    symbol: string,
+    bar: TickBar
+): Promise<unknown> => {
+    try {
+        return messageService(Service.data, `/bar/${symbol}`, bar);
+    } catch (e) {
+        LOGGER.error(e);
+    }
+
+    return null;
 };
 
 server.post("/bar/:symbol", async (request) => {

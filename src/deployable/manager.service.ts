@@ -27,8 +27,16 @@ export interface CurrentState {
     dbPositions: Position[];
 }
 
-export const postRequestToManageOpenPosition = (symbol: string, bar: TickBar) => {
-    return messageService(Service.manager, `/manage_open_position/${symbol}`, bar);
+export const postRequestToManageOpenPosition = async (symbol: string, bar: TickBar) => {
+    try {
+        return messageService(Service.manager, `/manage_open_position/${symbol}`, bar);
+    } catch (e) {
+        LOGGER.error(e);
+    }
+
+    return {
+        success: true,
+    };
 };
 
 server.post("/manage_open_position/:symbol", async (request) => {
@@ -46,8 +54,16 @@ server.post("/manage_open_position/:symbol", async (request) => {
     };
 });
 
-export const postRequestToManageOpenOrders = (symbol: string, bar: TickBar) => {
-    return messageService(Service.manager, `/manage_open_order/${symbol}`, bar);
+export const postRequestToManageOpenOrders = async (symbol: string, bar: TickBar) => {
+    try {
+        return messageService(Service.manager, `/manage_open_order/${symbol}`, bar);
+    } catch (e) {
+        LOGGER.error(e);
+    }
+
+    return {
+        success: true,
+    };
 };
 
 server.post("/manage_open_order/:symbol", async (request) => {
@@ -60,8 +76,16 @@ server.post("/manage_open_order/:symbol", async (request) => {
     };
 });
 
-export const postNewTrade = (trade: { plan: TradePlan; config: TradeConfig }) => {
-    return messageService(Service.manager, "/trade/" + trade.plan.symbol, trade);
+export const postNewTrade = async (trade: { plan: TradePlan; config: TradeConfig }) => {
+    try {
+        return messageService(Service.manager, "/trade/" + trade.plan.symbol, trade);
+    } catch (e) {
+        LOGGER.error(e);
+    }
+
+    return {
+        success: true,
+    };
 };
 
 server.post("/trade/:symbol", async (request) => {
@@ -102,9 +126,19 @@ server.post("/trade/:symbol", async (request) => {
 });
 
 export const getCachedCurrentState = async (): Promise<CurrentState> => {
-    const state = await getFromService(Service.manager, "/currentState");
+    try {
+        const state = await getFromService(Service.manager, "/currentState");
 
-    return state as CurrentState;
+        return state as CurrentState;
+    } catch (e) {
+        LOGGER.error(e);
+    }
+
+    return {
+        positions: [],
+        dbPositions: [],
+        openOrders: [],
+    };
 };
 
 server.get("/currentState", async () => {
@@ -116,7 +150,15 @@ server.get("/currentState", async () => {
 });
 
 export const postOrderToManage = async (orderUpdate: AlpacaStreamingOrderUpdate) => {
-    return messageService(Service.manager, "/orders/" + orderUpdate.order.symbol, orderUpdate);
+    try {
+        return messageService(Service.manager, "/orders/" + orderUpdate.order.symbol, orderUpdate);
+    } catch (e) {
+        LOGGER.error(e);
+    }
+
+    return {
+        success: true,
+    };
 };
 
 server.post("/orders/:symbol", async (request) => {

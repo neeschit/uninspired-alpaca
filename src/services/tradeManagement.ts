@@ -294,8 +294,10 @@ export class TradeManagement {
         const currentProfitRatio = pnl / plannedRiskUnits;
 
         try {
+            const limitOrders = openOrders.filter((o) => o.type === TradeType.limit);
+
             if (currentProfitRatio < this.partialProfitRatio / 3) {
-                Promise.all(openOrders.map((o) => this.broker.cancelOrder(o.id)));
+                await Promise.all(limitOrders.map((o) => this.broker.cancelOrder(o.id)));
             }
         } catch (e) {
             LOGGER.error(e);
@@ -315,7 +317,11 @@ export class TradeManagement {
             );
             return;
         } else {
-            await Promise.all(openOrders.map((o) => this.broker.cancelOrder(o.id)));
+            const isOrderDifferent = openOrders.length > 1 || openOrders[0].type !== config.type;
+
+            if (isOrderDifferent) {
+                await Promise.all(openOrders.map((o) => this.broker.cancelOrder(o.id)));
+            }
         }
 
         return this.queueTrade(config);

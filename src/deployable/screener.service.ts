@@ -25,10 +25,16 @@ Promise.all(
     })
 ).catch(LOGGER.error);
 
-export const postRequestScreenSymbol = (symbol: string, epoch = Date.now()) => {
-    return messageService(Service.screener, `/screen/${symbol}`, {
-        epoch,
-    });
+export const postRequestScreenSymbol = async (symbol: string, epoch = Date.now()) => {
+    try {
+        return messageService(Service.screener, `/screen/${symbol}`, {
+            epoch,
+        });
+    } catch (e) {
+        LOGGER.error(e);
+
+        return null;
+    }
 };
 
 server.post("/screen/:symbol", async (request) => {
