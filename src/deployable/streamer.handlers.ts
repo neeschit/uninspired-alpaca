@@ -4,7 +4,6 @@ import { currentStreamingSymbols } from "../data/filters";
 import { getCachedCurrentState } from "./manager.service";
 import { SymbolContainingConfig } from "../data/data.model";
 import { getCallbackUrlForPositionUpdates } from "./manager.handlers";
-import { LOGGER } from "../instrumentation/log";
 
 export interface SecondAggregateSubscription {
     symbol: string;

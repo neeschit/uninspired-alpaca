@@ -99,8 +99,14 @@ socket.onPolygonConnect(() => {
     LOGGER.error(`Polygon connected at ${new Date().toLocaleTimeString()}`);
 });
 
-export const postSubscriptionRequestForTickUpdates = () => {
-    return messageService(Service.streamer, "/subscribe");
+export const postSubscriptionRequestForTickUpdates = async () => {
+    try {
+        return messageService(Service.streamer, "/subscribe");
+    } catch (e) {
+        LOGGER.error(e);
+    }
+
+    return null;
 };
 
 server.post("/subscribe", async () => {

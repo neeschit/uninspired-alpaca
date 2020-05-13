@@ -127,7 +127,9 @@ export const handlePriceUpdateForPosition = async (symbol: string, bar: Bar) => 
     const order = await manager.onTickUpdate(bar, openOrders);
 
     if (order) {
+        openOrderCache.push(order);
         await postPartial(order);
+        refreshOpenOrders().catch(LOGGER.error);
     }
 };
 
