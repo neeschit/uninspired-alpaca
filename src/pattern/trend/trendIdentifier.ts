@@ -113,11 +113,11 @@ export const getOverallTrendWithSuppliedAdx = ({
 export const getTrend = (recentBars: Bar[], closePrice: number) => {
     const lastBar = recentBars[recentBars.length - 1];
 
-    const recentTrend = getRecentTrend(recentBars.slice(-3));
+    /* const recentTrend = getRecentTrend(recentBars.slice(-3));
 
     if (recentTrend !== TrendType.sideways) {
         return recentTrend;
-    }
+    } */
 
     return lastBar.c > closePrice ? TrendType.up : TrendType.down;
 };

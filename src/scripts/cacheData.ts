@@ -1,9 +1,15 @@
 import { getMegaCaps } from "../data/filters";
 import { DefaultDuration, PeriodType } from "../data/data.model";
-import { addDays, startOfDay } from "date-fns";
+import { addDays, startOfDay, addBusinessDays } from "date-fns";
 import { LOGGER } from "../instrumentation/log";
 import { getPolyonData } from "../resources/polygon";
-import { insertBar, insertDailyBar, batchInsertBars } from "../resources/stockData";
+import {
+    insertBar,
+    insertDailyBar,
+    batchInsertBars,
+    dropStorageTables,
+    batchInsertDailyBars,
+} from "../resources/stockData";
 
 const companies: string[] = getMegaCaps();
 
@@ -11,8 +17,8 @@ companies.push("SPY");
 
 async function run(duration = DefaultDuration.one, period = PeriodType.minute) {
     for (const symbol of companies) {
-        const startDate = startOfDay(addDays(Date.now(), -7));
-        const endDate = startOfDay(addDays(Date.now(), 1));
+        const startDate = startOfDay(addDays(Date.now(), -1));
+        const endDate = startOfDay(addDays(Date.now(), 0));
 
         for (let date = startDate; date.getTime() < endDate.getTime(); date = addDays(date, 1)) {
             const daysMinutes = await getPolyonData(symbol, date, date, period, duration);
@@ -27,8 +33,8 @@ async function run(duration = DefaultDuration.one, period = PeriodType.minute) {
         for (let date = startDate; date.getTime() < endDate.getTime(); date = addDays(date, 90)) {
             const daysMinutes = await getPolyonData(
                 symbol,
-                date,
-                addDays(date, 90),
+                addBusinessDays(date, -90),
+                addDays(Date.now(), 1),
                 PeriodType.day,
                 DefaultDuration.one
             );
@@ -37,12 +43,10 @@ async function run(duration = DefaultDuration.one, period = PeriodType.minute) {
                 continue;
             }
 
-            for (let tick of daysMinutes[symbol]) {
-                try {
-                    await insertDailyBar(tick, symbol);
-                } catch (e) {
-                    LOGGER.error(`Error inserting ${JSON.stringify(tick)} for ${symbol}`, e);
-                }
+            try {
+                await batchInsertDailyBars(daysMinutes[symbol], symbol);
+            } catch (e) {
+                LOGGER.error(`Error inserting for ${symbol}`, e);
             }
         }
     }

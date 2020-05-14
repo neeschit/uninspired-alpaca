@@ -52,9 +52,9 @@ export const manageOpenOrder = async (symbol: string, strategy: NarrowRangeBarSt
     try {
         const order = openingPositionOrders[0];
         const screenerData: Bar[] = await getBarsFromDataService(symbol);
-        const isValid = validatePositionEntryPlan(screenerData, order.side, strategy.closePrice);
+        const isInvalid = validatePositionEntryPlan(screenerData, order.side, strategy.closePrice);
 
-        if (!isValid) {
+        if (isInvalid) {
             await alpaca.cancelOrder(order.id);
         }
     } catch (e) {
