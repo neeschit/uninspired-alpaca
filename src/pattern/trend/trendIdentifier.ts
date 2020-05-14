@@ -1,6 +1,7 @@
 import { getAverageDirectionalIndex } from "../../indicator/adx";
 import { Bar } from "../../data/data.model";
 import { LOGGER } from "../../instrumentation/log";
+import { getDirectionalMovementIndex } from "../../indicator/dmi";
 
 export enum TrendType {
     up = "up",
@@ -107,4 +108,16 @@ export const getOverallTrendWithSuppliedAdx = ({
     return Math.abs(pdx[pdx.length - 1]) > Math.abs(ndx[ndx.length - 1])
         ? TrendType.up
         : TrendType.down;
+};
+
+export const getTrend = (recentBars: Bar[], closePrice: number) => {
+    const lastBar = recentBars[recentBars.length - 1];
+
+    const recentTrend = getRecentTrend(recentBars.slice(-3));
+
+    if (recentTrend !== TrendType.sideways) {
+        return recentTrend;
+    }
+
+    return lastBar.c > closePrice ? TrendType.up : TrendType.down;
 };

@@ -18,7 +18,7 @@ const zonedEndDate = zonedTimeToUtc(endDate, MarketTimezone);
 const SYMBOLS = getMegaCaps();
 LOGGER.info(zonedStartDate.toISOString());
 
-const pr = 1;
+const pr = 1.1;
 
 const updateInterval = 60000;
 
@@ -32,10 +32,10 @@ const instance = new Backtester(
 );
 
 async function run() {
-    const filename = `./${format(zonedStartDate, "yyyy-MM")}-${format(
+    const filename = `./${format(zonedStartDate, "yyyy-MM-dd")}-${format(
         zonedEndDate,
-        "yyyy-MM"
-    )}-${pr}x.json`;
+        "yyyy-MM-dd"
+    )}-${pr}-${Date.now()}.json`;
 
     /* const pastPositionConfigs = JSON.parse(readFileSync(filename).toString()).sortedPositions;
 
