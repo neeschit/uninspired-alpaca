@@ -69,7 +69,19 @@ const getUnfilledPositionInsert = (position: TradePlan) => {
     `;
 };
 
+export const mapPlanToUnfilledPosition = (plan: TradePlan): PositionConfig => {
+    return {
+        ...plan,
+        quantity: 0,
+        originalQuantity: plan.quantity,
+        id: 1,
+    };
+};
+
 export const insertPlannedPosition = async (plan: TradePlan): Promise<PositionConfig> => {
+    if (process.env.NODE_ENV === "backtest") {
+        return mapPlanToUnfilledPosition(plan);
+    }
     const pool = getConnection();
 
     const query = getUnfilledPositionInsert(plan);
