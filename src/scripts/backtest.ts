@@ -11,7 +11,7 @@ import { MockBroker } from "../services/mockExecution";
 const startDate = "2020-05-12 9:00:00.000";
 const zonedStartDate = zonedTimeToUtc(startDate, MarketTimezone);
 
-const endDate = parseISO("2020-05-12 16:10:00.000");
+const endDate = parseISO("2020-05-13 16:10:00.000");
 
 const zonedEndDate = zonedTimeToUtc(endDate, MarketTimezone);
 

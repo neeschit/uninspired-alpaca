@@ -33,7 +33,7 @@
     "test": "NODE_ENV=test ava --watch --verbose",
     "test:ci": "NODE_ENV=test LOGLEVEL=4 ava **/*.spec.ts --verbose",
     "build": "tsc",
-    "backtest": "node --enable-source-maps build/scripts/backtest.js",
+    "backtest": "NODE_ENV=backtest node --enable-source-maps build/scripts/backtest.js",
     "createSchemas": "node --enable-source-maps build/scripts/createSchemas.js",
     "cacheData": "node --enable-source-maps build/scripts/cacheData.js",
     "streamer": "SERVICE_NAME=streamer node --inspect=9696 --enable-source-maps build/deployable/streamer.service.js",
