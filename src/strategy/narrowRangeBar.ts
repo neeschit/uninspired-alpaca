@@ -223,7 +223,6 @@ export class NarrowRangeBarStrategy {
             currentPositions.findIndex((p) => p.symbol === this.symbol) === -1;
 
         if (!notCurrentPosition) {
-            this.nrbs = [];
             return null;
         }
 
