@@ -31,10 +31,11 @@ export const assessRisk = (
 
 export const getActualStop = (
     price: number,
-    stopUnits: number,
+    intradayAtr: number,
     isShort: boolean,
     dailyAtr: number
 ): number => {
+    const stopUnits = assessRisk(dailyAtr, intradayAtr, price);
     const allowedLeeway = dailyAtr / 100;
     const stopPrice = isShort ? price + stopUnits : price - stopUnits;
 
@@ -46,6 +47,12 @@ export const getActualStop = (
 
     if (diff > allowedLeeway * 4) {
         return stopPrice;
+    }
+
+    if (Math.abs(price - roundedPrice) > 2 * intradayAtr && price > 500) {
+        return isShort
+            ? roundHalf(roundedPrice - intradayAtr)
+            : roundHalf(roundedPrice + intradayAtr);
     }
 
     return Number(roundedPrice.toFixed(2));

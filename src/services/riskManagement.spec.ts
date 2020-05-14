@@ -66,20 +66,37 @@ test("risk management with high price override", (t) => {
 });
 
 test("get actual stop with rounding to lowest - short entry", (t) => {
-    let actualStop = getActualStop(143, 0.7, true, 8.63);
+    let actualStop = getActualStop(143, 0.57, true, 8.63);
 
-    t.is(actualStop, 143.7);
+    t.is(actualStop, 144.08);
 
     actualStop = getActualStop(143, 0.87, true, 5.63);
 
     t.is(actualStop, 144.06);
 });
+
 test("get actual stop with rounding to lowest - long entry", (t) => {
-    let actualStop = getActualStop(143, 0.7, false, 5.63);
+    let actualStop = getActualStop(143, 0.57, false, 5.63);
 
     t.is(actualStop, 142.3);
 
     actualStop = getActualStop(143, 0.87, false, 5.63);
 
     t.is(actualStop, 141.94);
+});
+
+test("risk management with super high price override", (t) => {
+    const dailyAtr = 41;
+
+    const intradayAtr = 2.56;
+
+    const currentPrice = 765;
+
+    t.is(assessRisk(dailyAtr, intradayAtr, currentPrice), 5.13);
+});
+
+test("get actual stop for large price stock", (t) => {
+    let actualStop = getActualStop(765, 2.56, false, 41);
+
+    t.is(actualStop, 761.5);
 });

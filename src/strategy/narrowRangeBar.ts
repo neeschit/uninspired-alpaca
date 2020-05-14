@@ -295,7 +295,7 @@ export class NarrowRangeBarStrategy {
 
         const stop = getActualStop(
             entryPrice,
-            stopUnits,
+            currentIntradayAtr,
             this.direction === TradeDirection.sell,
             this.atr
         );
