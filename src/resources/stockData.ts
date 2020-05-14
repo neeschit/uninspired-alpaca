@@ -1,9 +1,10 @@
 import { getConnection } from "../connection/pg";
-import { TickBar, TradeUpdate, Bar } from "../data/data.model";
+import { TickBar, TradeUpdate, Bar, PeriodType, DefaultDuration } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
 import { getCreateOrdersTableSql } from "./order";
 import { getCreatePositionsTableSql } from "./position";
-import { set, getMinutes, addBusinessDays } from "date-fns";
+import { set, addBusinessDays } from "date-fns";
+import { getPolyonData } from "./polygon";
 const getAggregatedTickTableNameForSymbol = (symbol: string) => `tick_${symbol.toLowerCase()}`;
 
 const getCreateAggregatedBarsTableSql = (tablename: string) => `create table ${tablename} (
@@ -175,6 +176,31 @@ export const insertDailyBar = async (bar: TickBar, symbol: string) => {
     LOGGER.debug(query);
 
     return pool.query(query);
+};
+
+export const batchInsertDailyBars = async (bars: TickBar[], symbol: string) => {
+    const pool = getConnection();
+
+    const tablename = getDailyTableNameForSymbol(symbol);
+
+    const queries: string[] = [];
+
+    for (const bar of bars) {
+        const query = `insert into ${tablename} values (
+            ${getTimestampValue(bar.t)}, 
+            ${bar.o}, 
+            ${bar.h}, 
+            ${bar.l}, 
+            ${bar.c}, 
+            ${bar.v}
+        );`;
+
+        LOGGER.debug(query);
+
+        queries.push(query);
+    }
+
+    return pool.query(queries.join("\n"));
 };
 
 export const insertBar = async (bar: TickBar, symbol: string, isMinute = false) => {
@@ -445,4 +471,24 @@ export const getYesterdaysEndingBars = async (
             t: new Date(r.time_bucket).getTime(),
         };
     });
+};
+
+export const cacheDailyBarsForSymbol = async (symbol: string) => {
+    const daysMinutes = await getPolyonData(
+        symbol,
+        addBusinessDays(Date.now(), -18),
+        addBusinessDays(Date.now(), 1),
+        PeriodType.day,
+        DefaultDuration.one
+    );
+
+    if (!daysMinutes[symbol] || !daysMinutes[symbol].length) {
+        return;
+    }
+
+    try {
+        await batchInsertDailyBars(daysMinutes[symbol], symbol);
+    } catch (e) {
+        LOGGER.error(`Error inserting for ${symbol}`, e);
+    }
 };
