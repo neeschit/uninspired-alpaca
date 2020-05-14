@@ -129,6 +129,8 @@ declare module "@neeschit/alpaca-trade-api" {
         change_today: string;
     }
 
+    export type SimpleAlpacaPosition = Pick<AlpacaPosition, "symbol" | "qty" | "avg_entry_price">;
+
     export type AlpacaOrderStatusFilter = "open" | "closed" | "all";
 
     export type SortDirection = "asc" | "desc";

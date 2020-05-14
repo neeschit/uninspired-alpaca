@@ -174,4 +174,6 @@ server.post("/orders/:symbol", async (request) => {
     }
 });
 
-refreshPositions().catch(LOGGER.error);
+if (process.env.NODE_ENV !== "test") {
+    refreshPositions().catch(LOGGER.error);
+}

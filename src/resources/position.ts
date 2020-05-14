@@ -145,3 +145,20 @@ export const updatePosition = async (
 
     return result;
 };
+
+export const forceUpdatePosition = async (
+    originalPosition: Position,
+    quantity: number,
+    price?: number
+) => {
+    if (!originalPosition) {
+        throw new Error("No position");
+    }
+    const pool = getConnection();
+
+    const query = updatePositionSql(originalPosition.id, quantity, price);
+
+    const result = await pool.query(query);
+
+    return result;
+};

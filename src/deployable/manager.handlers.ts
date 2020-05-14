@@ -4,6 +4,7 @@ import {
     AlpacaPosition,
     AlpacaStreamingOrderUpdate,
     OrderStatus,
+    SimpleAlpacaPosition,
 } from "@neeschit/alpaca-trade-api";
 import { getOrder } from "../resources/order";
 import { LOGGER } from "../instrumentation/log";
@@ -14,13 +15,14 @@ import {
     Position,
     getOpenPositions,
     updatePosition,
+    forceUpdatePosition,
 } from "../resources/position";
 import { TradeManagement } from "../services/tradeManagement";
 import { TradeConfig, Bar, TradePlan } from "../data/data.model";
 import { getTodaysData } from "../resources/stockData";
 import { postPartial } from "../util/slack";
-import { postSubscriptionRequestForTickUpdates } from "./streamer.service";
 import { Service } from "../util/api";
+import { postSubscriptionRequestForTickUpdates } from "./streamer.service";
 
 const pr = 1;
 
@@ -44,6 +46,54 @@ export const refreshPositions = async () => {
 
     dbPositionCache.length = 0;
     dbPositionCache.push(...dbPos);
+
+    await ensureDbPositionsAreInSync(pos, dbPos);
+};
+
+export const checkIfPositionsNeedRefreshing = (
+    alpacaPositionsMap: { [index: string]: SimpleAlpacaPosition },
+    dbPositions: Position[]
+) => {
+    const unEqualPositions = dbPositions.filter((p) => {
+        const alpacaPosition = alpacaPositionsMap[p.symbol];
+
+        if (!alpacaPosition) {
+            return true;
+        }
+
+        return (
+            Number(alpacaPosition.qty) !== p.quantity ||
+            Number(alpacaPosition.avg_entry_price) !== p.average_entry_price
+        );
+    });
+
+    return unEqualPositions;
+};
+
+const ensureDbPositionsAreInSync = async (
+    alpacaPositions: SimpleAlpacaPosition[],
+    dbPositions: Position[]
+) => {
+    const map = alpacaPositions.reduce((map, pos) => {
+        map[pos.symbol] = pos;
+        return map;
+    }, {} as { [index: string]: SimpleAlpacaPosition });
+
+    const unEqualPositions = checkIfPositionsNeedRefreshing(map, dbPositions);
+
+    for (const p of unEqualPositions) {
+        const alpacaPosition = map[p.symbol];
+
+        if (alpacaPosition) {
+            await forceUpdatePosition(
+                p,
+                Number(alpacaPosition.qty),
+                Number(alpacaPosition.avg_entry_price)
+            );
+        } else {
+            await forceUpdatePosition(p, 0);
+        }
+    }
 };
 
 const refreshOpenOrders = async () => {
