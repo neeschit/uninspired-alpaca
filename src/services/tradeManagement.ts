@@ -15,8 +15,7 @@ import { isMarketClosing } from "../util/market";
 import { insertOrder } from "../resources/order";
 import { insertPlannedPosition, FilledPositionConfig, PositionConfig } from "../resources/position";
 import { roundHalf } from "../util";
-import { TrendType } from "../pattern/trend/trendIdentifier";
-import { getDirectionalMovementIndex } from "../indicator/dmi";
+import { TrendType, getTrend } from "../pattern/trend/trendIdentifier";
 
 export const isClosingOrder = (currentPosition: FilledPositionConfig, tradeConfig: TradeConfig) => {
     if (currentPosition.side === PositionDirection.long) {
@@ -26,10 +25,12 @@ export const isClosingOrder = (currentPosition: FilledPositionConfig, tradeConfi
     }
 };
 
-export const validatePositionEntryPlan = (recentBars: Bar[], side: TradeDirection) => {
-    const { pdmi, ndmi } = getDirectionalMovementIndex(recentBars);
-
-    const trend = pdmi[pdmi.length - 1] > ndmi[ndmi.length - 1] ? TrendType.up : TrendType.down;
+export const validatePositionEntryPlan = (
+    recentBars: Bar[],
+    side: TradeDirection,
+    closePrice: number
+) => {
+    const trend = getTrend(recentBars, closePrice);
 
     const cancel =
         (trend === TrendType.up && side === TradeDirection.sell) ||
@@ -167,22 +168,25 @@ export const rebalancePosition = async (
 
     const positionPercentageLeft = quantity / originalQuantity;
 
+    const allowedSlippage =
+        currentBar.c < 50 ? 0.03 : currentBar.c > 500 ? 0.5 : currentBar.c > 300 ? 0.15 : 0.06;
+
     const plannedExitPrice =
         positionSide === PositionDirection.long
-            ? roundHalf(plannedEntryPrice + plannedRiskUnits) - 0.01
-            : roundHalf(plannedEntryPrice - plannedRiskUnits) + 0.01;
+            ? roundHalf(plannedEntryPrice + plannedRiskUnits) - allowedSlippage
+            : roundHalf(plannedEntryPrice - plannedRiskUnits) + allowedSlippage;
 
-    if (currentProfitRatio >= partialProfitRatio * 0.7 && positionPercentageLeft > 0.2) {
+    if (currentProfitRatio >= partialProfitRatio * 0.8) {
         return {
             symbol,
             price: plannedExitPrice,
             type: TradeType.limit,
             side: closingOrderSide,
             tif: TimeInForce.gtc,
-            quantity: Math.ceil(quantity * 0.8),
+            quantity: quantity,
             t,
         };
-    } else if (currentProfitRatio > partialProfitRatio * 1.5) {
+    } /*  else if (currentProfitRatio > partialProfitRatio * 1.5) {
         const partialRiskUnits = plannedRiskUnits * 2;
         const plannedExitPrice =
             positionSide === PositionDirection.long
@@ -198,7 +202,7 @@ export const rebalancePosition = async (
             quantity: quantity,
             t,
         };
-    }
+    } */
 
     return null;
 };
@@ -418,7 +422,7 @@ export class TradeManagement {
     }
 
     checkIfPositionEntryIsInvalid(recentBars: Bar[], alpacaOrder: AlpacaOrder) {
-        const cancel = validatePositionEntryPlan(recentBars, alpacaOrder.side);
+        const cancel = validatePositionEntryPlan(recentBars, alpacaOrder.side, 0);
 
         if (cancel) {
             this.broker.cancelOrder(alpacaOrder.id);

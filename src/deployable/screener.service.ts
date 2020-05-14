@@ -4,8 +4,9 @@ import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
 import { getSimpleData, cacheDailyBarsForSymbol } from "../resources/stockData";
 import { addBusinessDays } from "date-fns";
 import { LOGGER } from "../instrumentation/log";
-import { screenSymbol } from "./screener.handlers";
+import { screenSymbol, manageOpenOrder } from "./screener.handlers";
 import { postNewTrade } from "./manager.service";
+import { TickBar } from "../data/data.model";
 
 const server = getApiServer(Service.screener);
 
@@ -52,6 +53,38 @@ server.post("/screen/:symbol", async (request) => {
     if (order) {
         await postNewTrade(order);
     }
+
+    return {
+        success: true,
+    };
+});
+
+export const postRequestToManageOpenOrders = async (symbol: string, bar: TickBar) => {
+    try {
+        return messageService(Service.screener, `/manage_open_order/${symbol}`, bar);
+    } catch (e) {
+        LOGGER.error(e);
+    }
+
+    return {
+        success: true,
+    };
+};
+
+server.post("/manage_open_order/:symbol", async (request) => {
+    const symbol = request.params && request.params.symbol;
+
+    const strategy = strategies.find((s) => s.symbol === symbol);
+
+    if (!strategy) {
+        LOGGER.error("hey hey, no strategy no money");
+
+        return {
+            success: false,
+        };
+    }
+
+    await manageOpenOrder(symbol, strategy);
 
     return {
         success: true,

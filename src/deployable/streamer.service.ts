@@ -5,13 +5,9 @@ import { insertTrade } from "../resources/stockData";
 import { updateOrder } from "../resources/order";
 import { messageService, Service, getApiServer } from "../util/api";
 import { handleSubscriptionRequest } from "./streamer.handlers";
-import {
-    postOrderToManage,
-    postRequestToManageOpenPosition,
-    postRequestToManageOpenOrders,
-} from "./manager.service";
+import { postOrderToManage, postRequestToManageOpenPosition } from "./manager.service";
 import { postAggregatedMinuteUpdate } from "./data.service";
-import { postRequestScreenSymbol } from "./screener.service";
+import { postRequestScreenSymbol, postRequestToManageOpenOrders } from "./screener.service";
 
 const server = getApiServer(Service.streamer);
 

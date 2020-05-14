@@ -106,7 +106,7 @@ const refreshOpenOrders = async () => {
     recentOrders = [];
 };
 
-export async function checkIfOrderIsValid(
+async function checkIfOrderIsValid(
     order: AlpacaOrder,
     index: number,
     openingPositionOrders: AlpacaOrder[]
@@ -150,21 +150,6 @@ export async function checkIfOrderIsValid(
     const data = await getTodaysData(order.symbol);
     return manager.checkIfPositionEntryIsInvalid(data, order);
 }
-
-export const manageOpenOrder = async (symbol: string) => {
-    const openingPositionOrders = openOrderCache.filter(
-        (o) =>
-            o.symbol === symbol &&
-            positionCache.every((p) => p.symbol !== o.symbol) &&
-            o.status !== OrderStatus.pending_cancel
-    );
-
-    try {
-        await Promise.all(openingPositionOrders.map(checkIfOrderIsValid));
-    } catch (e) {
-        LOGGER.error(e);
-    }
-};
 
 export const handlePriceUpdateForPosition = async (symbol: string, bar: Bar) => {
     if (!bar) {

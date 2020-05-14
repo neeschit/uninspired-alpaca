@@ -9,7 +9,6 @@ import {
 import { Position } from "../resources/position";
 import { postEntry } from "../util/slack";
 import {
-    manageOpenOrder,
     handlePriceUpdateForPosition,
     refreshPositions,
     positionCache,
@@ -48,28 +47,6 @@ server.post("/manage_open_position/:symbol", async (request) => {
     } catch (e) {
         LOGGER.error(e);
     }
-
-    return {
-        success: true,
-    };
-});
-
-export const postRequestToManageOpenOrders = async (symbol: string, bar: TickBar) => {
-    try {
-        return messageService(Service.manager, `/manage_open_order/${symbol}`, bar);
-    } catch (e) {
-        LOGGER.error(e);
-    }
-
-    return {
-        success: true,
-    };
-};
-
-server.post("/manage_open_order/:symbol", async (request) => {
-    const symbol = request.params && request.params.symbol;
-
-    await manageOpenOrder(symbol);
 
     return {
         success: true,

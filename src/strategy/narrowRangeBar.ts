@@ -1,4 +1,4 @@
-import { TrendType } from "../pattern/trend/trendIdentifier";
+import { TrendType, getTrend } from "../pattern/trend/trendIdentifier";
 import { TRADING_RISK_UNIT_CONSTANT, assessRisk, getActualStop } from "../services/riskManagement";
 import { isMarketOpen } from "../util/market";
 import {
@@ -147,7 +147,7 @@ export class NarrowRangeBarStrategy {
 
         return (
             isNarrowRangeBar &&
-            (Math.abs(roundedLow - bar.l) < 0.04 || Math.abs(roundedHigh - bar.h) < 0.04) &&
+            (Math.abs(roundedLow - bar.l) < 0.03 || Math.abs(roundedHigh - bar.h) < 0.03) &&
             this.isVeryNarrowRangeBar(max, min)
         );
     }
@@ -229,16 +229,18 @@ export class NarrowRangeBarStrategy {
 
         const lastBar = recentBars[recentBars.length - 1];
 
-        const { pdmi, ndmi } = getDirectionalMovementIndex(recentBars);
-
-        const trend = pdmi[pdmi.length - 1] > ndmi[ndmi.length - 1] ? TrendType.up : TrendType.down;
+        const trend = getTrend(recentBars, this.closePrice);
 
         try {
             const currentIntradayAtr = atr[atr.length - 1].value;
             const plan = this.getPlan(trend, currentIntradayAtr, lastBar);
 
             if (plan) {
-                const isInvalid = validatePositionEntryPlan(recentBars, plan?.config.side);
+                const isInvalid = validatePositionEntryPlan(
+                    recentBars,
+                    plan.config.side,
+                    this.closePrice
+                );
 
                 if (!isInvalid) {
                     return plan;
