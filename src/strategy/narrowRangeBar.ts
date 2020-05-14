@@ -1,5 +1,5 @@
 import { TrendType } from "../pattern/trend/trendIdentifier";
-import { TRADING_RISK_UNIT_CONSTANT } from "../services/riskManagement";
+import { TRADING_RISK_UNIT_CONSTANT, assessRisk, getActualStop } from "../services/riskManagement";
 import { isMarketOpen } from "../util/market";
 import {
     TimestampType,
@@ -18,6 +18,7 @@ import { getAverageTrueRange } from "../indicator/trueRange";
 import { isSameDay } from "date-fns";
 import { roundHalf } from "../util";
 import { validatePositionEntryPlan } from "../services/tradeManagement";
+import { getDirectionalMovementIndex } from "../indicator/dmi";
 
 export class NarrowRangeBarStrategy {
     symbol: string;
@@ -228,10 +229,13 @@ export class NarrowRangeBarStrategy {
 
         const lastBar = recentBars[recentBars.length - 1];
 
-        const trend = lastBar.c > this.closePrice ? TrendType.up : TrendType.down;
+        const { pdmi, ndmi } = getDirectionalMovementIndex(recentBars);
+
+        const trend = pdmi[pdmi.length - 1] > ndmi[ndmi.length - 1] ? TrendType.up : TrendType.down;
 
         try {
-            const plan = this.getPlan(trend, atr[atr.length - 1].value, lastBar);
+            const currentIntradayAtr = atr[atr.length - 1].value;
+            const plan = this.getPlan(trend, currentIntradayAtr, lastBar);
 
             if (plan) {
                 const isInvalid = validatePositionEntryPlan(recentBars, plan?.config.side);
@@ -254,7 +258,7 @@ export class NarrowRangeBarStrategy {
         };
     }
 
-    getPlan(trend: TrendType, atr: number, lastBar: Bar) {
+    getPlan(trend: TrendType, currentIntradayAtr: number, lastBar: Bar) {
         if (!this.nrbs.length) {
             return null;
         }
@@ -273,6 +277,8 @@ export class NarrowRangeBarStrategy {
             return null;
         }
 
+        const stopUnits = assessRisk(this.atr, currentIntradayAtr, lastBar.c);
+
         const entryBar = this.nrbs[this.nrbs.length - 1];
 
         const { entryLong, entryShort } = this.getEntryPrices(entryBar);
@@ -285,12 +291,14 @@ export class NarrowRangeBarStrategy {
             return null;
         }
 
-        const stopUnits = lastBar.c < 30 ? Math.max(atr, 0.2) : Math.max(atr, 0.5);
+        const entryPrice = this.direction === TradeDirection.buy ? entryLong : entryShort;
 
-        const stopLong =
-            stopUnits > 0.2 ? roundHalf(entryLong - stopUnits) - 0.05 : entryLong - stopUnits;
-        const stopShort =
-            stopUnits > 0.2 ? roundHalf(entryShort + stopUnits) + 0.05 : entryShort + stopUnits;
+        const stop = getActualStop(
+            entryPrice,
+            stopUnits,
+            this.direction === TradeDirection.sell,
+            this.atr
+        );
         const unitRisk = stopUnits;
 
         const quantity = Math.ceil(TRADING_RISK_UNIT_CONSTANT / stopUnits);
@@ -300,15 +308,15 @@ export class NarrowRangeBarStrategy {
             return null;
         }
 
-        const riskAtrRatio = atr / unitRisk;
+        const riskAtrRatio = currentIntradayAtr / unitRisk;
 
-        const allowedSlippage = Number((atr / 10).toFixed(2));
+        const allowedSlippage = Number((currentIntradayAtr / 10).toFixed(2));
 
         if (this.direction === TradeDirection.buy) {
             this.lastEntryAttemptedTimestamp = lastBar.t;
             const plan = {
                 plannedEntryPrice: entryLong,
-                plannedStopPrice: stopLong,
+                plannedStopPrice: stop,
                 riskAtrRatio,
                 quantity,
                 side: PositionDirection.long,
@@ -332,7 +340,7 @@ export class NarrowRangeBarStrategy {
             this.lastEntryAttemptedTimestamp = lastBar.t;
             const plan = {
                 plannedEntryPrice: entryShort,
-                plannedStopPrice: stopShort,
+                plannedStopPrice: stop,
                 riskAtrRatio,
                 quantity,
                 side: PositionDirection.short,

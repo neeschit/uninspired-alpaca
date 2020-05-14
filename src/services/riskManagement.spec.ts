@@ -1,5 +1,5 @@
 import test from "ava";
-import { assessRisk } from "./riskManagement";
+import { assessRisk, getActualStop } from "./riskManagement";
 
 const volumeProfile = [
     { v: 4810450, low: 161, high: 162 },
@@ -22,37 +22,64 @@ const volumeProfile = [
     { v: 739647, low: 157, high: 158 },
     { v: 651037, low: 157, high: 158 },
     { v: 568277, low: 168, high: 168 },
-    { v: 478648, low: 165, high: 166 }
+    { v: 478648, low: 165, high: 166 },
 ];
 
-test("risk management - basic - should identify nearest high quality stop loss", t => {
-    const risk = assessRisk(
-        volumeProfile,
-        {
-            t: 1580878800000,
-            value: 3.7687595434568366
-        },
-        /* 169.11675925278186, */
-        170.42,
-        169.5,
-        171.7
-    );
+test("risk management with low price override ", (t) => {
+    const dailyAtr = 2;
 
-    t.is(risk, 3.5);
+    const intradayAtr = 0.2;
+
+    const currentPrice = 65;
+
+    t.is(assessRisk(dailyAtr, intradayAtr, currentPrice), 0.3);
 });
 
-test("risk management - risky - should recognize tight stop and ", t => {
-    const risk = assessRisk(
-        volumeProfile,
-        {
-            t: 1580878800000,
-            value: 2.0687595434568366
-        },
-        /* 169.11675925278186, */
-        170.42,
-        169.4,
-        171.7
-    );
+test("risk management with intraday override", (t) => {
+    const dailyAtr = 2;
 
-    t.true(risk > 1.6 && risk < 1.8);
+    const intradayAtr = 0.45;
+
+    const currentPrice = 65;
+
+    t.is(assessRisk(dailyAtr, intradayAtr, currentPrice), 0.45);
+});
+
+test("risk management with override for mid price", (t) => {
+    const dailyAtr = 5.63;
+
+    const intradayAtr = 0.57;
+
+    const currentPrice = 143;
+
+    t.is(assessRisk(dailyAtr, intradayAtr, currentPrice), 0.7);
+});
+
+test("risk management with high price override", (t) => {
+    const dailyAtr = 8;
+
+    const intradayAtr = 0.56;
+
+    const currentPrice = 301;
+
+    t.is(assessRisk(dailyAtr, intradayAtr, currentPrice), 1);
+});
+
+test("get actual stop with rounding to lowest - short entry", (t) => {
+    let actualStop = getActualStop(143, 0.7, true, 8.63);
+
+    t.is(actualStop, 143.7);
+
+    actualStop = getActualStop(143, 0.87, true, 5.63);
+
+    t.is(actualStop, 144.06);
+});
+test("get actual stop with rounding to lowest - long entry", (t) => {
+    let actualStop = getActualStop(143, 0.7, false, 5.63);
+
+    t.is(actualStop, 142.3);
+
+    actualStop = getActualStop(143, 0.87, false, 5.63);
+
+    t.is(actualStop, 141.94);
 });

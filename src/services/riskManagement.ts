@@ -1,39 +1,52 @@
 import { VolumeProfileBar } from "../indicator/volumeProfile";
 import { IndicatorValue } from "../indicator/adx";
+import { Bar } from "../data/data.model";
+import { roundHalf, ceilHalf, floorHalf } from "../util";
 
 export const TRADING_RISK_UNIT_CONSTANT = 100;
 
 export const assessRisk = (
-    volumeProfile: VolumeProfileBar[],
-    atr: IndicatorValue<number>,
-    currentPrice: number,
-    proposedEntryPrice: number,
-    simpleStop: number
-) => {
-    const isShort = proposedEntryPrice < currentPrice;
+    dailyAtr: number,
+    currentIntradayAtr: number,
+    currentPrice: number
+): number => {
+    const minStop = Number((dailyAtr / 8).toFixed(2));
 
-    const minStop = atr.value;
+    // const minStop = rawStop > 0.5 ? roundHalf(rawStop) : rawStop;
 
-    const proposedStopPrice = isShort
-        ? Math.round(proposedEntryPrice + minStop)
-        : Math.round(proposedEntryPrice - minStop);
+    const proposedStopUnits = Math.max(minStop, currentIntradayAtr, 0.3);
 
-    const isSafe = isShort ? proposedStopPrice > simpleStop : proposedStopPrice < simpleStop;
-
-    const nearestVolumeProfileStop = volumeProfile.find((bar) => {
-        return bar.low <= proposedStopPrice && bar.high >= proposedStopPrice;
-    });
-
-    let stop = proposedStopPrice;
-
-    if (nearestVolumeProfileStop) {
-        const slippage = (Math.max(0.5, Math.random()) * atr.value) / 15;
-        stop = isShort ? nearestVolumeProfileStop.high : nearestVolumeProfileStop.low;
-
-        if (!isSafe) {
-            stop = isShort ? stop + slippage : stop - slippage;
-        }
+    if (currentPrice > 500) {
+        return Math.max(proposedStopUnits, 4);
+    } else if (currentPrice > 350) {
+        return Math.max(proposedStopUnits, 2);
+    } else if (currentPrice > 150) {
+        return Math.max(proposedStopUnits, 1);
+    } else if (currentPrice > 80) {
+        return Math.max(proposedStopUnits, 0.5);
     }
 
-    return isShort ? stop - proposedEntryPrice : proposedEntryPrice - stop;
+    return proposedStopUnits;
+};
+
+export const getActualStop = (
+    price: number,
+    stopUnits: number,
+    isShort: boolean,
+    dailyAtr: number
+): number => {
+    const allowedLeeway = dailyAtr / 100;
+    const stopPrice = isShort ? price + stopUnits : price - stopUnits;
+
+    const roundedPrice = isShort
+        ? ceilHalf(stopPrice) + allowedLeeway
+        : floorHalf(stopPrice) - allowedLeeway;
+
+    const diff = Math.abs(roundedPrice - stopPrice);
+
+    if (diff > allowedLeeway * 4) {
+        return stopPrice;
+    }
+
+    return Number(roundedPrice.toFixed(2));
 };
