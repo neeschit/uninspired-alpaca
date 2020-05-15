@@ -63,8 +63,8 @@ export const checkIfPositionsNeedRefreshing = (
         }
 
         return (
-            Number(alpacaPosition.qty) !== p.quantity ||
-            Number(alpacaPosition.avg_entry_price) !== p.average_entry_price
+            Number(alpacaPosition.qty) != p.quantity ||
+            Number(alpacaPosition.avg_entry_price) != p.average_entry_price
         );
     });
 
@@ -237,6 +237,8 @@ export const handlePositionEntry = async (trade: { plan: TradePlan; config: Trad
 };
 
 export const handleOrderUpdateForSymbol = async (orderUpdate: AlpacaStreamingOrderUpdate) => {
+    refreshPositions().then(postSubscriptionRequestForTickUpdates).catch(LOGGER.error);
+
     const order = await getOrder(Number(orderUpdate.order.client_order_id));
 
     if (!order) {
@@ -251,10 +253,6 @@ export const handleOrderUpdateForSymbol = async (orderUpdate: AlpacaStreamingOrd
     }
 
     await updatePosition(position, orderUpdate.position_qty, orderUpdate.price);
-
-    await refreshPositions();
-
-    postSubscriptionRequestForTickUpdates();
 
     LOGGER.debug(`Position of ${position.id} updated for ${position.symbol}`);
 };

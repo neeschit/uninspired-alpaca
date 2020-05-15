@@ -135,7 +135,7 @@ const updatePositionSql = (quantity: number, id: number, price?: number) => {
     return `
     update positions set quantity=${Math.abs(Number(quantity))} ${
         price ? ", average_entry_price=" + price : ""
-    } where id=${id}
+    } where id=${id};
 `;
 };
 
@@ -178,7 +178,7 @@ export const forceUpdatePosition = async (
     }
     const pool = getConnection();
 
-    const query = updatePositionSql(originalPosition.id, quantity, price);
+    const query = updatePositionSql(quantity, originalPosition.id, price);
 
     const result = await pool.query(query);
 
