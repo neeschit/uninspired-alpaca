@@ -121,6 +121,16 @@ export const getOpenPositions = async (): Promise<Position[]> => {
     return result.rows;
 };
 
+export const getRecentlyClosedPositions = async (): Promise<Position[]> => {
+    const pool = getConnection();
+
+    const result = await pool.query(`
+        select * from positions where quantity = 0 AND updated_at > NOW() - INTERVAL '15 minutes' order by updated_at desc limit 30;
+    `);
+
+    return result.rows;
+};
+
 const updatePositionSql = (quantity: number, id: number, price?: number) => {
     return `
     update positions set quantity=${Math.abs(Number(quantity))} ${

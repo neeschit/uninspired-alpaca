@@ -30,7 +30,8 @@ export const managerCache: TradeManagement[] = [];
 
 export const positionCache: AlpacaPosition[] = [];
 export const openOrderCache: AlpacaOrder[] = [];
-export const dbPositionCache: Position[] = [];
+export const openDbPositionCache: Position[] = [];
+
 let recentOrders: string[] = [];
 
 export const refreshPositions = async () => {
@@ -44,8 +45,8 @@ export const refreshPositions = async () => {
 
     const dbPos = await getOpenPositions();
 
-    dbPositionCache.length = 0;
-    dbPositionCache.push(...dbPos);
+    openDbPositionCache.length = 0;
+    openDbPositionCache.push(...dbPos);
 
     await ensureDbPositionsAreInSync(pos, dbPos);
 };
@@ -178,7 +179,7 @@ export const getManager = async (symbol: string) => {
     );
 
     if (!manager) {
-        const position = dbPositionCache.find((p) => p.symbol === symbol);
+        const position = openDbPositionCache.find((p) => p.symbol === symbol);
 
         if (!position) {
             LOGGER.error(`aww hell`);

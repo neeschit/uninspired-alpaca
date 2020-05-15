@@ -1,14 +1,10 @@
-import { AlpacaPosition, AlpacaOrder, PositionDirection } from "@neeschit/alpaca-trade-api";
 import { LOGGER } from "../instrumentation/log";
-import { Bar, OrderStatus, TradeConfig } from "../data/data.model";
+import { Bar, OrderStatus } from "../data/data.model";
 import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
-import { getCachedCurrentState } from "./manager.service";
+import { getCachedCurrentState, CurrentState } from "./manager.service";
 import { getBarsFromDataService } from "./data.service";
-import { getOrder } from "../resources/order";
 import { alpaca } from "../resources/alpaca";
-import { getPosition, PositionConfig } from "../resources/position";
-import { TradeManagement, validatePositionEntryPlan } from "../services/tradeManagement";
-import { getTodaysData } from "../resources/stockData";
+import { validatePositionEntryPlan } from "../services/tradeManagement";
 
 export const screenSymbol = async (
     strategies: NarrowRangeBarStrategy[],
@@ -17,7 +13,17 @@ export const screenSymbol = async (
 ) => {
     const strategy = strategies.find((s) => s.symbol === symbol);
 
-    const { positions }: { positions: AlpacaPosition[] } = await getCachedCurrentState();
+    const {
+        positions,
+        recentlyClosedDbPositions,
+    }: Pick<
+        CurrentState,
+        "positions" | "recentlyClosedDbPositions"
+    > = await getCachedCurrentState();
+
+    if (recentlyClosedDbPositions.some((p) => p.symbol === symbol)) {
+        return null;
+    }
 
     if (!strategy) {
         LOGGER.warn(`Is this possible? ${symbol}`);
