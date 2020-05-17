@@ -56,6 +56,7 @@ export interface PolygonBar {
     v: number;
     t: number;
     vw: number;
+    n?: number;
 }
 
 export interface TickBar extends Omit<Bar, "n"> {

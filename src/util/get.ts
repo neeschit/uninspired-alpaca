@@ -34,7 +34,7 @@ export const getHttps = (url: string) => {
                         retry();
                         return;
                     }
-                    if (count < 15) {
+                    if (count < 15 && response.statusCode !== 404) {
                         LOGGER.error(
                             `for url ${url}\nresponse: ${response.statusMessage}\n statusCode= ${response.statusCode})`
                         );
@@ -97,7 +97,7 @@ export const getHttp = <T extends any>({
                             retry();
                             return;
                         }
-                        if (count < 15) {
+                        if (count < 15 && response.statusCode !== 404) {
                             LOGGER.error(
                                 `for url ${url}\nresponse: ${response.statusMessage}\n statusCode= ${response.statusCode})`
                             );

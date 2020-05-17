@@ -1,4 +1,4 @@
-import { getMegaCaps } from "../data/filters";
+import { getMegaCaps, getLargeCaps, currentIndices, getUnfilteredMegaCaps } from "../data/filters";
 import { DefaultDuration, PeriodType } from "../data/data.model";
 import { addDays, startOfDay, addBusinessDays } from "date-fns";
 import { LOGGER } from "../instrumentation/log";
@@ -13,15 +13,19 @@ import {
 
 const companies: string[] = getMegaCaps();
 
-companies.push("SPY");
+companies.push(...currentIndices);
 
 async function run(duration = DefaultDuration.one, period = PeriodType.minute) {
     for (const symbol of companies) {
-        const startDate = startOfDay(addDays(Date.now(), -1));
-        const endDate = startOfDay(addDays(Date.now(), 0));
+        const startDate = startOfDay(addBusinessDays(Date.now(), -200));
+        const endDate = startOfDay(addDays(Date.now(), 1));
 
         for (let date = startDate; date.getTime() < endDate.getTime(); date = addDays(date, 1)) {
             const daysMinutes = await getPolyonData(symbol, date, date, period, duration);
+
+            if (!daysMinutes[symbol] || !daysMinutes[symbol].length) {
+                continue;
+            }
 
             try {
                 await batchInsertBars(daysMinutes[symbol], symbol, true);

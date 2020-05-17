@@ -125,7 +125,7 @@ export const getRecentlyClosedPositions = async (): Promise<Position[]> => {
     const pool = getConnection();
 
     const result = await pool.query(`
-        select * from positions where quantity = 0 AND updated_at > NOW() - INTERVAL '15 minutes' order by updated_at desc limit 30;
+        select * from positions where quantity = 0 AND updated_at > NOW() - INTERVAL '60 minutes' order by updated_at desc limit 30;
     `);
 
     return result.rows;

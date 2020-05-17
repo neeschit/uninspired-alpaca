@@ -7,6 +7,7 @@ export enum TrendType {
     up = "up",
     down = "down",
     sideways = "sideways",
+    unknown = "unknown",
 }
 
 const getMaxMin = (bars: Bar[]) => {
@@ -120,4 +121,98 @@ export const getTrend = (recentBars: Bar[], closePrice: number) => {
     } */
 
     return lastBar.c > closePrice ? TrendType.up : TrendType.down;
+};
+
+export enum TrendPhase {
+    initial,
+    big_move,
+    fizzle,
+}
+
+export interface TrendInformation {
+    value: TrendType;
+    trendBreakThreshold: number;
+    phase: TrendPhase;
+    details: {
+        peak: {
+            previous: number;
+            current: number;
+        };
+        trough: {
+            previous: number;
+            current: number;
+        };
+    };
+}
+
+export interface Trend {
+    primary: TrendInformation;
+    secondary?: TrendInformation[];
+}
+
+const defaultNoTrend: Trend = {
+    primary: {
+        value: TrendType.sideways,
+        phase: TrendPhase.initial,
+        trendBreakThreshold: 0,
+        details: {
+            peak: {
+                previous: 0,
+                current: 0,
+            },
+            trough: {
+                previous: 0,
+                current: 0,
+            },
+        },
+    },
+};
+
+export const getHeuristicTrend = (ydayClosingBar: Bar, todaysBars: Bar[]): Trend => {
+    if (!todaysBars || !todaysBars.length) {
+        return defaultNoTrend;
+    }
+
+    const closePrice = ydayClosingBar.c;
+    const firstBarToday = todaysBars[0];
+
+    const initialGap = firstBarToday.o - closePrice;
+
+    const partialTrend: Pick<TrendInformation, "trendBreakThreshold" | "details" | "phase"> = {
+        phase: TrendPhase.initial,
+        trendBreakThreshold: closePrice,
+        details: {
+            peak: {
+                current: firstBarToday.h,
+                previous: closePrice,
+            },
+            trough: {
+                current: firstBarToday.l,
+                previous: 0,
+            },
+        },
+    };
+
+    let trendDirection: TrendType;
+
+    if (initialGap > 0) {
+        trendDirection = TrendType.up;
+    } else {
+        trendDirection = TrendType.down;
+    }
+    let initialTrend: TrendInformation = {
+        ...partialTrend,
+        value: trendDirection,
+    };
+
+    const trend = todaysBars.reduce(
+        (newTrend, bar) => {
+            return newTrend;
+        },
+        {
+            primary: initialTrend,
+        }
+    );
+
+    return trend;
 };
