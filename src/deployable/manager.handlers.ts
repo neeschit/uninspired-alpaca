@@ -34,14 +34,14 @@ export const openDbPositionCache: Position[] = [];
 
 let recentOrders: string[] = [];
 
-export const refreshPositions = async () => {
+export const refreshPositions = async (refreshOrders = true) => {
     const pos = await alpaca.getPositions();
 
     positionCache.length = 0;
 
     positionCache.push(...pos);
 
-    await refreshOpenOrders();
+    if (refreshOrders) await refreshOpenOrders();
 
     const dbPos = await getOpenPositions();
 
@@ -49,6 +49,11 @@ export const refreshPositions = async () => {
     openDbPositionCache.push(...dbPos);
 
     await ensureDbPositionsAreInSync(pos, dbPos);
+
+    const dbPos1 = await getOpenPositions();
+
+    openDbPositionCache.length = 0;
+    openDbPositionCache.push(...dbPos1);
 };
 
 export const checkIfPositionsNeedRefreshing = (
@@ -104,7 +109,15 @@ const refreshOpenOrders = async () => {
 
     openOrderCache.push(...orders);
 
-    recentOrders = [];
+    const filteredOrders = recentOrders.filter((symbol) =>
+        orders.every((o) => o.symbol !== symbol)
+    );
+
+    if (filteredOrders.length) {
+        refreshPositions(false).then(() => {
+            recentOrders = [];
+        });
+    }
 };
 
 async function checkIfOrderIsValid(
@@ -163,13 +176,20 @@ export const handlePriceUpdateForPosition = async (symbol: string, bar: Bar) => 
         LOGGER.error(`no manager for symbol ${symbol}`);
         return;
     }
+
+    if (recentOrders.some((s) => s === symbol)) {
+        LOGGER.warn(`not ready as there appears to be an open order`);
+        return;
+    }
+
     const openOrders = openOrderCache.filter((o) => o.symbol === symbol);
     const order = await manager.onTickUpdate(bar, openOrders);
 
     if (order) {
+        refreshOpenOrders().catch(LOGGER.error);
+        recentOrders.push(symbol);
         openOrderCache.push(order);
         await postPartial(order);
-        refreshOpenOrders().catch(LOGGER.error);
     }
 };
 

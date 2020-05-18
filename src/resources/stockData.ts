@@ -476,8 +476,8 @@ export const getYesterdaysEndingBars = async (
 export const cacheDailyBarsForSymbol = async (symbol: string) => {
     const daysMinutes = await getPolyonData(
         symbol,
-        addBusinessDays(Date.now(), -18),
-        addBusinessDays(Date.now(), 1),
+        addBusinessDays(Date.now(), -1),
+        addBusinessDays(Date.now(), 0),
         PeriodType.day,
         DefaultDuration.one
     );
@@ -491,4 +491,15 @@ export const cacheDailyBarsForSymbol = async (symbol: string) => {
     } catch (e) {
         LOGGER.error(`Error inserting for ${symbol}`, e);
     }
+};
+
+export const deleteDailyBars = async (symbol: string, epoch: number) => {
+    const tablename = getDailyTableNameForSymbol(symbol);
+
+    const pool = getConnection();
+    const query = `delete from ${tablename} where t >= ${getTimestampValue(epoch)};`;
+    LOGGER.info(query);
+    const result = await pool.query(query);
+
+    return result;
 };

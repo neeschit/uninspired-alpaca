@@ -17,7 +17,7 @@ companies.push(...currentIndices);
 
 async function run(duration = DefaultDuration.one, period = PeriodType.minute) {
     for (const symbol of companies) {
-        const startDate = startOfDay(addBusinessDays(Date.now(), -200));
+        const startDate = startOfDay(addBusinessDays(Date.now(), -1));
         const endDate = startOfDay(addDays(Date.now(), 1));
 
         for (let date = startDate; date.getTime() < endDate.getTime(); date = addDays(date, 1)) {
@@ -31,6 +31,12 @@ async function run(duration = DefaultDuration.one, period = PeriodType.minute) {
                 await batchInsertBars(daysMinutes[symbol], symbol, true);
             } catch (e) {
                 LOGGER.error(`Error inserting for ${symbol}`, e);
+
+                try {
+                    for (const tick of daysMinutes[symbol]) {
+                        await insertBar(tick, symbol, true);
+                    }
+                } catch (e) {}
             }
         }
 

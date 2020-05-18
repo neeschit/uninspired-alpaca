@@ -40,7 +40,7 @@ export const getPolyonData = (
 
     return getHttps(url).then((response: any) => {
         if (!response.results) {
-            LOGGER.debug(url);
+            LOGGER.warn(url);
         }
         return {
             [symbol]: response.results,
