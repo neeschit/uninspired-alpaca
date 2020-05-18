@@ -323,11 +323,7 @@ export class TradeManagement {
             LOGGER.error(e);
         }
 
-        const config: TradeConfig | null = await rebalancePosition(
-            this.filledPosition,
-            currentBar,
-            this.partialProfitRatio
-        );
+        const config: TradeConfig | null = await this.rebalancePosition(currentBar);
 
         if (!config) {
             LOGGER.info(
