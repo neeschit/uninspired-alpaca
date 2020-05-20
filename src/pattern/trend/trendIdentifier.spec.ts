@@ -102,14 +102,28 @@ test("trend on a gap down and continue higher for SPY on 05/15", async (t) => {
     t.is(testBars.length, 1);
 
     let trend = getHeuristicTrend(lastBarYday, testBars);
-
     t.deepEqual(trend.primary, {
         value: TrendType.down,
         trendBreakThreshold: 285.05,
         phase: TrendPhase.initial,
         details: {
             peak: {
-                previous: 285.05,
+                previous: 0,
+                current: 285.05,
+            },
+            trough: {
+                previous: 0,
+                current: 281.78,
+            },
+        },
+    });
+    t.deepEqual(trend.secondary[0], {
+        value: TrendType.down,
+        trendBreakThreshold: 282.89,
+        phase: TrendPhase.initial,
+        details: {
+            peak: {
+                previous: 0,
                 current: 282.89,
             },
             trough: {
@@ -128,14 +142,31 @@ test("trend on a gap down and continue higher for SPY on 05/15", async (t) => {
     trend = getHeuristicTrend(lastBarYday, testBars);
 
     t.is(trend.primary.phase, TrendPhase.initial);
+
     t.deepEqual(trend.primary, {
         value: TrendType.down,
-        trendBreakThreshold: 285.06,
+        trendBreakThreshold: 285.05,
+        phase: TrendPhase.initial,
+        details: {
+            peak: {
+                previous: 0,
+                current: 285.05,
+            },
+            trough: {
+                previous: 281.78,
+                current: 281.34,
+            },
+        },
+    });
+
+    t.deepEqual(trend.secondary[0], {
+        value: TrendType.down,
+        trendBreakThreshold: 282.89,
         phase: TrendPhase.initial,
         details: {
             peak: {
                 previous: 282.89,
-                current: 282.92,
+                current: 282.94,
             },
             trough: {
                 previous: 281.78,
@@ -151,19 +182,49 @@ test("trend on a gap down and continue higher for SPY on 05/15", async (t) => {
     t.is(testBars.length, 3);
 
     trend = getHeuristicTrend(lastBarYday, testBars);
-
     t.deepEqual(trend.primary, {
         value: TrendType.down,
-        trendBreakThreshold: 285.06,
+        trendBreakThreshold: 285.05,
+        phase: TrendPhase.initial,
+        details: {
+            peak: {
+                previous: 0,
+                current: 285.05,
+            },
+            trough: {
+                previous: 281.78,
+                current: 281.34,
+            },
+        },
+    });
+
+    t.deepEqual(trend.secondary[0], {
+        value: TrendType.down,
+        trendBreakThreshold: 282.89,
+        phase: TrendPhase.initial,
+        details: {
+            peak: {
+                previous: 282.89,
+                current: 282.94,
+            },
+            trough: {
+                previous: 281.78,
+                current: 281.34,
+            },
+        },
+    });
+    t.deepEqual(trend.secondary[1], {
+        value: TrendType.up,
+        trendBreakThreshold: 282.67,
         phase: TrendPhase.big_move,
         details: {
             peak: {
-                previous: 282.92,
-                current: 283.6,
+                previous: 0,
+                current: 283.66,
             },
             trough: {
-                previous: -1,
-                current: 281.34,
+                previous: 0,
+                current: 282.67,
             },
         },
     });
@@ -179,10 +240,10 @@ test("trend on a gap down and continue higher for SPY on 05/15", async (t) => {
     t.deepEqual(trend.primary, {
         value: TrendType.down,
         phase: TrendPhase.big_move,
-        trendBreakThreshold: 285.06,
+        trendBreakThreshold: 285.05,
         details: {
             peak: {
-                previous: 282.92,
+                previous: 282.94,
                 current: 283.6,
             },
             trough: {
@@ -203,7 +264,7 @@ test("trend on a gap down and continue higher for SPY on 05/15", async (t) => {
     t.deepEqual(trend.primary, {
         value: TrendType.down,
         phase: TrendPhase.big_move,
-        trendBreakThreshold: 285.06,
+        trendBreakThreshold: 285.05,
         details: {
             peak: {
                 previous: 283.6,
@@ -227,7 +288,7 @@ test("trend on a gap down and continue higher for SPY on 05/15", async (t) => {
     t.is(trend.primary.phase, TrendPhase.big_move);
     t.deepEqual(trend.primary, {
         value: TrendType.down,
-        trendBreakThreshold: 285.06,
+        trendBreakThreshold: 285.05,
         phase: TrendPhase.big_move,
         details: {
             peak: {
@@ -253,7 +314,7 @@ test("trend on a gap down and continue higher for SPY on 05/15", async (t) => {
     t.deepEqual(trend.primary, {
         value: TrendType.down,
         phase: TrendPhase.big_move,
-        trendBreakThreshold: 285.06,
+        trendBreakThreshold: 285.05,
         details: {
             peak: {
                 previous: 283.6,
@@ -277,7 +338,7 @@ test("trend on a gap down and continue higher for SPY on 05/15", async (t) => {
     t.is(trend.primary.phase, TrendPhase.big_move);
     t.deepEqual(trend.primary, {
         value: TrendType.down,
-        trendBreakThreshold: 285.06,
+        trendBreakThreshold: 285.05,
         phase: TrendPhase.big_move,
         details: {
             peak: {
@@ -303,7 +364,7 @@ test("trend on a gap down and continue higher for SPY on 05/15", async (t) => {
     t.deepEqual(trend.primary, {
         value: TrendType.down,
         phase: TrendPhase.fizzle,
-        trendBreakThreshold: 285.06,
+        trendBreakThreshold: 285.05,
         details: {
             peak: {
                 previous: 284.21,
@@ -328,7 +389,7 @@ test("trend on a gap down and continue higher for SPY on 05/15", async (t) => {
     t.deepEqual(trend.primary, {
         value: TrendType.down,
         phase: TrendPhase.fizzle,
-        trendBreakThreshold: 285.06,
+        trendBreakThreshold: 285.05,
         details: {
             peak: {
                 previous: 284.21,
@@ -352,7 +413,7 @@ test("trend on a gap down and continue higher for SPY on 05/15", async (t) => {
     t.is(trend.primary.phase, TrendPhase.fizzle);
     t.deepEqual(trend.primary, {
         value: TrendType.down,
-        trendBreakThreshold: 285.06,
+        trendBreakThreshold: 285.05,
         phase: TrendPhase.fizzle,
         details: {
             peak: {
@@ -411,7 +472,22 @@ test("trend on a gap down and reverse for SPY on 05/13", async (t) => {
         trendBreakThreshold: 286.62,
         details: {
             peak: {
-                previous: 286.62,
+                previous: 0,
+                current: 286.62,
+            },
+            trough: {
+                previous: 0,
+                current: 284.51,
+            },
+        },
+    });
+    t.deepEqual(trend.secondary[0], {
+        value: TrendType.down,
+        phase: TrendPhase.initial,
+        trendBreakThreshold: 286.38,
+        details: {
+            peak: {
+                previous: 0,
                 current: 286.38,
             },
             trough: {
@@ -436,12 +512,27 @@ test("trend on a gap down and reverse for SPY on 05/13", async (t) => {
         trendBreakThreshold: 286.62,
         details: {
             peak: {
-                previous: 286.35,
+                previous: 0,
+                current: 286.62,
+            },
+            trough: {
+                previous: 284.51,
+                current: 283.64,
+            },
+        },
+    });
+    t.deepEqual(trend.secondary[0], {
+        value: TrendType.down,
+        phase: TrendPhase.initial,
+        trendBreakThreshold: 286.38,
+        details: {
+            peak: {
+                previous: 286.38,
                 current: 284.79,
             },
             trough: {
                 previous: 284.51,
-                current: 283.65,
+                current: 283.64,
             },
         },
     });
@@ -461,12 +552,12 @@ test("trend on a gap down and reverse for SPY on 05/13", async (t) => {
         trendBreakThreshold: 286.62,
         details: {
             peak: {
-                previous: 286.35,
-                current: 284.79,
+                previous: 0,
+                current: 286.62,
             },
             trough: {
                 previous: 284.51,
-                current: 283.65,
+                current: 283.64,
             },
         },
     });
@@ -492,7 +583,7 @@ test("trend on a gap down and reverse for SPY on 05/13", async (t) => {
                 current: 285.12,
             },
             trough: {
-                previous: 283.65,
+                previous: 283.64,
                 current: 283.87,
             },
         },
@@ -516,7 +607,7 @@ test("trend on a gap down and reverse for SPY on 05/13", async (t) => {
                 current: 285.2,
             },
             trough: {
-                previous: 283.65,
+                previous: 283.64,
                 current: 283.87,
             },
         },

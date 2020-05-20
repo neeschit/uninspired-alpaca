@@ -2,6 +2,7 @@ import { getAverageDirectionalIndex } from "../../indicator/adx";
 import { Bar } from "../../data/data.model";
 import { LOGGER } from "../../instrumentation/log";
 import { getDirectionalMovementIndex } from "../../indicator/dmi";
+import { getAverageTrueRange } from "../../indicator/trueRange";
 
 export enum TrendType {
     up = "up",
@@ -147,7 +148,7 @@ export interface TrendInformation {
 
 export interface Trend {
     primary: TrendInformation;
-    secondary?: TrendInformation[];
+    secondary: TrendInformation[];
 }
 
 const defaultNoTrend: Trend = {
@@ -166,6 +167,23 @@ const defaultNoTrend: Trend = {
             },
         },
     },
+    secondary: [
+        {
+            value: TrendType.sideways,
+            phase: TrendPhase.initial,
+            trendBreakThreshold: 0,
+            details: {
+                peak: {
+                    previous: 0,
+                    current: 0,
+                },
+                trough: {
+                    previous: 0,
+                    current: 0,
+                },
+            },
+        },
+    ],
 };
 
 export const getHeuristicTrend = (ydayClosingBar: Bar, todaysBars: Bar[]): Trend => {
@@ -178,21 +196,6 @@ export const getHeuristicTrend = (ydayClosingBar: Bar, todaysBars: Bar[]): Trend
 
     const initialGap = firstBarToday.o - closePrice;
 
-    const partialTrend: Pick<TrendInformation, "trendBreakThreshold" | "details" | "phase"> = {
-        phase: TrendPhase.initial,
-        trendBreakThreshold: closePrice,
-        details: {
-            peak: {
-                current: firstBarToday.h,
-                previous: closePrice,
-            },
-            trough: {
-                current: firstBarToday.l,
-                previous: 0,
-            },
-        },
-    };
-
     let trendDirection: TrendType;
 
     if (initialGap > 0) {
@@ -200,19 +203,196 @@ export const getHeuristicTrend = (ydayClosingBar: Bar, todaysBars: Bar[]): Trend
     } else {
         trendDirection = TrendType.down;
     }
-    let initialTrend: TrendInformation = {
-        ...partialTrend,
-        value: trendDirection,
-    };
-
-    const trend = todaysBars.reduce(
-        (newTrend, bar) => {
-            return newTrend;
-        },
-        {
-            primary: initialTrend,
-        }
+    let initialPrimaryTrend: TrendInformation = getNewTrendObject(
+        closePrice,
+        firstBarToday,
+        trendDirection
     );
 
+    let initialTrend: Trend = {
+        primary: initialPrimaryTrend,
+        secondary: [
+            getNewTrendObject(
+                initialPrimaryTrend.value === TrendType.up ? firstBarToday.l : firstBarToday.h,
+                firstBarToday,
+                initialPrimaryTrend.value
+            ),
+        ],
+    };
+
+    const trend: Trend = todaysBars.reduce((newTrend, bar, index) => {
+        if (!index) {
+            return newTrend;
+        }
+
+        const barsSoFar = todaysBars.slice(0, index + 1);
+
+        const { atr } = getAverageTrueRange(barsSoFar, false);
+
+        const noiseSmoother = atr[atr.length - 1].value / 4;
+
+        const {
+            hasTrendChanged: newPrimaryTrendStarted,
+            currentTroughDiff: primaryCurrentTroughDiff,
+            currentPeakDiff: primaryCurrentPeakDiff,
+        } = hasTrendChanged(newTrend.primary, bar, noiseSmoother);
+
+        if (newPrimaryTrendStarted) {
+            const newInitialPrimaryTrend = getNewTrendObject(
+                bar.c,
+                bar,
+                newTrend.primary.value === TrendType.down ? TrendType.up : TrendType.down
+            );
+
+            let newInitialTrend: Trend = {
+                primary: newInitialPrimaryTrend,
+                secondary: [{ ...newInitialPrimaryTrend, trendBreakThreshold: bar.c }],
+            };
+
+            return newInitialTrend;
+        } else {
+            if (bar.l < newTrend.primary.details.trough.current) {
+                if (primaryCurrentTroughDiff > noiseSmoother)
+                    newTrend.primary.details.trough.previous =
+                        newTrend.primary.details.trough.current;
+                newTrend.primary.details.trough.current = bar.l;
+            }
+
+            if (bar.h > newTrend.primary.details.peak.current) {
+                if (primaryCurrentPeakDiff > noiseSmoother)
+                    newTrend.primary.details.peak.previous = newTrend.primary.details.peak.current;
+                newTrend.primary.details.peak.current = bar.h;
+            }
+        }
+
+        const currentSecondaryTrend = newTrend.secondary[newTrend.secondary.length - 1];
+
+        const {
+            hasSecondaryTrendChanged,
+            troughedSignificantly,
+            peakedSignificantly,
+        } = checkIfSecondaryTrendChanged(currentSecondaryTrend, noiseSmoother, barsSoFar);
+
+        if (!hasSecondaryTrendChanged) {
+            if (troughedSignificantly) {
+                currentSecondaryTrend.details.trough.previous =
+                    currentSecondaryTrend.details.trough.current;
+                currentSecondaryTrend.details.trough.current = bar.l;
+            } else if (bar.l < currentSecondaryTrend.details.trough.current) {
+                if (!currentSecondaryTrend.details.trough.previous) {
+                    currentSecondaryTrend.details.trough.previous =
+                        currentSecondaryTrend.details.trough.current;
+                }
+                currentSecondaryTrend.details.trough.current = bar.l;
+            }
+            if (peakedSignificantly) {
+                currentSecondaryTrend.details.peak.previous =
+                    currentSecondaryTrend.details.peak.current;
+                currentSecondaryTrend.details.peak.current = bar.h;
+            } else if (bar.h > currentSecondaryTrend.details.peak.current) {
+                if (!currentSecondaryTrend.details.peak.previous) {
+                    currentSecondaryTrend.details.peak.previous =
+                        currentSecondaryTrend.details.peak.current;
+                }
+                currentSecondaryTrend.details.peak.current = bar.h;
+            }
+        } else {
+            const newSecondaryTrend = getNewTrendObject(
+                bar.c,
+                bar,
+                currentSecondaryTrend.value === TrendType.down ? TrendType.up : TrendType.down
+            );
+
+            newTrend.secondary.push(newSecondaryTrend);
+        }
+
+        return newTrend;
+    }, initialTrend);
+
     return trend;
+};
+
+const getNewTrendObject = (closePrice: number, bar: Bar, trend: TrendType): TrendInformation => {
+    return trend === TrendType.up
+        ? {
+              phase: TrendPhase.initial,
+              trendBreakThreshold: bar.l,
+              details: {
+                  peak: {
+                      current: bar.h,
+                      previous: 0,
+                  },
+                  trough: {
+                      current: bar.l,
+                      previous: 0,
+                  },
+              },
+              value: trend,
+          }
+        : {
+              phase: TrendPhase.initial,
+              trendBreakThreshold: closePrice,
+              details: {
+                  peak: {
+                      current: closePrice,
+                      previous: 0,
+                  },
+                  trough: {
+                      current: bar.l,
+                      previous: 0,
+                  },
+              },
+              value: trend,
+          };
+};
+
+const checkIfSecondaryTrendChanged = (
+    currentSecondaryTrend: TrendInformation,
+    noiseSmoother: number,
+    bars: Bar[]
+) => {
+    const {
+        hasTrendChanged: hasSecondaryTrendChanged,
+        currentPeakDiff,
+        currentTroughDiff,
+        peakedSignificantly,
+        troughedSignificantly,
+    } = hasTrendChanged(currentSecondaryTrend, bars[bars.length - 1], noiseSmoother);
+
+    return {
+        peakedSignificantly,
+        troughedSignificantly,
+        hasSecondaryTrendChanged,
+        currentPeakDiff,
+        currentTroughDiff,
+    };
+};
+
+const hasTrendChanged = (trend: TrendInformation, bar: Bar, noiseSmoother: number) => {
+    const currentPeakDiff = bar.h - trend.details.peak.current;
+    const currentTroughDiff = trend.details.trough.current - bar.l;
+    const peakedSignificantly = Math.abs(currentPeakDiff) > noiseSmoother;
+    const troughedSignificantly = Math.abs(currentTroughDiff) > noiseSmoother;
+
+    let hasTrendChanged = false;
+
+    if (trend.value === TrendType.up) {
+        const normalizedTrendBreakThreshold = trend.trendBreakThreshold - noiseSmoother;
+        hasTrendChanged =
+            bar.c < normalizedTrendBreakThreshold &&
+            trend.details.trough.previous <= trend.trendBreakThreshold;
+    } else if (trend.value === TrendType.down) {
+        const normalizedTrendBreakThreshold = trend.trendBreakThreshold + noiseSmoother;
+        hasTrendChanged =
+            bar.c > normalizedTrendBreakThreshold &&
+            trend.details.peak.previous >= trend.trendBreakThreshold;
+    }
+
+    return {
+        hasTrendChanged,
+        peakedSignificantly,
+        currentPeakDiff,
+        troughedSignificantly,
+        currentTroughDiff,
+    };
 };
