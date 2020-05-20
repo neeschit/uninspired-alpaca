@@ -171,9 +171,9 @@ export const insertDailyBar = async (bar: TickBar, symbol: string) => {
         ${bar.l}, 
         ${bar.c}, 
         ${bar.v}
-    );`;
+    ) ON CONFLICT DO NOTHING;`;
 
-    LOGGER.debug(query);
+    LOGGER.trace(query);
 
     return pool.query(query);
 };
@@ -193,9 +193,9 @@ export const batchInsertDailyBars = async (bars: TickBar[], symbol: string) => {
             ${bar.l}, 
             ${bar.c}, 
             ${bar.v}
-        );`;
+        ) ON CONFLICT DO NOTHING;`;
 
-        LOGGER.debug(query);
+        LOGGER.trace(query);
 
         queries.push(query);
     }
@@ -218,7 +218,7 @@ export const insertBar = async (bar: TickBar, symbol: string, isMinute = false) 
         ${bar.c}, 
         ${bar.vw}, 
         ${bar.v}
-    );`;
+    ) ON CONFLICT DO NOTHING;`;
 
     LOGGER.debug(query);
 
@@ -243,7 +243,7 @@ export const batchInsertBars = async (bars: TickBar[], symbol: string, isMinute 
             ${bar.c}, 
             ${bar.vw}, 
             ${bar.v}
-        );`;
+        ) ON CONFLICT DO NOTHING;`;
         LOGGER.debug(query);
         queries.push(query);
     }
@@ -267,7 +267,7 @@ export const insertTrade = async (trades: TradeUpdate[]) => {
                         ${trade.s}, 
                         ${trade.z}${trade.c ? "," : ""}
                         ${trade.c ? "'{" + trade.c.join(",") + "}'" : ""}
-                    );`;
+                    ) ON CONFLICT DO NOTHING;`;
 
         queries.push(query);
     }

@@ -18,10 +18,20 @@ companies.push(...currentIndices);
 async function run(duration = DefaultDuration.one, period = PeriodType.minute) {
     for (const symbol of companies) {
         const startDate = startOfDay(addBusinessDays(Date.now(), -1));
-        const endDate = startOfDay(addDays(Date.now(), 1));
+        const endDate = startOfDay(addBusinessDays(Date.now(), 1));
 
-        for (let date = startDate; date.getTime() < endDate.getTime(); date = addDays(date, 1)) {
-            const daysMinutes = await getPolyonData(symbol, date, date, period, duration);
+        for (
+            let date = startDate;
+            date.getTime() < endDate.getTime();
+            date = addBusinessDays(date, 2)
+        ) {
+            const daysMinutes = await getPolyonData(
+                symbol,
+                date,
+                addBusinessDays(date, 1),
+                period,
+                duration
+            );
 
             if (!daysMinutes[symbol] || !daysMinutes[symbol].length) {
                 continue;
@@ -40,11 +50,15 @@ async function run(duration = DefaultDuration.one, period = PeriodType.minute) {
             }
         }
 
-        for (let date = startDate; date.getTime() < endDate.getTime(); date = addDays(date, 90)) {
+        for (
+            let date = startDate;
+            date.getTime() < endDate.getTime();
+            date = addBusinessDays(date, 90)
+        ) {
             const daysMinutes = await getPolyonData(
                 symbol,
                 addBusinessDays(date, -90),
-                addDays(Date.now(), 1),
+                addBusinessDays(Date.now(), 1),
                 PeriodType.day,
                 DefaultDuration.one
             );
