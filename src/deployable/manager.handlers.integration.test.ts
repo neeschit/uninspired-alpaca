@@ -1,8 +1,9 @@
 import test from "ava";
 
-import { checkIfPositionsNeedRefreshing } from "./manager.handlers";
-import { SimpleAlpacaPosition } from "@neeschit/alpaca-trade-api";
-import { TradeDirection } from "../data/data.model";
+import { checkIfPositionsNeedRefreshing, handlePositionOrderUpdate } from "./manager.handlers";
+import { SimpleAlpacaPosition, AlpacaOrder } from "@neeschit/alpaca-trade-api";
+import { TradeDirection, TradeConfig } from "../data/data.model";
+import { TradeManagement } from "../services/tradeManagement";
 
 test("positions out of sync in db are identfied", async (t) => {
     const alpacaPositionsMap: { [index: string]: SimpleAlpacaPosition } = {
@@ -77,4 +78,29 @@ test("non-existent positions need to be reset", async (t) => {
     const unequalPositions = checkIfPositionsNeedRefreshing(alpacaPositionsMap, dbPositions);
 
     t.is(unequalPositions.length, 1);
+});
+
+test.cb("should result in only one order", (t) => {
+    const manager = ({
+        queueTrade: () => Promise.resolve(true),
+    } as any) as TradeManagement;
+
+    const config = ({
+        symbol: "test",
+    } as any) as TradeConfig;
+
+    const promises: Promise<AlpacaOrder | null>[] = [];
+
+    promises.push(handlePositionOrderUpdate(config, "test", manager));
+
+    setTimeout(async () => {
+        promises.push(handlePositionOrderUpdate(config, "test", manager));
+
+        const results = await Promise.all(promises);
+
+        t.truthy(results.length);
+        t.truthy(results.some((r) => !r));
+
+        t.end();
+    }, 0);
 });

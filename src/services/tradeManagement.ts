@@ -339,7 +339,7 @@ export class TradeManagement {
 
             if (isOrderDifferent) {
                 await Promise.all(openOrders.map((o) => this.broker.cancelOrder(o.id)));
-                return this.queueTrade(config);
+                return config;
             }
         }
 
