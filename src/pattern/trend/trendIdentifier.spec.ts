@@ -174,6 +174,7 @@ test("trend on a gap down and continue higher for SPY on 05/15", async (t) => {
 
     trend = getHeuristicTrend(lastBarYday, testBars);
     t.is(trend.primary.value, TrendType.down);
+    t.is(trend.secondary.length, 4);
 
     testBars = filteredBars.slice(firstIndexForToday, firstIndexForToday + testBars.length + 1);
 
