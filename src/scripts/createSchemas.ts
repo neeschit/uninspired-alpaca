@@ -6,16 +6,16 @@ import {
 } from "../resources/stockData";
 import { LOGGER } from "../instrumentation/log";
 import { endPooledConnection } from "../connection/pg";
-import { getUnfilteredMegaCaps } from "../data/filters";
+import { getUnfilteredMegaCaps, getLargeCaps, currentIndices } from "../data/filters";
 
 const drop = process.argv[2] && Boolean(process.argv[2]);
 
 async function run() {
     const newSymbols = [];
 
-    const symbols = getUnfilteredMegaCaps();
+    const symbols = getLargeCaps();
 
-    symbols.push("SPY");
+    symbols.push(...currentIndices);
 
     drop && (await dropStorageTables(symbols));
 

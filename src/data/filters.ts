@@ -1,9 +1,5 @@
 import { readFileSync } from "fs";
 
-export const getHighVolumeCompanies = (): string[] => {
-    return JSON.parse(readFileSync("./largeCapsHighVolume.json").toString());
-};
-
 export const getLargeCaps = (): string[] => {
     return JSON.parse(readFileSync("./largecaps.json").toString());
 };
@@ -22,4 +18,6 @@ export const getFilteredHighVolumeCompanies = (): string[] => {
 
 export const currentTradingSymbols = getMegaCaps();
 
-export const currentStreamingSymbols = [...currentTradingSymbols, "SPY"];
+export const currentIndices = ["SPY"];
+
+export const currentStreamingSymbols = [...currentTradingSymbols, ...currentIndices];

@@ -1,5 +1,5 @@
 import { Service, getApiServer, messageService } from "../util/api";
-import { currentTradingSymbols } from "../data/filters";
+import { currentTradingSymbols, currentStreamingSymbols } from "../data/filters";
 import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
 import { getSimpleData, cacheDailyBarsForSymbol } from "../resources/stockData";
 import { addBusinessDays } from "date-fns";
@@ -15,8 +15,12 @@ const symbols = currentTradingSymbols;
 const strategies: NarrowRangeBarStrategy[] = [];
 
 Promise.all(
-    symbols.map(async (symbol) => {
-        await cacheDailyBarsForSymbol(symbol);
+    currentStreamingSymbols.map(async (symbol) => {
+        try {
+            await cacheDailyBarsForSymbol(symbol);
+        } catch (e) {
+            LOGGER.trace(e);
+        }
         const dailyBars = await getSimpleData(symbol, addBusinessDays(Date.now(), -18).getTime());
         strategies.push(
             new NarrowRangeBarStrategy({
@@ -24,11 +28,6 @@ Promise.all(
                 bars: dailyBars,
             })
         );
-
-        try {
-        } catch (e) {
-            LOGGER.trace(e);
-        }
     })
 ).catch(LOGGER.error);
 

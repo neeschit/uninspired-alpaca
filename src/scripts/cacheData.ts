@@ -1,4 +1,4 @@
-import { getMegaCaps } from "../data/filters";
+import { getMegaCaps, getLargeCaps, currentIndices, getUnfilteredMegaCaps } from "../data/filters";
 import { DefaultDuration, PeriodType } from "../data/data.model";
 import { addDays, startOfDay, addBusinessDays } from "date-fns";
 import { LOGGER } from "../instrumentation/log";
@@ -13,30 +13,24 @@ import {
 
 const companies: string[] = getMegaCaps();
 
-companies.push("SPY");
+companies.push(...currentIndices);
 
 async function run(duration = DefaultDuration.one, period = PeriodType.minute) {
     for (const symbol of companies) {
-        const startDate = startOfDay(addDays(Date.now(), -1));
-        const endDate = startOfDay(addDays(Date.now(), 0));
+        const startDate = startOfDay(addBusinessDays(Date.now(), -1));
+        const endDate = startOfDay(addBusinessDays(Date.now(), 1));
 
-        for (let date = startDate; date.getTime() < endDate.getTime(); date = addDays(date, 1)) {
-            const daysMinutes = await getPolyonData(symbol, date, date, period, duration);
-
-            try {
-                await batchInsertBars(daysMinutes[symbol], symbol, true);
-            } catch (e) {
-                LOGGER.error(`Error inserting for ${symbol}`, e);
-            }
-        }
-
-        for (let date = startDate; date.getTime() < endDate.getTime(); date = addDays(date, 90)) {
+        for (
+            let date = startDate;
+            date.getTime() < endDate.getTime();
+            date = addBusinessDays(date, 2)
+        ) {
             const daysMinutes = await getPolyonData(
                 symbol,
-                addBusinessDays(date, -90),
-                addDays(Date.now(), 1),
-                PeriodType.day,
-                DefaultDuration.one
+                date,
+                addBusinessDays(date, 1),
+                period,
+                duration
             );
 
             if (!daysMinutes[symbol] || !daysMinutes[symbol].length) {
@@ -44,10 +38,38 @@ async function run(duration = DefaultDuration.one, period = PeriodType.minute) {
             }
 
             try {
-                await batchInsertDailyBars(daysMinutes[symbol], symbol);
+                await batchInsertBars(daysMinutes[symbol], symbol, true);
             } catch (e) {
                 LOGGER.error(`Error inserting for ${symbol}`, e);
+
+                try {
+                    for (const tick of daysMinutes[symbol]) {
+                        await insertBar(tick, symbol, true);
+                    }
+                } catch (e) {}
             }
+        }
+    }
+
+    for (const symbol of companies) {
+        const startDate = startOfDay(addBusinessDays(Date.now(), -30));
+
+        const daysMinutes = await getPolyonData(
+            symbol,
+            addBusinessDays(startDate, -90),
+            addBusinessDays(Date.now(), 0),
+            PeriodType.day,
+            DefaultDuration.one
+        );
+
+        if (!daysMinutes[symbol] || !daysMinutes[symbol].length) {
+            continue;
+        }
+
+        try {
+            await batchInsertDailyBars(daysMinutes[symbol], symbol);
+        } catch (e) {
+            LOGGER.error(`Error inserting for ${symbol}`, e);
         }
     }
 }
