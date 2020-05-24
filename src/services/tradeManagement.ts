@@ -323,12 +323,6 @@ export class TradeManagement {
             LOGGER.error(e);
         }
 
-        const isTimeToLiquidate = isMarketClosing(Date.now());
-
-        if (isTimeToLiquidate) {
-            await Promise.all(unfilteredOpenOrders.map((o) => this.broker.cancelOrder(o.id)));
-        }
-
         const config: TradeConfig | null = await this.rebalancePosition(currentBar);
 
         if (!config) {
@@ -339,6 +333,12 @@ export class TradeManagement {
             );
             return null;
         } else {
+            const isTimeToLiquidate = isMarketClosing(Date.now());
+
+            if (isTimeToLiquidate) {
+                await Promise.all(unfilteredOpenOrders.map((o) => this.broker.cancelOrder(o.id)));
+                return config;
+            }
             const isOrderDifferent =
                 !openOrders.length ||
                 (openOrders.length && openOrders.some((o) => o.type !== config.type));
