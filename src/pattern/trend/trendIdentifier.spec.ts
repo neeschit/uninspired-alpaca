@@ -122,8 +122,6 @@ test("trend on a gap down and continue higher for SPY on 05/15", async (t) => {
         troughs: [281.78],
     });
 
-    epoch += 300000;
-
     testBars = filteredBars.slice(firstIndexForToday, firstIndexForToday + testBars.length + 1);
 
     t.is(testBars.length, 2);
@@ -143,8 +141,6 @@ test("trend on a gap down and continue higher for SPY on 05/15", async (t) => {
         peaks: [282.89],
         troughs: [281.78, 281.34],
     });
-
-    epoch += 300000;
 
     testBars = filteredBars.slice(firstIndexForToday, firstIndexForToday + testBars.length + 1);
 
@@ -171,6 +167,20 @@ test("trend on a gap down and continue higher for SPY on 05/15", async (t) => {
         peaks: [283.66],
         troughs: [282.89],
     });
+
+    testBars = filteredBars.slice(firstIndexForToday, firstIndexForToday + testBars.length + 51);
+
+    t.is(testBars.length, 54);
+
+    trend = getHeuristicTrend(lastBarYday, testBars);
+    t.is(trend.primary.value, TrendType.down);
+
+    testBars = filteredBars.slice(firstIndexForToday, firstIndexForToday + testBars.length + 1);
+
+    t.is(testBars.length, 55);
+
+    trend = getHeuristicTrend(lastBarYday, testBars);
+    t.is(trend.primary.value, TrendType.up);
 });
 
 test("trend on a gap down and reverse for SPY on 05/13", async (t) => {
@@ -232,8 +242,6 @@ test("trend on a gap down and reverse for SPY on 05/13", async (t) => {
         troughs: [284.51],
     });
 
-    epoch += 300000;
-
     testBars = filteredBars.slice(firstIndexForToday, firstIndexForToday + testBars.length + 1);
 
     t.is(testBars.length, 2);
@@ -254,8 +262,6 @@ test("trend on a gap down and reverse for SPY on 05/13", async (t) => {
         troughs: [284.51, 283.64],
     });
 
-    epoch += 300000;
-
     testBars = filteredBars.slice(firstIndexForToday, firstIndexForToday + testBars.length + 1);
 
     t.is(testBars.length, 3);
@@ -275,8 +281,6 @@ test("trend on a gap down and reverse for SPY on 05/13", async (t) => {
         troughs: [284.51, 283.64],
     });
 
-    epoch += 300000;
-
     testBars = filteredBars.slice(firstIndexForToday, firstIndexForToday + testBars.length + 1);
 
     t.is(testBars.length, 4);
@@ -287,6 +291,19 @@ test("trend on a gap down and reverse for SPY on 05/13", async (t) => {
         value: TrendType.down,
         trendBreakThreshold: 286.62,
         peaks: [286.62, 284.79, 285.12],
+        troughs: [284.51, 283.64],
+    });
+
+    testBars = filteredBars.slice(firstIndexForToday, firstIndexForToday + testBars.length + 9);
+
+    t.is(testBars.length, 13);
+
+    trend = getHeuristicTrend(lastBarYday, testBars);
+
+    t.deepEqual(trend.primary, {
+        value: TrendType.down,
+        trendBreakThreshold: 286.62,
+        peaks: [286.62, 284.79, 285.12, 285.88, 286.48, 287.19],
         troughs: [284.51, 283.64],
     });
 });
