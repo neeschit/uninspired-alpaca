@@ -49,29 +49,27 @@ async function run(duration = DefaultDuration.one, period = PeriodType.minute) {
                 } catch (e) {}
             }
         }
+    }
 
-        for (
-            let date = startDate;
-            date.getTime() < endDate.getTime();
-            date = addBusinessDays(date, 90)
-        ) {
-            const daysMinutes = await getPolyonData(
-                symbol,
-                addBusinessDays(date, -90),
-                addBusinessDays(Date.now(), 1),
-                PeriodType.day,
-                DefaultDuration.one
-            );
+    for (const symbol of companies) {
+        const startDate = startOfDay(addBusinessDays(Date.now(), -30));
 
-            if (!daysMinutes[symbol] || !daysMinutes[symbol].length) {
-                continue;
-            }
+        const daysMinutes = await getPolyonData(
+            symbol,
+            addBusinessDays(startDate, -90),
+            addBusinessDays(Date.now(), 0),
+            PeriodType.day,
+            DefaultDuration.one
+        );
 
-            try {
-                await batchInsertDailyBars(daysMinutes[symbol], symbol);
-            } catch (e) {
-                LOGGER.error(`Error inserting for ${symbol}`, e);
-            }
+        if (!daysMinutes[symbol] || !daysMinutes[symbol].length) {
+            continue;
+        }
+
+        try {
+            await batchInsertDailyBars(daysMinutes[symbol], symbol);
+        } catch (e) {
+            LOGGER.error(`Error inserting for ${symbol}`, e);
         }
     }
 }

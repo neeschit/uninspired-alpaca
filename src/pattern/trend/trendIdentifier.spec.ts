@@ -9,12 +9,10 @@ import {
 import uptrend from "../../fixtures/uptrend";
 import downtrend from "../../fixtures/downtrend";
 import perfectDowntrend from "../../fixtures/perfectDownTrend";
-import perfectSidewaystrend from "../../fixtures/perfectSidewaysTrend";
 import perfectUptrend from "../../fixtures/perfectUpTrend";
 import { getPolyonData } from "../../resources/polygon";
 import { PeriodType, DefaultDuration } from "../../data/data.model";
-import { alpaca } from "../../resources/alpaca";
-import { confirmMarketOpen, isMarketOpen } from "../../util/market";
+import { isMarketOpen } from "../../util/market";
 
 test("up trend", async (t) => {
     const trend = getRecentTrend(perfectUptrend);
@@ -96,8 +94,17 @@ test("trend on a gap down and continue higher for SPY on 05/15", async (t) => {
     });
 
     let epoch = 1589549400000;
+    let firstIndexForToday = -1;
 
-    let testBars = filteredBars.filter((b) => b.t <= epoch && b.t > preMarketToday);
+    let testBars = filteredBars.filter((b, index) => {
+        const isTodayMarketBar = b.t <= epoch && b.t > preMarketToday;
+
+        if (isTodayMarketBar && firstIndexForToday === -1) {
+            firstIndexForToday = index;
+        }
+
+        return isTodayMarketBar;
+    });
 
     t.is(testBars.length, 1);
 
@@ -105,79 +112,41 @@ test("trend on a gap down and continue higher for SPY on 05/15", async (t) => {
     t.deepEqual(trend.primary, {
         value: TrendType.down,
         trendBreakThreshold: 285.05,
-        phase: TrendPhase.initial,
-        details: {
-            peak: {
-                previous: 0,
-                current: 285.05,
-            },
-            trough: {
-                previous: 0,
-                current: 281.78,
-            },
-        },
+        peaks: [285.05],
+        troughs: [281.78],
     });
     t.deepEqual(trend.secondary[0], {
         value: TrendType.down,
         trendBreakThreshold: 282.89,
-        phase: TrendPhase.initial,
-        details: {
-            peak: {
-                previous: 0,
-                current: 282.89,
-            },
-            trough: {
-                previous: 0,
-                current: 281.78,
-            },
-        },
+        peaks: [282.89],
+        troughs: [281.78],
     });
 
     epoch += 300000;
 
-    testBars = filteredBars.filter((b) => b.t <= epoch && b.t > preMarketToday);
+    testBars = filteredBars.slice(firstIndexForToday, firstIndexForToday + testBars.length + 1);
 
     t.is(testBars.length, 2);
 
     trend = getHeuristicTrend(lastBarYday, testBars);
 
-    t.is(trend.primary.phase, TrendPhase.initial);
-
     t.deepEqual(trend.primary, {
         value: TrendType.down,
         trendBreakThreshold: 285.05,
-        phase: TrendPhase.initial,
-        details: {
-            peak: {
-                previous: 0,
-                current: 285.05,
-            },
-            trough: {
-                previous: 281.78,
-                current: 281.34,
-            },
-        },
+        peaks: [285.05, 282.94],
+        troughs: [281.78, 281.34],
     });
 
     t.deepEqual(trend.secondary[0], {
         value: TrendType.down,
         trendBreakThreshold: 282.89,
-        phase: TrendPhase.initial,
-        details: {
-            peak: {
-                previous: 282.89,
-                current: 282.94,
-            },
-            trough: {
-                previous: 281.78,
-                current: 281.34,
-            },
-        },
+        peaks: [282.89],
+        troughs: [281.78, 281.34],
     });
 
     epoch += 300000;
 
-    testBars = filteredBars.filter((b) => b.t <= epoch && b.t > preMarketToday);
+    testBars = filteredBars.slice(firstIndexForToday, firstIndexForToday + testBars.length + 1);
 
     t.is(testBars.length, 3);
 
@@ -185,246 +154,22 @@ test("trend on a gap down and continue higher for SPY on 05/15", async (t) => {
     t.deepEqual(trend.primary, {
         value: TrendType.down,
         trendBreakThreshold: 285.05,
-        phase: TrendPhase.initial,
-        details: {
-            peak: {
-                previous: 0,
-                current: 285.05,
-            },
-            trough: {
-                previous: 281.78,
-                current: 281.34,
-            },
-        },
+        peaks: [285.05, 282.94, 283.66],
+        troughs: [281.78, 281.34],
     });
 
     t.deepEqual(trend.secondary[0], {
         value: TrendType.down,
         trendBreakThreshold: 282.89,
-        phase: TrendPhase.initial,
-        details: {
-            peak: {
-                previous: 282.89,
-                current: 282.94,
-            },
-            trough: {
-                previous: 281.78,
-                current: 281.34,
-            },
-        },
+        peaks: [282.89, 283.66],
+        troughs: [281.78, 281.34],
     });
+
     t.deepEqual(trend.secondary[1], {
         value: TrendType.up,
-        trendBreakThreshold: 282.67,
-        phase: TrendPhase.big_move,
-        details: {
-            peak: {
-                previous: 0,
-                current: 283.66,
-            },
-            trough: {
-                previous: 0,
-                current: 282.67,
-            },
-        },
-    });
-
-    epoch += 300000;
-
-    testBars = filteredBars.filter((b) => b.t <= epoch && b.t > preMarketToday);
-
-    t.is(testBars.length, 4);
-
-    trend = getHeuristicTrend(lastBarYday, testBars);
-
-    t.deepEqual(trend.primary, {
-        value: TrendType.down,
-        phase: TrendPhase.big_move,
-        trendBreakThreshold: 285.05,
-        details: {
-            peak: {
-                previous: 282.94,
-                current: 283.6,
-            },
-            trough: {
-                previous: 281.34,
-                current: 282.84,
-            },
-        },
-    });
-
-    epoch += 300000;
-    testBars = filteredBars.filter((b) => b.t <= epoch && b.t > preMarketToday);
-
-    t.is(testBars.length, 5);
-
-    trend = getHeuristicTrend(lastBarYday, testBars);
-
-    t.is(trend.primary.phase, TrendPhase.big_move);
-    t.deepEqual(trend.primary, {
-        value: TrendType.down,
-        phase: TrendPhase.big_move,
-        trendBreakThreshold: 285.05,
-        details: {
-            peak: {
-                previous: 283.6,
-                current: 284.21,
-            },
-            trough: {
-                previous: 281.34,
-                current: 282.84,
-            },
-        },
-    });
-
-    epoch += 300000;
-
-    testBars = filteredBars.filter((b) => b.t <= epoch && b.t > preMarketToday);
-
-    t.is(testBars.length, 6);
-
-    trend = getHeuristicTrend(lastBarYday, testBars);
-
-    t.is(trend.primary.phase, TrendPhase.big_move);
-    t.deepEqual(trend.primary, {
-        value: TrendType.down,
-        trendBreakThreshold: 285.05,
-        phase: TrendPhase.big_move,
-        details: {
-            peak: {
-                previous: 283.6,
-                current: 284.21,
-            },
-            trough: {
-                previous: 281.34,
-                current: 282.84,
-            },
-        },
-    });
-
-    epoch += 300000;
-
-    testBars = filteredBars.filter((b) => b.t <= epoch && b.t > preMarketToday);
-
-    t.is(testBars.length, 7);
-
-    trend = getHeuristicTrend(lastBarYday, testBars);
-
-    t.is(trend.primary.phase, TrendPhase.big_move);
-    t.deepEqual(trend.primary, {
-        value: TrendType.down,
-        phase: TrendPhase.big_move,
-        trendBreakThreshold: 285.05,
-        details: {
-            peak: {
-                previous: 283.6,
-                current: 284.3,
-            },
-            trough: {
-                previous: 282.84,
-                current: 283.49,
-            },
-        },
-    });
-
-    epoch += 300000;
-
-    testBars = filteredBars.filter((b) => b.t <= epoch && b.t > preMarketToday);
-
-    t.is(testBars.length, 8);
-
-    trend = getHeuristicTrend(lastBarYday, testBars);
-
-    t.is(trend.primary.phase, TrendPhase.big_move);
-    t.deepEqual(trend.primary, {
-        value: TrendType.down,
-        trendBreakThreshold: 285.05,
-        phase: TrendPhase.big_move,
-        details: {
-            peak: {
-                previous: 283.6,
-                current: 284.3,
-            },
-            trough: {
-                previous: 282.84,
-                current: 283.4,
-            },
-        },
-    });
-
-    epoch += 300000;
-
-    testBars = filteredBars.filter((b) => b.t <= epoch && b.t > preMarketToday);
-
-    t.is(testBars.length, 9);
-
-    trend = getHeuristicTrend(lastBarYday, testBars);
-
-    t.is(trend.primary.phase, TrendPhase.fizzle);
-    t.deepEqual(trend.primary, {
-        value: TrendType.down,
-        phase: TrendPhase.fizzle,
-        trendBreakThreshold: 285.05,
-        details: {
-            peak: {
-                previous: 284.21,
-                current: 284.88,
-            },
-            trough: {
-                previous: 282.84,
-                current: 283.4,
-            },
-        },
-    });
-
-    epoch += 300000;
-
-    testBars = filteredBars.filter((b) => b.t <= epoch && b.t > preMarketToday);
-
-    t.is(testBars.length, 10);
-
-    trend = getHeuristicTrend(lastBarYday, testBars);
-
-    t.is(trend.primary.phase, TrendPhase.fizzle);
-    t.deepEqual(trend.primary, {
-        value: TrendType.down,
-        phase: TrendPhase.fizzle,
-        trendBreakThreshold: 285.05,
-        details: {
-            peak: {
-                previous: 284.21,
-                current: 285.07,
-            },
-            trough: {
-                previous: 282.84,
-                current: 283.4,
-            },
-        },
-    });
-
-    epoch += 300000;
-
-    testBars = filteredBars.filter((b) => b.t <= epoch && b.t > preMarketToday);
-
-    t.is(testBars.length, 11);
-
-    trend = getHeuristicTrend(lastBarYday, testBars);
-
-    t.is(trend.primary.phase, TrendPhase.fizzle);
-    t.deepEqual(trend.primary, {
-        value: TrendType.down,
-        trendBreakThreshold: 285.05,
-        phase: TrendPhase.fizzle,
-        details: {
-            peak: {
-                previous: 284.21,
-                current: 285.07,
-            },
-            trough: {
-                previous: 282.84,
-                current: 283.4,
-            },
-        },
+        trendBreakThreshold: 283.44,
+        peaks: [283.66],
+        troughs: [282.89],
     });
 });
 
@@ -459,309 +204,89 @@ test("trend on a gap down and reverse for SPY on 05/13", async (t) => {
     });
 
     let epoch = 1589376600000;
+    let firstIndexForToday = -1;
 
-    let testBars = filteredBars.filter((b) => b.t <= epoch && b.t > preMarketToday);
+    let testBars = filteredBars.filter((b, index) => {
+        const isTodayMarketBar = b.t <= epoch && b.t > preMarketToday;
+
+        if (isTodayMarketBar && firstIndexForToday === -1) {
+            firstIndexForToday = index;
+        }
+
+        return isTodayMarketBar;
+    });
 
     t.is(testBars.length, 1);
 
     let trend = getHeuristicTrend(lastBarYday, testBars);
-    t.is(trend.primary.phase, TrendPhase.initial);
     t.deepEqual(trend.primary, {
         value: TrendType.down,
-        phase: TrendPhase.initial,
         trendBreakThreshold: 286.62,
-        details: {
-            peak: {
-                previous: 0,
-                current: 286.62,
-            },
-            trough: {
-                previous: 0,
-                current: 284.51,
-            },
-        },
+        peaks: [286.62],
+        troughs: [284.51],
     });
     t.deepEqual(trend.secondary[0], {
         value: TrendType.down,
-        phase: TrendPhase.initial,
         trendBreakThreshold: 286.38,
-        details: {
-            peak: {
-                previous: 0,
-                current: 286.38,
-            },
-            trough: {
-                previous: 0,
-                current: 284.51,
-            },
-        },
+        peaks: [286.38],
+        troughs: [284.51],
     });
 
     epoch += 300000;
 
-    testBars = filteredBars.filter((b) => b.t <= epoch && b.t > preMarketToday);
+    testBars = filteredBars.slice(firstIndexForToday, firstIndexForToday + testBars.length + 1);
 
     t.is(testBars.length, 2);
 
     trend = getHeuristicTrend(lastBarYday, testBars);
 
-    t.is(trend.primary.phase, TrendPhase.initial);
     t.deepEqual(trend.primary, {
         value: TrendType.down,
-        phase: TrendPhase.initial,
         trendBreakThreshold: 286.62,
-        details: {
-            peak: {
-                previous: 0,
-                current: 286.62,
-            },
-            trough: {
-                previous: 284.51,
-                current: 283.64,
-            },
-        },
+        peaks: [286.62, 284.79],
+        troughs: [284.51, 283.64],
     });
+
     t.deepEqual(trend.secondary[0], {
         value: TrendType.down,
-        phase: TrendPhase.initial,
         trendBreakThreshold: 286.38,
-        details: {
-            peak: {
-                previous: 286.38,
-                current: 284.79,
-            },
-            trough: {
-                previous: 284.51,
-                current: 283.64,
-            },
-        },
+        peaks: [286.38, 284.79],
+        troughs: [284.51, 283.64],
     });
 
     epoch += 300000;
 
-    testBars = filteredBars.filter((b) => b.t <= epoch && b.t > preMarketToday);
+    testBars = filteredBars.slice(firstIndexForToday, firstIndexForToday + testBars.length + 1);
 
     t.is(testBars.length, 3);
 
     trend = getHeuristicTrend(lastBarYday, testBars);
 
-    t.is(trend.primary.phase, TrendPhase.initial);
     t.deepEqual(trend.primary, {
         value: TrendType.down,
-        phase: TrendPhase.initial,
         trendBreakThreshold: 286.62,
-        details: {
-            peak: {
-                previous: 0,
-                current: 286.62,
-            },
-            trough: {
-                previous: 284.51,
-                current: 283.64,
-            },
-        },
+        peaks: [286.62, 284.79],
+        troughs: [284.51, 283.64],
+    });
+    t.deepEqual(trend.secondary[0], {
+        value: TrendType.down,
+        trendBreakThreshold: 286.38,
+        peaks: [286.38, 284.79],
+        troughs: [284.51, 283.64],
     });
 
     epoch += 300000;
 
-    testBars = filteredBars.filter((b) => b.t <= epoch && b.t > preMarketToday);
+    testBars = filteredBars.slice(firstIndexForToday, firstIndexForToday + testBars.length + 1);
 
     t.is(testBars.length, 4);
 
     trend = getHeuristicTrend(lastBarYday, testBars);
 
-    t.is(trend.primary.phase, TrendPhase.big_move);
-    t.truthy(trend.secondary);
-    t.truthy(trend.secondary!.length);
     t.deepEqual(trend.primary, {
         value: TrendType.down,
-        phase: TrendPhase.big_move,
         trendBreakThreshold: 286.62,
-        details: {
-            peak: {
-                previous: 284.88,
-                current: 285.12,
-            },
-            trough: {
-                previous: 283.64,
-                current: 283.87,
-            },
-        },
-    });
-
-    epoch += 300000;
-    testBars = filteredBars.filter((b) => b.t <= epoch && b.t > preMarketToday);
-
-    t.is(testBars.length, 5);
-
-    trend = getHeuristicTrend(lastBarYday, testBars);
-
-    t.is(trend.primary.phase, TrendPhase.big_move);
-    t.deepEqual(trend.primary, {
-        value: TrendType.down,
-        phase: TrendPhase.big_move,
-        trendBreakThreshold: 286.62,
-        details: {
-            peak: {
-                previous: 284.88,
-                current: 285.2,
-            },
-            trough: {
-                previous: 283.64,
-                current: 283.87,
-            },
-        },
-    });
-
-    epoch += 300000;
-
-    testBars = filteredBars.filter((b) => b.t <= epoch && b.t > preMarketToday);
-
-    t.is(testBars.length, 6);
-
-    trend = getHeuristicTrend(lastBarYday, testBars);
-
-    t.is(trend.primary.phase, TrendPhase.big_move);
-    t.deepEqual(trend.primary, {
-        value: TrendType.down,
-        phase: TrendPhase.big_move,
-        trendBreakThreshold: 286.62,
-        details: {
-            peak: {
-                previous: 284.88,
-                current: 285.2,
-            },
-            trough: {
-                previous: 283.87,
-                current: 284.25,
-            },
-        },
-    });
-
-    epoch += 300000;
-
-    testBars = filteredBars.filter((b) => b.t <= epoch && b.t > preMarketToday);
-
-    t.is(testBars.length, 7);
-
-    trend = getHeuristicTrend(lastBarYday, testBars);
-
-    t.is(trend.primary.phase, TrendPhase.big_move);
-    t.deepEqual(trend.primary, {
-        value: TrendType.down,
-        phase: TrendPhase.big_move,
-        trendBreakThreshold: 286.62,
-        details: {
-            peak: {
-                previous: 285.2,
-                current: 285.87,
-            },
-            trough: {
-                previous: 283.87,
-                current: 284.25,
-            },
-        },
-    });
-
-    epoch += 300000;
-
-    testBars = filteredBars.filter((b) => b.t <= epoch && b.t > preMarketToday);
-
-    t.is(testBars.length, 8);
-
-    trend = getHeuristicTrend(lastBarYday, testBars);
-
-    t.is(trend.primary.phase, TrendPhase.big_move);
-    t.deepEqual(trend.primary, {
-        value: TrendType.down,
-        phase: TrendPhase.big_move,
-        trendBreakThreshold: 286.62,
-        details: {
-            peak: {
-                previous: 285.2,
-                current: 286.08,
-            },
-            trough: {
-                previous: 283.87,
-                current: 284.25,
-            },
-        },
-    });
-
-    epoch += 300000;
-
-    testBars = filteredBars.filter((b) => b.t <= epoch && b.t > preMarketToday);
-
-    t.is(testBars.length, 9);
-
-    trend = getHeuristicTrend(lastBarYday, testBars);
-
-    t.is(trend.primary.phase, TrendPhase.fizzle);
-    t.is(trend.secondary!.length, 2);
-    t.is(trend.secondary![1].value, TrendType.down);
-    t.deepEqual(trend.primary, {
-        value: TrendType.down,
-        phase: TrendPhase.fizzle,
-        trendBreakThreshold: 286.62,
-        details: {
-            peak: {
-                previous: 285.2,
-                current: 286.08,
-            },
-            trough: {
-                previous: 0,
-                current: 285.55,
-            },
-        },
-    });
-
-    epoch += 300000;
-
-    testBars = filteredBars.filter((b) => b.t <= epoch && b.t > preMarketToday);
-
-    t.is(testBars.length, 10);
-
-    trend = getHeuristicTrend(lastBarYday, testBars);
-
-    t.is(trend.primary.phase, TrendPhase.fizzle);
-    t.deepEqual(trend.primary, {
-        value: TrendType.down,
-        phase: TrendPhase.fizzle,
-        trendBreakThreshold: 286.62,
-        details: {
-            peak: {
-                previous: 284.21,
-                current: 285.07,
-            },
-            trough: {
-                previous: 282.84,
-                current: 283.4,
-            },
-        },
-    });
-
-    epoch += 300000;
-
-    testBars = filteredBars.filter((b) => b.t <= epoch && b.t > preMarketToday);
-
-    t.is(testBars.length, 11);
-
-    trend = getHeuristicTrend(lastBarYday, testBars);
-
-    t.is(trend.primary.phase, TrendPhase.fizzle);
-    t.deepEqual(trend.primary, {
-        value: TrendType.down,
-        phase: TrendPhase.fizzle,
-        trendBreakThreshold: 286.62,
-        details: {
-            peak: {
-                previous: 284.21,
-                current: 285.07,
-            },
-            trough: {
-                previous: 282.84,
-                current: 283.4,
-            },
-        },
+        peaks: [286.62, 284.79, 285.12],
+        troughs: [284.51, 283.64],
     });
 });
