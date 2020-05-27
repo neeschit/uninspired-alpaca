@@ -309,3 +309,125 @@ test("trend on a gap down and reverse for SPY on 05/13", async (t) => {
         troughs: [284.51, 283.64],
     });
 });
+
+test("trend on a gap up and reverse for AMT on 05/20", async (t) => {
+    const bars = await getPolyonData(
+        "AMT",
+        new Date("2020-05-19T19:14:46.000Z"),
+        new Date("2020-05-20T09:14:46.000Z"),
+        PeriodType.minute,
+        DefaultDuration.five
+    );
+
+    const preMarketToday = 1589977200000;
+
+    const closeYday = 1589916000000;
+
+    const filteredBars = bars["AMT"].filter((b) => isMarketOpen(b.t));
+
+    const closingBarsYday = filteredBars.filter((b) => b.t > closeYday && b.t < preMarketToday);
+
+    const lastBarYday = closingBarsYday[closingBarsYday.length - 1];
+
+    let epoch = 1589984100000;
+    let firstIndexForToday = -1;
+
+    let testBars = filteredBars.filter((b, index) => {
+        const isTodayMarketBar = b.t <= epoch && b.t > preMarketToday;
+
+        if (isTodayMarketBar && firstIndexForToday === -1) {
+            firstIndexForToday = index;
+        }
+
+        return isTodayMarketBar;
+    });
+
+    t.is(testBars.length, 10);
+
+    let trend = getHeuristicTrend(lastBarYday, testBars);
+
+    t.is(trend.primary.value, TrendType.up);
+    t.is(trend.secondary[trend.secondary.length - 1].value, TrendType.up);
+});
+
+test("trend on a gap up and reverse for SPY on 05/20", async (t) => {
+    const bars = await getPolyonData(
+        "SPY",
+        new Date("2020-05-19T19:14:46.000Z"),
+        new Date("2020-05-20T09:14:46.000Z"),
+        PeriodType.minute,
+        DefaultDuration.five
+    );
+
+    const preMarketToday = 1589977200000;
+
+    const closeYday = 1589916000000;
+
+    const filteredBars = bars["SPY"].filter((b) => isMarketOpen(b.t));
+
+    const closingBarsYday = filteredBars.filter((b) => b.t > closeYday && b.t < preMarketToday);
+
+    const lastBarYday = closingBarsYday[closingBarsYday.length - 1];
+
+    let epoch = 1589982900000;
+    let firstIndexForToday = -1;
+
+    let testBars = filteredBars.filter((b, index) => {
+        const isTodayMarketBar = b.t <= epoch && b.t > preMarketToday;
+
+        if (isTodayMarketBar && firstIndexForToday === -1) {
+            firstIndexForToday = index;
+        }
+
+        return isTodayMarketBar;
+    });
+
+    t.is(testBars.length, 6);
+
+    let trend = getHeuristicTrend(lastBarYday, testBars);
+
+    t.is(trend.primary.value, TrendType.up);
+    t.is(trend.secondary[trend.secondary.length - 1].value, TrendType.up);
+});
+
+test("trend on a gap up and reverse for SPY on 05/19", async (t) => {
+    const bars = await getPolyonData(
+        "SPY",
+        new Date("2020-05-18T19:14:46.000Z"),
+        new Date("2020-05-29T09:14:46.000Z"),
+        PeriodType.minute,
+        DefaultDuration.five
+    );
+
+    const preMarketToday = 1589890800000;
+
+    const closeYday = 1589829600000;
+
+    const filteredBars = bars["SPY"].filter((b) => isMarketOpen(b.t));
+
+    const closingBarsYday = filteredBars.filter((b) => b.t > closeYday && b.t < preMarketToday);
+
+    const lastBarYday = closingBarsYday[closingBarsYday.length - 1];
+
+    let epoch = 1589896800000;
+    let firstIndexForToday = -1;
+
+    let testBars = filteredBars.filter((b, index) => {
+        const isTodayMarketBar = b.t <= epoch && b.t > preMarketToday;
+
+        if (isTodayMarketBar && firstIndexForToday === -1) {
+            firstIndexForToday = index;
+        }
+
+        return isTodayMarketBar;
+    });
+
+    t.is(testBars.length, 7);
+
+    let trend = getHeuristicTrend(lastBarYday, testBars);
+
+    t.is(trend.primary.value, TrendType.down);
+    t.is(trend.secondary[trend.secondary.length - 1].trendBreakThreshold, 294.84);
+    t.is(trend.secondary[trend.secondary.length - 1].value, TrendType.up);
+    t.is(trend.secondary.length, 2);
+});

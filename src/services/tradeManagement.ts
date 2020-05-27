@@ -13,9 +13,19 @@ import { AlpacaOrder, AlpacaTradeConfig, Broker } from "@neeschit/alpaca-trade-a
 import { LOGGER } from "../instrumentation/log";
 import { isMarketClosing } from "../util/market";
 import { insertOrder } from "../resources/order";
-import { insertPlannedPosition, FilledPositionConfig, PositionConfig } from "../resources/position";
+import {
+    insertPlannedPosition,
+    FilledPositionConfig,
+    PositionConfig,
+    updatePlannedPosition,
+} from "../resources/position";
 import { roundHalf } from "../util";
 import { TrendType, getTrend } from "../pattern/trend/trendIdentifier";
+import {
+    getOpeningRangeBreakoutPlan,
+    refreshOpeningRangeBreakoutPlan,
+} from "../strategy/narrowRangeBar";
+import { isBacktestingEnv } from "../util/env";
 
 export const isClosingOrder = (currentPosition: FilledPositionConfig, tradeConfig: TradeConfig) => {
     if (currentPosition.side === PositionDirection.long) {
@@ -30,13 +40,7 @@ export const validatePositionEntryPlan = (
     side: TradeDirection,
     closePrice: number
 ) => {
-    const trend = getTrend(recentBars, closePrice);
-
-    const cancel =
-        (trend === TrendType.up && side === TradeDirection.sell) ||
-        (trend === TrendType.down && side === TradeDirection.buy);
-
-    return cancel;
+    return false;
 };
 
 export const processOrderFromStrategy = (
@@ -173,8 +177,9 @@ export const rebalancePosition = async (
 
     const plannedExitPrice =
         positionSide === PositionDirection.long
-            ? roundHalf(plannedEntryPrice + plannedRiskUnits) - allowedSlippage
-            : roundHalf(plannedEntryPrice - plannedRiskUnits) + allowedSlippage;
+            ? roundHalf(plannedEntryPrice + partialProfitRatio * plannedRiskUnits) - allowedSlippage
+            : roundHalf(plannedEntryPrice - partialProfitRatio * plannedRiskUnits) +
+              allowedSlippage;
 
     if (currentProfitRatio >= partialProfitRatio * 0.8) {
         return {
@@ -431,5 +436,33 @@ export class TradeManagement {
         }
 
         return cancel;
+    }
+
+    async refreshPlan(recentBars: Bar[], atr: number, closePrice: number, openOrder: AlpacaOrder) {
+        const newTrade = refreshOpeningRangeBreakoutPlan(
+            this.plan.symbol,
+            recentBars,
+            atr,
+            closePrice
+        );
+
+        if (!newTrade) {
+            return null;
+        }
+
+        this.plan = newTrade.plan;
+        this.config = newTrade.config;
+
+        if (this.position) {
+            updatePlannedPosition(this.plan, this.position.id);
+        } else if (isBacktestingEnv()) {
+            updatePlannedPosition(this.plan, 0);
+        }
+
+        await this.broker.cancelOrder(openOrder.id);
+
+        await this.queueEntry();
+
+        return newTrade;
     }
 }

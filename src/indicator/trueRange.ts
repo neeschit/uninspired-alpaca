@@ -2,14 +2,18 @@ import { getExponentialAverage } from "./average";
 import { Bar } from "../data/data.model";
 
 export const getTrueRange = (bars: Bar[], useSimpleDefinition = true) => {
-    if (!bars || !bars.length || bars.length < 2) {
+    if (!bars || !bars.length) {
         throw new Error("check_yo_shiz");
     }
 
-    const currentDiff = bars[1].h - bars[1].l;
+    const currentDiff = bars[bars.length - 1].h - bars[bars.length - 1].l;
 
     if (useSimpleDefinition) {
         return currentDiff;
+    }
+
+    if (bars.length < 2) {
+        throw new Error("check_yo_shiz");
     }
 
     const highDiff = Math.abs(bars[1].h - bars[0].c);
@@ -21,11 +25,20 @@ export const getTrueRange = (bars: Bar[], useSimpleDefinition = true) => {
 export const getAverageTrueRange = (bars: Bar[], useSimpleRange = true, period = 14) => {
     const tr = [];
 
-    for (let index = 0; index < bars.length - 1; index++) {
-        tr.push({
-            value: getTrueRange(bars.slice(index, index + 2), useSimpleRange),
-            t: bars[index + 1].t,
-        });
+    if (!useSimpleRange) {
+        for (let index = 0; index < bars.length - 1; index++) {
+            tr.push({
+                value: getTrueRange(bars.slice(index, index + 2), false),
+                t: bars[index + 1].t,
+            });
+        }
+    } else {
+        for (let index = 0; index < bars.length; index++) {
+            tr.push({
+                value: getTrueRange(bars.slice(index, index + 1), true),
+                t: bars[index].t,
+            });
+        }
     }
 
     const atr = getExponentialAverage(

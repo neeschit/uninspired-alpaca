@@ -8,17 +8,17 @@ import { getDetailedPerformanceReport } from "../services/performance";
 import { getMegaCaps } from "../data/filters";
 import { MockBroker } from "../services/mockExecution";
 
-const startDate = "2020-05-11 9:00:00.000";
+const startDate = "2020-05-19 9:00:00.000";
 const zonedStartDate = zonedTimeToUtc(startDate, MarketTimezone);
 
-const endDate = parseISO("2020-05-15 16:10:00.000");
+const endDate = parseISO("2020-05-27 16:10:00.000");
 
 const zonedEndDate = zonedTimeToUtc(endDate, MarketTimezone);
 
 const SYMBOLS = getMegaCaps();
 LOGGER.info(zonedStartDate.toISOString());
 
-const pr = 1.1;
+const pr = 2;
 
 const updateInterval = 60000;
 

@@ -210,40 +210,12 @@ export const handlePositionOrderUpdate = async (
 };
 
 export const getManager = async (symbol: string) => {
-    let manager = managerCache.find(
+    let manager: TradeManagement | null | undefined = managerCache.find(
         (m) => m.plan.symbol === symbol && m.filledPosition && m.filledPosition.quantity
     );
 
     if (!manager) {
-        const position = openDbPositionCache.find((p) => p.symbol === symbol);
-
-        if (!position) {
-            LOGGER.error(`aww hell`);
-            return null;
-        }
-
-        const unfilledPosition: PositionConfig = {
-            id: position.id,
-            plannedEntryPrice: position.planned_entry_price,
-            plannedStopPrice: position.planned_stop_price,
-            riskAtrRatio: 1,
-            side: position.side as PositionDirection,
-            quantity: position.planned_quantity,
-            symbol,
-            originalQuantity: position.planned_quantity,
-        };
-
-        manager = new TradeManagement({} as TradeConfig, unfilledPosition, 1);
-        manager.position = {
-            ...unfilledPosition,
-        };
-        manager.filledPosition = {
-            ...unfilledPosition,
-            originalQuantity: position.planned_quantity,
-            quantity: position.quantity,
-            averageEntryPrice: position.average_entry_price,
-            trades: [],
-        };
+        manager = getManagerForPosition(openDbPositionCache, symbol);
     }
 
     return manager;
@@ -295,4 +267,35 @@ export const handleOrderUpdateForSymbol = async (orderUpdate: AlpacaStreamingOrd
 
 export const getCallbackUrlForPositionUpdates = (symbol: string) => {
     return `http://localhost:${Service.manager}/orders/${symbol}`;
+};
+
+export const getManagerForPosition = (openDbPositionCache: Position[], symbol: string) => {
+    const position = openDbPositionCache.find((p) => p.symbol === symbol);
+
+    if (!position) {
+        LOGGER.error(`aww hell`);
+        return null;
+    }
+    const unfilledPosition: PositionConfig = {
+        id: position.id,
+        plannedEntryPrice: position.planned_entry_price,
+        plannedStopPrice: position.planned_stop_price,
+        riskAtrRatio: 1,
+        side: position.side as PositionDirection,
+        quantity: position.planned_quantity,
+        symbol,
+        originalQuantity: position.planned_quantity,
+    };
+    const manager = new TradeManagement({} as TradeConfig, unfilledPosition, 1);
+    manager.position = {
+        ...unfilledPosition,
+    };
+    manager.filledPosition = {
+        ...unfilledPosition,
+        originalQuantity: position.planned_quantity,
+        quantity: position.quantity,
+        averageEntryPrice: position.average_entry_price,
+        trades: [],
+    };
+    return manager;
 };

@@ -2,6 +2,7 @@ import { TradePlan, FilledTradeConfig } from "../data/data.model";
 import { getConnection } from "../connection/pg";
 import { LOGGER } from "../instrumentation/log";
 import { Order } from "./order";
+import { isBacktestingEnv } from "../util/env";
 
 export interface PositionConfig extends TradePlan {
     id: number;
@@ -69,6 +70,17 @@ const getUnfilledPositionInsert = (position: TradePlan) => {
     `;
 };
 
+const getUnfilledPositionUpdate = (position: TradePlan, id: number) => {
+    return `
+        update positions set 
+            planned_stop_price = ${position.plannedStopPrice}, 
+            planned_entry_price = ${position.plannedEntryPrice}, 
+            side = '${position.side}', 
+            quantity = 0
+        where id = ${id};
+    `;
+};
+
 export const mapPlanToUnfilledPosition = (plan: TradePlan): PositionConfig => {
     return {
         ...plan,
@@ -79,7 +91,7 @@ export const mapPlanToUnfilledPosition = (plan: TradePlan): PositionConfig => {
 };
 
 export const insertPlannedPosition = async (plan: TradePlan): Promise<PositionConfig> => {
-    if (process.env.NODE_ENV === "backtest") {
+    if (isBacktestingEnv()) {
         return mapPlanToUnfilledPosition(plan);
     }
     const pool = getConnection();
@@ -95,6 +107,27 @@ export const insertPlannedPosition = async (plan: TradePlan): Promise<PositionCo
         quantity: 0,
         originalQuantity: 0,
         id: rows[0].id,
+    };
+};
+
+export const updatePlannedPosition = async (
+    plan: TradePlan,
+    id: number
+): Promise<PositionConfig> => {
+    const query = getUnfilledPositionUpdate(plan, id);
+    if (isBacktestingEnv()) {
+        LOGGER.debug(query);
+        return mapPlanToUnfilledPosition(plan);
+    }
+    const pool = getConnection();
+
+    const result = await pool.query(query);
+
+    return {
+        ...plan,
+        quantity: 0,
+        originalQuantity: 0,
+        id,
     };
 };
 
@@ -121,7 +154,7 @@ export const getOpenPositions = async (): Promise<Position[]> => {
     return result.rows;
 };
 
-export const getRecentlyClosedPositions = async (): Promise<Position[]> => {
+export const getRecentlyUpdatedPositions = async (): Promise<Position[]> => {
     const pool = getConnection();
 
     const result = await pool.query(`

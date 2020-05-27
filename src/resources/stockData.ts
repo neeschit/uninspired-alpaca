@@ -476,7 +476,7 @@ export const getYesterdaysEndingBars = async (
 export const cacheDailyBarsForSymbol = async (symbol: string) => {
     const daysMinutes = await getPolyonData(
         symbol,
-        addBusinessDays(Date.now(), -1),
+        addBusinessDays(Date.now(), -15),
         addBusinessDays(Date.now(), 0),
         PeriodType.day,
         DefaultDuration.one

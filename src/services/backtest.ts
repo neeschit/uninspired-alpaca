@@ -8,6 +8,7 @@ import {
     addMonths,
     addBusinessDays,
     endOfMonth,
+    isSameDay,
 } from "date-fns";
 import Sinon from "sinon";
 import { TradeConfig, DefaultDuration, PeriodType, Bar } from "../data/data.model";
@@ -41,6 +42,9 @@ export class Backtester {
         [index: string]: Bar[];
     } = {};
     screenerBars: {
+        [index: string]: Bar[];
+    } = {};
+    todaysScreenerBars: {
         [index: string]: Bar[];
     } = {};
     calendar: Calendar[] = [];
@@ -255,23 +259,7 @@ export class Backtester {
                 Sinon.useFakeTimers(this.currentDate);
 
                 for (const i of this.strategyInstances) {
-                    const bars = this.screenerBars[i.symbol].filter(
-                        (b) =>
-                            b.t < this.currentDate.getTime() &&
-                            b.t > addBusinessDays(this.currentDate, -2).getTime()
-                    );
-
-                    if (
-                        i.lastScreenedTimestamp &&
-                        bars.length &&
-                        bars[bars.length - 1].t === i.lastScreenedTimestamp
-                    ) {
-                        continue;
-                    }
-
-                    if (bars && bars.length > 1) {
-                        i.screenForNarrowRangeBars(bars, this.currentDate.getTime());
-                    }
+                    i.screenForNarrowRangeBars([], this.currentDate.getTime());
                 }
 
                 Sinon.clock.restore();
@@ -283,6 +271,11 @@ export class Backtester {
                 LOGGER.debug(`took  ${(now1 - now) / 1000}`);
 
                 const potentialTradesToPlace = filteredInstances.map(async (i) => {
+                    if (!i.nrbs.length) {
+                        return;
+                    }
+                    const todaysBars = this.getTodaysBars(i.symbol);
+
                     const bars = this.replayBars[i.symbol];
 
                     try {
@@ -300,7 +293,7 @@ export class Backtester {
                             return;
                         }
 
-                        const recentBars = this.screenerBars[i.symbol].filter(
+                        const recentBars = todaysBars.filter(
                             (b) => b.t < this.currentDate.getTime()
                         );
 
@@ -519,6 +512,7 @@ export class Backtester {
         this.managers = [];
         this.strategyInstances = [];
         this.broker.cancelAllOrders();
+        this.todaysScreenerBars = {};
     }
 
     public async executeAndRecord() {
@@ -528,11 +522,27 @@ export class Backtester {
 
         for (const manager of this.managers) {
             const symbol = manager.plan.symbol;
-            const bars = this.screenerBars[symbol];
+            const bars = this.getTodaysBars(symbol);
 
             if (manager.filledPosition) {
                 continue;
             }
+
+            const strategy = this.strategyInstances.find((i) => i.symbol === symbol);
+
+            manager.refreshPlan(
+                bars.filter(
+                    (b) =>
+                        isMarketOpen(b.t) &&
+                        isSameDay(this.currentDate, b.t) &&
+                        b.t <= this.currentDate.getTime()
+                ),
+                strategy!.atr,
+                strategy!.closePrice,
+                ({
+                    id: "test",
+                } as unknown) as any
+            );
 
             if (!bars) {
                 LOGGER.error(`No bars for ${JSON.stringify(manager.plan)}`);
@@ -636,6 +646,22 @@ export class Backtester {
         }
 
         return trades;
+    }
+
+    getTodaysBars(symbol: string) {
+        let todaysBars = this.todaysScreenerBars[symbol];
+
+        if (!todaysBars) {
+            this.todaysScreenerBars[symbol] = this.screenerBars[symbol].filter(
+                (b) =>
+                    isSameDay(b.t, this.currentDate) &&
+                    confirmMarketOpen(this.calendar, this.currentDate.getTime())
+            );
+
+            todaysBars = this.todaysScreenerBars[symbol];
+        }
+
+        return todaysBars;
     }
 
     static getBatches(
