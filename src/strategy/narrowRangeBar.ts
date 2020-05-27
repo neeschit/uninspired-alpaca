@@ -1,4 +1,4 @@
-import { TrendType, getTrend } from "../pattern/trend/trendIdentifier";
+import { TrendType, getTrend, getHeuristicTrend } from "../pattern/trend/trendIdentifier";
 import { TRADING_RISK_UNIT_CONSTANT, assessRisk, getActualStop } from "../services/riskManagement";
 import { isMarketOpen } from "../util/market";
 import {
@@ -9,26 +9,189 @@ import {
     TimeInForce,
     PlannedTradeConfig,
     PositionDirection,
+    TradePlan,
 } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
 import { convertToLocalTime } from "../util/date";
 import { Broker } from "@neeschit/alpaca-trade-api";
 import { alpaca } from "../resources/alpaca";
-import { getAverageTrueRange } from "../indicator/trueRange";
+import { getAverageTrueRange, getTrueRange } from "../indicator/trueRange";
 import { isSameDay } from "date-fns";
 import { roundHalf } from "../util";
 import { validatePositionEntryPlan } from "../services/tradeManagement";
 import { getDirectionalMovementIndex } from "../indicator/dmi";
+import { IndicatorValue } from "../indicator/adx";
+
+export interface ORBParams {
+    currentIntradayAtr: number;
+    recentBars: Bar[];
+    entryBar: Bar;
+    atr: number;
+    closePrice: number;
+    symbol: string;
+}
+
+export const refreshOpeningRangeBreakoutPlan = (
+    symbol: string,
+    todaysBars: Bar[],
+    dailyAtr: number,
+    closePrice: number
+) => {
+    const { atr: currentIntradayAtrs } = getAverageTrueRange(todaysBars, false, 5);
+
+    const currentIntradayAtrObject = currentIntradayAtrs[currentIntradayAtrs.length - 1];
+    const currentIntradayAtr = currentIntradayAtrObject.value;
+    const entryBar = todaysBars[0];
+
+    return getOpeningRangeBreakoutPlan({
+        recentBars: todaysBars,
+        symbol: symbol,
+        entryBar,
+        closePrice,
+        atr: dailyAtr,
+        currentIntradayAtr,
+    });
+};
+
+export const getOrbDirection = (bars: Bar[]): TradeDirection | null => {
+    const firstBar = bars[0];
+    const close = bars[bars.length - 1].c;
+    const distanceFromLongEntry = Math.abs(close - firstBar.h);
+    const distanceFromShortEntry = Math.abs(close - firstBar.l);
+
+    if (distanceFromLongEntry < distanceFromShortEntry && close < firstBar.h) {
+        return TradeDirection.buy;
+    } else if (distanceFromShortEntry < distanceFromLongEntry && close > firstBar.l) {
+        return TradeDirection.sell;
+    }
+
+    return null;
+};
+
+export const getOrbEntryPrices = (
+    bar: Bar,
+    atr: number
+): { entryLong: number; entryShort: number } => {
+    const noiseSmoother = atr / 12;
+    return {
+        entryLong: bar.h + noiseSmoother,
+        entryShort: bar.l - noiseSmoother,
+    };
+};
+
+export const getOpeningRangeBreakoutPlan = ({
+    currentIntradayAtr,
+    recentBars,
+    entryBar,
+    atr,
+    closePrice,
+    symbol,
+}: ORBParams) => {
+    const lastBar = recentBars[recentBars.length - 1];
+
+    const tradeDirection = getOrbDirection(recentBars);
+
+    if (!tradeDirection) {
+        return null;
+    }
+
+    const stopUnits = assessRisk(atr, currentIntradayAtr, closePrice);
+
+    const { entryLong, entryShort } = getOrbEntryPrices(entryBar, currentIntradayAtr);
+
+    if (lastBar.c > entryLong && tradeDirection === TradeDirection.buy) {
+        return null;
+    }
+
+    if (lastBar.c < entryShort && tradeDirection === TradeDirection.sell) {
+        return null;
+    }
+
+    const entryPrice = tradeDirection === TradeDirection.buy ? entryLong : entryShort;
+
+    const stop = getActualStop(
+        entryPrice,
+        currentIntradayAtr,
+        tradeDirection === TradeDirection.sell,
+        atr
+    );
+    const unitRisk = stopUnits;
+
+    const quantity = Math.ceil(TRADING_RISK_UNIT_CONSTANT / stopUnits);
+
+    if (!quantity || quantity < 0) {
+        LOGGER.error(`Expected an order for ${symbol} at ${lastBar.t}`);
+        return null;
+    }
+
+    const riskAtrRatio = currentIntradayAtr / unitRisk;
+
+    const allowedSlippage = Number((currentIntradayAtr / 10).toFixed(2));
+
+    if (tradeDirection === TradeDirection.buy) {
+        const plan = {
+            plannedEntryPrice: entryLong,
+            plannedStopPrice: stop,
+            riskAtrRatio,
+            quantity,
+            side: PositionDirection.long,
+            symbol: symbol,
+        };
+
+        return {
+            plan,
+            config: {
+                symbol: symbol,
+                quantity,
+                side: TradeDirection.buy,
+                type: TradeType.stop_limit,
+                tif: TimeInForce.day,
+                stopPrice: entryLong,
+                price: entryLong + allowedSlippage,
+                t: lastBar.t,
+            },
+        };
+    } else if (tradeDirection === TradeDirection.sell) {
+        const plan = {
+            plannedEntryPrice: entryShort,
+            plannedStopPrice: stop,
+            riskAtrRatio,
+            quantity,
+            side: PositionDirection.short,
+            symbol: symbol,
+        };
+
+        return {
+            plan,
+            config: {
+                symbol: symbol,
+                quantity,
+                side: TradeDirection.sell,
+                type: TradeType.stop_limit,
+                tif: TimeInForce.day,
+                stopPrice: entryShort,
+                price: entryShort - allowedSlippage,
+                t: lastBar.t,
+            },
+        };
+    }
+
+    return null;
+};
 
 export class NarrowRangeBarStrategy {
     symbol: string;
     broker: Broker;
     atr: number;
+    tr: IndicatorValue<number>[];
     nrbTimestamps: number[] = [];
     nrbs: Bar[] = [];
     lastScreenedTimestamp = 0;
     lastEntryAttemptedTimestamp = 0;
     closePrice = 0;
+    closeBar: Bar;
+    bars: Bar[];
+
     di: {
         pdx: number;
         ndx: number;
@@ -49,76 +212,30 @@ export class NarrowRangeBarStrategy {
         this.symbol = symbol;
         this.broker = broker;
 
-        const { atr } = getAverageTrueRange(bars, false);
+        const { atr, tr } = getAverageTrueRange(bars, false);
 
-        this.closePrice = bars[bars.length - 1].c;
+        this.closeBar = bars[bars.length - 1];
+
+        this.closePrice = this.closeBar.c;
 
         this.atr = atr[atr.length - 1].value;
+        this.tr = tr;
+        this.bars = bars;
     }
 
     screenForNarrowRangeBars(bars: Bar[], currentEpoch = Date.now()) {
-        if (!this.isTimeForEntry(currentEpoch)) {
-            return;
+        if (this.nrbs.length) {
+            return true;
         }
-        const filteredBars = bars.filter((b) => isMarketOpen(b.t));
+        const isYdayNrb = this.isNarrowRangeBar(
+            this.tr.map((r) => r.value),
+            this.bars,
+            this.tr[this.tr.length - 1]
+        );
 
-        const todaysBars = filteredBars.filter((b) => isSameDay(b.t, currentEpoch));
-
-        const { tr } = getAverageTrueRange(todaysBars);
-
-        const filteredRanges = tr.filter((range) => range.t <= currentEpoch);
-
-        if (!filteredRanges || filteredRanges.length < 2) {
-            return;
-        }
-
-        for (const range of filteredRanges) {
-            const index = tr.findIndex((r) => r.t === range.t);
-
-            if (index < 0) {
-                throw new Error("boohoo");
-            }
-
-            const ranges = tr.slice(Math.max(0, index - 7), index + 1).map((r) => r.value);
-
-            if (this.isNarrowRangeBar(ranges, todaysBars, range)) {
-                const text = `Looking like a good entry for ${this.symbol} at ${new Date(
-                    range.t
-                ).toISOString()}`;
-                LOGGER.debug(text);
-
-                const index = this.nrbTimestamps.findIndex((t) => t === range.t);
-                if (index < 0 && this.lastScreenedTimestamp < range.t) {
-                    this.nrbTimestamps.push(range.t);
-                    const bar = bars.find((b) => b.t === range.t);
-
-                    if (bar) {
-                        this.nrbs.push(bar);
-                    }
-                }
-            }
-        }
-
-        this.lastScreenedTimestamp = filteredRanges[filteredRanges.length - 1].t;
-    }
-
-    get direction() {
-        const entryBar = this.nrbs[this.nrbs.length - 1];
-        const roundedLow = Math.round(entryBar.l);
-        const roundedHigh = Math.round(entryBar.h);
-
-        if (roundedHigh === entryBar.h && roundedLow === entryBar.l) {
-            LOGGER.warn(
-                `This is a weird one ${this.symbol} at ${new Date(entryBar.t).toLocaleString()}`
-            );
-        }
-
-        if (Math.abs(roundedHigh - entryBar.h) < 0.04) {
-            return TradeDirection.buy;
-        }
-
-        if (Math.abs(roundedLow - entryBar.l) < 0.04) {
-            return TradeDirection.sell;
+        if (isYdayNrb) {
+            this.nrbs.push(this.closeBar);
+            this.nrbTimestamps.push(this.closeBar.t);
         }
     }
 
@@ -130,32 +247,21 @@ export class NarrowRangeBarStrategy {
             t: number;
         }
     ) {
-        const { max } = this.getMinMaxPeriodRange(tr.slice(-7));
+        const last7Ranges = tr.slice(-7);
+        const { max } = this.getMinMaxPeriodRange(last7Ranges);
 
-        const { min } = this.getMinMaxPeriodRange(tr.slice(-3));
+        const { min: threePeriodMin } = this.getMinMaxPeriodRange(last7Ranges.slice(-3));
+        const { min: sevenPeriodMin } = this.getMinMaxPeriodRange(last7Ranges);
 
-        const isNarrowRangeBar = range.value === min;
+        const isNarrowRangeBar = range.value <= sevenPeriodMin * 1.02;
 
-        const bar = bars.find((b) => b.t === range.t);
-
-        if (!bar) {
-            return false;
-        }
-
-        const roundedLow = Math.round(bar.l);
-        const roundedHigh = Math.round(bar.h);
-
-        return (
-            isNarrowRangeBar &&
-            (Math.abs(roundedLow - bar.l) < 0.03 || Math.abs(roundedHigh - bar.h) < 0.03) &&
-            this.isVeryNarrowRangeBar(max, min)
-        );
+        return isNarrowRangeBar || this.isVeryNarrowRangeBar(max, threePeriodMin, range.value);
     }
 
-    isVeryNarrowRangeBar(max: number, min: number) {
+    isVeryNarrowRangeBar(max: number, min: number, range: number) {
         LOGGER.trace(max / min);
 
-        return max / min > 3;
+        return range <= min * 1.02 && max / min > 3;
     }
 
     private getMinMaxPeriodRange(tr: number[]) {
@@ -184,8 +290,8 @@ export class NarrowRangeBarStrategy {
     }
 
     isTimeForEntry(now: TimestampType) {
-        const timeStart = convertToLocalTime(now, " 09:44:45.000");
-        const timeEnd = convertToLocalTime(now, " 15:30:00.000");
+        const timeStart = convertToLocalTime(now, " 09:34:45.000");
+        const timeEnd = convertToLocalTime(now, " 11:55:45.000");
 
         const nowMillis = now instanceof Date ? now.getTime() : now;
 
@@ -208,32 +314,37 @@ export class NarrowRangeBarStrategy {
         now: TimestampType = Date.now(),
         currentPositions?: { symbol: string }[]
     ): Promise<PlannedTradeConfig | null> {
-        if (!this.isTimeForEntry(now)) {
+        if (!this.isTimeForEntry(now) || !recentBars.length || !this.nrbs.length) {
             LOGGER.trace(`not the time to enter for ${this.symbol} at ${new Date(now)}`);
             return null;
         }
         now = now instanceof Date ? now.getTime() : now;
 
-        const { atr } = getAverageTrueRange(recentBars, false);
-
         if (!currentPositions) {
             currentPositions = await this.broker.getPositions();
         }
 
-        const notCurrentPosition =
-            currentPositions.findIndex((p) => p.symbol === this.symbol) === -1;
+        const isCurrentPosition =
+            currentPositions.findIndex((p) => p.symbol === this.symbol) !== -1;
 
-        if (!notCurrentPosition) {
+        if (isCurrentPosition) {
             return null;
         }
 
-        const lastBar = recentBars[recentBars.length - 1];
+        const firstBar = recentBars[0];
 
-        const trend = getTrend(recentBars, this.closePrice);
+        const { atr } = getAverageTrueRange(recentBars, true);
 
         try {
             const currentIntradayAtr = atr[atr.length - 1].value;
-            const plan = this.getPlan(trend, currentIntradayAtr, lastBar);
+            const plan = getOpeningRangeBreakoutPlan({
+                currentIntradayAtr,
+                symbol: this.symbol,
+                atr: this.atr,
+                recentBars,
+                entryBar: firstBar,
+                closePrice: this.closePrice,
+            });
 
             if (plan) {
                 const isInvalid = validatePositionEntryPlan(
@@ -249,119 +360,6 @@ export class NarrowRangeBarStrategy {
         } catch (e) {
             LOGGER.error(e);
             return null;
-        }
-
-        return null;
-    }
-    getEntryPrices(entryBar: Bar): { entryLong: any; entryShort: any } {
-        return {
-            entryLong: Math.max(Math.round(entryBar.h), entryBar.h) + 0.01,
-            entryShort: Math.min(Math.round(entryBar.l), entryBar.l) - 0.01,
-        };
-    }
-
-    getPlan(trend: TrendType, currentIntradayAtr: number, lastBar: Bar) {
-        if (!this.nrbs.length) {
-            return null;
-        }
-
-        if (!this.direction) {
-            return null;
-        }
-
-        if (trend === TrendType.sideways) {
-            return null;
-        }
-
-        if (trend === TrendType.up && this.direction === TradeDirection.sell) {
-            return null;
-        } else if (trend === TrendType.down && this.direction === TradeDirection.buy) {
-            return null;
-        }
-
-        const stopUnits = assessRisk(this.atr, currentIntradayAtr, lastBar.c);
-
-        const entryBar = this.nrbs[this.nrbs.length - 1];
-
-        const { entryLong, entryShort } = this.getEntryPrices(entryBar);
-
-        if (lastBar.c > entryLong && this.direction === TradeDirection.buy) {
-            return null;
-        }
-
-        if (lastBar.c < entryShort && this.direction === TradeDirection.sell) {
-            return null;
-        }
-
-        const entryPrice = this.direction === TradeDirection.buy ? entryLong : entryShort;
-
-        const stop = getActualStop(
-            entryPrice,
-            currentIntradayAtr,
-            this.direction === TradeDirection.sell,
-            this.atr
-        );
-        const unitRisk = stopUnits;
-
-        const quantity = Math.ceil(TRADING_RISK_UNIT_CONSTANT / stopUnits);
-
-        if (!quantity || quantity < 0) {
-            LOGGER.error(`Expected an order for ${this.symbol} at ${lastBar.t}`);
-            return null;
-        }
-
-        const riskAtrRatio = currentIntradayAtr / unitRisk;
-
-        const allowedSlippage = Number((currentIntradayAtr / 10).toFixed(2));
-
-        if (this.direction === TradeDirection.buy) {
-            this.lastEntryAttemptedTimestamp = lastBar.t;
-            const plan = {
-                plannedEntryPrice: entryLong,
-                plannedStopPrice: stop,
-                riskAtrRatio,
-                quantity,
-                side: PositionDirection.long,
-                symbol: this.symbol,
-            };
-
-            return {
-                plan,
-                config: {
-                    symbol: this.symbol,
-                    quantity,
-                    side: TradeDirection.buy,
-                    type: TradeType.stop_limit,
-                    tif: TimeInForce.day,
-                    stopPrice: entryLong,
-                    price: entryLong + allowedSlippage,
-                    t: lastBar.t,
-                },
-            };
-        } else if (this.direction === TradeDirection.sell) {
-            this.lastEntryAttemptedTimestamp = lastBar.t;
-            const plan = {
-                plannedEntryPrice: entryShort,
-                plannedStopPrice: stop,
-                riskAtrRatio,
-                quantity,
-                side: PositionDirection.short,
-                symbol: this.symbol,
-            };
-
-            return {
-                plan,
-                config: {
-                    symbol: this.symbol,
-                    quantity,
-                    side: TradeDirection.sell,
-                    type: TradeType.stop_limit,
-                    tif: TimeInForce.day,
-                    stopPrice: entryShort,
-                    price: entryShort - allowedSlippage,
-                    t: lastBar.t,
-                },
-            };
         }
 
         return null;

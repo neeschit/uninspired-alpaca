@@ -3,6 +3,7 @@ import { AlpacaTradeConfig, TradeType, AlpacaOrder } from "@neeschit/alpaca-trad
 import { LOGGER } from "../instrumentation/log";
 import { PositionConfig } from "./position";
 import { TimeInForce, OrderStatus, TradeDirection } from "../data/data.model";
+import { isBacktestingEnv } from "../util/env";
 
 export interface Order {
     id: number;
@@ -102,7 +103,7 @@ export const insertOrder = async (
     position: PositionConfig,
     orderStatus = OrderStatus.new
 ): Promise<Order> => {
-    if (process.env.NODE_ENV === "backtest") {
+    if (isBacktestingEnv()) {
         return {
             id: 1,
             positionId: position.id,
