@@ -177,8 +177,9 @@ export const rebalancePosition = async (
 
     const plannedExitPrice =
         positionSide === PositionDirection.long
-            ? roundHalf(plannedEntryPrice + plannedRiskUnits) - allowedSlippage
-            : roundHalf(plannedEntryPrice - plannedRiskUnits) + allowedSlippage;
+            ? roundHalf(plannedEntryPrice + partialProfitRatio * plannedRiskUnits) - allowedSlippage
+            : roundHalf(plannedEntryPrice - partialProfitRatio * plannedRiskUnits) +
+              allowedSlippage;
 
     if (currentProfitRatio >= partialProfitRatio * 0.8) {
         return {
@@ -437,7 +438,7 @@ export class TradeManagement {
         return cancel;
     }
 
-    refreshPlan(recentBars: Bar[], atr: number, closePrice: number) {
+    async refreshPlan(recentBars: Bar[], atr: number, closePrice: number, openOrder: AlpacaOrder) {
         const newTrade = refreshOpeningRangeBreakoutPlan(
             this.plan.symbol,
             recentBars,
@@ -446,7 +447,7 @@ export class TradeManagement {
         );
 
         if (!newTrade) {
-            return;
+            return null;
         }
 
         this.plan = newTrade.plan;
@@ -457,5 +458,11 @@ export class TradeManagement {
         } else if (isBacktestingEnv()) {
             updatePlannedPosition(this.plan, 0);
         }
+
+        await this.broker.cancelOrder(openOrder.id);
+
+        await this.queueEntry();
+
+        return newTrade;
     }
 }

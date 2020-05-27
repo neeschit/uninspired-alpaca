@@ -6,7 +6,7 @@ import {
     AlpacaPosition,
     AlpacaOrder,
 } from "@neeschit/alpaca-trade-api";
-import { Position, getRecentlyClosedPositions } from "../resources/position";
+import { Position, getRecentlyUpdatedPositions } from "../resources/position";
 import { postEntry } from "../util/slack";
 import {
     handlePriceUpdateForPosition,
@@ -24,7 +24,7 @@ export interface CurrentState {
     positions: AlpacaPosition[];
     openOrders: AlpacaOrder[];
     openDbPositions: Position[];
-    recentlyClosedDbPositions: Position[];
+    recentlyUpdatedDbPositions: Position[];
 }
 
 export const postRequestToManageOpenPosition = async (symbol: string, bar: TickBar) => {
@@ -116,25 +116,28 @@ export const getCachedCurrentState = async (): Promise<CurrentState> => {
         positions: [],
         openDbPositions: [],
         openOrders: [],
-        recentlyClosedDbPositions: [],
+        recentlyUpdatedDbPositions: [],
     };
 };
 
-server.get("/currentState", async () => {
-    const recentlyClosedDbPositions = [];
-    try {
-        const pos = await getRecentlyClosedPositions();
-        recentlyClosedDbPositions.push(...pos);
-    } catch (e) {
-        server.log.error(e);
+server.get(
+    "/currentState",
+    async (): Promise<CurrentState> => {
+        const recentlyUpdatedDbPositions = [];
+        try {
+            const pos = await getRecentlyUpdatedPositions();
+            recentlyUpdatedDbPositions.push(...pos);
+        } catch (e) {
+            server.log.error(e);
+        }
+        return {
+            positions: positionCache,
+            openOrders: openOrderCache,
+            openDbPositions: openDbPositionCache,
+            recentlyUpdatedDbPositions,
+        };
     }
-    return {
-        positions: positionCache,
-        openOrders: openOrderCache,
-        dbPositions: openDbPositionCache,
-        recentlyClosedDbPositions,
-    };
-});
+);
 
 export const postOrderToManage = async (orderUpdate: AlpacaStreamingOrderUpdate) => {
     try {

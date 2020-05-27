@@ -189,12 +189,17 @@ export class MockBroker implements Broker {
     cancelOrder(oid: string): Promise<{}> {
         return Promise.resolve({});
     }
+
+    replaceOrder(oid: string): Promise<AlpacaOrder> {
+        throw new Error("Method not implemented.");
+    }
+
     getOrderByClientId(oid: string): Promise<AlpacaOrder> {
         throw new Error("Method not implemented.");
     }
 
-    async createOrder(params: AlpacaTradeConfig): Promise<AlpacaOrder> {
-        throw new Error("Method not implemented.");
+    async createOrder(p: AlpacaTradeConfig): Promise<AlpacaOrder> {
+        return (p as any) as AlpacaOrder;
     }
     async cancelAllOrders(): Promise<{}> {
         this.pendingTradeConfigs = [];

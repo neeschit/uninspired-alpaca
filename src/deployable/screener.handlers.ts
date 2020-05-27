@@ -5,6 +5,7 @@ import { getCachedCurrentState, CurrentState } from "./manager.service";
 import { getBarsFromDataService } from "./data.service";
 import { alpaca } from "../resources/alpaca";
 import { validatePositionEntryPlan } from "../services/tradeManagement";
+import { getManagerForPosition } from "./manager.handlers";
 
 export const screenSymbol = async (
     strategies: NarrowRangeBarStrategy[],
@@ -15,13 +16,13 @@ export const screenSymbol = async (
 
     const {
         positions,
-        recentlyClosedDbPositions,
+        recentlyUpdatedDbPositions,
     }: Pick<
         CurrentState,
-        "positions" | "recentlyClosedDbPositions"
+        "positions" | "recentlyUpdatedDbPositions"
     > = await getCachedCurrentState();
 
-    if (recentlyClosedDbPositions.some((p) => p.symbol === symbol)) {
+    if (recentlyUpdatedDbPositions.some((p) => p.symbol === symbol)) {
         return null;
     }
 
@@ -38,7 +39,7 @@ export const screenSymbol = async (
 };
 
 export const manageOpenOrder = async (symbol: string, strategy: NarrowRangeBarStrategy) => {
-    const { positions, openOrders } = await getCachedCurrentState();
+    const { positions, openOrders, recentlyUpdatedDbPositions } = await getCachedCurrentState();
     const openingPositionOrders = openOrders.filter(
         (o) =>
             o.symbol === symbol &&
@@ -58,11 +59,13 @@ export const manageOpenOrder = async (symbol: string, strategy: NarrowRangeBarSt
     try {
         const order = openingPositionOrders[0];
         const screenerData: Bar[] = await getBarsFromDataService(symbol);
-        const isInvalid = validatePositionEntryPlan(screenerData, order.side, strategy.closePrice);
+        const manager = getManagerForPosition(recentlyUpdatedDbPositions, symbol);
 
-        if (isInvalid) {
-            await alpaca.cancelOrder(order.id);
+        if (!manager) {
+            return;
         }
+
+        await manager.refreshPlan(screenerData, strategy.atr, strategy.closePrice, order);
     } catch (e) {
         LOGGER.error(e);
     }

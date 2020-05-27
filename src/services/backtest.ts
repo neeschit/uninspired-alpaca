@@ -538,7 +538,10 @@ export class Backtester {
                         b.t <= this.currentDate.getTime()
                 ),
                 strategy!.atr,
-                strategy!.closePrice
+                strategy!.closePrice,
+                ({
+                    id: "test",
+                } as unknown) as any
             );
 
             if (!bars) {

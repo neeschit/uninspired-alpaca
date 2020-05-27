@@ -154,7 +154,7 @@ export const getOpenPositions = async (): Promise<Position[]> => {
     return result.rows;
 };
 
-export const getRecentlyClosedPositions = async (): Promise<Position[]> => {
+export const getRecentlyUpdatedPositions = async (): Promise<Position[]> => {
     const pool = getConnection();
 
     const result = await pool.query(`

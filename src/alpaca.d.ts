@@ -160,6 +160,7 @@ declare module "@neeschit/alpaca-trade-api" {
         closePosition(symbol: string): Promise<{}>;
         getAssets(params: GetAssetsParams): Promise<Asset[]>;
         getCalendar({ start, end }: { start: Date; end: Date }): Promise<Calendar[]>;
+        replaceOrder(oid: string): Promise<AlpacaOrder>;
     }
 
     export class AlpacaStreamingClient {
@@ -192,6 +193,7 @@ declare module "@neeschit/alpaca-trade-api" {
         closePosition(symbol: string): Promise<{}>;
         getAssets(params: GetAssetsParams): Promise<Asset[]>;
         getCalendar({ start, end }: { start: Date; end: Date }): Promise<Calendar[]>;
+        replaceOrder(oid: string): Promise<AlpacaOrder>;
         constructor(params: AlpacaParams);
     }
 
