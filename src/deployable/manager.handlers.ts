@@ -34,6 +34,10 @@ export const openDbPositionCache: Position[] = [];
 
 let recentOrdersCache: { [index: string]: boolean } = {};
 
+setInterval(() => {
+    refreshPositions().catch(LOGGER.error);
+}, 10000);
+
 export const refreshPositions = async (refreshOrders = true) => {
     const pos = await alpaca.getPositions();
 
