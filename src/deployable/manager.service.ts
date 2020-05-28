@@ -1,4 +1,10 @@
-import { Service, getApiServer, messageService, getFromService } from "../util/api";
+import {
+    Service,
+    getApiServer,
+    messageService,
+    getFromService,
+    isOwnedByService,
+} from "../util/api";
 import { TradePlan, TradeConfig, TickBar } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
 import {
@@ -164,6 +170,6 @@ server.post("/orders/:symbol", async (request) => {
     }
 });
 
-if (process.env.NODE_ENV !== "test") {
+if (process.env.NODE_ENV !== "test" && isOwnedByService(Service.manager)) {
     refreshPositions().catch(LOGGER.error);
 }

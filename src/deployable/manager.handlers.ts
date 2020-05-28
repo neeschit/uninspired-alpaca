@@ -24,7 +24,7 @@ import { postPartial } from "../util/slack";
 import { Service } from "../util/api";
 import { postSubscriptionRequestForTickUpdates } from "./streamer.service";
 
-const pr = 1;
+const pr = 3;
 
 export const managerCache: TradeManagement[] = [];
 
@@ -198,13 +198,14 @@ export const handlePositionOrderUpdate = async (
     if (recentOrdersCache[symbol]) {
         return null;
     }
-    recentOrdersCache[symbol] = true;
     const order = await manager.queueTrade(tradeConfig);
-    if (order) {
-        openOrderCache.push(order);
-        postPartial(order).catch(LOGGER.error);
+    if (order && !recentOrdersCache[symbol]) {
+        recentOrdersCache[symbol] = true;
+        const alpacaOrder = await alpaca.createOrder(order);
+        openOrderCache.push(alpacaOrder);
+        postPartial(alpacaOrder).catch(LOGGER.error);
         refreshOpenOrders().catch(LOGGER.error);
-        return order;
+        return alpacaOrder;
     }
     return null;
 };
@@ -222,23 +223,27 @@ export const getManager = async (symbol: string) => {
 };
 
 export const handlePositionEntry = async (trade: { plan: TradePlan; config: TradeConfig }) => {
-    let manager = await getManager(trade.plan.symbol);
+    const symbol = trade.plan.symbol;
+    let manager = await getManager(symbol);
 
-    if (recentOrdersCache[trade.plan.symbol]) {
+    if (recentOrdersCache[symbol]) {
         return null;
     }
 
     if (!manager || !manager.filledPosition || !manager.filledPosition.quantity) {
         manager = new TradeManagement(trade.config, trade.plan, pr);
 
-        recentOrdersCache[trade.plan.symbol] = true;
-
-        const order = await manager.queueEntry();
-
-        if (order) {
+        const order = await manager.queueTrade();
+        if (order && !recentOrdersCache[symbol]) {
+            const openOrders = openOrderCache.filter((o) => o.symbol === symbol);
+            await Promise.all(openOrders.map((o) => alpaca.cancelOrder(o.id)));
             managerCache.push(manager);
-
+            recentOrdersCache[symbol] = true;
+            const alpacaOrder = await alpaca.createOrder(order);
+            openOrderCache.push(alpacaOrder);
+            postSubscriptionRequestForTickUpdates();
             await refreshOpenOrders();
+            return alpacaOrder;
         }
         return order;
     }

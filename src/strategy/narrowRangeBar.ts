@@ -29,6 +29,7 @@ export interface ORBParams {
     atr: number;
     closePrice: number;
     symbol: string;
+    lastBar: Bar;
 }
 
 export const isTimeForOrbEntry = (now: TimestampType) => {
@@ -50,7 +51,8 @@ export const refreshOpeningRangeBreakoutPlan = (
     symbol: string,
     todaysBars: Bar[],
     dailyAtr: number,
-    closePrice: number
+    closePrice: number,
+    lastBar: Bar
 ) => {
     const { atr: currentIntradayAtrs } = getAverageTrueRange(todaysBars, true, 5);
 
@@ -70,6 +72,7 @@ export const refreshOpeningRangeBreakoutPlan = (
         closePrice,
         atr: dailyAtr,
         currentIntradayAtr,
+        lastBar,
     });
 };
 
@@ -106,9 +109,8 @@ export const getOpeningRangeBreakoutPlan = ({
     atr,
     closePrice,
     symbol,
+    lastBar,
 }: ORBParams) => {
-    const lastBar = recentBars[recentBars.length - 1];
-
     const tradeDirection = getOrbDirection(recentBars);
 
     if (!tradeDirection) {
@@ -270,7 +272,6 @@ export class NarrowRangeBarStrategy {
         const last7Ranges = tr.slice(-7);
         const { max } = this.getMinMaxPeriodRange(last7Ranges);
 
-        /* const { min: threePeriodMin } = this.getMinMaxPeriodRange(last7Ranges.slice(-3)); */
         const { min: sevenPeriodMin } = this.getMinMaxPeriodRange(last7Ranges);
 
         const isNarrowRangeBar = range.value <= sevenPeriodMin * 1.3;
@@ -348,25 +349,14 @@ export class NarrowRangeBarStrategy {
                 recentBars,
                 entryBar: firstBar,
                 closePrice: this.closePrice,
+                lastBar: recentBars[recentBars.length - 1],
             });
 
-            if (plan) {
-                const isInvalid = validatePositionEntryPlan(
-                    recentBars,
-                    plan.config.side,
-                    this.closePrice
-                );
-
-                if (!isInvalid) {
-                    return plan;
-                }
-            }
+            return plan;
         } catch (e) {
             LOGGER.error(e);
             return null;
         }
-
-        return null;
     }
 
     resetEntryNrbs() {

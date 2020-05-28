@@ -260,17 +260,7 @@ export class TradeManagement {
         }
     }
 
-    async executeAndRecord() {
-        const order = await this.queueEntry();
-
-        if (order && order.status !== OrderStatus.new) {
-            LOGGER.error(`could not verify order for ${JSON.stringify(this.plan)}`);
-        }
-
-        return order;
-    }
-
-    async queueTrade(trade: TradeConfig) {
+    async queueTrade(trade = this.config) {
         const position = await this.getPosition();
         const order = processOrderFromStrategy(trade);
         const insertedOrder = await insertOrder(order, position);
@@ -279,20 +269,7 @@ export class TradeManagement {
         position.pendingOrders = position.pendingOrders || [];
         position.pendingOrders.push(insertedOrder);
 
-        try {
-            const placedOrder = await this.broker.createOrder(order);
-            return placedOrder;
-        } catch (e) {
-            LOGGER.error(e);
-        }
-
-        return null;
-    }
-
-    async queueEntry() {
-        const alpacaOrder = await this.queueTrade(this.config);
-
-        return alpacaOrder;
+        return order;
     }
 
     async onTickUpdate(currentBar: Bar, unfilteredOpenOrders: AlpacaOrder[]) {
@@ -439,7 +416,13 @@ export class TradeManagement {
         return cancel;
     }
 
-    async refreshPlan(recentBars: Bar[], atr: number, closePrice: number, openOrder: AlpacaOrder) {
+    async refreshPlan(
+        recentBars: Bar[],
+        atr: number,
+        closePrice: number,
+        openOrder: AlpacaOrder,
+        lastBar: Bar
+    ) {
         if (!isTimeForOrbEntry(Date.now())) {
             if (openOrder) {
                 await this.broker.cancelOrder(openOrder.id);
@@ -450,10 +433,22 @@ export class TradeManagement {
             this.plan.symbol,
             recentBars,
             atr,
-            closePrice
+            closePrice,
+            lastBar
         );
 
         if (!newTrade) {
+            if (openOrder) {
+                await this.broker.cancelOrder(openOrder.id);
+            }
+            return null;
+        }
+
+        if (
+            newTrade.config.side === openOrder.side &&
+            newTrade.config.type === openOrder.type &&
+            newTrade.config.quantity === openOrder.qty
+        ) {
             return null;
         }
 
@@ -465,10 +460,6 @@ export class TradeManagement {
         } else if (isBacktestingEnv()) {
             updatePlannedPosition(this.plan, 0);
         }
-
-        await this.broker.cancelOrder(openOrder.id);
-
-        await this.queueEntry();
 
         return newTrade;
     }

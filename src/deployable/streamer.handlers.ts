@@ -1,7 +1,7 @@
 import { AlpacaStreamingClient } from "@neeschit/alpaca-trade-api";
 import { subscribeToTickLevelUpdates } from "../resources/polygon";
 import { currentStreamingSymbols } from "../data/filters";
-import { getCachedCurrentState } from "./manager.service";
+import { getCachedCurrentState, CurrentState } from "./manager.service";
 import { SymbolContainingConfig } from "../data/data.model";
 import { getCallbackUrlForPositionUpdates } from "./manager.handlers";
 
@@ -18,15 +18,15 @@ export const defaultSubscriptions: string[] = ["trade_updates", "account_updates
 );
 
 export const handleSubscriptionRequest = async (socket: AlpacaStreamingClient) => {
-    const { positions }: { positions: SymbolContainingConfig[] } = await getCachedCurrentState();
+    const { positions, openOrders }: CurrentState = await getCachedCurrentState();
 
     const newSubscriptions = refreshSecondAggregateSubscribers(positions);
     const subs = defaultSubscriptions.concat(newSubscriptions);
     socket.subscribe(subs);
 };
 
-export const refreshSecondAggregateSubscribers = (positions: SymbolContainingConfig[]) => {
-    const currentPositionsMap = positions.reduce((map, p) => {
+export const refreshSecondAggregateSubscribers = (symbols: SymbolContainingConfig[]) => {
+    const currentPositionsMap = symbols.reduce((map, p) => {
         const url = getCallbackUrlForPositionUpdates(p.symbol);
         currentSubscriptionsCache[p.symbol] = url;
 
