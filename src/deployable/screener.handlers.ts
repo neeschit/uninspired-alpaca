@@ -6,6 +6,7 @@ import { getBarsFromDataService } from "./data.service";
 import { alpaca } from "../resources/alpaca";
 import { validatePositionEntryPlan } from "../services/tradeManagement";
 import { getManagerForPosition } from "./manager.handlers";
+import { isSameDay } from "date-fns";
 
 export const screenSymbol = async (
     strategies: NarrowRangeBarStrategy[],
@@ -22,7 +23,7 @@ export const screenSymbol = async (
         "positions" | "recentlyUpdatedDbPositions"
     > = await getCachedCurrentState();
 
-    if (recentlyUpdatedDbPositions.some((p) => p.symbol === symbol)) {
+    if (recentlyUpdatedDbPositions.some((p) => p.symbol === symbol && p.average_entry_price)) {
         return null;
     }
 
@@ -31,14 +32,18 @@ export const screenSymbol = async (
         return null;
     }
 
-    const screenerData: Bar[] = await getBarsFromDataService(symbol, currentEpoch);
+    const screenerData = await getTodaysBars(symbol, currentEpoch);
 
     strategy.screenForNarrowRangeBars(screenerData, currentEpoch);
 
     return strategy.rebalance(screenerData, currentEpoch, positions);
 };
 
-export const manageOpenOrder = async (symbol: string, strategy: NarrowRangeBarStrategy) => {
+export const manageOpenOrder = async (
+    symbol: string,
+    strategy: NarrowRangeBarStrategy,
+    lastBar: Bar
+) => {
     const { positions, openOrders, recentlyUpdatedDbPositions } = await getCachedCurrentState();
     const openingPositionOrders = openOrders.filter(
         (o) =>
@@ -58,15 +63,21 @@ export const manageOpenOrder = async (symbol: string, strategy: NarrowRangeBarSt
 
     try {
         const order = openingPositionOrders[0];
-        const screenerData: Bar[] = await getBarsFromDataService(symbol);
+        const screenerData = await getTodaysBars(symbol);
         const manager = getManagerForPosition(recentlyUpdatedDbPositions, symbol);
 
         if (!manager) {
             return;
         }
 
-        await manager.refreshPlan(screenerData, strategy.atr, strategy.closePrice, order);
+        await manager.refreshPlan(screenerData, strategy.atr, strategy.closePrice, order, lastBar);
     } catch (e) {
         LOGGER.error(e);
     }
+};
+
+export const getTodaysBars = async (symbol: string, currentEpoch = Date.now()) => {
+    const screenerData: Bar[] = await getBarsFromDataService(symbol, currentEpoch);
+
+    return screenerData.filter((b) => isSameDay(b.t, currentEpoch));
 };

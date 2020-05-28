@@ -531,19 +531,20 @@ export class Backtester {
             }
 
             const strategy = this.strategyInstances.find((i) => i.symbol === symbol);
-
+            const refreshBars = bars.filter(
+                (b) =>
+                    isMarketOpen(b.t) &&
+                    isSameDay(this.currentDate, b.t) &&
+                    b.t <= this.currentDate.getTime()
+            );
             manager.refreshPlan(
-                bars.filter(
-                    (b) =>
-                        isMarketOpen(b.t) &&
-                        isSameDay(this.currentDate, b.t) &&
-                        b.t <= this.currentDate.getTime()
-                ),
+                refreshBars,
                 strategy!.atr,
                 strategy!.closePrice,
                 ({
                     id: "test",
-                } as unknown) as any
+                } as unknown) as any,
+                refreshBars[refreshBars.length - 1]
             );
 
             if (!bars) {

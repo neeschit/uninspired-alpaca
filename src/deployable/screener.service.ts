@@ -6,7 +6,7 @@ import { addBusinessDays } from "date-fns";
 import { LOGGER } from "../instrumentation/log";
 import { screenSymbol, manageOpenOrder } from "./screener.handlers";
 import { postNewTrade } from "./manager.service";
-import { TickBar } from "../data/data.model";
+import { TickBar, Bar } from "../data/data.model";
 
 const server = getApiServer(Service.screener);
 
@@ -75,6 +75,16 @@ server.post("/manage_open_order/:symbol", async (request) => {
 
     const strategy = strategies.find((s) => s.symbol === symbol);
 
+    const { bar }: { bar: Bar } = request.body;
+
+    if (!bar) {
+        LOGGER.error("hey hey, no bar no money");
+
+        return {
+            success: false,
+        };
+    }
+
     if (!strategy) {
         LOGGER.error("hey hey, no strategy no money");
 
@@ -83,7 +93,7 @@ server.post("/manage_open_order/:symbol", async (request) => {
         };
     }
 
-    await manageOpenOrder(symbol, strategy);
+    await manageOpenOrder(symbol, strategy, bar);
 
     return {
         success: true,
