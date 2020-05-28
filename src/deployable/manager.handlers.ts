@@ -17,11 +17,11 @@ import {
     updatePosition,
     forceUpdatePosition,
 } from "../resources/position";
-import { TradeManagement } from "../services/tradeManagement";
+import { TradeManagement, processOrderFromStrategy } from "../services/tradeManagement";
 import { TradeConfig, Bar, TradePlan } from "../data/data.model";
 import { getTodaysData } from "../resources/stockData";
-import { postPartial } from "../util/slack";
-import { Service } from "../util/api";
+import { postPartial, postEntry } from "../util/slack";
+import { Service, isOwnedByService } from "../util/api";
 import { postSubscriptionRequestForTickUpdates } from "./streamer.service";
 
 const pr = 3;
@@ -34,9 +34,11 @@ export const openDbPositionCache: Position[] = [];
 
 let recentOrdersCache: { [index: string]: boolean } = {};
 
-setInterval(() => {
-    refreshPositions().catch(LOGGER.error);
-}, 10000);
+if (isOwnedByService(Service.manager)) {
+    setInterval(() => {
+        refreshPositions().catch(LOGGER.error);
+    }, 10000);
+}
 
 export const refreshPositions = async (refreshOrders = true) => {
     const pos = await alpaca.getPositions();
@@ -161,7 +163,7 @@ async function checkIfOrderIsValid(
         symbol: order.symbol,
         originalQuantity: plannedPosition.planned_quantity,
     };
-    const manager = new TradeManagement({} as TradeConfig, unfilledPosition, 1);
+    const manager = new TradeManagement({} as TradeConfig, unfilledPosition, pr);
     manager.position = {
         ...unfilledPosition,
     };
@@ -274,6 +276,35 @@ export const handleOrderUpdateForSymbol = async (orderUpdate: AlpacaStreamingOrd
     LOGGER.debug(`Position of ${position.id} updated for ${position.symbol}`);
 };
 
+export const handleOrderReplacement = async (
+    trade: { plan: TradePlan; config: TradeConfig },
+    order: AlpacaOrder
+) => {
+    const symbol = trade.plan.symbol;
+    try {
+        await alpaca.cancelOrder(order.id);
+        await refreshOpenOrders();
+    } catch (e) {
+        LOGGER.error(`Couldn't cancel order for ${symbol} with order ${JSON.stringify(order)}`, e);
+        return null;
+    }
+    let manager = await getManager(symbol);
+    if (!manager) {
+        LOGGER.error(`Could not find manager for ${JSON.stringify(trade)}`);
+        return null;
+    }
+    const newOrder = await manager.queueTrade(trade.config);
+    if (newOrder && !recentOrdersCache[symbol]) {
+        recentOrdersCache[symbol] = true;
+        const alpacaOrder = await alpaca.createOrder(newOrder);
+        openOrderCache.push(alpacaOrder);
+        refreshOpenOrders().catch(LOGGER.error);
+        return trade;
+    }
+
+    return null;
+};
+
 export const getCallbackUrlForPositionUpdates = (symbol: string) => {
     return `http://localhost:${Service.manager}/orders/${symbol}`;
 };
@@ -295,7 +326,7 @@ export const getManagerForPosition = (openDbPositionCache: Position[], symbol: s
         symbol,
         originalQuantity: position.planned_quantity,
     };
-    const manager = new TradeManagement({} as TradeConfig, unfilledPosition, 1);
+    const manager = new TradeManagement({} as TradeConfig, unfilledPosition, pr);
     manager.position = {
         ...unfilledPosition,
     };

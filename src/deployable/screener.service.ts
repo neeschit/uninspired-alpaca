@@ -5,7 +5,7 @@ import { getSimpleData, cacheDailyBarsForSymbol } from "../resources/stockData";
 import { addBusinessDays } from "date-fns";
 import { LOGGER } from "../instrumentation/log";
 import { screenSymbol, manageOpenOrder } from "./screener.handlers";
-import { postNewTrade } from "./manager.service";
+import { postNewTrade, replaceOpenTrade } from "./manager.service";
 import { TickBar, Bar } from "../data/data.model";
 
 const server = getApiServer(Service.screener);
@@ -31,10 +31,11 @@ Promise.all(
     })
 ).catch(LOGGER.error);
 
-export const postRequestScreenSymbol = async (symbol: string, epoch = Date.now()) => {
+export const postRequestScreenSymbol = async (symbol: string, bar: Bar, epoch = Date.now()) => {
     try {
         return messageService(Service.screener, `/screen/${symbol}`, {
             epoch,
+            bar,
         });
     } catch (e) {
         LOGGER.error(e);
@@ -45,9 +46,9 @@ export const postRequestScreenSymbol = async (symbol: string, epoch = Date.now()
 
 server.post("/screen/:symbol", async (request) => {
     const symbol = request.params && request.params.symbol;
-    const { epoch = Date.now() } = request.body || {};
+    const { epoch = Date.now(), bar }: { bar: Bar; epoch: number } = request.body || {};
 
-    const order = await screenSymbol(strategies, symbol, epoch);
+    const order = await screenSymbol(strategies, symbol, bar, epoch);
 
     if (order) {
         await postNewTrade(order);
@@ -75,7 +76,7 @@ server.post("/manage_open_order/:symbol", async (request) => {
 
     const strategy = strategies.find((s) => s.symbol === symbol);
 
-    const { bar }: { bar: Bar } = request.body;
+    const bar: Bar = request.body;
 
     if (!bar) {
         LOGGER.error("hey hey, no bar no money");
@@ -93,8 +94,11 @@ server.post("/manage_open_order/:symbol", async (request) => {
         };
     }
 
-    await manageOpenOrder(symbol, strategy, bar);
+    const replacementConfig = await manageOpenOrder(symbol, strategy, bar);
 
+    if (replacementConfig) {
+        replaceOpenTrade(replacementConfig.trade, replacementConfig.orderToReplace);
+    }
     return {
         success: true,
     };
