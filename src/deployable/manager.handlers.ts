@@ -283,6 +283,7 @@ export const handleOrderReplacement = async (
     const symbol = trade.plan.symbol;
     try {
         await alpaca.cancelOrder(order.id);
+        await refreshOpenOrders();
     } catch (e) {
         LOGGER.error(`Couldn't cancel order for ${symbol} with order ${JSON.stringify(order)}`, e);
         return null;

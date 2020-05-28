@@ -5,7 +5,7 @@ import { getCachedCurrentState, CurrentState, refreshCachedCurrentState } from "
 import { getBarsFromDataService } from "./data.service";
 import { alpaca } from "../resources/alpaca";
 import { validatePositionEntryPlan } from "../services/tradeManagement";
-import { getManagerForPosition, refreshPositions } from "./manager.handlers";
+import { getManagerForPosition } from "./manager.handlers";
 import { isSameDay } from "date-fns";
 
 export const screenSymbol = async (
