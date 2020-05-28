@@ -11,9 +11,10 @@ import {
     AlpacaStreamingOrderUpdate,
     AlpacaPosition,
     AlpacaOrder,
+    OrderStatus,
 } from "@neeschit/alpaca-trade-api";
 import { Position, getRecentlyUpdatedPositions } from "../resources/position";
-import { postEntry } from "../util/slack";
+import { postEntry, postErrorReplacing } from "../util/slack";
 import {
     handlePriceUpdateForPosition,
     refreshPositions,
@@ -22,6 +23,7 @@ import {
     openDbPositionCache,
     handleOrderUpdateForSymbol,
     handlePositionEntry,
+    handleOrderReplacement,
 } from "./manager.handlers";
 
 const server = getApiServer(Service.manager);
@@ -75,8 +77,12 @@ export const postNewTrade = async (trade: { plan: TradePlan; config: TradeConfig
 server.post("/trade/:symbol", async (request) => {
     const symbol = request.params && request.params.symbol;
 
+    await refreshPositions();
+
     const currentPositions = positionCache.map((p) => p.symbol);
-    const openOrderSymbols = openOrderCache.map((o) => o.symbol);
+    const openOrderSymbols = openOrderCache.map(
+        (o) => o.symbol && (o.status === OrderStatus.new || o.status === OrderStatus.partial_fill)
+    );
 
     const trade = request.body as { plan: TradePlan; config: TradeConfig };
 
@@ -84,6 +90,11 @@ server.post("/trade/:symbol", async (request) => {
         currentPositions.indexOf(symbol) !== -1 || openOrderSymbols.indexOf(symbol) !== -1;
 
     if (pendingOrders) {
+        server.log.error(
+            `appears ${symbol} has pending orders:\n ${JSON.stringify(
+                pendingOrders
+            )}\n preventing new order:\n ${JSON.stringify(trade)}`
+        );
         return {
             success: true,
             orderRejected: true,
@@ -103,6 +114,71 @@ server.post("/trade/:symbol", async (request) => {
                 )}`
             );
         }
+    }
+    return {
+        success: true,
+    };
+});
+
+const getReplaceOpenTradePayload = (
+    trade: { plan: TradePlan; config: TradeConfig },
+    order: AlpacaOrder
+): ReplaceOpenTradePayload => {
+    return {
+        trade,
+        order,
+    };
+};
+
+export interface ReplaceOpenTradePayload {
+    trade: { plan: TradePlan; config: TradeConfig };
+    order: AlpacaOrder;
+}
+
+export const replaceOpenTrade = async (
+    trade: { plan: TradePlan; config: TradeConfig },
+    order: AlpacaOrder
+) => {
+    try {
+        return messageService(
+            Service.manager,
+            "/replace_trade/" + trade.plan.symbol,
+            getReplaceOpenTradePayload(trade, order)
+        );
+    } catch (e) {
+        LOGGER.error(e);
+    }
+
+    return {
+        success: true,
+    };
+};
+
+server.post("/replace_trade/:symbol", async (request) => {
+    const symbol = request.params && request.params.symbol;
+
+    const { trade, order } = request.body as ReplaceOpenTradePayload;
+
+    const replacedOrder = await handleOrderReplacement(trade, order);
+
+    if (!replacedOrder) {
+        server.log.error(`could not replace order`);
+
+        postErrorReplacing(order);
+
+        return {
+            success: false,
+        };
+    }
+
+    try {
+        await postEntry(trade.plan.symbol, trade.config.t, trade.plan);
+    } catch (e) {
+        LOGGER.error(
+            `Trying to enter ${trade.plan.symbol} at ${new Date()} with ${JSON.stringify(
+                trade.plan
+            )}`
+        );
     }
     return {
         success: true,
@@ -131,6 +207,43 @@ server.get(
     async (): Promise<CurrentState> => {
         const recentlyUpdatedDbPositions = [];
         try {
+            const pos = await getRecentlyUpdatedPositions();
+            recentlyUpdatedDbPositions.push(...pos);
+        } catch (e) {
+            server.log.error(e);
+        }
+        return {
+            positions: positionCache,
+            openOrders: openOrderCache,
+            openDbPositions: openDbPositionCache,
+            recentlyUpdatedDbPositions,
+        };
+    }
+);
+
+export const refreshCachedCurrentState = async (): Promise<CurrentState> => {
+    try {
+        const state = await getFromService(Service.manager, "/refreshState");
+
+        return state as CurrentState;
+    } catch (e) {
+        LOGGER.error(e);
+    }
+
+    return {
+        positions: [],
+        openDbPositions: [],
+        openOrders: [],
+        recentlyUpdatedDbPositions: [],
+    };
+};
+
+server.get(
+    "/refreshState",
+    async (): Promise<CurrentState> => {
+        const recentlyUpdatedDbPositions = [];
+        try {
+            await refreshPositions();
             const pos = await getRecentlyUpdatedPositions();
             recentlyUpdatedDbPositions.push(...pos);
         } catch (e) {

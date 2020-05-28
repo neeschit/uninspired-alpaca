@@ -1,16 +1,17 @@
 import { LOGGER } from "../instrumentation/log";
 import { Bar, OrderStatus } from "../data/data.model";
 import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
-import { getCachedCurrentState, CurrentState } from "./manager.service";
+import { getCachedCurrentState, CurrentState, refreshCachedCurrentState } from "./manager.service";
 import { getBarsFromDataService } from "./data.service";
 import { alpaca } from "../resources/alpaca";
 import { validatePositionEntryPlan } from "../services/tradeManagement";
-import { getManagerForPosition } from "./manager.handlers";
+import { getManagerForPosition, refreshPositions } from "./manager.handlers";
 import { isSameDay } from "date-fns";
 
 export const screenSymbol = async (
     strategies: NarrowRangeBarStrategy[],
     symbol: string,
+    bar: Bar,
     currentEpoch = Date.now()
 ) => {
     const strategy = strategies.find((s) => s.symbol === symbol);
@@ -18,12 +19,14 @@ export const screenSymbol = async (
     const {
         positions,
         recentlyUpdatedDbPositions,
-    }: Pick<
-        CurrentState,
-        "positions" | "recentlyUpdatedDbPositions"
-    > = await getCachedCurrentState();
+        openOrders,
+    }: CurrentState = await getCachedCurrentState();
 
     if (recentlyUpdatedDbPositions.some((p) => p.symbol === symbol && p.average_entry_price)) {
+        return null;
+    }
+
+    if (openOrders.some((o) => o.symbol === symbol)) {
         return null;
     }
 
@@ -36,7 +39,7 @@ export const screenSymbol = async (
 
     strategy.screenForNarrowRangeBars(screenerData, currentEpoch);
 
-    return strategy.rebalance(screenerData, currentEpoch, positions);
+    return strategy.rebalance(screenerData, currentEpoch, bar, positions);
 };
 
 export const manageOpenOrder = async (
@@ -70,7 +73,23 @@ export const manageOpenOrder = async (
             return;
         }
 
-        await manager.refreshPlan(screenerData, strategy.atr, strategy.closePrice, order, lastBar);
+        const newTrade = await manager.refreshPlan(
+            screenerData,
+            strategy.atr,
+            strategy.closePrice,
+            order,
+            lastBar
+        );
+
+        if (newTrade) {
+            LOGGER.error(
+                `canceling order as direction appears to be reversed for ${symbol} at ${new Date().toISOString()}`
+            );
+            return {
+                trade: newTrade,
+                orderToReplace: order,
+            };
+        }
     } catch (e) {
         LOGGER.error(e);
     }

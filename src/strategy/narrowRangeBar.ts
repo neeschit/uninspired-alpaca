@@ -76,9 +76,8 @@ export const refreshOpeningRangeBreakoutPlan = (
     });
 };
 
-export const getOrbDirection = (bars: Bar[]): TradeDirection | null => {
+export const getOrbDirection = (bars: Bar[], close: number): TradeDirection | null => {
     const firstBar = bars[0];
-    const close = bars[bars.length - 1].c;
     const distanceFromLongEntry = Math.abs(close - firstBar.h);
     const distanceFromShortEntry = Math.abs(close - firstBar.l);
 
@@ -111,7 +110,7 @@ export const getOpeningRangeBreakoutPlan = ({
     symbol,
     lastBar,
 }: ORBParams) => {
-    const tradeDirection = getOrbDirection(recentBars);
+    const tradeDirection = getOrbDirection(recentBars, lastBar.c);
 
     if (!tradeDirection) {
         return null;
@@ -310,13 +309,10 @@ export class NarrowRangeBarStrategy {
         );
     }
 
-    async onTradeUpdate(recentBars: Bar[], now: TimestampType = Date.now()) {
-        return this.rebalance(recentBars, now);
-    }
-
     async rebalance(
         recentBars: Bar[],
         now: TimestampType = Date.now(),
+        lastBar: Bar,
         currentPositions?: { symbol: string }[]
     ): Promise<PlannedTradeConfig | null> {
         if (!isTimeForOrbEntry(now) || !recentBars.length || !this.nrbs.length) {
@@ -349,7 +345,7 @@ export class NarrowRangeBarStrategy {
                 recentBars,
                 entryBar: firstBar,
                 closePrice: this.closePrice,
-                lastBar: recentBars[recentBars.length - 1],
+                lastBar,
             });
 
             return plan;

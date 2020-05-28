@@ -67,7 +67,7 @@ socket.onStockAggMin(async (subject: string, data: any) => {
             } catch (e) {
                 LOGGER.error(e);
             }
-            postRequestScreenSymbol(d.sym).catch(LOGGER.error);
+            postRequestScreenSymbol(d.sym, bar).catch(LOGGER.error);
             postRequestToManageOpenOrders(d.sym, bar).catch(LOGGER.error);
         } catch (e) {
             /* LOGGER.error(`Could not insert ${JSON.stringify(bar)} for ${d.sym}`); */

@@ -425,6 +425,9 @@ export class TradeManagement {
     ) {
         if (!isTimeForOrbEntry(Date.now())) {
             if (openOrder) {
+                LOGGER.error(
+                    `canceling order for ${openOrder.symbol} at ${new Date().toISOString()}`
+                );
                 await this.broker.cancelOrder(openOrder.id);
             }
             return null;
@@ -439,6 +442,11 @@ export class TradeManagement {
 
         if (!newTrade) {
             if (openOrder) {
+                LOGGER.error(
+                    `canceling order as no strategy appears to work for ${
+                        openOrder.symbol
+                    } at ${new Date().toISOString()}`
+                );
                 await this.broker.cancelOrder(openOrder.id);
             }
             return null;
@@ -447,7 +455,8 @@ export class TradeManagement {
         if (
             newTrade.config.side === openOrder.side &&
             newTrade.config.type === openOrder.type &&
-            newTrade.config.quantity === openOrder.qty
+            newTrade.config.quantity == openOrder.qty &&
+            Math.abs(Number(openOrder.stop_price) - newTrade.config.stopPrice) < 0.1
         ) {
             return null;
         }

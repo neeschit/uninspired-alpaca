@@ -33,3 +33,16 @@ export const postPartial = async (order: AlpacaOrder) => {
         },
     });
 };
+
+export const postErrorReplacing = async (order: AlpacaOrder) => {
+    const text = `Error replacing order ${order.symbol} at ${new Date(
+        Date.now()
+    ).toISOString()} with order = ${JSON.stringify(order)}`;
+
+    return postHttps({
+        ...slackHookOptions,
+        data: {
+            text,
+        },
+    });
+};
