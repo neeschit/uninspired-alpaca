@@ -8,19 +8,21 @@ import { getDetailedPerformanceReport } from "../services/performance";
 import { getMegaCaps } from "../data/filters";
 import { MockBroker } from "../services/mockExecution";
 
-const startDate = "2020-05-19 9:00:00.000";
+const startDate = "2019-09-01 9:00:00.000";
 const zonedStartDate = zonedTimeToUtc(startDate, MarketTimezone);
 
-const endDate = parseISO("2020-05-27 16:10:00.000");
+const endDate = parseISO("2019-12-31 16:10:00.000");
 
 const zonedEndDate = zonedTimeToUtc(endDate, MarketTimezone);
 
 const SYMBOLS = getMegaCaps();
 LOGGER.info(zonedStartDate.toISOString());
 
-const pr = 2;
+const pr = 3;
 
 const updateInterval = 60000;
+
+const now = Date.now();
 
 const instance = new Backtester(
     MockBroker.getInstance(),
@@ -35,7 +37,7 @@ async function run() {
     const filename = `./${format(zonedStartDate, "yyyy-MM-dd")}-${format(
         zonedEndDate,
         "yyyy-MM-dd"
-    )}-${pr}-${Date.now()}.json`;
+    )}-${pr}-${now}.json`;
 
     /* const pastPositionConfigs = JSON.parse(readFileSync(filename).toString()).sortedPositions;
 
