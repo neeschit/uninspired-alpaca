@@ -18,7 +18,7 @@ import {
     confirmMarketOpen,
     isMarketOpen,
 } from "../util/market";
-import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
+import { NarrowRangeBarStrategy, isTimeForOrbEntry } from "../strategy/narrowRangeBar";
 import { getBarsByDate } from "../data/bars";
 import { TradeManagement } from "./tradeManagement";
 import { LOGGER } from "../instrumentation/log";
@@ -324,7 +324,9 @@ export class Backtester {
                     }
                 }
 
-                await this.executeAndRecord();
+                if (isTimeForOrbEntry(this.currentDate)) {
+                    await this.executeAndRecord();
+                }
 
                 Sinon.clock.restore();
 

@@ -31,15 +31,35 @@ export interface ORBParams {
     symbol: string;
 }
 
+export const isTimeForOrbEntry = (now: TimestampType) => {
+    const timeStart = convertToLocalTime(now, " 09:34:45.000");
+    const timeEnd = convertToLocalTime(now, " 09:45:15.000");
+
+    const nowMillis = now instanceof Date ? now.getTime() : now;
+
+    const isWithinEntryRange = timeStart.getTime() <= nowMillis && timeEnd.getTime() >= nowMillis;
+
+    if (!isWithinEntryRange) {
+        LOGGER.trace("come back later hooomie", nowMillis);
+    }
+
+    return isWithinEntryRange;
+};
+
 export const refreshOpeningRangeBreakoutPlan = (
     symbol: string,
     todaysBars: Bar[],
     dailyAtr: number,
     closePrice: number
 ) => {
-    const { atr: currentIntradayAtrs } = getAverageTrueRange(todaysBars, false, 5);
+    const { atr: currentIntradayAtrs } = getAverageTrueRange(todaysBars, true, 5);
 
     const currentIntradayAtrObject = currentIntradayAtrs[currentIntradayAtrs.length - 1];
+
+    if (!currentIntradayAtrObject) {
+        throw new Error(`couldn't calculate atr for ${symbol} at ${new Date().toISOString()}`);
+    }
+
     const currentIntradayAtr = currentIntradayAtrObject.value;
     const entryBar = todaysBars[0];
 
@@ -250,18 +270,18 @@ export class NarrowRangeBarStrategy {
         const last7Ranges = tr.slice(-7);
         const { max } = this.getMinMaxPeriodRange(last7Ranges);
 
-        const { min: threePeriodMin } = this.getMinMaxPeriodRange(last7Ranges.slice(-3));
+        /* const { min: threePeriodMin } = this.getMinMaxPeriodRange(last7Ranges.slice(-3)); */
         const { min: sevenPeriodMin } = this.getMinMaxPeriodRange(last7Ranges);
 
-        const isNarrowRangeBar = range.value <= sevenPeriodMin * 1.02;
+        const isNarrowRangeBar = range.value <= sevenPeriodMin * 1.3;
 
-        return isNarrowRangeBar || this.isVeryNarrowRangeBar(max, threePeriodMin, range.value);
+        return isNarrowRangeBar && this.isVeryNarrowRangeBar(max, sevenPeriodMin);
     }
 
-    isVeryNarrowRangeBar(max: number, min: number, range: number) {
+    isVeryNarrowRangeBar(max: number, min: number) {
         LOGGER.trace(max / min);
 
-        return range <= min * 1.02 && max / min > 3;
+        return max / min > 3;
     }
 
     private getMinMaxPeriodRange(tr: number[]) {
@@ -289,22 +309,6 @@ export class NarrowRangeBarStrategy {
         );
     }
 
-    isTimeForEntry(now: TimestampType) {
-        const timeStart = convertToLocalTime(now, " 09:34:45.000");
-        const timeEnd = convertToLocalTime(now, " 11:55:45.000");
-
-        const nowMillis = now instanceof Date ? now.getTime() : now;
-
-        const isWithinEntryRange =
-            timeStart.getTime() <= nowMillis && timeEnd.getTime() >= nowMillis;
-
-        if (!isWithinEntryRange) {
-            LOGGER.trace("come back later hooomie", nowMillis);
-        }
-
-        return isWithinEntryRange;
-    }
-
     async onTradeUpdate(recentBars: Bar[], now: TimestampType = Date.now()) {
         return this.rebalance(recentBars, now);
     }
@@ -314,7 +318,7 @@ export class NarrowRangeBarStrategy {
         now: TimestampType = Date.now(),
         currentPositions?: { symbol: string }[]
     ): Promise<PlannedTradeConfig | null> {
-        if (!this.isTimeForEntry(now) || !recentBars.length || !this.nrbs.length) {
+        if (!isTimeForOrbEntry(now) || !recentBars.length || !this.nrbs.length) {
             LOGGER.trace(`not the time to enter for ${this.symbol} at ${new Date(now)}`);
             return null;
         }

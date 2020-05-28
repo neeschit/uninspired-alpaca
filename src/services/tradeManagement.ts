@@ -24,6 +24,7 @@ import { TrendType, getTrend } from "../pattern/trend/trendIdentifier";
 import {
     getOpeningRangeBreakoutPlan,
     refreshOpeningRangeBreakoutPlan,
+    isTimeForOrbEntry,
 } from "../strategy/narrowRangeBar";
 import { isBacktestingEnv } from "../util/env";
 
@@ -439,6 +440,12 @@ export class TradeManagement {
     }
 
     async refreshPlan(recentBars: Bar[], atr: number, closePrice: number, openOrder: AlpacaOrder) {
+        if (!isTimeForOrbEntry(Date.now())) {
+            if (openOrder) {
+                await this.broker.cancelOrder(openOrder.id);
+            }
+            return null;
+        }
         const newTrade = refreshOpeningRangeBreakoutPlan(
             this.plan.symbol,
             recentBars,
