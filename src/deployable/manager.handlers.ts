@@ -16,6 +16,7 @@ import {
     getOpenPositions,
     updatePosition,
     forceUpdatePosition,
+    getRecentlyUpdatedPositions,
 } from "../resources/position";
 import { TradeManagement, processOrderFromStrategy } from "../services/tradeManagement";
 import { TradeConfig, Bar, TradePlan } from "../data/data.model";
@@ -119,11 +120,7 @@ const refreshOpenOrders = async () => {
         orders.every((o) => o.symbol !== symbol)
     );
 
-    if (filteredOrders.length) {
-        refreshPositions(false).then(() => {
-            recentOrdersCache = {};
-        });
-    }
+    recentOrdersCache = {};
 };
 
 async function checkIfOrderIsValid(
@@ -281,25 +278,34 @@ export const handleOrderReplacement = async (
     order: AlpacaOrder
 ) => {
     const symbol = trade.plan.symbol;
-    try {
-        await alpaca.cancelOrder(order.id);
-        await refreshOpenOrders();
-    } catch (e) {
-        LOGGER.error(`Couldn't cancel order for ${symbol} with order ${JSON.stringify(order)}`, e);
-        return null;
-    }
-    let manager = await getManager(symbol);
+    const positions = await getRecentlyUpdatedPositions();
+
+    await refreshOpenOrders();
+
+    let manager = getManagerForPosition(positions, symbol);
     if (!manager) {
         LOGGER.error(`Could not find manager for ${JSON.stringify(trade)}`);
         return null;
     }
     const newOrder = await manager.queueTrade(trade.config);
-    if (newOrder && !recentOrdersCache[symbol]) {
-        recentOrdersCache[symbol] = true;
-        const alpacaOrder = await alpaca.createOrder(newOrder);
-        openOrderCache.push(alpacaOrder);
+
+    if (recentOrdersCache[symbol]) {
+        return null;
+    }
+
+    try {
+        if (newOrder && !recentOrdersCache[symbol]) {
+            recentOrdersCache[symbol] = true;
+            await alpaca.cancelOrder(order.id);
+            const alpacaOrder = await alpaca.createOrder(newOrder);
+            openOrderCache.push(alpacaOrder);
+            refreshOpenOrders().catch(LOGGER.error);
+            return trade;
+        }
+    } catch (e) {
         refreshOpenOrders().catch(LOGGER.error);
-        return trade;
+        LOGGER.error(`Couldn't cancel order for ${symbol} with order ${JSON.stringify(order)}`, e);
+        return null;
     }
 
     return null;
