@@ -1,8 +1,19 @@
 import test from "ava";
 
-import { checkIfPositionsNeedRefreshing, handlePositionOrderUpdate } from "./manager.handlers";
+import {
+    checkIfPositionsNeedRefreshing,
+    handlePositionOrderUpdate,
+    handleOrderReplacement,
+    handlePositionOrderReplacement,
+} from "./manager.handlers";
 import { SimpleAlpacaPosition, AlpacaOrder } from "@neeschit/alpaca-trade-api";
-import { TradeDirection, TradeConfig } from "../data/data.model";
+import {
+    TradeDirection,
+    TradeConfig,
+    TradePlan,
+    PositionDirection,
+    TimeInForce,
+} from "../data/data.model";
 import { TradeManagement } from "../services/tradeManagement";
 
 test("positions out of sync in db are identfied", async (t) => {
@@ -100,6 +111,48 @@ test.cb("should result in only one order", (t) => {
 
         t.truthy(results.length);
         t.truthy(results.some((r) => !r));
+
+        t.end();
+    }, 0);
+});
+
+test.cb("should result in only one replacement order", (t) => {
+    const manager = ({
+        queueTrade: () => Promise.resolve(true),
+    } as any) as TradeManagement;
+
+    const config: { plan: TradePlan; config: TradeConfig } = {
+        plan: {
+            plannedEntryPrice: 200,
+            plannedStopPrice: 195,
+            quantity: 100,
+            symbol: "test",
+            riskAtrRatio: 1,
+            side: PositionDirection.long,
+        },
+        config: ({
+            tif: TimeInForce.gtc,
+        } as any) as TradeConfig,
+    };
+
+    const order = ({
+        id: 1,
+    } as any) as AlpacaOrder;
+
+    const promises: Promise<AlpacaOrder | null>[] = [];
+
+    promises.push(handlePositionOrderReplacement(config, "test", order, manager));
+
+    setTimeout(async () => {
+        promises.push(handlePositionOrderReplacement(config, "test", order, manager));
+
+        const results = await Promise.all(promises);
+
+        t.truthy(results.length);
+        t.truthy(
+            results.some((r) => !r),
+            "expected only one item to be true"
+        );
 
         t.end();
     }, 0);

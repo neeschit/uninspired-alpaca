@@ -283,23 +283,15 @@ export const handleOrderReplacement = async (
     await refreshOpenOrders();
 
     let manager = getManagerForPosition(positions, symbol);
+
     if (!manager) {
         LOGGER.error(`Could not find manager for ${JSON.stringify(trade)}`);
         return null;
     }
-    const newOrder = await manager.queueTrade(trade.config);
-
-    if (recentOrdersCache[symbol]) {
-        return null;
-    }
 
     try {
-        if (newOrder && !recentOrdersCache[symbol]) {
-            recentOrdersCache[symbol] = true;
-            await alpaca.cancelOrder(order.id);
-            const alpacaOrder = await alpaca.createOrder(newOrder);
-            openOrderCache.push(alpacaOrder);
-            refreshOpenOrders().catch(LOGGER.error);
+        const result = await handlePositionOrderReplacement(trade, symbol, order, manager);
+        if (result) {
             return trade;
         }
     } catch (e) {
@@ -308,6 +300,27 @@ export const handleOrderReplacement = async (
         return null;
     }
 
+    return null;
+};
+
+export const handlePositionOrderReplacement = async (
+    trade: { plan: TradePlan; config: TradeConfig },
+    symbol: string,
+    order: AlpacaOrder,
+    manager: TradeManagement
+): Promise<AlpacaOrder | null> => {
+    if (recentOrdersCache[symbol]) {
+        return null;
+    }
+    const newOrder = await manager.queueTrade(trade.config);
+    if (newOrder && !recentOrdersCache[symbol]) {
+        recentOrdersCache[symbol] = true;
+        await alpaca.cancelOrder(order.id);
+        const alpacaOrder = await alpaca.createOrder(newOrder);
+        openOrderCache.push(alpacaOrder);
+        refreshOpenOrders().catch(LOGGER.error);
+        return alpacaOrder;
+    }
     return null;
 };
 
