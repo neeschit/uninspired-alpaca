@@ -40,7 +40,7 @@
                 "NODE_ENV": "test"
             },
             "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/ava",
-            "runtimeArgs": ["debug", "--break", "${file}"],
+            "runtimeArgs": ["debug", "--break", "--verbose", "${file}"],
             "port": 9229,
             "outputCapture": "std",
             "skipFiles": ["<node_internals>/**/*.js"]

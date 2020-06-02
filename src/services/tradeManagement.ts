@@ -12,7 +12,7 @@ import { alpaca } from "../resources/alpaca";
 import { AlpacaOrder, AlpacaTradeConfig, Broker } from "@neeschit/alpaca-trade-api";
 import { LOGGER } from "../instrumentation/log";
 import { isMarketClosing } from "../util/market";
-import { insertOrder } from "../resources/order";
+import { insertOrder, getOpenOrders } from "../resources/order";
 import {
     insertPlannedPosition,
     FilledPositionConfig,
@@ -264,6 +264,11 @@ export class TradeManagement {
         const position = await this.getPosition();
         const order = processOrderFromStrategy(trade);
         const insertedOrder = await insertOrder(order, position);
+
+        if (!insertedOrder) {
+            return null;
+        }
+
         order.client_order_id = insertedOrder.id.toString();
 
         position.pendingOrders = position.pendingOrders || [];

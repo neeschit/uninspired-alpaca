@@ -13,6 +13,7 @@ import {
     TradePlan,
     PositionDirection,
     TimeInForce,
+    TradeType,
 } from "../data/data.model";
 import { TradeManagement } from "../services/tradeManagement";
 
@@ -98,6 +99,9 @@ test.cb("should result in only one order", (t) => {
 
     const config = ({
         symbol: "test",
+        side: TradeDirection.buy,
+        qty: 100,
+        type: TradeType.market,
     } as any) as TradeConfig;
 
     const promises: Promise<AlpacaOrder | null>[] = [];
@@ -119,6 +123,54 @@ test.cb("should result in only one order", (t) => {
 test.cb("should result in only one replacement order", (t) => {
     const manager = ({
         queueTrade: () => Promise.resolve(true),
+    } as any) as TradeManagement;
+
+    const config: { plan: TradePlan; config: TradeConfig } = {
+        plan: {
+            plannedEntryPrice: 200,
+            plannedStopPrice: 195,
+            quantity: 100,
+            symbol: "test",
+            riskAtrRatio: 1,
+            side: PositionDirection.long,
+        },
+        config: ({
+            tif: TimeInForce.gtc,
+        } as any) as TradeConfig,
+    };
+
+    const order = ({
+        id: 1,
+    } as any) as AlpacaOrder;
+
+    const promises: Promise<AlpacaOrder | null>[] = [];
+
+    promises.push(handlePositionOrderReplacement(config, "test", order, manager));
+
+    setTimeout(async () => {
+        promises.push(handlePositionOrderReplacement(config, "test", order, manager));
+
+        const results = await Promise.all(promises);
+
+        t.truthy(results.length);
+        t.truthy(
+            results.some((r) => !r),
+            "expected only one item to be true"
+        );
+
+        t.end();
+    }, 0);
+});
+
+test.cb("should result in only one replacement order even with a delayed response", (t) => {
+    const manager = ({
+        queueTrade: () => {
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    resolve();
+                }, 40);
+            });
+        },
     } as any) as TradeManagement;
 
     const config: { plan: TradePlan; config: TradeConfig } = {

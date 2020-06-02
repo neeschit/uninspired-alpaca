@@ -1,9 +1,10 @@
 import { getConnection } from "../connection/pg";
-import { AlpacaTradeConfig, TradeType, AlpacaOrder } from "@neeschit/alpaca-trade-api";
+import { AlpacaTradeConfig, AlpacaOrder } from "@neeschit/alpaca-trade-api";
 import { LOGGER } from "../instrumentation/log";
 import { PositionConfig } from "./position";
-import { TimeInForce, OrderStatus, TradeDirection } from "../data/data.model";
+import { TimeInForce, OrderStatus, TradeDirection, TradeType } from "../data/data.model";
 import { isBacktestingEnv } from "../util/env";
+import { QueryResult } from "pg";
 
 export interface Order {
     id: number;
@@ -78,8 +79,12 @@ const getInsertOrdersSql = (
     orderStatus: OrderStatus
 ) => {
     return `
-        insert into orders values (
-            DEFAULT,
+        begin;
+        select * from orders where symbol = '${position.symbol}' FOR SHARE;
+        insert into orders (position_id, symbol, status, side, type, tif, quantity, ${
+            order.stop_price && "stop_price,"
+        } ${order.limit_price && "limit_price"}) 
+        select
             ${position.id}, 
             '${position.symbol}', 
             '${orderStatus}', 
@@ -87,14 +92,13 @@ const getInsertOrdersSql = (
             '${order.type}',
             '${order.time_in_force}',
             ${order.qty},
-            ${order.stop_price || "DEFAULT"},
-            ${order.limit_price || "DEFAULT"},
-            DEFAULT,
-            DEFAULT,
-            DEFAULT,
-            DEFAULT,
-            DEFAULT
-        ) returning id;
+            ${order.stop_price + ","}
+            ${order.limit_price}
+        where not exists (select 1 from orders where symbol = '${
+            position.symbol
+        }' AND status = 'new') 
+        returning id;
+        commit;
     `;
 };
 
@@ -102,7 +106,7 @@ export const insertOrder = async (
     order: AlpacaTradeConfig,
     position: PositionConfig,
     orderStatus = OrderStatus.new
-): Promise<Order> => {
+): Promise<Order | null> => {
     if (isBacktestingEnv()) {
         return {
             id: 1,
@@ -120,13 +124,30 @@ export const insertOrder = async (
         };
     }
 
+    const openOrders = await getOpenOrders(order.symbol);
+
+    if (openOrders.length) {
+        return null;
+    }
     const pool = getConnection();
 
     const query = getInsertOrdersSql(order, position, orderStatus);
 
-    const result = await pool.query(query);
+    LOGGER.debug(query);
+
+    const results = ((await pool.query(query)) as any) as QueryResult<any>[];
+
+    if (results.length < 3) {
+        return null;
+    }
+
+    const result = results[2];
 
     const rows = result.rows;
+
+    if (!rows || !rows.length) {
+        return null;
+    }
 
     return {
         id: rows[0].id,
@@ -214,4 +235,42 @@ export const getOrder = async (id: number): Promise<Order | null> => {
     }
 
     return null;
+};
+
+export const getOpenOrders = async (symbol: string): Promise<OrderDb[]> => {
+    const pool = getConnection();
+
+    const query = `select * from orders where symbol = ${symbol} and status='new';`;
+
+    try {
+        const result = await pool.query(query);
+        if (result.rowCount < 1) {
+            return [];
+        }
+
+        return result.rows;
+    } catch (e) {
+        LOGGER.error(e);
+    }
+
+    return [];
+};
+
+export const cancelAllOrdersForSymbol = async (symbol: string) => {
+    const pool = getConnection();
+
+    const query = `update orders set status = 'canceled' where symbol = '${symbol}' and status='new';`;
+
+    try {
+        const result = await pool.query(query);
+        if (result.rowCount < 1) {
+            return [];
+        }
+
+        return result.rows;
+    } catch (e) {
+        LOGGER.error(e);
+    }
+
+    return [];
 };
