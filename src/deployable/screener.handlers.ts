@@ -7,6 +7,7 @@ import { alpaca } from "../resources/alpaca";
 import { validatePositionEntryPlan } from "../services/tradeManagement";
 import { getManagerForPosition } from "./manager.handlers";
 import { isSameDay } from "date-fns";
+import { cancelOrder } from "../resources/order";
 
 export const screenSymbol = async (
     strategies: NarrowRangeBarStrategy[],
@@ -85,6 +86,7 @@ export const manageOpenOrder = async (
             LOGGER.error(
                 `canceling order as direction appears to be reversed for ${symbol} at ${new Date().toISOString()}`
             );
+            await cancelOrder(Number(order.client_order_id));
             return {
                 trade: newTrade,
                 orderToReplace: order,

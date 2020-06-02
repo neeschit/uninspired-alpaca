@@ -274,3 +274,22 @@ export const cancelAllOrdersForSymbol = async (symbol: string) => {
 
     return [];
 };
+
+export const cancelOrder = async (id: number) => {
+    const pool = getConnection();
+
+    const query = `update orders set status = 'canceled' where id = ${id} and status='new';`;
+
+    try {
+        const result = await pool.query(query);
+        if (result.rowCount < 1) {
+            return [];
+        }
+
+        return result.rows;
+    } catch (e) {
+        LOGGER.error(e);
+    }
+
+    return [];
+};
