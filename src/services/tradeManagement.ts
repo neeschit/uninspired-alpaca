@@ -466,15 +466,17 @@ export class TradeManagement {
             return null;
         }
 
+        return newTrade;
+    }
+
+    updatePlannedPosition(newTrade: { plan: TradePlan; config: TradeConfig }) {
         this.plan = newTrade.plan;
         this.config = newTrade.config;
 
         if (this.position) {
-            updatePlannedPosition(this.plan, this.position.id);
-        } else if (isBacktestingEnv()) {
-            updatePlannedPosition(this.plan, 0);
+            return updatePlannedPosition(this.plan, this.position.id);
         }
 
-        return newTrade;
+        return Promise.resolve(null);
     }
 }

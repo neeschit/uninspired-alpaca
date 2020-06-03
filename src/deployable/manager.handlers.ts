@@ -316,6 +316,7 @@ export const handlePositionOrderReplacement = async (
     if (newOrder && !recentOrdersCache[symbol]) {
         recentOrdersCache[symbol] = true;
         await alpaca.cancelOrder(order.id);
+        await manager.updatePlannedPosition(trade);
         const alpacaOrder = await alpaca.createOrder(newOrder);
         openOrderCache.push(alpacaOrder);
         refreshOpenOrders().catch(LOGGER.error);

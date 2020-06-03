@@ -81,9 +81,9 @@ const getInsertOrdersSql = (
     return `
         begin;
         select * from orders where symbol = '${position.symbol}' FOR SHARE;
-        insert into orders (position_id, symbol, status, side, type, tif, quantity, ${
-            order.stop_price && "stop_price,"
-        } ${order.limit_price && "limit_price"}) 
+        insert into orders (position_id, symbol, status, side, type, tif, quantity ${
+            order.stop_price || order.limit_price ? "," : ""
+        } ${order.stop_price ? "stop_price," : ""} ${order.limit_price ? "limit_price" : ""}) 
         select
             ${position.id}, 
             '${position.symbol}', 
@@ -91,9 +91,9 @@ const getInsertOrdersSql = (
             '${order.side}', 
             '${order.type}',
             '${order.time_in_force}',
-            ${order.qty},
-            ${order.stop_price + ","}
-            ${order.limit_price}
+            ${order.qty} ${order.stop_price || order.limit_price ? "," : ""}
+            ${order.stop_price ? order.stop_price + "," : ""}
+            ${order.limit_price ? order.limit_price : ""}
         where not exists (select 1 from orders where symbol = '${
             position.symbol
         }' AND status = 'new') 
@@ -124,11 +124,6 @@ export const insertOrder = async (
         };
     }
 
-    const openOrders = await getOpenOrders(order.symbol);
-
-    if (openOrders.length) {
-        return null;
-    }
     const pool = getConnection();
 
     const query = getInsertOrdersSql(order, position, orderStatus);
@@ -240,7 +235,7 @@ export const getOrder = async (id: number): Promise<Order | null> => {
 export const getOpenOrders = async (symbol: string): Promise<OrderDb[]> => {
     const pool = getConnection();
 
-    const query = `select * from orders where symbol = ${symbol} and status='new';`;
+    const query = `select * from orders where symbol = '${symbol}' and status='new';`;
 
     try {
         const result = await pool.query(query);
