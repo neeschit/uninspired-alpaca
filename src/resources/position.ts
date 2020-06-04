@@ -1,8 +1,9 @@
 import { TradePlan, FilledTradeConfig } from "../data/data.model";
 import { getConnection } from "../connection/pg";
 import { LOGGER } from "../instrumentation/log";
-import { Order } from "./order";
+import { Order, updateOrder } from "./order";
 import { isBacktestingEnv } from "../util/env";
+import { AlpacaStreamingOrderUpdate } from "@neeschit/alpaca-trade-api";
 
 export interface PositionConfig extends TradePlan {
     id: number;
@@ -186,17 +187,24 @@ export const getUpdatePositionQuery = (
 
 export const updatePosition = async (
     originalPosition: Position,
-    quantity: number,
-    price?: number
+    orderUpdate: AlpacaStreamingOrderUpdate
 ) => {
     if (!originalPosition) {
         throw new Error("No position");
     }
     const pool = getConnection();
 
-    const query = getUpdatePositionQuery(originalPosition, quantity, price);
+    const query = getUpdatePositionQuery(
+        originalPosition,
+        orderUpdate.position_qty,
+        orderUpdate.price
+    );
 
     const result = await pool.query(query);
+
+    await updateOrder(orderUpdate.order, orderUpdate.position_qty, orderUpdate.price).catch(
+        LOGGER.error
+    );
 
     return result;
 };

@@ -6,7 +6,7 @@ import {
     OrderStatus,
     SimpleAlpacaPosition,
 } from "@neeschit/alpaca-trade-api";
-import { getOrder } from "../resources/order";
+import { getOrder, updateOrder } from "../resources/order";
 import { LOGGER } from "../instrumentation/log";
 import { alpaca } from "../resources/alpaca";
 import {
@@ -173,7 +173,9 @@ export const handlePriceUpdateForPosition = async (symbol: string, bar: Bar) => 
         LOGGER.error(`No bar found for symbol ${symbol}`);
         return;
     }
-    const manager = await getManager(symbol);
+    const dbPos = await getOpenPositions();
+
+    const manager = getUncachedManagerForPosition(dbPos, symbol);
 
     if (!manager) {
         LOGGER.error(`no manager for symbol ${symbol}`);
@@ -219,7 +221,7 @@ export const getManager = async (symbol: string) => {
     );
 
     if (!manager) {
-        manager = getManagerForPosition(openDbPositionCache, symbol);
+        manager = getUncachedManagerForPosition(openDbPositionCache, symbol);
     }
 
     return manager;
@@ -268,7 +270,7 @@ export const handleOrderUpdateForSymbol = async (orderUpdate: AlpacaStreamingOrd
         return null;
     }
 
-    await updatePosition(position, orderUpdate.position_qty, orderUpdate.price);
+    await updatePosition(position, orderUpdate);
 
     LOGGER.debug(`Position of ${position.id} updated for ${position.symbol}`);
 };
@@ -282,7 +284,7 @@ export const handleOrderReplacement = async (
 
     await refreshOpenOrders();
 
-    let manager = getManagerForPosition(positions, symbol);
+    let manager = getUncachedManagerForPosition(positions, symbol);
 
     if (!manager) {
         LOGGER.error(`Could not find manager for ${JSON.stringify(trade)}`);
@@ -329,7 +331,7 @@ export const getCallbackUrlForPositionUpdates = (symbol: string) => {
     return `http://localhost:${Service.manager}/orders/${symbol}`;
 };
 
-export const getManagerForPosition = (openDbPositionCache: Position[], symbol: string) => {
+export const getUncachedManagerForPosition = (openDbPositionCache: Position[], symbol: string) => {
     const position = openDbPositionCache.find((p) => p.symbol === symbol);
 
     if (!position) {

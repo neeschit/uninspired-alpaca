@@ -94,9 +94,14 @@ const getInsertOrdersSql = (
             ${order.qty} ${order.stop_price || order.limit_price ? "," : ""}
             ${order.stop_price ? order.stop_price + "," : ""}
             ${order.limit_price ? order.limit_price : ""}
-        where not exists (select 1 from orders where symbol = '${
-            position.symbol
-        }' AND status = 'new') 
+        where not exists (select 1 from orders where symbol = '${position.symbol}' AND status in (
+            'new',
+            'accepted',
+            'pending_new',
+            'accepted_for_bidding',
+            'pending_cancel',
+            'pending_replace'
+        )) 
         returning id;
         commit;
     `;

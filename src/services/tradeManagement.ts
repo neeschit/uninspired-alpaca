@@ -278,9 +278,7 @@ export class TradeManagement {
     }
 
     async onTickUpdate(currentBar: Bar, unfilteredOpenOrders: AlpacaOrder[]) {
-        const openOrders = unfilteredOpenOrders.filter(
-            (o) => o.symbol !== this.plan.symbol && o.status !== OrderStatus.pending_cancel
-        );
+        const openOrders = unfilteredOpenOrders.filter((o) => o.symbol !== this.plan.symbol);
 
         if (
             !this.filledPosition ||
@@ -323,13 +321,15 @@ export class TradeManagement {
         } else {
             const isTimeToLiquidate = isMarketClosing(Date.now());
 
-            if (isTimeToLiquidate) {
+            const isOrderDifferent =
+                !openOrders.length ||
+                (openOrders.length &&
+                    openOrders.some((o) => o.type !== config.type || o.side !== config.side));
+
+            if (isTimeToLiquidate && isOrderDifferent) {
                 await Promise.all(unfilteredOpenOrders.map((o) => this.broker.cancelOrder(o.id)));
                 return config;
             }
-            const isOrderDifferent =
-                !openOrders.length ||
-                (openOrders.length && openOrders.some((o) => o.type !== config.type));
 
             if (isOrderDifferent) {
                 await Promise.all(openOrders.map((o) => this.broker.cancelOrder(o.id)));

@@ -5,7 +5,7 @@ import { getCachedCurrentState, CurrentState, refreshCachedCurrentState } from "
 import { getBarsFromDataService } from "./data.service";
 import { alpaca } from "../resources/alpaca";
 import { validatePositionEntryPlan } from "../services/tradeManagement";
-import { getManagerForPosition } from "./manager.handlers";
+import { getUncachedManagerForPosition } from "./manager.handlers";
 import { isSameDay } from "date-fns";
 import { cancelOrder } from "../resources/order";
 
@@ -68,7 +68,7 @@ export const manageOpenOrder = async (
     try {
         const order = openingPositionOrders[0];
         const screenerData = await getTodaysBars(symbol);
-        const manager = getManagerForPosition(recentlyUpdatedDbPositions, symbol);
+        const manager = getUncachedManagerForPosition(recentlyUpdatedDbPositions, symbol);
 
         if (!manager) {
             return;

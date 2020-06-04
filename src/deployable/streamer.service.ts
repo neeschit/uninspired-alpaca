@@ -25,12 +25,15 @@ socket.onStateChange((newState) => {
 });
 
 socket.onOrderUpdate((orderUpdate) => {
-    updateOrder(orderUpdate.order, orderUpdate.position_qty, orderUpdate.price).catch(LOGGER.error);
     if (
         orderUpdate.event === OrderUpdateEvent.fill ||
         orderUpdate.event === OrderUpdateEvent.partial_fill
     ) {
         postOrderToManage(orderUpdate).catch(LOGGER.error);
+    } else {
+        updateOrder(orderUpdate.order, orderUpdate.position_qty, orderUpdate.price).catch(
+            LOGGER.error
+        );
     }
 });
 
