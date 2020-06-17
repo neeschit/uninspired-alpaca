@@ -159,12 +159,18 @@ server.post("/replace_trade/:symbol", async (request) => {
 
     const { trade, order } = request.body as ReplaceOpenTradePayload;
 
-    const replacedOrder = await handleOrderReplacement(trade, order);
+    let replacedOrder = await handleOrderReplacement(trade, order);
 
     if (!replacedOrder) {
         server.log.error(`could not replace order`);
 
-        postErrorReplacing(order);
+        await new Promise((resolve) => setTimeout(() => resolve(), 2000));
+
+        replacedOrder = await handleOrderReplacement(trade, order);
+
+        if (!replacedOrder) {
+            postErrorReplacing(order);
+        }
 
         return {
             success: false,
