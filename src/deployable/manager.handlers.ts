@@ -6,7 +6,7 @@ import {
     OrderStatus,
     SimpleAlpacaPosition,
 } from "@neeschit/alpaca-trade-api";
-import { getOrder, updateOrder } from "../resources/order";
+import { getOrder, updateOrder, cancelAllOrdersForSymbol } from "../resources/order";
 import { LOGGER } from "../instrumentation/log";
 import { alpaca } from "../resources/alpaca";
 import {
@@ -297,6 +297,7 @@ export const handleOrderReplacement = async (
             return trade;
         }
     } catch (e) {
+        cancelAllOrdersForSymbol(symbol).catch(LOGGER.error);
         refreshOpenOrders().catch(LOGGER.error);
         LOGGER.error(`Couldn't cancel order for ${symbol} with order ${JSON.stringify(order)}`, e);
         return null;
@@ -318,8 +319,8 @@ export const handlePositionOrderReplacement = async (
     if (newOrder && !recentOrdersCache[symbol]) {
         recentOrdersCache[symbol] = true;
         await alpaca.cancelOrder(order.id);
-        await manager.updatePlannedPosition(trade);
         const alpacaOrder = await alpaca.createOrder(newOrder);
+        await manager.updatePlannedPosition(trade);
         openOrderCache.push(alpacaOrder);
         refreshOpenOrders().catch(LOGGER.error);
         return alpacaOrder;
