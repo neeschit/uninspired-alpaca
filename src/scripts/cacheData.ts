@@ -62,7 +62,7 @@ async function run(duration = DefaultDuration.one, period = PeriodType.minute) {
             const daysMinutes = await getPolyonData(
                 symbol,
                 date,
-                date.getTime() > endDate.getTime() ? endDate : date,
+                end.getTime() > endDate.getTime() ? endDate : end,
                 PeriodType.day,
                 DefaultDuration.one
             );
