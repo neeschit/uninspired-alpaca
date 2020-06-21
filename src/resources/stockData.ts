@@ -359,18 +359,16 @@ export const getData = async (
 
     const result = await pool.query(query);
 
-    return result.rows
-        .filter((r) => r.n == 5)
-        .map((r) => {
-            return {
-                v: Number(r.v),
-                c: Number(r.c),
-                o: Number(r.o),
-                h: Number(r.h),
-                l: Number(r.l),
-                t: new Date(r.time_bucket).getTime(),
-            };
-        });
+    return result.rows.map((r) => {
+        return {
+            v: Number(r.v),
+            c: Number(r.c),
+            o: Number(r.o),
+            h: Number(r.h),
+            l: Number(r.l),
+            t: new Date(r.time_bucket).getTime(),
+        };
+    });
 };
 
 export const getSimpleData = async (
