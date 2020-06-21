@@ -127,8 +127,11 @@ export class Backtester {
         let pastLength = 0;
 
         for (const batch of batches) {
-            this.currentDate = batch.startDate;
             this.replayBars = {};
+            this.screenerDailyBars = {};
+            this.screenerBars = {};
+            this.todaysScreenerBars = {};
+            this.currentDate = batch.startDate;
             this.broker.setPositions(currentPositionConfigs[batch.batchId] || []);
             this.clock.setSystemTime(this.currentDate);
 
@@ -147,7 +150,7 @@ export class Backtester {
                 }
             }
 
-            currentPositionConfigs[batch.batchId] = await this.broker.getCurrentPositions();
+            currentPositionConfigs[batch.batchId] = this.broker.getCurrentPositions();
         }
     }
 
@@ -514,6 +517,9 @@ export class Backtester {
         this.managers = [];
         this.strategyInstances = [];
         this.broker.cancelAllOrders();
+        this.replayBars = {};
+        this.screenerDailyBars = {};
+        this.screenerBars = {};
         this.todaysScreenerBars = {};
     }
 

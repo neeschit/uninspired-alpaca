@@ -1,6 +1,7 @@
 import { PositionDirection, TradeDirection } from "../data/data.model";
 import { isSameMonth, isAfter, isSameDay } from "date-fns";
 import { FilledPositionConfig, ClosedPositionConfig } from "../resources/position";
+import { TRADING_RISK_UNIT_CONSTANT } from "./riskManagement";
 
 export interface Performance {
     profit: number;
@@ -197,12 +198,19 @@ export const analyzeClosedPositions = (
     };
 };
 function getPnL(position: FilledPositionConfig) {
-    return position.trades.reduce((total, trade) => {
-        if (trade.side === TradeDirection.buy) {
-            total -= trade.filledQuantity * trade.averagePrice;
-        } else {
-            total += trade.filledQuantity * trade.averagePrice;
-        }
-        return total;
-    }, 0);
+    try {
+        return position.trades.reduce((total, trade) => {
+            if (!trade.averagePrice) {
+                throw new Error(`no_average_price for ${JSON.stringify(position)}`);
+            }
+            if (trade.side === TradeDirection.buy) {
+                total -= trade.filledQuantity * trade.averagePrice;
+            } else {
+                total += trade.filledQuantity * trade.averagePrice;
+            }
+            return total;
+        }, 0);
+    } catch (e) {
+        return -TRADING_RISK_UNIT_CONSTANT;
+    }
 }
