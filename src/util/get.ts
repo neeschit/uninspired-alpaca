@@ -59,7 +59,7 @@ export const getHttps = (url: string) => {
             });
         };
         retry();
-    });
+    }).catch(LOGGER.error);
 };
 
 export const getHttp = <T extends any>({

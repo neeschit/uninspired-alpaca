@@ -39,8 +39,11 @@ export const getPolyonData = (
     const url = getPolygonApiUrl(resource, "v2");
 
     return getHttps(url).then((response: any) => {
-        if (!response.results) {
+        if (!response || !response.results) {
             LOGGER.warn(url);
+            return {
+                [symbol]: [],
+            };
         }
         return {
             [symbol]: response.results,

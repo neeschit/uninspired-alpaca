@@ -20,7 +20,16 @@ export interface ClosedPositionConfig extends FilledPositionConfig {
     pnl: number;
 }
 
-export const getCreatePositionsTableSql = () => `create table positions (
+export const getCreatePositionsTableSql = () => `
+CREATE OR REPLACE FUNCTION trigger_set_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+create table positions (
     id serial primary key,
     planned_stop_price numeric not null,
     planned_entry_price numeric not null,
