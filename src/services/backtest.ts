@@ -28,6 +28,7 @@ import { getDetailedPerformanceReport } from "./performance";
 import { Calendar } from "@neeschit/alpaca-trade-api";
 import { FilledPositionConfig } from "../resources/position";
 import { getSimpleData, getData } from "../resources/stockData";
+import { appendToCollectionFile } from "../util";
 
 export class Backtester {
     currentDate: Date;
@@ -109,7 +110,7 @@ export class Backtester {
         };
     }
 
-    async simulate(batchSize = 100, logPerformance = true) {
+    async simulate(batchSize = 100, filename = "") {
         this.calendar = await alpaca.getCalendar({
             start: addBusinessDays(this.startDate, -3),
             end: this.endDate,
@@ -121,8 +122,6 @@ export class Backtester {
             this.configuredSymbols,
             batchSize
         );
-
-        const currentPositionConfigs: FilledPositionConfig[][] = [];
 
         let pastLength = 0;
 
@@ -138,12 +137,11 @@ export class Backtester {
 
             await this.batchSimulate(batch.startDate, batch.endDate, batch.symbols);
 
-            if (logPerformance) {
+            if (filename) {
                 try {
                     const pastPositionConfigs = this.broker.getPastPositions().slice(pastLength);
-                    const perfReport = getDetailedPerformanceReport(pastPositionConfigs);
-                    pastLength = pastPositionConfigs.length;
-                    LOGGER.info(`performance so far ${JSON.stringify(perfReport)}`);
+                    appendToCollectionFile(filename, pastPositionConfigs);
+                    this.broker.reset();
                 } catch (e) {
                     LOGGER.warn(`no positions so far`);
                 }
