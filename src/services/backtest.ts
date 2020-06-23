@@ -132,7 +132,6 @@ export class Backtester {
             this.screenerBars = {};
             this.todaysScreenerBars = {};
             this.currentDate = batch.startDate;
-            this.broker.setPositions(currentPositionConfigs[batch.batchId] || []);
             this.clock.setSystemTime(this.currentDate);
 
             LOGGER.info(`Starting simulation for batch ${JSON.stringify(batch)}`);
@@ -149,8 +148,6 @@ export class Backtester {
                     LOGGER.warn(`no positions so far`);
                 }
             }
-
-            currentPositionConfigs[batch.batchId] = this.broker.getCurrentPositions();
         }
     }
 
@@ -160,7 +157,7 @@ export class Backtester {
             dailyPromises.push(
                 getSimpleData(
                     symbol,
-                    addDays(startDate, -25).getTime(),
+                    addBusinessDays(startDate, -25).getTime(),
                     false,
                     endDate.getTime()
                 ).then((data) => {
@@ -518,8 +515,6 @@ export class Backtester {
         this.strategyInstances = [];
         this.broker.cancelAllOrders();
         this.replayBars = {};
-        this.screenerDailyBars = {};
-        this.screenerBars = {};
         this.todaysScreenerBars = {};
     }
 
@@ -661,11 +656,11 @@ export class Backtester {
         let todaysBars = this.todaysScreenerBars[symbol];
 
         if (!todaysBars) {
-            this.todaysScreenerBars[symbol] = this.screenerBars[symbol].filter(
-                (b) =>
-                    isSameDay(b.t, this.currentDate) &&
-                    confirmMarketOpen(this.calendar, this.currentDate.getTime())
-            );
+            this.todaysScreenerBars[symbol] = this.screenerBars[symbol].filter((b) => {
+                const sameDay = isSameDay(b.t, this.currentDate);
+                const marketOpen = confirmMarketOpen(this.calendar, b.t);
+                return sameDay && marketOpen;
+            });
 
             todaysBars = this.todaysScreenerBars[symbol];
         }
