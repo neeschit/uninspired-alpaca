@@ -1,6 +1,6 @@
 import { getMegaCaps, getLargeCaps, currentIndices, getUnfilteredMegaCaps } from "../data/filters";
 import { DefaultDuration, PeriodType } from "../data/data.model";
-import { addDays, startOfDay, addBusinessDays } from "date-fns";
+import { addDays, startOfDay, addBusinessDays, endOfDay } from "date-fns";
 import { LOGGER } from "../instrumentation/log";
 import { getPolyonData } from "../resources/polygon";
 import {
@@ -11,13 +11,13 @@ import {
     batchInsertDailyBars,
 } from "../resources/stockData";
 
-const companies: string[] = getMegaCaps();
+const companies: string[] = getLargeCaps();
 
 companies.push(...currentIndices);
 
 async function run(duration = DefaultDuration.one, period = PeriodType.minute) {
+    const startDate = startOfDay(addBusinessDays(Date.now(), -3));
     for (const symbol of companies) {
-        const startDate = startOfDay(addBusinessDays(Date.now(), -3));
         const endDate = startOfDay(addBusinessDays(Date.now(), 1));
 
         for (
@@ -52,24 +52,30 @@ async function run(duration = DefaultDuration.one, period = PeriodType.minute) {
     }
 
     for (const symbol of companies) {
-        const startDate = startOfDay(addBusinessDays(Date.now(), -30));
+        const endDate = endOfDay(addDays(Date.now(), -1));
+        for (
+            let date = startDate;
+            date.getTime() < endDate.getTime();
+            date = addBusinessDays(date, 90)
+        ) {
+            const end = addBusinessDays(date, 90);
+            const daysMinutes = await getPolyonData(
+                symbol,
+                date,
+                end.getTime() > endDate.getTime() ? endDate : end,
+                PeriodType.day,
+                DefaultDuration.one
+            );
 
-        const daysMinutes = await getPolyonData(
-            symbol,
-            addBusinessDays(startDate, -150),
-            addBusinessDays(Date.now(), 0),
-            PeriodType.day,
-            DefaultDuration.one
-        );
+            if (!daysMinutes[symbol] || !daysMinutes[symbol].length) {
+                continue;
+            }
 
-        if (!daysMinutes[symbol] || !daysMinutes[symbol].length) {
-            continue;
-        }
-
-        try {
-            await batchInsertDailyBars(daysMinutes[symbol], symbol);
-        } catch (e) {
-            LOGGER.error(`Error inserting for ${symbol}`, e);
+            try {
+                await batchInsertDailyBars(daysMinutes[symbol], symbol);
+            } catch (e) {
+                LOGGER.error(`Error inserting for ${symbol}`, e);
+            }
         }
     }
 }
