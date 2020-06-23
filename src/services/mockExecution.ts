@@ -186,6 +186,13 @@ export class MockBroker implements Broker {
 
     private constructor() {}
 
+    reset() {
+        this.pastTradeConfigs = [];
+        this.pendingTradeConfigs = [];
+        this.currentPositionConfigs = [];
+        this.pastPositionConfigs = [];
+    }
+
     cancelOrder(oid: string): Promise<{}> {
         return Promise.resolve({});
     }
