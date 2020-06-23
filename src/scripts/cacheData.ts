@@ -51,8 +51,8 @@ async function run(duration = DefaultDuration.one, period = PeriodType.minute) {
         }
     }
 
-    const endDate = endOfDay(addDays(Date.now(), -1));
     for (const symbol of companies) {
+        const endDate = endOfDay(addDays(Date.now(), -1));
         for (
             let date = startDate;
             date.getTime() < endDate.getTime();

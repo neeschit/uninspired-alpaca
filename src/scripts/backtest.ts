@@ -1,21 +1,21 @@
 import { format, parseISO } from "date-fns";
 import { zonedTimeToUtc } from "date-fns-tz";
-import { writeFileSync } from "fs";
+import { writeFileSync, openSync } from "fs";
 import { MarketTimezone } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
 import { Backtester } from "../services/backtest";
 import { getDetailedPerformanceReport } from "../services/performance";
-import { getMegaCaps } from "../data/filters";
+import { getMegaCaps, getLargeCaps } from "../data/filters";
 import { MockBroker } from "../services/mockExecution";
 
 const startDate = "2020-06-01 9:00:00.000";
 const zonedStartDate = zonedTimeToUtc(startDate, MarketTimezone);
 
-const endDate = parseISO("2020-06-05 16:10:00.000");
+const endDate = parseISO("2020-06-22 16:10:00.000");
 
 const zonedEndDate = zonedTimeToUtc(endDate, MarketTimezone);
 
-const SYMBOLS = getMegaCaps();
+const SYMBOLS = getLargeCaps();
 LOGGER.info(zonedStartDate.toISOString());
 
 const pr = 3;
@@ -43,7 +43,7 @@ async function run() {
 
     const performance = getDetailedPerformanceReport(pastPositionConfigs); */
 
-    await instance.simulate(170);
+    await instance.simulate(50);
     LOGGER.info(JSON.stringify(MockBroker.getInstance().getPositions()));
     const performance = getDetailedPerformanceReport(MockBroker.getInstance().pastPositionConfigs);
 
