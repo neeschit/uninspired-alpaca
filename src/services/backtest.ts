@@ -28,6 +28,7 @@ import { getDetailedPerformanceReport } from "./performance";
 import { Calendar } from "@neeschit/alpaca-trade-api";
 import { FilledPositionConfig } from "../resources/position";
 import { getSimpleData, getData } from "../resources/stockData";
+import { appendToCollectionFile } from "../util";
 
 export class Backtester {
     currentDate: Date;
@@ -109,7 +110,7 @@ export class Backtester {
         };
     }
 
-    async simulate(batchSize = 100, logPerformance = true) {
+    async simulate(batchSize = 100, filename = "") {
         this.calendar = await alpaca.getCalendar({
             start: addBusinessDays(this.startDate, -3),
             end: this.endDate,
@@ -121,8 +122,6 @@ export class Backtester {
             this.configuredSymbols,
             batchSize
         );
-
-        const currentPositionConfigs: FilledPositionConfig[][] = [];
 
         let pastLength = 0;
 
@@ -138,15 +137,19 @@ export class Backtester {
 
             await this.batchSimulate(batch.startDate, batch.endDate, batch.symbols);
 
-            if (logPerformance) {
+            if (filename) {
                 try {
                     const pastPositionConfigs = this.broker.getPastPositions().slice(pastLength);
-                    const perfReport = getDetailedPerformanceReport(pastPositionConfigs);
-                    pastLength = pastPositionConfigs.length;
-                    LOGGER.info(`performance so far ${JSON.stringify(perfReport)}`);
+                    appendToCollectionFile(filename, pastPositionConfigs);
+                    this.broker.reset();
                 } catch (e) {
                     LOGGER.warn(`no positions so far`);
                 }
+            }
+            try {
+                global.gc();
+            } catch (e) {
+                LOGGER.error(e);
             }
         }
     }
@@ -217,11 +220,11 @@ export class Backtester {
                 confirmMarketOpen(this.calendar, this.currentDate.getTime()) &&
                 isMarketOpen(this.currentDate.getTime())
             ) {
-                Sinon.clock.restore();
+                /* Sinon.clock.restore(); */
 
                 const startMarket = Date.now();
 
-                Sinon.useFakeTimers(this.currentDate);
+                /* this.clock = Sinon.useFakeTimers(this.currentDate); */
 
                 this.tradeUpdater.emit("interval_hit");
 
@@ -252,21 +255,21 @@ export class Backtester {
                     LOGGER.warn(e.message);
                 }
 
-                Sinon.clock.restore();
+                /* Sinon.clock.restore(); */
 
                 const now = Date.now();
 
-                Sinon.useFakeTimers(this.currentDate);
+                /* this.clock = Sinon.useFakeTimers(this.currentDate); */
 
                 for (const i of this.strategyInstances) {
                     i.screenForNarrowRangeBars([], this.currentDate.getTime());
                 }
 
-                Sinon.clock.restore();
+                /* Sinon.clock.restore(); */
 
                 const now1 = Date.now();
 
-                Sinon.useFakeTimers(this.currentDate);
+                /* this.clock = Sinon.useFakeTimers(this.currentDate); */
 
                 LOGGER.debug(`took  ${(now1 - now) / 1000}`);
 
@@ -303,11 +306,11 @@ export class Backtester {
                     }
                 });
 
-                Sinon.clock.restore();
+                /* Sinon.clock.restore(); */
 
                 const now2 = Date.now();
 
-                Sinon.useFakeTimers(this.currentDate);
+                /* this.clock = Sinon.useFakeTimers(this.currentDate); */
 
                 LOGGER.debug(`rebalancing took ${(now2 - now1) / 1000}`);
 
@@ -328,11 +331,11 @@ export class Backtester {
                     await this.executeAndRecord();
                 }
 
-                Sinon.clock.restore();
+                /* Sinon.clock.restore(); */
 
                 const endMarket = Date.now();
 
-                const text = `whole shebang took ${
+                /* const text = `whole shebang took ${
                     (endMarket - startMarket) / 1000
                 } seconds at ${this.currentDate.toLocaleString()}`;
 
@@ -340,9 +343,9 @@ export class Backtester {
                     LOGGER.info(text);
                 } else {
                     LOGGER.debug(text);
-                }
+                } */
 
-                Sinon.useFakeTimers(this.currentDate);
+                /* this.clock = Sinon.useFakeTimers(this.currentDate); */
             }
 
             if (isMarketOpening(this.currentDate)) {
