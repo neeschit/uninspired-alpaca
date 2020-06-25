@@ -47,6 +47,14 @@ export const isTimeForOrbEntry = (now: TimestampType) => {
     return isWithinEntryRange;
 };
 
+export const isTimeToCancelPendingOrbOrders = (now: TimestampType) => {
+    const timeStart = convertToLocalTime(now, " 10:00:00.000");
+
+    const nowMillis = now instanceof Date ? now.getTime() : now;
+
+    return nowMillis < timeStart.getTime();
+};
+
 export const refreshOpeningRangeBreakoutPlan = (
     symbol: string,
     todaysBars: Bar[],
@@ -309,7 +317,7 @@ export class NarrowRangeBarStrategy {
         );
     }
 
-    async rebalance(
+    async screenForEntry(
         recentBars: Bar[],
         now: TimestampType = Date.now(),
         lastBar: Bar,

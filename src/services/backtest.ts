@@ -18,7 +18,11 @@ import {
     confirmMarketOpen,
     isMarketOpen,
 } from "../util/market";
-import { NarrowRangeBarStrategy, isTimeForOrbEntry } from "../strategy/narrowRangeBar";
+import {
+    NarrowRangeBarStrategy,
+    isTimeForOrbEntry,
+    isTimeToCancelPendingOrbOrders,
+} from "../strategy/narrowRangeBar";
 import { getBarsByDate } from "../data/bars";
 import { TradeManagement } from "./tradeManagement";
 import { LOGGER } from "../instrumentation/log";
@@ -37,6 +41,9 @@ export class Backtester {
     daysElapsed: number = 0;
     clock: Sinon.SinonFakeTimers;
     replayBars: {
+        [index: string]: Bar[];
+    } = {};
+    todaysReplayBars: {
         [index: string]: Bar[];
     } = {};
     screenerDailyBars: {
@@ -123,8 +130,6 @@ export class Backtester {
             batchSize
         );
 
-        let pastLength = 0;
-
         for (const batch of batches) {
             this.replayBars = {};
             this.screenerDailyBars = {};
@@ -139,17 +144,12 @@ export class Backtester {
 
             if (filename) {
                 try {
-                    const pastPositionConfigs = this.broker.getPastPositions().slice(pastLength);
+                    const pastPositionConfigs = this.broker.getPastPositions();
                     appendToCollectionFile(filename, pastPositionConfigs);
                     this.broker.reset();
                 } catch (e) {
                     LOGGER.warn(`no positions so far`);
                 }
-            }
-            try {
-                global.gc();
-            } catch (e) {
-                LOGGER.error(e);
             }
         }
     }
@@ -163,11 +163,13 @@ export class Backtester {
                     addBusinessDays(startDate, -25).getTime(),
                     false,
                     endDate.getTime()
-                ).then((data) => {
-                    Object.assign(this.screenerDailyBars, {
-                        [symbol]: data,
-                    });
-                })
+                )
+                    .then((data) => {
+                        Object.assign(this.screenerDailyBars, {
+                            [symbol]: data,
+                        });
+                    })
+                    .catch(LOGGER.error)
             );
         }
 
@@ -177,13 +179,15 @@ export class Backtester {
 
         for (const symbol of symbols) {
             replayPromises.push(
-                getSimpleData(symbol, startDate.getTime(), true, endDate.getTime()).then((data) => {
-                    Object.assign(this.replayBars, {
-                        [symbol]: data.filter((b) => {
-                            return confirmMarketOpen(this.calendar, b.t);
-                        }),
-                    });
-                })
+                getSimpleData(symbol, startDate.getTime(), true, endDate.getTime())
+                    .then((data) => {
+                        Object.assign(this.replayBars, {
+                            [symbol]: data.filter((b) => {
+                                return confirmMarketOpen(this.calendar, b.t);
+                            }),
+                        });
+                    })
+                    .catch(LOGGER.error)
             );
         }
 
@@ -300,7 +304,7 @@ export class Backtester {
                             (b) => b.t < this.currentDate.getTime()
                         );
 
-                        return i.rebalance(recentBars, this.currentDate, bar);
+                        return i.screenForEntry(recentBars, this.currentDate, bar);
                     } catch (e) {
                         LOGGER.warn(e);
                     }
@@ -327,9 +331,7 @@ export class Backtester {
                     }
                 }
 
-                if (isTimeForOrbEntry(this.currentDate)) {
-                    await this.executeAndRecord();
-                }
+                await this.executeAndRecord();
 
                 /* Sinon.clock.restore(); */
 
@@ -517,7 +519,6 @@ export class Backtester {
         this.managers = [];
         this.strategyInstances = [];
         this.broker.cancelAllOrders();
-        this.replayBars = {};
         this.todaysScreenerBars = {};
     }
 
@@ -529,6 +530,7 @@ export class Backtester {
         for (const manager of this.managers) {
             const symbol = manager.plan.symbol;
             const bars = this.getTodaysBars(symbol);
+            const minuteBars = this.getTodaysReplayBars(symbol);
 
             if (manager.filledPosition) {
                 continue;
@@ -537,18 +539,20 @@ export class Backtester {
             const strategy = this.strategyInstances.find((i) => i.symbol === symbol);
             const refreshBars = bars.filter(
                 (b) =>
-                    isMarketOpen(b.t) &&
+                    confirmMarketOpen(this.calendar, b.t) &&
                     isSameDay(this.currentDate, b.t) &&
-                    b.t <= this.currentDate.getTime()
+                    b.t < this.currentDate.getTime()
             );
+            const filteredMinuteBars = minuteBars.filter((b) => b.t < this.currentDate.getTime());
             manager.refreshPlan(
                 refreshBars,
                 strategy!.atr,
                 strategy!.closePrice,
                 ({
                     id: "test",
+                    symbol: manager.config.symbol,
                 } as unknown) as any,
-                refreshBars[refreshBars.length - 1]
+                filteredMinuteBars[filteredMinuteBars.length - 1]
             );
 
             if (!bars) {
@@ -666,6 +670,22 @@ export class Backtester {
             });
 
             todaysBars = this.todaysScreenerBars[symbol];
+        }
+
+        return todaysBars;
+    }
+
+    getTodaysReplayBars(symbol: string) {
+        let todaysBars = this.todaysReplayBars[symbol];
+
+        if (!todaysBars) {
+            this.todaysReplayBars[symbol] = this.replayBars[symbol].filter((b) => {
+                const sameDay = isSameDay(b.t, this.currentDate);
+                const marketOpen = confirmMarketOpen(this.calendar, b.t);
+                return sameDay && marketOpen;
+            });
+
+            todaysBars = this.todaysReplayBars[symbol];
         }
 
         return todaysBars;

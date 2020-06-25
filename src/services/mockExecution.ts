@@ -193,7 +193,11 @@ export class MockBroker implements Broker {
         this.pastPositionConfigs = [];
     }
 
-    cancelOrder(oid: string): Promise<{}> {
+    cancelOrder(symbol: string): Promise<{}> {
+        this.pendingTradeConfigs = this.pendingTradeConfigs.filter(
+            (c) => c.config.symbol === symbol
+        );
+
         return Promise.resolve({});
     }
 

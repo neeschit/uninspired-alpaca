@@ -1,22 +1,22 @@
 import { format, parseISO } from "date-fns";
 import { zonedTimeToUtc } from "date-fns-tz";
-import { writeFileSync, openSync, readFileSync } from "fs";
+import { writeFileSync, openSync, readFileSync, appendFileSync } from "fs";
 import { MarketTimezone } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
 import { Backtester } from "../services/backtest";
 import { getDetailedPerformanceReport } from "../services/performance";
-import { getMegaCaps, getLargeCaps } from "../data/filters";
+import { getMegaCaps, getLargeCaps, getUnfilteredMegaCaps } from "../data/filters";
 import { MockBroker } from "../services/mockExecution";
 import { remove } from "fs-extra";
 
-const startDate = "2019-01-01 9:00:00.000";
+const startDate = "2020-06-24 9:00:00.000";
 const zonedStartDate = zonedTimeToUtc(startDate, MarketTimezone);
 
-const endDate = parseISO("2020-06-22 16:10:00.000");
+const endDate = parseISO("2020-06-24 16:10:00.000");
 
 const zonedEndDate = zonedTimeToUtc(endDate, MarketTimezone);
 
-const SYMBOLS = getLargeCaps();
+const SYMBOLS = getMegaCaps();
 LOGGER.info(zonedStartDate.toISOString());
 
 const pr = 3;
@@ -45,12 +45,11 @@ async function run() {
     const performance = getDetailedPerformanceReport(pastPositionConfigs); */
 
     const positionsFile = `${filename}-positions.json`;
-    await instance.simulate(170, positionsFile);
-    LOGGER.info(JSON.stringify(MockBroker.getInstance().getPositions()));
+    await instance.simulate(500, positionsFile);
+    appendFileSync(positionsFile, "]");
     const positions = JSON.parse(readFileSync(positionsFile).toString());
     const performance = getDetailedPerformanceReport(positions);
     writeFileSync(`${filename}.json`, JSON.stringify(performance));
-    remove(positionsFile);
 }
 
 run().then(() => LOGGER.info("done"));

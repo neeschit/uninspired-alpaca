@@ -57,7 +57,8 @@
             "smartStep": true,
             "internalConsoleOptions": "openOnSessionStart",
             "env": {
-                "LOGLEVEL": "4"
+                "LOGLEVEL": "4",
+                "NODE_ENV": "backtest"
             },
             "skipFiles": ["<node_internals>/**"]
         }

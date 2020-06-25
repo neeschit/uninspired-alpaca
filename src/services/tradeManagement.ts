@@ -25,6 +25,7 @@ import {
     getOpeningRangeBreakoutPlan,
     refreshOpeningRangeBreakoutPlan,
     isTimeForOrbEntry,
+    isTimeToCancelPendingOrbOrders,
 } from "../strategy/narrowRangeBar";
 import { isBacktestingEnv } from "../util/env";
 
@@ -388,9 +389,8 @@ export class TradeManagement {
             order = await rebalancePosition(
                 {
                     averageEntryPrice: Number(this.filledPosition.averageEntryPrice),
-                    symbol: this.plan.symbol,
-                    side: position.side,
                     ...this.plan,
+                    side: position.side,
                     quantity: this.filledPosition.quantity,
                     originalQuantity: this.plan.quantity,
                 },
@@ -428,12 +428,16 @@ export class TradeManagement {
         openOrder: AlpacaOrder,
         lastBar: Bar
     ) {
-        if (!isTimeForOrbEntry(Date.now())) {
+        if (!isTimeToCancelPendingOrbOrders(Date.now())) {
             if (openOrder) {
                 LOGGER.error(
                     `canceling order for ${openOrder.symbol} at ${new Date().toISOString()}`
                 );
-                await this.broker.cancelOrder(openOrder.id);
+                if (!isBacktestingEnv()) {
+                    await this.broker.cancelOrder(openOrder.id);
+                } else {
+                    await this.broker.cancelOrder(openOrder.symbol);
+                }
             }
             return null;
         }
@@ -446,7 +450,7 @@ export class TradeManagement {
         );
 
         if (!newTrade) {
-            if (openOrder) {
+            if (openOrder && !isBacktestingEnv()) {
                 LOGGER.error(
                     `canceling order as no strategy appears to work for ${
                         openOrder.symbol
@@ -464,6 +468,11 @@ export class TradeManagement {
             Math.abs(Number(openOrder.stop_price) - newTrade.config.stopPrice) < 0.1
         ) {
             return null;
+        }
+
+        if (isBacktestingEnv()) {
+            this.plan = newTrade.plan;
+            this.config = newTrade.config;
         }
 
         return newTrade;

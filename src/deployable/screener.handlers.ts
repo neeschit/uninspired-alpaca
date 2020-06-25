@@ -40,7 +40,7 @@ export const screenSymbol = async (
 
     strategy.screenForNarrowRangeBars(screenerData, currentEpoch);
 
-    return strategy.rebalance(screenerData, currentEpoch, bar, positions);
+    return strategy.screenForEntry(screenerData, currentEpoch, bar, positions);
 };
 
 export const manageOpenOrder = async (
