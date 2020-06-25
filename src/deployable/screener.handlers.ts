@@ -10,6 +10,8 @@ import { getBarsFromDataService } from "./data.service";
 import { alpaca } from "../resources/alpaca";
 import { getUncachedManagerForPosition } from "./manager.handlers";
 import { isSameDay } from "date-fns";
+import { Position } from "../resources/position";
+import { AlpacaOrder } from "@neeschit/alpaca-trade-api";
 
 export const screenSymbol = async (
     strategies: NarrowRangeBarStrategy[],
@@ -75,20 +77,7 @@ export const manageOpenOrder = async (
     }
 
     try {
-        const screenerData = await getTodaysBars(symbol);
-        const manager = getUncachedManagerForPosition(recentlyUpdatedDbPositions, symbol);
-
-        if (!manager) {
-            return;
-        }
-
-        const newTrade = await manager.refreshPlan(
-            screenerData,
-            strategy.atr,
-            strategy.closePrice,
-            order,
-            lastBar
-        );
+        const newTrade = refreshTrade(symbol, strategy, recentlyUpdatedDbPositions, order, lastBar);
 
         if (newTrade) {
             LOGGER.error(
@@ -109,4 +98,21 @@ export const getTodaysBars = async (symbol: string, currentEpoch = Date.now()) =
     const screenerData: Bar[] = await getBarsFromDataService(symbol, currentEpoch);
 
     return screenerData.filter((b) => isSameDay(b.t, currentEpoch));
+};
+
+export const refreshTrade = async (
+    symbol: string,
+    strategy: NarrowRangeBarStrategy,
+    recentlyUpdatedDbPositions: Position[],
+    order: AlpacaOrder,
+    lastBar: Bar
+) => {
+    const screenerData = await getTodaysBars(symbol);
+    const manager = getUncachedManagerForPosition(recentlyUpdatedDbPositions, symbol);
+
+    if (!manager) {
+        return;
+    }
+
+    return manager.refreshPlan(screenerData, strategy.atr, strategy.closePrice, order, lastBar);
 };

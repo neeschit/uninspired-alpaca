@@ -5,6 +5,7 @@ import {
     getBarsForSymbol,
     getLastBarForSymbol,
     cacheBars,
+    getLastMinuteBarForSymbol,
 } from "./data.handlers";
 import { currentTradingSymbols } from "../data/filters";
 import { LOGGER } from "../instrumentation/log";
@@ -63,6 +64,29 @@ server.get("/bar/:symbol", async (request) => {
     const { epoch = Date.now() } = request.query || {};
 
     return getLastBarForSymbol(symbol, epoch);
+});
+export const getLastMinuteBarFromDataService = async (
+    symbol: string,
+    currentEpoch = Date.now()
+): Promise<Bar | null> => {
+    try {
+        const bar: Bar = (await getFromService(Service.data, "/minute_bar/" + symbol, {
+            epoch: currentEpoch,
+        })) as any;
+
+        return bar;
+    } catch (e) {
+        LOGGER.error(e);
+    }
+
+    return null;
+};
+
+server.get("/minute_bar/:symbol", async (request) => {
+    const symbol = request.params && request.params.symbol;
+    const { epoch = Date.now() } = request.query || {};
+
+    return getLastMinuteBarForSymbol(symbol, epoch);
 });
 
 export const postAggregatedMinuteUpdate = async (

@@ -4,10 +4,12 @@ import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
 import { getSimpleData, cacheDailyBarsForSymbol } from "../resources/stockData";
 import { addBusinessDays } from "date-fns";
 import { LOGGER } from "../instrumentation/log";
-import { screenSymbol, manageOpenOrder } from "./screener.handlers";
-import { postNewTrade, replaceOpenTrade } from "./manager.service";
+import { screenSymbol, manageOpenOrder, refreshTrade } from "./screener.handlers";
+import { postNewTrade, replaceOpenTrade, getCachedCurrentState } from "./manager.service";
 import { TickBar, Bar } from "../data/data.model";
 import { isBacktestingEnv } from "../util/env";
+import { getLastMinuteBarFromDataService } from "./data.service";
+import { AlpacaOrder } from "@neeschit/alpaca-trade-api";
 
 const server = getApiServer(Service.screener);
 
@@ -104,4 +106,44 @@ server.post("/manage_open_order/:symbol", async (request) => {
     return {
         success: true,
     };
+});
+
+export const postRequestToRefreshPlan = async (symbol: string, order: AlpacaOrder) => {
+    try {
+        return messageService(Service.screener, `/refresh_plan/${symbol}`, order);
+    } catch (e) {
+        LOGGER.error(e);
+    }
+
+    return {
+        success: true,
+    };
+};
+
+server.post("/refresh_plan/:symbol", async (request) => {
+    const symbol = request.params && request.params.symbol;
+
+    const bar = await getLastMinuteBarFromDataService(symbol);
+
+    const order: AlpacaOrder = request.body;
+
+    const strategy = strategies.find((s) => s.symbol === symbol);
+
+    if (!bar) {
+        LOGGER.error(`No bar found yer for ${symbol}`);
+        return {
+            success: false,
+        };
+    }
+
+    if (!strategy) {
+        LOGGER.error("hey hey, no strategy no replacement");
+
+        return {
+            success: false,
+        };
+    }
+    const { recentlyUpdatedDbPositions } = await getCachedCurrentState();
+
+    return refreshTrade(symbol, strategy, recentlyUpdatedDbPositions, order, bar);
 });

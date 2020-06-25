@@ -417,6 +417,17 @@ export const getTodaysData = (
     return getData(symbol, startEpoch, timeBucket, currentEpoch);
 };
 
+export const getTodaysDataSimple = (symbol: string, currentEpoch = Date.now()) => {
+    const startEpoch = set(currentEpoch, {
+        minutes: 30,
+        seconds: 0,
+        milliseconds: 0,
+        hours: 9,
+    }).getTime();
+
+    return getSimpleData(symbol, startEpoch, true);
+};
+
 export const getYesterdaysEndingBars = async (
     symbol: string,
     currentEpoch = Date.now(),

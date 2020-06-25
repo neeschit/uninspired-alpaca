@@ -24,6 +24,7 @@ import { getTodaysData } from "../resources/stockData";
 import { postPartial, postEntry } from "../util/slack";
 import { Service, isOwnedByService } from "../util/api";
 import { postSubscriptionRequestForTickUpdates } from "./streamer.service";
+import { postRequestToRefreshPlan } from "./screener.service";
 
 const pr = 3;
 
@@ -289,6 +290,50 @@ export const handleOrderCancellationForSymbol = async (orderUpdate: AlpacaStream
     if (!position) {
         LOGGER.error("Didnt find position for order");
         return null;
+    }
+    const symbol = position.symbol;
+
+    if (position.average_entry_price) {
+        LOGGER.error(
+            "Looks like already in a position, so nothing to do for cancellation of ",
+            symbol
+        );
+        return null;
+    }
+
+    if (recentOrdersCache[symbol]) {
+        return null;
+    }
+
+    const positions = await getRecentlyUpdatedPositions();
+
+    let manager = getUncachedManagerForPosition(positions, symbol);
+
+    if (!manager) {
+        LOGGER.error(`Could not find manager for ${JSON.stringify(symbol)}`);
+        return null;
+    }
+
+    const trade = (await postRequestToRefreshPlan(symbol, orderUpdate.order)) as {
+        plan: TradePlan;
+        config: TradeConfig;
+    };
+
+    if (!trade) {
+        return null;
+    }
+
+    const newOrder = await manager.queueTrade(trade.config);
+
+    if (newOrder && !recentOrdersCache[symbol]) {
+        recentOrdersCache[symbol] = true;
+        const alpacaOrder = await alpaca.createOrder(newOrder);
+        if (alpacaOrder) {
+            await manager.updatePlannedPosition(trade);
+            openOrderCache.push(alpacaOrder);
+        }
+        refreshOpenOrders().catch(LOGGER.error);
+        return alpacaOrder;
     }
 };
 
