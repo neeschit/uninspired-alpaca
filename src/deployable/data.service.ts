@@ -12,6 +12,7 @@ import {
     getLastBarForSymbol,
     cacheBars,
     getLastMinuteBarForSymbol,
+    cacheMinuteBars,
 } from "./data.handlers";
 import { currentTradingSymbols } from "../data/filters";
 import { LOGGER } from "../instrumentation/log";
