@@ -305,6 +305,8 @@ export const handleOrderCancellationForSymbol = async (orderUpdate: AlpacaStream
         return null;
     }
 
+    await updateOrder(orderUpdate.order, position.quantity, position.average_entry_price);
+
     const positions = await getRecentlyUpdatedPositions();
 
     let manager = getUncachedManagerForPosition(positions, symbol);
