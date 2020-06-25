@@ -1,5 +1,10 @@
 import { Bar, TickBar } from "../data/data.model";
-import { insertBar, getTodaysData, getYesterdaysEndingBars } from "../resources/stockData";
+import {
+    insertBar,
+    getTodaysData,
+    getYesterdaysEndingBars,
+    getTodaysDataSimple,
+} from "../resources/stockData";
 import { getMinutes, isSameDay } from "date-fns";
 import { LOGGER } from "../instrumentation/log";
 
@@ -56,6 +61,10 @@ export const cacheBars = async (symbol: string, currentEpoch = Date.now()) => {
     screenerData.push(...todayFiveMinutes);
 
     fiveMinuteDataCache[symbol] = screenerData;
+};
+
+export const cacheMinuteBars = async (symbol: string, currentEpoch = Date.now()) => {
+    minuteDataCache[symbol] = await getTodaysDataSimple(symbol, currentEpoch);
 };
 
 export const getBarsForSymbol = async (symbol: string, epoch = Date.now()) => {

@@ -1,4 +1,10 @@
-import { getApiServer, Service, getFromService, messageService } from "../util/api";
+import {
+    getApiServer,
+    Service,
+    getFromService,
+    messageService,
+    isOwnedByService,
+} from "../util/api";
 import { Bar, TickBar } from "../data/data.model";
 import {
     handleAggregateDataPosted,
@@ -9,6 +15,7 @@ import {
 } from "./data.handlers";
 import { currentTradingSymbols } from "../data/filters";
 import { LOGGER } from "../instrumentation/log";
+import { isBacktestingEnv } from "../util/env";
 
 const server = getApiServer(Service.data);
 
@@ -114,4 +121,7 @@ server.post("/bar/:symbol", async (request) => {
     };
 });
 
-Promise.all(currentTradingSymbols.map((symbol) => cacheBars(symbol))).catch(LOGGER.error);
+if (isOwnedByService(Service.data) && !isBacktestingEnv()) {
+    Promise.all(currentTradingSymbols.map((symbol) => cacheBars(symbol))).catch(LOGGER.error);
+    Promise.all(currentTradingSymbols.map((symbol) => cacheMinuteBars(symbol))).catch(LOGGER.error);
+}
