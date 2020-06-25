@@ -275,7 +275,7 @@ export const cancelAllOrdersForSymbol = async (symbol: string) => {
     return [];
 };
 
-export const cancelOrder = async (id: number, status = OrderStatus.canceled) => {
+export const cancelOrder = async (id: number, status = OrderStatus.pending_cancel) => {
     const pool = getConnection();
 
     const query = `update orders set status = '${status}' where id = ${Number(
