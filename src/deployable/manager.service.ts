@@ -323,7 +323,7 @@ server.post("/order_cancellation/:symbol", async (request) => {
 
 export const postOrderToCancel = async (order: AlpacaOrder) => {
     try {
-        return messageService(Service.manager, "/orders/" + order.symbol, order);
+        return messageService(Service.manager, "/order_delete/" + order.symbol, order);
     } catch (e) {
         LOGGER.error(e);
     }
