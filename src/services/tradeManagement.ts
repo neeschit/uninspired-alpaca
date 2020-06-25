@@ -428,7 +428,7 @@ export class TradeManagement {
         openOrder: AlpacaOrder,
         lastBar: Bar
     ) {
-        if (!isTimeToCancelPendingOrbOrders(Date.now())) {
+        if (isTimeToCancelPendingOrbOrders(Date.now())) {
             if (openOrder) {
                 LOGGER.error(
                     `canceling order for ${openOrder.symbol} at ${new Date().toISOString()}`
@@ -450,13 +450,17 @@ export class TradeManagement {
         );
 
         if (!newTrade) {
-            if (openOrder && !isBacktestingEnv()) {
-                LOGGER.error(
-                    `canceling order as no strategy appears to work for ${
-                        openOrder.symbol
-                    } at ${new Date().toISOString()}`
-                );
-                await this.broker.cancelOrder(openOrder.id);
+            if (openOrder) {
+                if (!isBacktestingEnv()) {
+                    LOGGER.error(
+                        `canceling order as no strategy appears to work for ${
+                            openOrder.symbol
+                        } at ${new Date().toISOString()}`
+                    );
+                    await this.broker.cancelOrder(openOrder.id);
+                } else {
+                    await this.broker.cancelOrder(openOrder.symbol);
+                }
             }
             return null;
         }

@@ -544,7 +544,7 @@ export class Backtester {
                     b.t < this.currentDate.getTime()
             );
             const filteredMinuteBars = minuteBars.filter((b) => b.t < this.currentDate.getTime());
-            manager.refreshPlan(
+            const plan = await manager.refreshPlan(
                 refreshBars,
                 strategy!.atr,
                 strategy!.closePrice,
@@ -554,6 +554,11 @@ export class Backtester {
                 } as unknown) as any,
                 filteredMinuteBars[filteredMinuteBars.length - 1]
             );
+
+            if (!plan) {
+                this.managers = this.managers.filter((m) => m.plan.symbol !== symbol);
+                continue;
+            }
 
             if (!bars) {
                 LOGGER.error(`No bars for ${JSON.stringify(manager.plan)}`);

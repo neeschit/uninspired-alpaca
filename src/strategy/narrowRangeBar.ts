@@ -30,6 +30,7 @@ export interface ORBParams {
     closePrice: number;
     symbol: string;
     lastBar: Bar;
+    shouldCancelIfAboveEntry: boolean;
 }
 
 export const isTimeForOrbEntry = (now: TimestampType) => {
@@ -52,7 +53,7 @@ export const isTimeToCancelPendingOrbOrders = (now: TimestampType) => {
 
     const nowMillis = now instanceof Date ? now.getTime() : now;
 
-    return nowMillis < timeStart.getTime();
+    return nowMillis > timeStart.getTime();
 };
 
 export const refreshOpeningRangeBreakoutPlan = (
@@ -81,6 +82,7 @@ export const refreshOpeningRangeBreakoutPlan = (
         atr: dailyAtr,
         currentIntradayAtr,
         lastBar,
+        shouldCancelIfAboveEntry: false,
     });
 };
 
@@ -89,9 +91,9 @@ export const getOrbDirection = (bars: Bar[], close: number): TradeDirection | nu
     const distanceFromLongEntry = Math.abs(close - firstBar.h);
     const distanceFromShortEntry = Math.abs(close - firstBar.l);
 
-    if (distanceFromLongEntry < distanceFromShortEntry && close < firstBar.h) {
+    if (distanceFromLongEntry < distanceFromShortEntry) {
         return TradeDirection.buy;
-    } else if (distanceFromShortEntry < distanceFromLongEntry && close > firstBar.l) {
+    } else if (distanceFromShortEntry < distanceFromLongEntry) {
         return TradeDirection.sell;
     }
 
@@ -117,6 +119,7 @@ export const getOpeningRangeBreakoutPlan = ({
     closePrice,
     symbol,
     lastBar,
+    shouldCancelIfAboveEntry = false,
 }: ORBParams) => {
     const tradeDirection = getOrbDirection(recentBars, lastBar.c);
 
@@ -128,11 +131,19 @@ export const getOpeningRangeBreakoutPlan = ({
 
     const { entryLong, entryShort } = getOrbEntryPrices(entryBar, currentIntradayAtr);
 
-    if (lastBar.c > entryLong && tradeDirection === TradeDirection.buy) {
+    if (
+        lastBar.c > entryLong &&
+        tradeDirection === TradeDirection.buy &&
+        shouldCancelIfAboveEntry
+    ) {
         return null;
     }
 
-    if (lastBar.c < entryShort && tradeDirection === TradeDirection.sell) {
+    if (
+        lastBar.c < entryShort &&
+        tradeDirection === TradeDirection.sell &&
+        shouldCancelIfAboveEntry
+    ) {
         return null;
     }
 
@@ -354,6 +365,7 @@ export class NarrowRangeBarStrategy {
                 entryBar: firstBar,
                 closePrice: this.closePrice,
                 lastBar,
+                shouldCancelIfAboveEntry: true,
             });
 
             return plan;
