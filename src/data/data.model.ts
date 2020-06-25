@@ -1,3 +1,6 @@
+import { AlpacaPosition, AlpacaOrder } from "@neeschit/alpaca-trade-api";
+import { Position } from "../resources/position";
+
 export const MarketTimezone = "America/New_York";
 
 export enum TradeDirection {

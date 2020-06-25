@@ -1,11 +1,5 @@
-import {
-    getApiServer,
-    Service,
-    getFromService,
-    messageService,
-    isOwnedByService,
-} from "../util/api";
-import { Bar, TickBar } from "../data/data.model";
+import { getApiServer, Service } from "../util/api";
+import { TickBar } from "../data/data.model";
 import {
     handleAggregateDataPosted,
     getBarsForSymbol,
@@ -17,29 +11,17 @@ import {
 import { currentTradingSymbols } from "../data/filters";
 import { LOGGER } from "../instrumentation/log";
 import { isBacktestingEnv } from "../util/env";
+import {
+    getBarsFromDataServicePath,
+    barFromDataServicePath,
+    minuteBarPath,
+} from "./data.interfaces";
 
 const server = getApiServer(Service.data);
 
 server.get("/adx", async () => {});
 
-export const getBarsFromDataService = async (
-    symbol: string,
-    currentEpoch = Date.now()
-): Promise<Bar[]> => {
-    try {
-        const bars: Bar[] = (await getFromService(Service.data, "/bars/" + symbol, {
-            epoch: currentEpoch,
-        })) as any;
-
-        return bars;
-    } catch (e) {
-        LOGGER.error(e);
-    }
-
-    return [];
-};
-
-server.get("/bars/:symbol", async (request) => {
+server.get(getBarsFromDataServicePath, async (request) => {
     const symbol = request.params && request.params.symbol;
     const { epoch = Date.now() } = request.query || {};
 
@@ -50,67 +32,21 @@ server.get("/bars/:symbol", async (request) => {
     }
 });
 
-export const getBarFromDataService = async (
-    symbol: string,
-    currentEpoch = Date.now()
-): Promise<Bar | null> => {
-    try {
-        const bar: Bar = (await getFromService(Service.data, "/bar/" + symbol, {
-            epoch: currentEpoch,
-        })) as any;
-
-        return bar;
-    } catch (e) {
-        LOGGER.error(e);
-    }
-
-    return null;
-};
-
-server.get("/bar/:symbol", async (request) => {
+server.get(barFromDataServicePath, async (request) => {
     const symbol = request.params && request.params.symbol;
     const { epoch = Date.now() } = request.query || {};
 
     return getLastBarForSymbol(symbol, epoch);
 });
-export const getLastMinuteBarFromDataService = async (
-    symbol: string,
-    currentEpoch = Date.now()
-): Promise<Bar | null> => {
-    try {
-        const bar: Bar = (await getFromService(Service.data, "/minute_bar/" + symbol, {
-            epoch: currentEpoch,
-        })) as any;
 
-        return bar;
-    } catch (e) {
-        LOGGER.error(e);
-    }
-
-    return null;
-};
-
-server.get("/minute_bar/:symbol", async (request) => {
+server.get(minuteBarPath, async (request) => {
     const symbol = request.params && request.params.symbol;
     const { epoch = Date.now() } = request.query || {};
 
     return getLastMinuteBarForSymbol(symbol, epoch);
 });
 
-export const postAggregatedMinuteUpdate = async (
-    symbol: string,
-    bar: TickBar
-): Promise<unknown> => {
-    try {
-        return messageService(Service.data, `/bar/${symbol}`, bar);
-    } catch (e) {
-        LOGGER.error(e);
-    }
-
-    return null;
-};
-
-server.post("/bar/:symbol", async (request) => {
+server.post(barFromDataServicePath, async (request) => {
     const symbol = request.params && request.params.symbol;
 
     const bar: TickBar = request.body;
@@ -122,7 +58,7 @@ server.post("/bar/:symbol", async (request) => {
     };
 });
 
-if (isOwnedByService(Service.data) && !isBacktestingEnv()) {
+if (!isBacktestingEnv()) {
     Promise.all(currentTradingSymbols.map((symbol) => cacheBars(symbol))).catch(LOGGER.error);
     Promise.all(currentTradingSymbols.map((symbol) => cacheMinuteBars(symbol))).catch(LOGGER.error);
 }

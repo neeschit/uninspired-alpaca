@@ -41,9 +41,6 @@ const fakeServer = ({
 } as any) as fastify.FastifyInstance<Server, IncomingMessage, ServerResponse>;
 
 export const getApiServer = (service: Service) => {
-    if (!isOwnedByService(service)) {
-        return fakeServer;
-    }
     if (process.env.NODE_ENV === "test") {
         return fakeServer;
     }
@@ -65,8 +62,4 @@ export const getApiServer = (service: Service) => {
     });
 
     return server;
-};
-
-export const isOwnedByService = (service: Service) => {
-    return process.env.SERVICE_NAME === serviceMap[service];
 };

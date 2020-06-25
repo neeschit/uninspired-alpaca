@@ -1,10 +1,4 @@
-import {
-    Service,
-    getApiServer,
-    messageService,
-    getFromService,
-    isOwnedByService,
-} from "../util/api";
+import { Service, getApiServer, messageService, getFromService } from "../util/api";
 import { TradePlan, TradeConfig, TickBar } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
 import {
@@ -28,27 +22,9 @@ import {
     handleOrderDeletion,
 } from "./manager.handlers";
 import { isBacktestingEnv } from "../util/env";
+import { CurrentState, ReplaceOpenTradePayload } from "./manager.interfaces";
 
 const server = getApiServer(Service.manager);
-
-export interface CurrentState {
-    positions: AlpacaPosition[];
-    openOrders: AlpacaOrder[];
-    openDbPositions: Position[];
-    recentlyUpdatedDbPositions: Position[];
-}
-
-export const postRequestToManageOpenPosition = async (symbol: string, bar: TickBar) => {
-    try {
-        return messageService(Service.manager, `/manage_open_position/${symbol}`, bar);
-    } catch (e) {
-        LOGGER.error(e);
-    }
-
-    return {
-        success: true,
-    };
-};
 
 server.post("/manage_open_position/:symbol", async (request) => {
     const symbol = request.params && request.params.symbol;
@@ -64,18 +40,6 @@ server.post("/manage_open_position/:symbol", async (request) => {
         success: true,
     };
 });
-
-export const postNewTrade = async (trade: { plan: TradePlan; config: TradeConfig }) => {
-    try {
-        return messageService(Service.manager, "/trade/" + trade.plan.symbol, trade);
-    } catch (e) {
-        LOGGER.error(e);
-    }
-
-    return {
-        success: true,
-    };
-};
 
 server.post("/trade/:symbol", async (request) => {
     const symbol = request.params && request.params.symbol;
@@ -123,40 +87,6 @@ server.post("/trade/:symbol", async (request) => {
     };
 });
 
-const getReplaceOpenTradePayload = (
-    trade: { plan: TradePlan; config: TradeConfig },
-    order: AlpacaOrder
-): ReplaceOpenTradePayload => {
-    return {
-        trade,
-        order,
-    };
-};
-
-export interface ReplaceOpenTradePayload {
-    trade: { plan: TradePlan; config: TradeConfig };
-    order: AlpacaOrder;
-}
-
-export const replaceOpenTrade = async (
-    trade: { plan: TradePlan; config: TradeConfig },
-    order: AlpacaOrder
-) => {
-    try {
-        return messageService(
-            Service.manager,
-            "/replace_trade/" + trade.plan.symbol,
-            getReplaceOpenTradePayload(trade, order)
-        );
-    } catch (e) {
-        LOGGER.error(e);
-    }
-
-    return {
-        success: true,
-    };
-};
-
 server.post("/replace_trade/:symbol", async (request) => {
     const symbol = request.params && request.params.symbol;
 
@@ -194,23 +124,6 @@ server.post("/replace_trade/:symbol", async (request) => {
     };
 });
 
-export const getCachedCurrentState = async (): Promise<CurrentState> => {
-    try {
-        const state = await getFromService(Service.manager, "/currentState");
-
-        return state as CurrentState;
-    } catch (e) {
-        LOGGER.error(e);
-    }
-
-    return {
-        positions: [],
-        openDbPositions: [],
-        openOrders: [],
-        recentlyUpdatedDbPositions: [],
-    };
-};
-
 server.get(
     "/currentState",
     async (): Promise<CurrentState> => {
@@ -229,23 +142,6 @@ server.get(
         };
     }
 );
-
-export const refreshCachedCurrentState = async (): Promise<CurrentState> => {
-    try {
-        const state = await getFromService(Service.manager, "/refreshState");
-
-        return state as CurrentState;
-    } catch (e) {
-        LOGGER.error(e);
-    }
-
-    return {
-        positions: [],
-        openDbPositions: [],
-        openOrders: [],
-        recentlyUpdatedDbPositions: [],
-    };
-};
 
 server.get(
     "/refreshState",
@@ -267,18 +163,6 @@ server.get(
     }
 );
 
-export const postOrderToManage = async (orderUpdate: AlpacaStreamingOrderUpdate) => {
-    try {
-        return messageService(Service.manager, "/orders/" + orderUpdate.order.symbol, orderUpdate);
-    } catch (e) {
-        LOGGER.error(e);
-    }
-
-    return {
-        success: true,
-    };
-};
-
 server.post("/orders/:symbol", async (request) => {
     const orderUpdate: AlpacaStreamingOrderUpdate = request.body;
     const symbol = request.params && request.params.symbol;
@@ -291,22 +175,6 @@ server.post("/orders/:symbol", async (request) => {
         server.log.error(e);
     }
 });
-
-export const postCancelledOrderToManage = async (orderUpdate: AlpacaStreamingOrderUpdate) => {
-    try {
-        return messageService(
-            Service.manager,
-            "/order_cancellation/" + orderUpdate.order.symbol,
-            orderUpdate
-        );
-    } catch (e) {
-        LOGGER.error(e);
-    }
-
-    return {
-        success: true,
-    };
-};
 
 server.post("/order_cancellation/:symbol", async (request) => {
     const orderUpdate: AlpacaStreamingOrderUpdate = request.body;
@@ -321,18 +189,6 @@ server.post("/order_cancellation/:symbol", async (request) => {
     }
 });
 
-export const postOrderToCancel = async (order: AlpacaOrder) => {
-    try {
-        return messageService(Service.manager, "/order_delete/" + order.symbol, order);
-    } catch (e) {
-        LOGGER.error(e);
-    }
-
-    return {
-        success: true,
-    };
-};
-
 server.post("/order_delete/:symbol", async (request) => {
     const order: AlpacaOrder = request.body;
     const symbol = request.params && request.params.symbol;
@@ -346,6 +202,10 @@ server.post("/order_delete/:symbol", async (request) => {
     }
 });
 
-if (process.env.NODE_ENV !== "test" && isOwnedByService(Service.manager) && !isBacktestingEnv()) {
+if (process.env.NODE_ENV !== "test" && !isBacktestingEnv()) {
     refreshPositions().catch(LOGGER.error);
 }
+
+setInterval(() => {
+    refreshPositions().catch(LOGGER.error);
+}, 10000);

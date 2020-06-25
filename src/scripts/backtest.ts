@@ -9,10 +9,10 @@ import { getMegaCaps, getLargeCaps, getUnfilteredMegaCaps } from "../data/filter
 import { MockBroker } from "../services/mockExecution";
 import { remove } from "fs-extra";
 
-const startDate = "2019-01-01 9:00:00.000";
+const startDate = "2020-06-25 9:00:00.000";
 const zonedStartDate = zonedTimeToUtc(startDate, MarketTimezone);
 
-const endDate = parseISO("2020-06-24 16:10:00.000");
+const endDate = parseISO("2020-06-25 16:10:00.000");
 
 const zonedEndDate = zonedTimeToUtc(endDate, MarketTimezone);
 

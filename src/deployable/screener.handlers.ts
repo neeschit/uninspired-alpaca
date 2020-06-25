@@ -5,27 +5,23 @@ import {
     isTimeToCancelPendingOrbOrders,
     getOrbDirection,
 } from "../strategy/narrowRangeBar";
-import { getCachedCurrentState, CurrentState, postOrderToCancel } from "./manager.service";
-import { getBarsFromDataService } from "./data.service";
-import { alpaca } from "../resources/alpaca";
-import { getUncachedManagerForPosition } from "./manager.handlers";
 import { isSameDay } from "date-fns";
 import { Position } from "../resources/position";
 import { AlpacaOrder } from "@neeschit/alpaca-trade-api";
+import { TradeManagement } from "../services/tradeManagement";
+import { CurrentState, getUncachedManagerForPosition } from "./manager.interfaces";
+import { getBarsFromDataService } from "./data.interfaces";
 
 export const screenSymbol = async (
     strategies: NarrowRangeBarStrategy[],
     symbol: string,
     bar: Bar,
+    cachedCurrentState: CurrentState,
     currentEpoch = Date.now()
 ) => {
     const strategy = strategies.find((s) => s.symbol === symbol);
 
-    const {
-        positions,
-        recentlyUpdatedDbPositions,
-        openOrders,
-    }: CurrentState = await getCachedCurrentState();
+    const { positions, recentlyUpdatedDbPositions, openOrders } = cachedCurrentState;
 
     if (recentlyUpdatedDbPositions.some((p) => p.symbol === symbol && p.average_entry_price)) {
         return null;
@@ -50,9 +46,10 @@ export const screenSymbol = async (
 export const manageOpenOrder = async (
     symbol: string,
     strategy: NarrowRangeBarStrategy,
-    lastBar: Bar
+    lastBar: Bar,
+    cachedCurrentState: CurrentState
 ) => {
-    const { positions, openOrders, recentlyUpdatedDbPositions } = await getCachedCurrentState();
+    const { positions, openOrders, recentlyUpdatedDbPositions } = cachedCurrentState;
     const openingPositionOrders = openOrders.filter(
         (o) =>
             o.symbol === symbol &&
@@ -61,19 +58,17 @@ export const manageOpenOrder = async (
     );
 
     if (!openingPositionOrders.length) {
-        return;
+        return null;
     }
 
     if (openingPositionOrders.length > 1) {
-        await Promise.all(openingPositionOrders.map((o) => postOrderToCancel(o)));
-        return;
+        return openingPositionOrders;
     }
 
     const order = openingPositionOrders[0];
 
     if (isTimeToCancelPendingOrbOrders(Date.now())) {
-        postOrderToCancel(order);
-        return;
+        return [order];
     }
 
     try {
@@ -83,15 +78,12 @@ export const manageOpenOrder = async (
             LOGGER.error(
                 `canceling order as direction appears to be reversed for ${symbol} at ${new Date().toISOString()}`
             );
-            postOrderToCancel(order);
-            return {
-                trade: newTrade,
-                orderToReplace: order,
-            };
+            return [order];
         }
     } catch (e) {
         LOGGER.error(e);
     }
+    return null;
 };
 
 export const getTodaysBars = async (symbol: string, currentEpoch = Date.now()) => {
@@ -114,5 +106,15 @@ export const refreshTrade = async (
         return;
     }
 
+    return _refreshTrade(strategy, order, lastBar, screenerData, manager);
+};
+
+export const _refreshTrade = async (
+    strategy: NarrowRangeBarStrategy,
+    order: AlpacaOrder,
+    lastBar: Bar,
+    screenerData: Bar[],
+    manager: TradeManagement
+) => {
     return manager.refreshPlan(screenerData, strategy.atr, strategy.closePrice, order, lastBar);
 };

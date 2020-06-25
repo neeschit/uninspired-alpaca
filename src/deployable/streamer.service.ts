@@ -9,9 +9,10 @@ import {
     postOrderToManage,
     postRequestToManageOpenPosition,
     postCancelledOrderToManage,
-} from "./manager.service";
-import { postAggregatedMinuteUpdate } from "./data.service";
-import { postRequestScreenSymbol, postRequestToManageOpenOrders } from "./screener.service";
+} from "./manager.interfaces";
+import { postAggregatedMinuteUpdate } from "./data.interfaces";
+import { postRequestToManageOpenOrders, postRequestScreenSymbol } from "./screener.interfaces";
+import { subscribePath } from "./streamer.interfaces";
 
 const server = getApiServer(Service.streamer);
 
@@ -104,17 +105,7 @@ socket.onPolygonConnect(() => {
     LOGGER.error(`Polygon connected at ${new Date().toLocaleTimeString()}`);
 });
 
-export const postSubscriptionRequestForTickUpdates = async () => {
-    try {
-        return messageService(Service.streamer, "/subscribe");
-    } catch (e) {
-        LOGGER.error(e);
-    }
-
-    return null;
-};
-
-server.post("/subscribe", async () => {
+server.post(subscribePath, async () => {
     try {
         await handleSubscriptionRequest(socket);
     } catch (e) {
@@ -125,5 +116,3 @@ server.post("/subscribe", async () => {
         success: true,
     };
 });
-
-process.env.SERVICE_NAME === "streamer" && socket.connect();

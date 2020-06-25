@@ -1,15 +1,21 @@
-import { Service, getApiServer, messageService, isOwnedByService } from "../util/api";
+import { Service, getApiServer, messageService } from "../util/api";
 import { currentTradingSymbols, currentStreamingSymbols } from "../data/filters";
 import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
 import { getSimpleData, cacheDailyBarsForSymbol } from "../resources/stockData";
 import { addBusinessDays } from "date-fns";
 import { LOGGER } from "../instrumentation/log";
 import { screenSymbol, manageOpenOrder, refreshTrade } from "./screener.handlers";
-import { postNewTrade, replaceOpenTrade, getCachedCurrentState } from "./manager.service";
+import {
+    postNewTrade,
+    replaceOpenTrade,
+    getCachedCurrentState,
+    postOrderToCancel,
+} from "./manager.interfaces";
 import { TickBar, Bar } from "../data/data.model";
 import { isBacktestingEnv } from "../util/env";
-import { getLastMinuteBarFromDataService } from "./data.service";
 import { AlpacaOrder } from "@neeschit/alpaca-trade-api";
+import { getLastMinuteBarFromDataService } from "./data.interfaces";
+import { refreshPlanPath } from "./screener.interfaces";
 
 const server = getApiServer(Service.screener);
 
@@ -17,7 +23,7 @@ const symbols = currentTradingSymbols;
 
 const strategies: NarrowRangeBarStrategy[] = [];
 
-if (!isBacktestingEnv() && isOwnedByService(Service.screener)) {
+if (!isBacktestingEnv()) {
     Promise.all(
         currentStreamingSymbols.map(async (symbol) => {
             try {
@@ -39,24 +45,12 @@ if (!isBacktestingEnv() && isOwnedByService(Service.screener)) {
     ).catch(LOGGER.error);
 }
 
-export const postRequestScreenSymbol = async (symbol: string, bar: Bar, epoch = Date.now()) => {
-    try {
-        return messageService(Service.screener, `/screen/${symbol}`, {
-            epoch,
-            bar,
-        });
-    } catch (e) {
-        LOGGER.error(e);
-
-        return null;
-    }
-};
-
 server.post("/screen/:symbol", async (request) => {
     const symbol = request.params && request.params.symbol;
     const { epoch = Date.now(), bar }: { bar: Bar; epoch: number } = request.body || {};
+    const state = await getCachedCurrentState();
 
-    const order = await screenSymbol(strategies, symbol, bar, epoch);
+    const order = await screenSymbol(strategies, symbol, bar, state, epoch);
 
     if (order) {
         await postNewTrade(order);
@@ -66,18 +60,6 @@ server.post("/screen/:symbol", async (request) => {
         success: true,
     };
 });
-
-export const postRequestToManageOpenOrders = async (symbol: string, bar: TickBar) => {
-    try {
-        return messageService(Service.screener, `/manage_open_order/${symbol}`, bar);
-    } catch (e) {
-        LOGGER.error(e);
-    }
-
-    return {
-        success: true,
-    };
-};
 
 server.post("/manage_open_order/:symbol", async (request) => {
     const symbol = request.params && request.params.symbol;
@@ -102,25 +84,20 @@ server.post("/manage_open_order/:symbol", async (request) => {
         };
     }
 
-    await manageOpenOrder(symbol, strategy, bar);
-    return {
-        success: true,
-    };
-});
+    const cachedCurrentState = await getCachedCurrentState();
 
-export const postRequestToRefreshPlan = async (symbol: string, order: AlpacaOrder) => {
-    try {
-        return messageService(Service.screener, `/refresh_plan/${symbol}`, order);
-    } catch (e) {
-        LOGGER.error(e);
+    const orders = await manageOpenOrder(symbol, strategy, bar, cachedCurrentState);
+
+    if (orders && orders.length) {
+        await Promise.all(orders.map(postOrderToCancel));
     }
 
     return {
         success: true,
     };
-};
+});
 
-server.post("/refresh_plan/:symbol", async (request) => {
+server.post(refreshPlanPath, async (request) => {
     const symbol = request.params && request.params.symbol;
 
     const bar = await getLastMinuteBarFromDataService(symbol);

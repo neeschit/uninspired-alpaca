@@ -28,7 +28,7 @@ import {
     isTimeToCancelPendingOrbOrders,
 } from "../strategy/narrowRangeBar";
 import { isBacktestingEnv } from "../util/env";
-import { postOrderToCancel } from "../deployable/manager.service";
+import { postOrderToCancel } from "../deployable/manager.interfaces";
 
 export const isClosingOrder = (currentPosition: FilledPositionConfig, tradeConfig: TradeConfig) => {
     if (currentPosition.side === PositionDirection.long) {
