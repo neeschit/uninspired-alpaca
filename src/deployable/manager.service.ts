@@ -22,9 +22,12 @@ import {
     openOrderCache,
     openDbPositionCache,
     handleOrderUpdateForSymbol,
-    handlePositionEntry,
+    handleOrderCancellationForSymbol,
     handleOrderReplacement,
+    handlePositionEntry,
+    handleOrderDeletion,
 } from "./manager.handlers";
+import { isBacktestingEnv } from "../util/env";
 
 const server = getApiServer(Service.manager);
 
@@ -289,6 +292,60 @@ server.post("/orders/:symbol", async (request) => {
     }
 });
 
-if (process.env.NODE_ENV !== "test" && isOwnedByService(Service.manager)) {
+export const postCancelledOrderToManage = async (orderUpdate: AlpacaStreamingOrderUpdate) => {
+    try {
+        return messageService(
+            Service.manager,
+            "/order_cancellation/" + orderUpdate.order.symbol,
+            orderUpdate
+        );
+    } catch (e) {
+        LOGGER.error(e);
+    }
+
+    return {
+        success: true,
+    };
+};
+
+server.post("/order_cancellation/:symbol", async (request) => {
+    const orderUpdate: AlpacaStreamingOrderUpdate = request.body;
+    const symbol = request.params && request.params.symbol;
+
+    LOGGER.debug(`Detected a request for ${symbol}`);
+
+    try {
+        await handleOrderCancellationForSymbol(orderUpdate);
+    } catch (e) {
+        server.log.error(e);
+    }
+});
+
+export const postOrderToCancel = async (order: AlpacaOrder) => {
+    try {
+        return messageService(Service.manager, "/orders/" + order.symbol, order);
+    } catch (e) {
+        LOGGER.error(e);
+    }
+
+    return {
+        success: true,
+    };
+};
+
+server.post("/order_delete/:symbol", async (request) => {
+    const order: AlpacaOrder = request.body;
+    const symbol = request.params && request.params.symbol;
+
+    LOGGER.debug(`Detected a request for ${symbol}`);
+
+    try {
+        await handleOrderDeletion(order);
+    } catch (e) {
+        server.log.error(e);
+    }
+});
+
+if (process.env.NODE_ENV !== "test" && isOwnedByService(Service.manager) && !isBacktestingEnv()) {
     refreshPositions().catch(LOGGER.error);
 }

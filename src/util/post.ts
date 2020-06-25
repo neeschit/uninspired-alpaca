@@ -6,11 +6,13 @@ export const postHttp = <T extends any>({
     path,
     port,
     data = {} as T,
+    method = "POST",
 }: {
     hostname: string;
     path: string;
     port: number;
     data: T | null;
+    method?: string;
 }) => {
     return new Promise((resolve, reject) => {
         const dataJSON = data && JSON.stringify(data);
@@ -19,7 +21,7 @@ export const postHttp = <T extends any>({
                 hostname,
                 path,
                 port,
-                method: "POST",
+                method,
                 headers: {
                     "Content-Type": "application/json",
                     "Content-Length": (dataJSON && dataJSON.length) || 0,

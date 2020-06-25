@@ -5,7 +5,11 @@ import { insertTrade } from "../resources/stockData";
 import { updateOrder } from "../resources/order";
 import { messageService, Service, getApiServer } from "../util/api";
 import { handleSubscriptionRequest } from "./streamer.handlers";
-import { postOrderToManage, postRequestToManageOpenPosition } from "./manager.service";
+import {
+    postOrderToManage,
+    postRequestToManageOpenPosition,
+    postCancelledOrderToManage,
+} from "./manager.service";
 import { postAggregatedMinuteUpdate } from "./data.service";
 import { postRequestScreenSymbol, postRequestToManageOpenOrders } from "./screener.service";
 
@@ -30,6 +34,8 @@ socket.onOrderUpdate((orderUpdate) => {
         orderUpdate.event === OrderUpdateEvent.partial_fill
     ) {
         postOrderToManage(orderUpdate).catch(LOGGER.error);
+    } else if (orderUpdate.event === OrderUpdateEvent.canceled) {
+        postCancelledOrderToManage(orderUpdate).catch(LOGGER.error);
     } else {
         updateOrder(orderUpdate.order, orderUpdate.position_qty, orderUpdate.price).catch(
             LOGGER.error

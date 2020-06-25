@@ -6,7 +6,7 @@ import {
     OrderStatus,
     SimpleAlpacaPosition,
 } from "@neeschit/alpaca-trade-api";
-import { getOrder, updateOrder, cancelAllOrdersForSymbol } from "../resources/order";
+import { getOrder, updateOrder, cancelAllOrdersForSymbol, cancelOrder } from "../resources/order";
 import { LOGGER } from "../instrumentation/log";
 import { alpaca } from "../resources/alpaca";
 import {
@@ -275,6 +275,23 @@ export const handleOrderUpdateForSymbol = async (orderUpdate: AlpacaStreamingOrd
     LOGGER.debug(`Position of ${position.id} updated for ${position.symbol}`);
 };
 
+export const handleOrderCancellationForSymbol = async (orderUpdate: AlpacaStreamingOrderUpdate) => {
+    refreshPositions().then(postSubscriptionRequestForTickUpdates).catch(LOGGER.error);
+
+    const order = await getOrder(Number(orderUpdate.order.client_order_id));
+
+    if (!order) {
+        return null;
+    }
+
+    const position = await getPosition(Number(order.positionId));
+
+    if (!position) {
+        LOGGER.error("Didnt find position for order");
+        return null;
+    }
+};
+
 export const handleOrderReplacement = async (
     trade: { plan: TradePlan; config: TradeConfig },
     order: AlpacaOrder
@@ -318,15 +335,27 @@ export const handlePositionOrderReplacement = async (
     const newOrder = await manager.queueTrade(trade.config);
     if (newOrder && !recentOrdersCache[symbol]) {
         recentOrdersCache[symbol] = true;
-        await alpaca.cancelOrder(order.id);
-        await new Promise((resolve) => setTimeout(() => resolve(), 2000));
-        const alpacaOrder = await alpaca.createOrder(newOrder);
-        await manager.updatePlannedPosition(trade);
-        openOrderCache.push(alpacaOrder);
+        let alpacaOrder: AlpacaOrder;
+        if (newOrder.side !== order.side) {
+            await alpaca.cancelOrder(order.id);
+            await new Promise((resolve) => setTimeout(() => resolve(), 2000));
+            alpacaOrder = await alpaca.createOrder(newOrder);
+        } else {
+            alpacaOrder = await alpaca.replaceOrder(order.id, newOrder);
+        }
+        if (alpacaOrder) {
+            await manager.updatePlannedPosition(trade);
+            openOrderCache.push(alpacaOrder);
+        }
         refreshOpenOrders().catch(LOGGER.error);
         return alpacaOrder;
     }
     return null;
+};
+
+export const handleOrderDeletion = async (order: AlpacaOrder) => {
+    await alpaca.cancelOrder(order.id);
+    await cancelOrder(Number(order.client_order_id), OrderStatus.pending_cancel);
 };
 
 export const getCallbackUrlForPositionUpdates = (symbol: string) => {

@@ -17,12 +17,13 @@ const serviceMap = {
     [Service.data]: "data",
 };
 
-export const messageService = (service: Service, path: string, data?: any) => {
+export const messageService = (service: Service, path: string, data?: any, method = "POST") => {
     return postHttp({
         hostname: "localhost",
         port: service,
         path,
         data,
+        method,
     });
 };
 

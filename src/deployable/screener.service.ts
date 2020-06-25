@@ -1,4 +1,4 @@
-import { Service, getApiServer, messageService } from "../util/api";
+import { Service, getApiServer, messageService, isOwnedByService } from "../util/api";
 import { currentTradingSymbols, currentStreamingSymbols } from "../data/filters";
 import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
 import { getSimpleData, cacheDailyBarsForSymbol } from "../resources/stockData";
@@ -7,6 +7,7 @@ import { LOGGER } from "../instrumentation/log";
 import { screenSymbol, manageOpenOrder } from "./screener.handlers";
 import { postNewTrade, replaceOpenTrade } from "./manager.service";
 import { TickBar, Bar } from "../data/data.model";
+import { isBacktestingEnv } from "../util/env";
 
 const server = getApiServer(Service.screener);
 
@@ -14,22 +15,27 @@ const symbols = currentTradingSymbols;
 
 const strategies: NarrowRangeBarStrategy[] = [];
 
-Promise.all(
-    currentStreamingSymbols.map(async (symbol) => {
-        try {
-            await cacheDailyBarsForSymbol(symbol);
-        } catch (e) {
-            LOGGER.trace(e);
-        }
-        const dailyBars = await getSimpleData(symbol, addBusinessDays(Date.now(), -18).getTime());
-        strategies.push(
-            new NarrowRangeBarStrategy({
+if (!isBacktestingEnv() && isOwnedByService(Service.screener)) {
+    Promise.all(
+        currentStreamingSymbols.map(async (symbol) => {
+            try {
+                await cacheDailyBarsForSymbol(symbol);
+            } catch (e) {
+                LOGGER.trace(e);
+            }
+            const dailyBars = await getSimpleData(
                 symbol,
-                bars: dailyBars,
-            })
-        );
-    })
-).catch(LOGGER.error);
+                addBusinessDays(Date.now(), -18).getTime()
+            );
+            strategies.push(
+                new NarrowRangeBarStrategy({
+                    symbol,
+                    bars: dailyBars,
+                })
+            );
+        })
+    ).catch(LOGGER.error);
+}
 
 export const postRequestScreenSymbol = async (symbol: string, bar: Bar, epoch = Date.now()) => {
     try {
@@ -94,11 +100,7 @@ server.post("/manage_open_order/:symbol", async (request) => {
         };
     }
 
-    const replacementConfig = await manageOpenOrder(symbol, strategy, bar);
-
-    if (replacementConfig) {
-        replaceOpenTrade(replacementConfig.trade, replacementConfig.orderToReplace);
-    }
+    await manageOpenOrder(symbol, strategy, bar);
     return {
         success: true,
     };

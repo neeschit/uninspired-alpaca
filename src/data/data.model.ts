@@ -131,4 +131,5 @@ export enum OrderUpdateEvent {
     done_for_day = "done_for_day",
     replaced = "replaced",
     partial_fill = "partial_fill",
+    pending_cancel = "pending_cancel",
 }

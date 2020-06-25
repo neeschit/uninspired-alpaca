@@ -1,13 +1,15 @@
 import { LOGGER } from "../instrumentation/log";
 import { Bar, OrderStatus } from "../data/data.model";
-import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
-import { getCachedCurrentState, CurrentState, refreshCachedCurrentState } from "./manager.service";
+import {
+    NarrowRangeBarStrategy,
+    isTimeToCancelPendingOrbOrders,
+    getOrbDirection,
+} from "../strategy/narrowRangeBar";
+import { getCachedCurrentState, CurrentState, postOrderToCancel } from "./manager.service";
 import { getBarsFromDataService } from "./data.service";
 import { alpaca } from "../resources/alpaca";
-import { validatePositionEntryPlan } from "../services/tradeManagement";
 import { getUncachedManagerForPosition } from "./manager.handlers";
 import { isSameDay } from "date-fns";
-import { cancelOrder } from "../resources/order";
 
 export const screenSymbol = async (
     strategies: NarrowRangeBarStrategy[],
@@ -61,12 +63,18 @@ export const manageOpenOrder = async (
     }
 
     if (openingPositionOrders.length > 1) {
-        await Promise.all(openingPositionOrders.map((o) => alpaca.cancelOrder(o.id)));
+        await Promise.all(openingPositionOrders.map((o) => postOrderToCancel(o)));
+        return;
+    }
+
+    const order = openingPositionOrders[0];
+
+    if (isTimeToCancelPendingOrbOrders(Date.now())) {
+        postOrderToCancel(order);
         return;
     }
 
     try {
-        const order = openingPositionOrders[0];
         const screenerData = await getTodaysBars(symbol);
         const manager = getUncachedManagerForPosition(recentlyUpdatedDbPositions, symbol);
 
@@ -86,7 +94,7 @@ export const manageOpenOrder = async (
             LOGGER.error(
                 `canceling order as direction appears to be reversed for ${symbol} at ${new Date().toISOString()}`
             );
-            await cancelOrder(Number(order.client_order_id));
+            postOrderToCancel(order);
             return {
                 trade: newTrade,
                 orderToReplace: order,

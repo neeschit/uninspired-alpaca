@@ -520,11 +520,16 @@ export class Backtester {
         this.strategyInstances = [];
         this.broker.cancelAllOrders();
         this.todaysScreenerBars = {};
+        this.todaysReplayBars = {};
     }
 
     public async executeAndRecord() {
         if (!this.managers.length) {
-            return [];
+            return;
+        }
+
+        if (isTimeToCancelPendingOrbOrders(this.currentDate)) {
+            return;
         }
 
         for (const manager of this.managers) {
@@ -543,7 +548,12 @@ export class Backtester {
                     isSameDay(this.currentDate, b.t) &&
                     b.t < this.currentDate.getTime()
             );
-            const filteredMinuteBars = minuteBars.filter((b) => b.t < this.currentDate.getTime());
+            const filteredMinuteBars = minuteBars.filter(
+                (b) =>
+                    confirmMarketOpen(this.calendar, b.t) &&
+                    isSameDay(this.currentDate, b.t) &&
+                    b.t < this.currentDate.getTime()
+            );
             const plan = await manager.refreshPlan(
                 refreshBars,
                 strategy!.atr,
@@ -551,27 +561,19 @@ export class Backtester {
                 ({
                     id: "test",
                     symbol: manager.config.symbol,
+                    side: manager.config.side,
+                    type: manager.config.type,
+                    qty: manager.config.quantity,
+                    stop_price: manager.config.stopPrice,
                 } as unknown) as any,
                 filteredMinuteBars[filteredMinuteBars.length - 1]
             );
-
-            if (!plan) {
-                this.managers = this.managers.filter((m) => m.plan.symbol !== symbol);
-                continue;
-            }
 
             if (!bars) {
                 LOGGER.error(`No bars for ${JSON.stringify(manager.plan)}`);
                 continue;
             }
-            const bar = await this.findOrFetchBarByDate(
-                this.currentDate.getTime(),
-                symbol,
-                bars,
-                0,
-                false,
-                false
-            );
+            const bar = filteredMinuteBars[filteredMinuteBars.length - 1];
 
             if (!bar) {
                 LOGGER.error(`No bars for ${JSON.stringify(manager.plan)}`);
@@ -588,7 +590,7 @@ export class Backtester {
             }
         }
 
-        return [];
+        return;
     }
 
     private async findPositionConfigAndRebalance(tradeConfig: TradeConfig) {
