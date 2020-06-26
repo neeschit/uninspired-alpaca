@@ -1,5 +1,5 @@
 import { LOGGER } from "../instrumentation/log";
-import { Bar, OrderStatus } from "../data/data.model";
+import { Bar } from "../data/data.model";
 import {
     NarrowRangeBarStrategy,
     isTimeToCancelPendingOrbOrders,
@@ -7,7 +7,7 @@ import {
 } from "../strategy/narrowRangeBar";
 import { isSameDay } from "date-fns";
 import { Position } from "../resources/position";
-import { AlpacaOrder } from "@neeschit/alpaca-trade-api";
+import { AlpacaOrder, OrderStatus } from "@neeschit/alpaca-trade-api";
 import { TradeManagement } from "../services/tradeManagement";
 import { CurrentState, getUncachedManagerForPosition } from "./manager.interfaces";
 import { getBarsFromDataService } from "./data.interfaces";

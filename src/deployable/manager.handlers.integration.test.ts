@@ -11,8 +11,10 @@ import {
     AlpacaOrder,
     TradeDirection,
     PositionDirection,
+    TradeType,
+    TimeInForce,
 } from "@neeschit/alpaca-trade-api";
-import { TradeConfig, TradePlan, TimeInForce, TradeType } from "../data/data.model";
+import { TradeConfig, TradePlan } from "../data/data.model";
 import { TradeManagement } from "../services/tradeManagement";
 
 test("positions out of sync in db are identfied", async (t) => {

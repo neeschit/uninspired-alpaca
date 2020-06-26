@@ -4,6 +4,7 @@ import {
     AlpacaPosition,
     AlpacaStreamingOrderUpdate,
     SimpleAlpacaPosition,
+    OrderStatus,
 } from "@neeschit/alpaca-trade-api";
 import { getOrder, updateOrder, cancelAllOrdersForSymbol, cancelOrder } from "../resources/order";
 import { LOGGER } from "../instrumentation/log";
@@ -18,7 +19,7 @@ import {
     getRecentlyUpdatedPositions,
 } from "../resources/position";
 import { TradeManagement, processOrderFromStrategy } from "../services/tradeManagement";
-import { TradeConfig, Bar, TradePlan, OrderStatus } from "../data/data.model";
+import { TradeConfig, Bar, TradePlan } from "../data/data.model";
 import { getTodaysData } from "../resources/stockData";
 import { postPartial, postEntry } from "../util/slack";
 import { Service } from "../util/api";

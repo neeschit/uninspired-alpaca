@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "dependencies": {
-    "@neeschit/alpaca-trade-api": "1.4.0",
+    "@neeschit/alpaca-trade-api": "1.4.1",
     "date-fns": "^2.9.0",
     "date-fns-tz": "^1.0.10",
     "dotenv": "^8.2.0",
@@ -16,7 +16,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@ava/typescript": "^1.1.0",
+    "@ava/typescript": "^1.1.1",
     "@types/dotenv": "^8.2.0",
     "@types/fs-extra": "^8.1.0",
     "@types/node": "^13.7.1",
@@ -43,11 +43,10 @@
     "data": "SERVICE_NAME=data node --inspect=9699 --enable-source-maps build/deployable/data.service.js"
   },
   "ava": {
-    "extensions": [
-      "ts"
-    ],
-    "require": [
-      "ts-node/register/transpile-only"
-    ]
+    "typescript": {
+      "rewritePaths": {
+        "src/": "build/"
+      }
+    }
   }
 }

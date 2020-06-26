@@ -1,8 +1,14 @@
 import { getConnection } from "../connection/pg";
-import { AlpacaTradeConfig, AlpacaOrder, TradeDirection } from "@neeschit/alpaca-trade-api";
+import {
+    AlpacaTradeConfig,
+    AlpacaOrder,
+    TradeDirection,
+    OrderStatus,
+    TradeType,
+    TimeInForce,
+} from "@neeschit/alpaca-trade-api";
 import { LOGGER } from "../instrumentation/log";
 import { PositionConfig } from "./position";
-import { TimeInForce, OrderStatus, TradeType } from "../data/data.model";
 import { isBacktestingEnv } from "../util/env";
 import { QueryResult } from "pg";
 

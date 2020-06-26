@@ -1,5 +1,10 @@
-import { OrderStatus, TradeType, TimeInForce } from "../data/data.model";
-import { PositionDirection, TradeDirection } from "@neeschit/alpaca-trade-api";
+import {
+    PositionDirection,
+    TradeDirection,
+    OrderStatus,
+    TradeType,
+    TimeInForce,
+} from "@neeschit/alpaca-trade-api";
 
 export default [
     {

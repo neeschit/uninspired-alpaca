@@ -1,17 +1,16 @@
 import { TrendType, getTrend, getHeuristicTrend } from "../pattern/trend/trendIdentifier";
 import { TRADING_RISK_UNIT_CONSTANT, assessRisk, getActualStop } from "../services/riskManagement";
 import { isMarketOpen } from "../util/market";
-import {
-    TimestampType,
-    Bar,
-    TradeType,
-    TimeInForce,
-    PlannedTradeConfig,
-    TradePlan,
-} from "../data/data.model";
+import { TimestampType, Bar, PlannedTradeConfig, TradePlan } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
 import { convertToLocalTime } from "../util/date";
-import { Broker, TradeDirection, PositionDirection } from "@neeschit/alpaca-trade-api";
+import {
+    Broker,
+    TradeDirection,
+    PositionDirection,
+    TradeType,
+    TimeInForce,
+} from "@neeschit/alpaca-trade-api";
 import { alpaca } from "../resources/alpaca";
 import { getAverageTrueRange, getTrueRange } from "../indicator/trueRange";
 import { isSameDay } from "date-fns";

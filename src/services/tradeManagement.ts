@@ -1,11 +1,4 @@
-import {
-    TradeConfig,
-    Bar,
-    TradePlan,
-    TradeType,
-    TimeInForce,
-    OrderStatus,
-} from "../data/data.model";
+import { TradeConfig, Bar, TradePlan } from "../data/data.model";
 import { alpaca } from "../resources/alpaca";
 import {
     AlpacaOrder,
@@ -13,6 +6,8 @@ import {
     Broker,
     PositionDirection,
     TradeDirection,
+    TradeType,
+    TimeInForce,
 } from "@neeschit/alpaca-trade-api";
 import { LOGGER } from "../instrumentation/log";
 import { isMarketClosing } from "../util/market";
