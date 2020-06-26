@@ -1,6 +1,6 @@
 import { alpaca } from "../resources/alpaca";
 import { LOGGER } from "../instrumentation/log";
-import { TickBar, TradeUpdate, OrderUpdateEvent } from "../data/data.model";
+import { TickBar, TradeUpdate } from "../data/data.model";
 import { insertTrade } from "../resources/stockData";
 import { updateOrder } from "../resources/order";
 import { messageService, Service, getApiServer } from "../util/api";
@@ -13,42 +13,7 @@ import {
 import { postAggregatedMinuteUpdate } from "./data.interfaces";
 import { postRequestToManageOpenOrders, postRequestScreenSymbol } from "./screener.interfaces";
 import { subscribePath } from "./streamer.interfaces";
-
-const server = getApiServer(Service.streamer);
-
-const socket = alpaca.websocket;
-
-socket.onConnect(() => {
-    handleSubscriptionRequest(socket);
-});
-
-socket.onStateChange((newState) => {
-    LOGGER.info(`State changed to ${newState} at ${new Date().toLocaleTimeString()}`);
-    if (newState === "disconnected") {
-        socket.reconnect();
-    }
-});
-
-socket.onOrderUpdate((orderUpdate) => {
-    if (
-        orderUpdate.event === OrderUpdateEvent.fill ||
-        orderUpdate.event === OrderUpdateEvent.partial_fill
-    ) {
-        postOrderToManage(orderUpdate).catch(LOGGER.error);
-    } else if (orderUpdate.event === OrderUpdateEvent.canceled) {
-        postCancelledOrderToManage(orderUpdate).catch(LOGGER.error);
-    } else {
-        updateOrder(orderUpdate.order, orderUpdate.position_qty, orderUpdate.price).catch(
-            LOGGER.error
-        );
-    }
-});
-
-socket.onStockTrades(async (subject: string, data: string) => {
-    const jsonData: TradeUpdate[] = JSON.parse(data);
-
-    await insertTrade(jsonData);
-});
+import { OrderUpdateEvent } from "@neeschit/alpaca-trade-api";
 
 const getBar = (d: any) => ({
     o: d.o,
@@ -61,6 +26,43 @@ const getBar = (d: any) => ({
     vw: d.vw,
     av: d.av,
     op: d.op,
+});
+
+const server = getApiServer(Service.streamer);
+
+server.post(subscribePath, async () => {
+    try {
+        await handleSubscriptionRequest(socket);
+    } catch (e) {
+        LOGGER.error(e);
+    }
+
+    return {
+        success: true,
+    };
+});
+
+const socket = alpaca.data_ws;
+
+socket.connect();
+
+socket.onConnect(() => {
+    handleSubscriptionRequest(socket);
+});
+
+socket.onStateChange((newState) => {
+    LOGGER.info(`State changed to ${newState} at ${new Date().toLocaleTimeString()}`);
+    if (newState === "disconnected") {
+        socket.reconnect();
+    }
+});
+
+socket.onDisconnect(() => {
+    LOGGER.error(`Polygon disconnected at ${new Date().toLocaleTimeString()}`);
+});
+
+socket.onConnect(() => {
+    LOGGER.error(`Polygon connected at ${new Date().toLocaleTimeString()}`);
 });
 
 socket.onStockAggMin(async (subject: string, data: any) => {
@@ -97,22 +99,45 @@ socket.onStockAggSec(async (subject: string, data: any) => {
     }
 });
 
-socket.onPolygonDisconnect(() => {
-    LOGGER.error(`Polygon disconnected at ${new Date().toLocaleTimeString()}`);
+const tradeSocket = alpaca.trade_ws;
+tradeSocket.connect();
+
+tradeSocket.onConnect(() => {
+    tradeSocket.subscribe(["trade_updates", "account_updates"]);
 });
 
-socket.onPolygonConnect(() => {
-    LOGGER.error(`Polygon connected at ${new Date().toLocaleTimeString()}`);
-});
-
-server.post(subscribePath, async () => {
-    try {
-        await handleSubscriptionRequest(socket);
-    } catch (e) {
-        LOGGER.error(e);
+tradeSocket.onStateChange((newState) => {
+    LOGGER.info(`State changed to ${newState} at ${new Date().toLocaleTimeString()}`);
+    if (newState === "disconnected") {
+        tradeSocket.reconnect();
     }
-
-    return {
-        success: true,
-    };
 });
+
+tradeSocket.onDisconnect(() => {
+    LOGGER.error(`Trades socket disconnected at ${new Date().toLocaleTimeString()}`);
+});
+
+tradeSocket.onConnect(() => {
+    LOGGER.error(`Trades socket connected at ${new Date().toLocaleTimeString()}`);
+});
+
+tradeSocket.onOrderUpdate((orderUpdate) => {
+    if (
+        orderUpdate.event === OrderUpdateEvent.fill ||
+        orderUpdate.event === OrderUpdateEvent.partial_fill
+    ) {
+        postOrderToManage(orderUpdate).catch(LOGGER.error);
+    } else if (orderUpdate.event === OrderUpdateEvent.canceled) {
+        postCancelledOrderToManage(orderUpdate).catch(LOGGER.error);
+    } else {
+        updateOrder(orderUpdate.order, orderUpdate.position_qty, orderUpdate.price).catch(
+            LOGGER.error
+        );
+    }
+});
+/* 
+tradeSocket.onStockTrades(async (subject: string, data: string) => {
+    const jsonData: TradeUpdate[] = JSON.parse(data);
+
+    await insertTrade(jsonData);
+}); */

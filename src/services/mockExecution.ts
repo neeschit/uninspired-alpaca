@@ -1,5 +1,5 @@
 import { Bar, TradeConfig, FilledTradeConfig, PlannedTradeConfig } from "../data/data.model";
-import { TradeDirection, PositionDirection, OrderStatus, TradeType } from "../data/data.model";
+import { OrderStatus, TradeType } from "../data/data.model";
 import { formatInEasternTimeForDisplay } from "../util/date";
 import {
     TimeInForce,
@@ -11,6 +11,8 @@ import {
     GetAssetsParams,
     Asset,
     Calendar,
+    PositionDirection,
+    TradeDirection,
 } from "@neeschit/alpaca-trade-api";
 import { alpaca } from "../resources/alpaca";
 import { TradeManagement, isClosingOrder } from "./tradeManagement";

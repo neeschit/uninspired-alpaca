@@ -1,6 +1,6 @@
 import test from "ava";
 import { insertPlannedPosition, Position, getUpdatePositionQuery } from "./position";
-import { PositionDirection, TradeDirection } from "../data/data.model";
+import { PositionDirection, TradeDirection } from "@neeschit/alpaca-trade-api";
 
 test.skip("insert position into database and generates position id", async (t) => {
     const result = await insertPlannedPosition({

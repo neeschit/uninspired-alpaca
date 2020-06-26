@@ -1,7 +1,7 @@
-import { PositionDirection, TradeDirection } from "../data/data.model";
 import { isSameMonth, isAfter, isSameDay } from "date-fns";
 import { FilledPositionConfig, ClosedPositionConfig } from "../resources/position";
 import { TRADING_RISK_UNIT_CONSTANT } from "./riskManagement";
+import { PositionDirection, TradeDirection } from "@neeschit/alpaca-trade-api";
 
 export interface Performance {
     profit: number;

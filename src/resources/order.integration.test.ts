@@ -1,7 +1,8 @@
 import test from "ava";
 import { insertPlannedPosition } from "./position";
-import { PositionDirection, TimeInForce, TradeDirection, TradeType } from "../data/data.model";
+import { TimeInForce, TradeType } from "../data/data.model";
 import { insertOrder, cancelAllOrdersForSymbol } from "./order";
+import { PositionDirection, TradeDirection } from "@neeschit/alpaca-trade-api";
 
 test("multiple orders for same position result in single order", async (t) => {
     const position = await insertPlannedPosition({

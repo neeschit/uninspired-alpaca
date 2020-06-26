@@ -4,16 +4,14 @@ import { isMarketOpen } from "../util/market";
 import {
     TimestampType,
     Bar,
-    TradeDirection,
     TradeType,
     TimeInForce,
     PlannedTradeConfig,
-    PositionDirection,
     TradePlan,
 } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
 import { convertToLocalTime } from "../util/date";
-import { Broker } from "@neeschit/alpaca-trade-api";
+import { Broker, TradeDirection, PositionDirection } from "@neeschit/alpaca-trade-api";
 import { alpaca } from "../resources/alpaca";
 import { getAverageTrueRange, getTrueRange } from "../indicator/trueRange";
 import { isSameDay } from "date-fns";

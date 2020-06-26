@@ -1,14 +1,9 @@
 import test from "ava";
-import {
-    OrderStatus,
-    PositionDirection,
-    TradeDirection,
-    TradeType,
-    TimeInForce,
-} from "../data/data.model";
+import { OrderStatus, TradeType, TimeInForce } from "../data/data.model";
 import { analyzeClosedPositions, getDetailedPerformanceReport } from "./performance";
 import perfReport from "../fixtures/perfReport";
 import { FilledPositionConfig } from "../resources/position";
+import { PositionDirection, TradeDirection } from "@neeschit/alpaca-trade-api";
 
 test("assess performance at a deeper level", (t) => {
     const insight = getDetailedPerformanceReport(perfReport);

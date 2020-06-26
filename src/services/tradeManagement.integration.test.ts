@@ -1,14 +1,9 @@
 import test from "ava";
 import { processOrderFromStrategy, rebalancePosition, TradeManagement } from "./tradeManagement";
-import {
-    TradeType,
-    TradeDirection,
-    TimeInForce,
-    PositionDirection,
-    OrderStatus,
-} from "../data/data.model";
+import { TradeType, TimeInForce, OrderStatus } from "../data/data.model";
 import { alpaca } from "../resources/alpaca";
 import { LOGGER } from "../instrumentation/log";
+import { TradeDirection, PositionDirection } from "@neeschit/alpaca-trade-api";
 const symbol = "AAPL";
 
 test("processOrderFromStrategy - simple mapping", (t) => {
@@ -508,7 +503,6 @@ test("trade management - handle trade update - empty fill", async (t) => {
         {
             trades: [
                 {
-                    symbol,
                     status: OrderStatus.partial_fill,
                     averagePrice: 200.06,
                     filledQuantity: 0,

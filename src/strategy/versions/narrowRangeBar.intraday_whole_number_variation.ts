@@ -5,18 +5,16 @@ import {
     getActualStop,
 } from "../../services/riskManagement";
 import { isMarketOpen } from "../../util/market";
-import {
-    TimestampType,
-    Bar,
-    TradeDirection,
-    TradeType,
-    TimeInForce,
-    PlannedTradeConfig,
-    PositionDirection,
-} from "../../data/data.model";
+import { TimestampType, Bar, PlannedTradeConfig } from "../../data/data.model";
 import { LOGGER } from "../../instrumentation/log";
 import { convertToLocalTime } from "../../util/date";
-import { Broker } from "@neeschit/alpaca-trade-api";
+import {
+    Broker,
+    TradeDirection,
+    PositionDirection,
+    TradeType,
+    TimeInForce,
+} from "@neeschit/alpaca-trade-api";
 import { alpaca } from "../../resources/alpaca";
 import { getAverageTrueRange } from "../../indicator/trueRange";
 import { isSameDay } from "date-fns";
