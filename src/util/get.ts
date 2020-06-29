@@ -62,15 +62,17 @@ export const getHttps = (url: string) => {
     }).catch(LOGGER.error);
 };
 
-export const getHttp = <T extends any>({
+export const getHttp = <
+    T extends NodeJS.Dict<string | number | boolean | string[] | number[] | boolean[] | null>
+>({
     hostname,
     path,
-    data = null,
+    data,
     port = "",
 }: {
     hostname: string;
     path: string;
-    data: T | null;
+    data?: T;
     port?: string | number;
 }) => {
     const dataJSON = data && "?" + stringify(data);

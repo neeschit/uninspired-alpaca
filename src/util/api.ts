@@ -26,7 +26,13 @@ export const messageService = (service: Service, path: string, data?: any) => {
     });
 };
 
-export const getFromService = <T>(service: Service, path: string, data?: any) => {
+export const getFromService = <
+    T extends NodeJS.Dict<string | number | boolean | string[] | number[] | boolean[] | null>
+>(
+    service: Service,
+    path: string,
+    data?: any
+) => {
     return getHttp<T>({
         hostname: "localhost",
         port: service,
