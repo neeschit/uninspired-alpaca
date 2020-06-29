@@ -16,9 +16,12 @@ jobs:
               uses: actions/setup-node@v1
               with:
                   node-version: ${{ matrix.node-version }}
+            - name: pnpm install
+              run: |
+                  curl -L https://unpkg.com/@pnpm/self-installer | node
             - name: npm install, build, and test
               run: |
-                  npm ci
+                  pnpm install
                   npm run build --if-present
                   npm run test:ci
               env:
