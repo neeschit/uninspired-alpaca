@@ -1,14 +1,7 @@
 import { DefaultDuration, PeriodType, Bar } from "../data/data.model";
-import { differenceInHours, differenceInDays, differenceInBusinessDays, addDays } from "date-fns";
+import { differenceInBusinessDays, addDays } from "date-fns";
 import { LOGGER } from "../instrumentation/log";
-import {
-    existsSync,
-    mkdirSync,
-    readdirSync,
-    writeFileSync,
-    readFileSync,
-    appendFileSync,
-} from "fs";
+import { existsSync, readdirSync, writeFileSync, appendFileSync } from "fs";
 import { ensureDirSync } from "fs-extra";
 import { isMarketHoliday } from "./market";
 

@@ -3,8 +3,6 @@ import { format } from "date-fns";
 import { getHttps } from "../util/get";
 import { PeriodType, DefaultDuration, Bar, PolygonBar } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
-import WebSocket from "ws";
-import { EventEmitter } from "events";
 
 const config = dotenv.config().parsed;
 

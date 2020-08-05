@@ -1,13 +1,8 @@
-import { Service, getApiServer, messageService, getFromService } from "../util/api";
-import { TradePlan, TradeConfig, TickBar } from "../data/data.model";
+import { Service, getApiServer } from "../util/api";
+import { TradePlan, TradeConfig } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
-import {
-    AlpacaStreamingOrderUpdate,
-    AlpacaPosition,
-    AlpacaOrder,
-    OrderStatus,
-} from "@neeschit/alpaca-trade-api";
-import { Position, getRecentlyUpdatedPositions } from "../resources/position";
+import { AlpacaStreamingOrderUpdate, AlpacaOrder, OrderStatus } from "@neeschit/alpaca-trade-api";
+import { getRecentlyUpdatedPositions } from "../resources/position";
 import { postEntry, postErrorReplacing } from "../util/slack";
 import {
     handlePriceUpdateForPosition,
@@ -88,8 +83,6 @@ server.post("/trade/:symbol", async (request) => {
 });
 
 server.post("/replace_trade/:symbol", async (request) => {
-    const symbol = request.params && request.params.symbol;
-
     const { trade, order } = request.body as ReplaceOpenTradePayload;
 
     let replacedOrder = await handleOrderReplacement(trade, order);
