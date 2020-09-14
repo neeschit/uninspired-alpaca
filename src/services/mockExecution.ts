@@ -302,9 +302,9 @@ export class MockBroker implements Broker {
     ) {
         if (!bar) {
             LOGGER.error(
-                `Couldn't find bar when trying to rebalance on ${date?.toLocaleString()} for ${
-                    manager.plan.symbol
-                }`
+                `Couldn't find bar when trying to rebalance on ${
+                    date && date.toLocaleString()
+                } for ${manager.plan.symbol}`
             );
 
             return null;

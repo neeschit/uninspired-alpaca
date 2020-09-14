@@ -1,7 +1,6 @@
 import { EventEmitter } from "events";
 import {
     addMilliseconds,
-    addDays,
     startOfDay,
     addHours,
     differenceInMonths,
@@ -11,26 +10,19 @@ import {
     isSameDay,
 } from "date-fns";
 import Sinon from "sinon";
-import { TradeConfig, DefaultDuration, PeriodType, Bar } from "../data/data.model";
+import { TradeConfig, Bar } from "../data/data.model";
 import {
     isMarketOpening,
     isAfterMarketClose,
     confirmMarketOpen,
     isMarketOpen,
 } from "../util/market";
-import {
-    NarrowRangeBarStrategy,
-    isTimeForOrbEntry,
-    isTimeToCancelPendingOrbOrders,
-} from "../strategy/narrowRangeBar";
-import { getBarsByDate } from "../data/bars";
+import { NarrowRangeBarStrategy, isTimeToCancelPendingOrbOrders } from "../strategy/narrowRangeBar";
 import { TradeManagement } from "./tradeManagement";
 import { LOGGER } from "../instrumentation/log";
 import { MockBroker } from "./mockExecution";
 import { alpaca } from "../resources/alpaca";
-import { getDetailedPerformanceReport } from "./performance";
 import { Calendar } from "@neeschit/alpaca-trade-api";
-import { FilledPositionConfig } from "../resources/position";
 import { getSimpleData, getData } from "../resources/stockData";
 import { appendToCollectionFile } from "../util";
 
@@ -104,14 +96,13 @@ export class Backtester {
             ) {
                 const prevDate = context.currentDate;
 
-                context.clock.tick(context.updateIntervalMillis);
-
                 yield prevDate;
                 if (i % (context.updateIntervalMillis * 100) === 0) {
                     LOGGER.trace(prevDate);
                 }
                 i = context.currentDate.getTime();
 
+                context.clock.tick(context.updateIntervalMillis);
                 context.incrementDate();
             }
         };
@@ -226,8 +217,6 @@ export class Backtester {
             ) {
                 /* Sinon.clock.restore(); */
 
-                const startMarket = Date.now();
-
                 /* this.clock = Sinon.useFakeTimers(this.currentDate); */
 
                 this.tradeUpdater.emit("interval_hit");
@@ -266,7 +255,7 @@ export class Backtester {
                 /* this.clock = Sinon.useFakeTimers(this.currentDate); */
 
                 for (const i of this.strategyInstances) {
-                    i.screenForNarrowRangeBars([], this.currentDate.getTime());
+                    i.screenForNarrowRangeBars();
                 }
 
                 /* Sinon.clock.restore(); */
@@ -334,8 +323,6 @@ export class Backtester {
                 await this.executeAndRecord();
 
                 /* Sinon.clock.restore(); */
-
-                const endMarket = Date.now();
 
                 /* const text = `whole shebang took ${
                     (endMarket - startMarket) / 1000
@@ -553,20 +540,6 @@ export class Backtester {
                     confirmMarketOpen(this.calendar, b.t) &&
                     isSameDay(this.currentDate, b.t) &&
                     b.t < this.currentDate.getTime()
-            );
-            const plan = await manager.refreshPlan(
-                refreshBars,
-                strategy!.atr,
-                strategy!.closePrice,
-                ({
-                    id: "test",
-                    symbol: manager.config.symbol,
-                    side: manager.config.side,
-                    type: manager.config.type,
-                    qty: manager.config.quantity,
-                    stop_price: manager.config.stopPrice,
-                } as unknown) as any,
-                filteredMinuteBars[filteredMinuteBars.length - 1]
             );
 
             if (!bars) {

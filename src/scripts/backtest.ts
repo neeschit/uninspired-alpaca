@@ -1,18 +1,17 @@
 import { format, parseISO } from "date-fns";
 import { zonedTimeToUtc } from "date-fns-tz";
-import { writeFileSync, openSync, readFileSync, appendFileSync } from "fs";
+import { writeFileSync, readFileSync, appendFileSync } from "fs";
 import { MarketTimezone } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
 import { Backtester } from "../services/backtest";
 import { getDetailedPerformanceReport } from "../services/performance";
-import { getMegaCaps, getLargeCaps, getUnfilteredMegaCaps } from "../data/filters";
+import { getMegaCaps, getLargeCaps } from "../data/filters";
 import { MockBroker } from "../services/mockExecution";
-import { remove } from "fs-extra";
 
-const startDate = "2020-06-25 9:00:00.000";
+const startDate = "2020-09-03 09:00:00.000";
 const zonedStartDate = zonedTimeToUtc(startDate, MarketTimezone);
 
-const endDate = parseISO("2020-06-25 16:10:00.000");
+const endDate = parseISO("2020-09-14 16:40:00.000");
 
 const zonedEndDate = zonedTimeToUtc(endDate, MarketTimezone);
 

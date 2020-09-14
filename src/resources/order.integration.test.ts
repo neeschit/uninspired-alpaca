@@ -75,8 +75,6 @@ test("multiple orders for same position result in single order", async (t) => {
     );
 
     const results = await Promise.all([orderPromise, order1Promise, order2Promise]);
-    await cancelAllOrdersForSymbol("test");
-    await cancelAllOrdersForSymbol("test1");
 
     t.is(results[1], null);
     t.truthy(results[0]!.id);

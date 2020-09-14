@@ -1,9 +1,8 @@
 import { alpaca } from "../resources/alpaca";
 import { LOGGER } from "../instrumentation/log";
-import { TickBar, TradeUpdate } from "../data/data.model";
-import { insertTrade } from "../resources/stockData";
+import { TickBar } from "../data/data.model";
 import { updateOrder } from "../resources/order";
-import { messageService, Service, getApiServer } from "../util/api";
+import { Service, getApiServer } from "../util/api";
 import { handleSubscriptionRequest } from "./streamer.handlers";
 import {
     postOrderToManage,

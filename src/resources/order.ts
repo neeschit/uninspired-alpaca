@@ -86,7 +86,14 @@ const getInsertOrdersSql = (
 ) => {
     return `
         begin;
-        select * from orders where symbol = '${position.symbol}' FOR SHARE;
+        select * from orders where symbol = '${position.symbol}' AND status in (
+            'new',
+            'accepted',
+            'pending_new',
+            'accepted_for_bidding',
+            'pending_cancel',
+            'pending_replace'
+        ) FOR SHARE;
         insert into orders (position_id, symbol, status, side, type, tif, quantity ${
             order.stop_price || order.limit_price ? "," : ""
         } ${order.stop_price ? "stop_price," : ""} ${order.limit_price ? "limit_price" : ""}) 
@@ -146,6 +153,8 @@ export const insertOrder = async (
     if (results.length < 3) {
         return null;
     }
+
+    const selectLockResult = results[1];
 
     const result = results[2];
 

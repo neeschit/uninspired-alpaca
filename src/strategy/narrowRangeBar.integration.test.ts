@@ -32,7 +32,7 @@ test("screener should find all narrow range bars", async (t) => {
     const endIndex = Math.max(Math.ceil(data.length / 2), 1);
     const dataSliced = data.slice(0, endIndex);
 
-    narrowRangeBarStrategyInstance.screenForNarrowRangeBars(dataSliced, 1587141000000);
+    narrowRangeBarStrategyInstance.screenForNarrowRangeBars();
     const previousNarrowRangeBarLength = narrowRangeBarStrategyInstance.nrbTimestamps.length;
     t.falsy(narrowRangeBarStrategyInstance.nrbTimestamps.length);
     t.falsy(narrowRangeBarStrategyInstance.nrbs.length);

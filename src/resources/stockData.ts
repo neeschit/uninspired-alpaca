@@ -241,14 +241,17 @@ export const batchInsertBars = async (bars: TickBar[], symbol: string, isMinute 
             ${bar.h}, 
             ${bar.l}, 
             ${bar.c}, 
-            ${bar.vw}, 
+            ${bar.vw || 0}, 
             ${bar.v}
         ) ON CONFLICT DO NOTHING;`;
         LOGGER.debug(query);
         queries.push(query);
     }
 
-    return pool.query(queries.join("\n"));
+    return pool.query(queries.join("\n")).catch((e) => {
+        LOGGER.error(queries);
+        throw e;
+    });
 };
 
 export const insertTrade = async (trades: TradeUpdate[]) => {

@@ -38,7 +38,7 @@ export const screenSymbol = async (
 
     const screenerData = await getTodaysBars(symbol, currentEpoch);
 
-    strategy.screenForNarrowRangeBars(screenerData, currentEpoch);
+    strategy.screenForNarrowRangeBars();
 
     return strategy.screenForEntry(screenerData, currentEpoch, bar, positions);
 };

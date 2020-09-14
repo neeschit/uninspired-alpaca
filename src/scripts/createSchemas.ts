@@ -6,7 +6,7 @@ import {
 } from "../resources/stockData";
 import { LOGGER } from "../instrumentation/log";
 import { endPooledConnection } from "../connection/pg";
-import { getUnfilteredMegaCaps, getLargeCaps, currentIndices } from "../data/filters";
+import { getLargeCaps, currentIndices } from "../data/filters";
 
 const drop = process.argv[2] && Boolean(process.argv[2]);
 

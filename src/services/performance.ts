@@ -1,4 +1,4 @@
-import { isSameMonth, isAfter, isSameDay } from "date-fns";
+import { isSameMonth, isAfter, isSameDay, addDays } from "date-fns";
 import { FilledPositionConfig, ClosedPositionConfig } from "../resources/position";
 import { TRADING_RISK_UNIT_CONSTANT } from "./riskManagement";
 import { PositionDirection, TradeDirection } from "@neeschit/alpaca-trade-api";
@@ -25,52 +25,43 @@ export const getDetailedPerformanceReport = (positions: FilledPositionConfig[]) 
         throw new Error("Wrong number");
     }
     let currentMonth = getDatePositionEntered(positions[0]);
-    let currentDate = currentMonth;
+    let currentDate = addDays(currentMonth, -1);
     const monthlyPerformances: MonthlyPerformance[] = [];
     let dailyPerformances: Performance[] = [];
 
     const positionsAnalyzer = (
         position: FilledPositionConfig,
         performance: Performance,
-        index: number
+        index: number,
+        pnl: number
     ) => {
         const positionDate = getDatePositionEntered(position);
+        const isWinner = pnl >= 100;
+        const isShort = position.side === PositionDirection.short;
+        const isLong = position.side === PositionDirection.long;
 
-        if (!isSameDay(currentDate, positionDate) || index === positions.length - 1) {
+        if (!isSameDay(currentDate, positionDate)) {
             currentDate = positionDate;
             if (!dailyPerformances.length) {
                 dailyPerformances.push(performance);
             } else {
-                const perfSoFar = dailyPerformances.reduce(
-                    (agg, p) => {
-                        if (!agg) {
-                            return p;
-                        } else {
-                            agg.profit += p.profit;
-                            agg.longs += p.longs;
-                            agg.shorts += p.shorts;
-                            agg.total += p.total;
-                            agg.winners += p.winners;
-
-                            return agg;
-                        }
-                    },
-                    {
-                        profit: 0,
-                        longs: 0,
-                        shorts: 0,
-                        winners: 0,
-                        total: 0,
-                    }
-                );
-
                 dailyPerformances.push({
-                    profit: performance.profit - perfSoFar.profit,
-                    longs: performance.longs - perfSoFar.longs,
-                    shorts: performance.shorts - perfSoFar.shorts,
-                    total: performance.total - perfSoFar.total,
-                    winners: performance.winners - perfSoFar.winners,
+                    profit: pnl,
+                    total: 1,
+                    longs: isLong ? 1 : 0,
+                    shorts: isShort ? 1 : 0,
+                    winners: isWinner ? 1 : 0,
                 });
+            }
+        } else {
+            const currentDaily = dailyPerformances[dailyPerformances.length - 1];
+
+            if (currentDaily) {
+                currentDaily.profit += pnl;
+                currentDaily.total += 1;
+                currentDaily.longs += isLong ? 1 : 0;
+                currentDaily.shorts += isShort ? 1 : 0;
+                currentDaily.winners += isWinner ? 1 : 0;
             }
         }
 

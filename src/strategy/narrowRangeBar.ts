@@ -25,8 +25,8 @@ export interface ORBParams {
 }
 
 export const isTimeForOrbEntry = (now: TimestampType) => {
-    const timeStart = convertToLocalTime(now, " 09:34:45.000");
-    const timeEnd = convertToLocalTime(now, " 09:45:15.000");
+    const timeStart = convertToLocalTime(now, " 09:44:45.000");
+    const timeEnd = convertToLocalTime(now, " 11:45:15.000");
 
     const nowMillis = now instanceof Date ? now.getTime() : now;
 
@@ -122,10 +122,10 @@ export const getOpeningRangeBreakoutPlan = ({
 
     const { entryLong, entryShort } = getOrbEntryPrices(entryBar, currentIntradayAtr);
 
-    if (
+    /* if (
         lastBar.c > entryLong &&
-        tradeDirection === TradeDirection.buy &&
-        shouldCancelIfAboveEntry
+        shouldCancelIfAboveEntry &&
+        tradeDirection === TradeDirection.buy
     ) {
         return null;
     }
@@ -136,7 +136,7 @@ export const getOpeningRangeBreakoutPlan = ({
         shouldCancelIfAboveEntry
     ) {
         return null;
-    }
+    } */
 
     const entryPrice = tradeDirection === TradeDirection.buy ? entryLong : entryShort;
 
@@ -254,7 +254,7 @@ export class NarrowRangeBarStrategy {
         this.bars = bars;
     }
 
-    screenForNarrowRangeBars(bars: Bar[], currentEpoch = Date.now()) {
+    screenForNarrowRangeBars() {
         if (this.nrbs.length) {
             return true;
         }
@@ -265,6 +265,7 @@ export class NarrowRangeBarStrategy {
         );
 
         if (isYdayNrb) {
+            console.log(this.symbol);
             this.nrbs.push(this.closeBar);
             this.nrbTimestamps.push(this.closeBar.t);
         }
