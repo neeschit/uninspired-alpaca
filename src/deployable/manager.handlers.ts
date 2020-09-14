@@ -3,10 +3,10 @@ import {
     PositionDirection,
     AlpacaPosition,
     AlpacaStreamingOrderUpdate,
-    OrderStatus,
     SimpleAlpacaPosition,
+    OrderStatus,
 } from "@neeschit/alpaca-trade-api";
-import { getOrder, updateOrder, cancelAllOrdersForSymbol } from "../resources/order";
+import { getOrder, updateOrder, cancelAllOrdersForSymbol, cancelOrder } from "../resources/order";
 import { LOGGER } from "../instrumentation/log";
 import { alpaca } from "../resources/alpaca";
 import {
@@ -22,10 +22,10 @@ import { TradeManagement, processOrderFromStrategy } from "../services/tradeMana
 import { TradeConfig, Bar, TradePlan } from "../data/data.model";
 import { getTodaysData } from "../resources/stockData";
 import { postPartial, postEntry } from "../util/slack";
-import { Service, isOwnedByService } from "../util/api";
-import { postSubscriptionRequestForTickUpdates } from "./streamer.service";
-
-const pr = 3;
+import { Service } from "../util/api";
+import { postSubscriptionRequestForTickUpdates } from "./streamer.interfaces";
+import { CURRENT_PROFIT_RATIO, getUncachedManagerForPosition } from "./manager.interfaces";
+import { postRequestToRefreshPlan } from "./screener.interfaces";
 
 export const managerCache: TradeManagement[] = [];
 
@@ -34,12 +34,6 @@ export const openOrderCache: AlpacaOrder[] = [];
 export const openDbPositionCache: Position[] = [];
 
 let recentOrdersCache: { [index: string]: boolean } = {};
-
-if (isOwnedByService(Service.manager)) {
-    setInterval(() => {
-        refreshPositions().catch(LOGGER.error);
-    }, 10000);
-}
 
 export const refreshPositions = async (refreshOrders = true) => {
     const pos = await alpaca.getPositions();
@@ -160,7 +154,7 @@ async function checkIfOrderIsValid(
         symbol: order.symbol,
         originalQuantity: plannedPosition.planned_quantity,
     };
-    const manager = new TradeManagement({} as TradeConfig, unfilledPosition, pr);
+    const manager = new TradeManagement({} as TradeConfig, unfilledPosition, CURRENT_PROFIT_RATIO);
     manager.position = {
         ...unfilledPosition,
     };
@@ -236,7 +230,7 @@ export const handlePositionEntry = async (trade: { plan: TradePlan; config: Trad
     }
 
     if (!manager || !manager.filledPosition || !manager.filledPosition.quantity) {
-        manager = new TradeManagement(trade.config, trade.plan, pr);
+        manager = new TradeManagement(trade.config, trade.plan, CURRENT_PROFIT_RATIO);
 
         const order = await manager.queueTrade();
         if (order && !recentOrdersCache[symbol]) {
@@ -273,6 +267,69 @@ export const handleOrderUpdateForSymbol = async (orderUpdate: AlpacaStreamingOrd
     await updatePosition(position, orderUpdate);
 
     LOGGER.debug(`Position of ${position.id} updated for ${position.symbol}`);
+};
+
+export const handleOrderCancellationForSymbol = async (orderUpdate: AlpacaStreamingOrderUpdate) => {
+    refreshPositions().then(postSubscriptionRequestForTickUpdates).catch(LOGGER.error);
+
+    const order = await getOrder(Number(orderUpdate.order.client_order_id));
+
+    if (!order) {
+        return null;
+    }
+
+    const position = await getPosition(Number(order.positionId));
+
+    if (!position) {
+        LOGGER.error("Didnt find position for order");
+        return null;
+    }
+    const symbol = position.symbol;
+
+    if (position.average_entry_price) {
+        LOGGER.error(
+            "Looks like already in a position, so nothing to do for cancellation of ",
+            symbol
+        );
+        return null;
+    }
+
+    if (recentOrdersCache[symbol]) {
+        return null;
+    }
+
+    await updateOrder(orderUpdate.order, position.quantity, position.average_entry_price);
+
+    const positions = await getRecentlyUpdatedPositions();
+
+    let manager = getUncachedManagerForPosition(positions, symbol);
+
+    if (!manager) {
+        LOGGER.error(`Could not find manager for ${JSON.stringify(symbol)}`);
+        return null;
+    }
+
+    const trade = (await postRequestToRefreshPlan(symbol, orderUpdate.order)) as {
+        plan: TradePlan;
+        config: TradeConfig;
+    };
+
+    if (!trade) {
+        return null;
+    }
+
+    const newOrder = await manager.queueTrade(trade.config);
+
+    if (newOrder && !recentOrdersCache[symbol]) {
+        recentOrdersCache[symbol] = true;
+        const alpacaOrder = await alpaca.createOrder(newOrder);
+        if (alpacaOrder) {
+            await manager.updatePlannedPosition(trade);
+            openOrderCache.push(alpacaOrder);
+        }
+        refreshOpenOrders().catch(LOGGER.error);
+        return alpacaOrder;
+    }
 };
 
 export const handleOrderReplacement = async (
@@ -318,48 +375,29 @@ export const handlePositionOrderReplacement = async (
     const newOrder = await manager.queueTrade(trade.config);
     if (newOrder && !recentOrdersCache[symbol]) {
         recentOrdersCache[symbol] = true;
-        await alpaca.cancelOrder(order.id);
-        await new Promise((resolve) => setTimeout(() => resolve(), 2000));
-        const alpacaOrder = await alpaca.createOrder(newOrder);
-        await manager.updatePlannedPosition(trade);
-        openOrderCache.push(alpacaOrder);
+        let alpacaOrder: AlpacaOrder;
+        if (newOrder.side !== order.side) {
+            await alpaca.cancelOrder(order.id);
+            await new Promise((resolve) => setTimeout(() => resolve(), 2000));
+            alpacaOrder = await alpaca.createOrder(newOrder);
+        } else {
+            alpacaOrder = await alpaca.replaceOrder(order.id, newOrder);
+        }
+        if (alpacaOrder) {
+            await manager.updatePlannedPosition(trade);
+            openOrderCache.push(alpacaOrder);
+        }
         refreshOpenOrders().catch(LOGGER.error);
         return alpacaOrder;
     }
     return null;
 };
 
-export const getCallbackUrlForPositionUpdates = (symbol: string) => {
-    return `http://localhost:${Service.manager}/orders/${symbol}`;
+export const handleOrderDeletion = async (order: AlpacaOrder) => {
+    await alpaca.cancelOrder(order.id);
+    await cancelOrder(Number(order.client_order_id), OrderStatus.pending_cancel);
 };
 
-export const getUncachedManagerForPosition = (openDbPositionCache: Position[], symbol: string) => {
-    const position = openDbPositionCache.find((p) => p.symbol === symbol);
-
-    if (!position) {
-        LOGGER.error(`aww hell`);
-        return null;
-    }
-    const unfilledPosition: PositionConfig = {
-        id: position.id,
-        plannedEntryPrice: position.planned_entry_price,
-        plannedStopPrice: position.planned_stop_price,
-        riskAtrRatio: 1,
-        side: position.side as PositionDirection,
-        quantity: position.planned_quantity,
-        symbol,
-        originalQuantity: position.planned_quantity,
-    };
-    const manager = new TradeManagement({} as TradeConfig, unfilledPosition, pr);
-    manager.position = {
-        ...unfilledPosition,
-    };
-    manager.filledPosition = {
-        ...unfilledPosition,
-        originalQuantity: position.planned_quantity,
-        quantity: position.quantity,
-        averageEntryPrice: position.average_entry_price,
-        trades: [],
-    };
-    return manager;
+export const getCallbackUrlForPositionUpdates = (symbol: string) => {
+    return `http://localhost:${Service.manager}/orders/${symbol}`;
 };

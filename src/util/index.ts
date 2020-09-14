@@ -1,7 +1,7 @@
 import { DefaultDuration, PeriodType, Bar } from "../data/data.model";
-import { differenceInHours, differenceInDays, differenceInBusinessDays, addDays } from "date-fns";
+import { differenceInBusinessDays, addDays } from "date-fns";
 import { LOGGER } from "../instrumentation/log";
-import { existsSync, mkdirSync, readdirSync, writeFileSync, readFileSync } from "fs";
+import { existsSync, readdirSync, writeFileSync, appendFileSync } from "fs";
 import { ensureDirSync } from "fs-extra";
 import { isMarketHoliday } from "./market";
 
@@ -65,13 +65,10 @@ export const appendToCollectionFile = (filename: string, data: any[]) => {
     if (!data || !data.length) {
         return;
     }
-    let dataToWrite;
     if (!existsSync(filename)) {
-        dataToWrite = data;
+        writeFileSync(filename, "[");
     } else {
-        const writtenData: any[] = JSON.parse(readFileSync(filename).toString());
-
-        dataToWrite = writtenData.concat(data);
+        appendFileSync(filename, ",");
     }
-    writeFileSync(filename, JSON.stringify(dataToWrite));
+    appendFileSync(filename, JSON.stringify(data).slice(1, -1));
 };

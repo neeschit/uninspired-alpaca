@@ -241,14 +241,17 @@ export const batchInsertBars = async (bars: TickBar[], symbol: string, isMinute 
             ${bar.h}, 
             ${bar.l}, 
             ${bar.c}, 
-            ${bar.vw}, 
+            ${bar.vw || 0}, 
             ${bar.v}
         ) ON CONFLICT DO NOTHING;`;
         LOGGER.debug(query);
         queries.push(query);
     }
 
-    return pool.query(queries.join("\n"));
+    return pool.query(queries.join("\n")).catch((e) => {
+        LOGGER.error(queries);
+        throw e;
+    });
 };
 
 export const insertTrade = async (trades: TradeUpdate[]) => {
@@ -415,6 +418,17 @@ export const getTodaysData = (
     }).getTime();
 
     return getData(symbol, startEpoch, timeBucket, currentEpoch);
+};
+
+export const getTodaysDataSimple = (symbol: string, currentEpoch = Date.now()) => {
+    const startEpoch = set(currentEpoch, {
+        minutes: 30,
+        seconds: 0,
+        milliseconds: 0,
+        hours: 9,
+    }).getTime();
+
+    return getSimpleData(symbol, startEpoch, true);
 };
 
 export const getYesterdaysEndingBars = async (

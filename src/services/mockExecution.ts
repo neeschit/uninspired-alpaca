@@ -1,5 +1,4 @@
 import { Bar, TradeConfig, FilledTradeConfig, PlannedTradeConfig } from "../data/data.model";
-import { TradeDirection, PositionDirection, OrderStatus, TradeType } from "../data/data.model";
 import { formatInEasternTimeForDisplay } from "../util/date";
 import {
     TimeInForce,
@@ -11,6 +10,10 @@ import {
     GetAssetsParams,
     Asset,
     Calendar,
+    PositionDirection,
+    TradeDirection,
+    OrderStatus,
+    TradeType,
 } from "@neeschit/alpaca-trade-api";
 import { alpaca } from "../resources/alpaca";
 import { TradeManagement, isClosingOrder } from "./tradeManagement";
@@ -193,7 +196,11 @@ export class MockBroker implements Broker {
         this.pastPositionConfigs = [];
     }
 
-    cancelOrder(oid: string): Promise<{}> {
+    cancelOrder(symbol: string): Promise<{}> {
+        this.pendingTradeConfigs = this.pendingTradeConfigs.filter(
+            (c) => c.config.symbol === symbol
+        );
+
         return Promise.resolve({});
     }
 
@@ -295,9 +302,9 @@ export class MockBroker implements Broker {
     ) {
         if (!bar) {
             LOGGER.error(
-                `Couldn't find bar when trying to rebalance on ${date?.toLocaleString()} for ${
-                    manager.plan.symbol
-                }`
+                `Couldn't find bar when trying to rebalance on ${
+                    date && date.toLocaleString()
+                } for ${manager.plan.symbol}`
             );
 
             return null;

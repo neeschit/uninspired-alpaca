@@ -1,25 +1,16 @@
-import { TrendType, getTrend, getHeuristicTrend } from "../pattern/trend/trendIdentifier";
 import { TRADING_RISK_UNIT_CONSTANT, assessRisk, getActualStop } from "../services/riskManagement";
-import { isMarketOpen } from "../util/market";
-import {
-    TimestampType,
-    Bar,
-    TradeDirection,
-    TradeType,
-    TimeInForce,
-    PlannedTradeConfig,
-    PositionDirection,
-    TradePlan,
-} from "../data/data.model";
+import { TimestampType, Bar, PlannedTradeConfig } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
 import { convertToLocalTime } from "../util/date";
-import { Broker } from "@neeschit/alpaca-trade-api";
+import {
+    Broker,
+    TradeDirection,
+    PositionDirection,
+    TradeType,
+    TimeInForce,
+} from "@neeschit/alpaca-trade-api";
 import { alpaca } from "../resources/alpaca";
-import { getAverageTrueRange, getTrueRange } from "../indicator/trueRange";
-import { isSameDay } from "date-fns";
-import { roundHalf } from "../util";
-import { validatePositionEntryPlan } from "../services/tradeManagement";
-import { getDirectionalMovementIndex } from "../indicator/dmi";
+import { getAverageTrueRange } from "../indicator/trueRange";
 import { IndicatorValue } from "../indicator/adx";
 
 export interface ORBParams {
@@ -30,11 +21,12 @@ export interface ORBParams {
     closePrice: number;
     symbol: string;
     lastBar: Bar;
+    shouldCancelIfAboveEntry: boolean;
 }
 
 export const isTimeForOrbEntry = (now: TimestampType) => {
-    const timeStart = convertToLocalTime(now, " 09:34:45.000");
-    const timeEnd = convertToLocalTime(now, " 09:45:15.000");
+    const timeStart = convertToLocalTime(now, " 09:44:45.000");
+    const timeEnd = convertToLocalTime(now, " 11:45:15.000");
 
     const nowMillis = now instanceof Date ? now.getTime() : now;
 
@@ -45,6 +37,14 @@ export const isTimeForOrbEntry = (now: TimestampType) => {
     }
 
     return isWithinEntryRange;
+};
+
+export const isTimeToCancelPendingOrbOrders = (now: TimestampType) => {
+    const timeStart = convertToLocalTime(now, " 10:00:00.000");
+
+    const nowMillis = now instanceof Date ? now.getTime() : now;
+
+    return nowMillis > timeStart.getTime();
 };
 
 export const refreshOpeningRangeBreakoutPlan = (
@@ -73,6 +73,7 @@ export const refreshOpeningRangeBreakoutPlan = (
         atr: dailyAtr,
         currentIntradayAtr,
         lastBar,
+        shouldCancelIfAboveEntry: false,
     });
 };
 
@@ -81,9 +82,9 @@ export const getOrbDirection = (bars: Bar[], close: number): TradeDirection | nu
     const distanceFromLongEntry = Math.abs(close - firstBar.h);
     const distanceFromShortEntry = Math.abs(close - firstBar.l);
 
-    if (distanceFromLongEntry < distanceFromShortEntry && close < firstBar.h) {
+    if (distanceFromLongEntry < distanceFromShortEntry) {
         return TradeDirection.buy;
-    } else if (distanceFromShortEntry < distanceFromLongEntry && close > firstBar.l) {
+    } else if (distanceFromShortEntry < distanceFromLongEntry) {
         return TradeDirection.sell;
     }
 
@@ -109,6 +110,7 @@ export const getOpeningRangeBreakoutPlan = ({
     closePrice,
     symbol,
     lastBar,
+    shouldCancelIfAboveEntry = false,
 }: ORBParams) => {
     const tradeDirection = getOrbDirection(recentBars, lastBar.c);
 
@@ -120,13 +122,21 @@ export const getOpeningRangeBreakoutPlan = ({
 
     const { entryLong, entryShort } = getOrbEntryPrices(entryBar, currentIntradayAtr);
 
-    if (lastBar.c > entryLong && tradeDirection === TradeDirection.buy) {
+    /* if (
+        lastBar.c > entryLong &&
+        shouldCancelIfAboveEntry &&
+        tradeDirection === TradeDirection.buy
+    ) {
         return null;
     }
 
-    if (lastBar.c < entryShort && tradeDirection === TradeDirection.sell) {
+    if (
+        lastBar.c < entryShort &&
+        tradeDirection === TradeDirection.sell &&
+        shouldCancelIfAboveEntry
+    ) {
         return null;
-    }
+    } */
 
     const entryPrice = tradeDirection === TradeDirection.buy ? entryLong : entryShort;
 
@@ -244,7 +254,7 @@ export class NarrowRangeBarStrategy {
         this.bars = bars;
     }
 
-    screenForNarrowRangeBars(bars: Bar[], currentEpoch = Date.now()) {
+    screenForNarrowRangeBars() {
         if (this.nrbs.length) {
             return true;
         }
@@ -255,6 +265,7 @@ export class NarrowRangeBarStrategy {
         );
 
         if (isYdayNrb) {
+            console.log(this.symbol);
             this.nrbs.push(this.closeBar);
             this.nrbTimestamps.push(this.closeBar.t);
         }
@@ -309,7 +320,7 @@ export class NarrowRangeBarStrategy {
         );
     }
 
-    async rebalance(
+    async screenForEntry(
         recentBars: Bar[],
         now: TimestampType = Date.now(),
         lastBar: Bar,
@@ -346,6 +357,7 @@ export class NarrowRangeBarStrategy {
                 entryBar: firstBar,
                 closePrice: this.closePrice,
                 lastBar,
+                shouldCancelIfAboveEntry: true,
             });
 
             return plan;

@@ -1,9 +1,9 @@
-import { AlpacaStreamingClient } from "@neeschit/alpaca-trade-api";
+import { AlpacaStreamingData } from "@neeschit/alpaca-trade-api";
 import { subscribeToTickLevelUpdates } from "../resources/polygon";
 import { currentStreamingSymbols } from "../data/filters";
-import { getCachedCurrentState, CurrentState } from "./manager.service";
 import { SymbolContainingConfig } from "../data/data.model";
 import { getCallbackUrlForPositionUpdates } from "./manager.handlers";
+import { CurrentState, getCachedCurrentState } from "./manager.interfaces";
 
 export interface SecondAggregateSubscription {
     symbol: string;
@@ -13,11 +13,12 @@ const currentSubscriptionsCache: { [symbol: string]: string } = {};
 
 export const missingCallbackError = new Error("callback_url_missing");
 
-export const defaultSubscriptions: string[] = ["trade_updates", "account_updates"].concat(
-    ...subscribeToTickLevelUpdates(currentStreamingSymbols, "AM")
+export const defaultSubscriptions: string[] = subscribeToTickLevelUpdates(
+    currentStreamingSymbols,
+    "AM"
 );
 
-export const handleSubscriptionRequest = async (socket: AlpacaStreamingClient) => {
+export const handleSubscriptionRequest = async (socket: AlpacaStreamingData) => {
     const { positions, openOrders }: CurrentState = await getCachedCurrentState();
 
     const newSubscriptions = refreshSecondAggregateSubscribers(positions);

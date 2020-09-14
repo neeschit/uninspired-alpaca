@@ -1,15 +1,14 @@
+import { TradeConfig, Bar, TradePlan } from "../data/data.model";
+import { alpaca } from "../resources/alpaca";
 import {
-    TradeConfig,
-    Bar,
-    TradePlan,
-    TradeType,
+    AlpacaOrder,
+    AlpacaTradeConfig,
+    Broker,
     PositionDirection,
     TradeDirection,
+    TradeType,
     TimeInForce,
-    OrderStatus,
-} from "../data/data.model";
-import { alpaca } from "../resources/alpaca";
-import { AlpacaOrder, AlpacaTradeConfig, Broker } from "@neeschit/alpaca-trade-api";
+} from "@neeschit/alpaca-trade-api";
 import { LOGGER } from "../instrumentation/log";
 import { isMarketClosing } from "../util/market";
 import { insertOrder, getOpenOrders } from "../resources/order";
@@ -25,8 +24,10 @@ import {
     getOpeningRangeBreakoutPlan,
     refreshOpeningRangeBreakoutPlan,
     isTimeForOrbEntry,
+    isTimeToCancelPendingOrbOrders,
 } from "../strategy/narrowRangeBar";
 import { isBacktestingEnv } from "../util/env";
+import { postOrderToCancel } from "../deployable/manager.interfaces";
 
 export const isClosingOrder = (currentPosition: FilledPositionConfig, tradeConfig: TradeConfig) => {
     if (currentPosition.side === PositionDirection.long) {
@@ -246,20 +247,6 @@ export class TradeManagement {
         return this.filledPosition || this.position;
     }
 
-    async cancelPendingTrades() {
-        const position = await this.getPosition();
-
-        if (!position.pendingOrders || !position.pendingOrders.length) {
-            return null;
-        }
-
-        for (const order of position.pendingOrders) {
-            const alpacaOrder = await this.broker.getOrderByClientId(order.id.toString());
-
-            await this.broker.cancelOrder(alpacaOrder.id);
-        }
-    }
-
     async queueTrade(trade = this.config) {
         const position = await this.getPosition();
         const order = processOrderFromStrategy(trade);
@@ -303,7 +290,7 @@ export class TradeManagement {
             const limitOrders = openOrders.filter((o) => o.type === TradeType.limit);
 
             if (currentProfitRatio < this.partialProfitRatio / 3) {
-                await Promise.all(limitOrders.map((o) => this.broker.cancelOrder(o.id)));
+                await Promise.all(limitOrders.map((o) => postOrderToCancel(o)));
             }
         } catch (e) {
             LOGGER.error(e);
@@ -327,12 +314,12 @@ export class TradeManagement {
                     openOrders.some((o) => o.type !== config.type || o.side !== config.side));
 
             if (isTimeToLiquidate && isOrderDifferent) {
-                await Promise.all(unfilteredOpenOrders.map((o) => this.broker.cancelOrder(o.id)));
+                await Promise.all(unfilteredOpenOrders.map((o) => postOrderToCancel(o)));
                 return config;
             }
 
             if (isOrderDifferent) {
-                await Promise.all(openOrders.map((o) => this.broker.cancelOrder(o.id)));
+                await Promise.all(openOrders.map((o) => postOrderToCancel(o)));
                 return config;
             }
         }
@@ -388,9 +375,8 @@ export class TradeManagement {
             order = await rebalancePosition(
                 {
                     averageEntryPrice: Number(this.filledPosition.averageEntryPrice),
-                    symbol: this.plan.symbol,
-                    side: position.side,
                     ...this.plan,
+                    side: position.side,
                     quantity: this.filledPosition.quantity,
                     originalQuantity: this.plan.quantity,
                 },
@@ -415,7 +401,7 @@ export class TradeManagement {
         const cancel = validatePositionEntryPlan(recentBars, alpacaOrder.side, 0);
 
         if (cancel) {
-            this.broker.cancelOrder(alpacaOrder.id);
+            postOrderToCancel(alpacaOrder);
         }
 
         return cancel;
@@ -428,15 +414,6 @@ export class TradeManagement {
         openOrder: AlpacaOrder,
         lastBar: Bar
     ) {
-        if (!isTimeForOrbEntry(Date.now())) {
-            if (openOrder) {
-                LOGGER.error(
-                    `canceling order for ${openOrder.symbol} at ${new Date().toISOString()}`
-                );
-                await this.broker.cancelOrder(openOrder.id);
-            }
-            return null;
-        }
         const newTrade = refreshOpeningRangeBreakoutPlan(
             this.plan.symbol,
             recentBars,
@@ -447,12 +424,16 @@ export class TradeManagement {
 
         if (!newTrade) {
             if (openOrder) {
-                LOGGER.error(
-                    `canceling order as no strategy appears to work for ${
-                        openOrder.symbol
-                    } at ${new Date().toISOString()}`
-                );
-                await this.broker.cancelOrder(openOrder.id);
+                if (!isBacktestingEnv()) {
+                    LOGGER.error(
+                        `canceling order as no strategy appears to work for ${
+                            openOrder.symbol
+                        } at ${new Date().toISOString()}`
+                    );
+                    await postOrderToCancel(openOrder);
+                } else {
+                    await this.broker.cancelOrder(openOrder.symbol);
+                }
             }
             return null;
         }
@@ -464,6 +445,11 @@ export class TradeManagement {
             Math.abs(Number(openOrder.stop_price) - newTrade.config.stopPrice) < 0.1
         ) {
             return null;
+        }
+
+        if (isBacktestingEnv()) {
+            this.plan = newTrade.plan;
+            this.config = newTrade.config;
         }
 
         return newTrade;

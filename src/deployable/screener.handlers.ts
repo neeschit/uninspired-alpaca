@@ -1,27 +1,27 @@
 import { LOGGER } from "../instrumentation/log";
-import { Bar, OrderStatus } from "../data/data.model";
-import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
-import { getCachedCurrentState, CurrentState, refreshCachedCurrentState } from "./manager.service";
-import { getBarsFromDataService } from "./data.service";
-import { alpaca } from "../resources/alpaca";
-import { validatePositionEntryPlan } from "../services/tradeManagement";
-import { getUncachedManagerForPosition } from "./manager.handlers";
+import { Bar } from "../data/data.model";
+import {
+    NarrowRangeBarStrategy,
+    isTimeToCancelPendingOrbOrders,
+    getOrbDirection,
+} from "../strategy/narrowRangeBar";
 import { isSameDay } from "date-fns";
-import { cancelOrder } from "../resources/order";
+import { Position } from "../resources/position";
+import { AlpacaOrder, OrderStatus } from "@neeschit/alpaca-trade-api";
+import { TradeManagement } from "../services/tradeManagement";
+import { CurrentState, getUncachedManagerForPosition } from "./manager.interfaces";
+import { getBarsFromDataService } from "./data.interfaces";
 
 export const screenSymbol = async (
     strategies: NarrowRangeBarStrategy[],
     symbol: string,
     bar: Bar,
+    cachedCurrentState: CurrentState,
     currentEpoch = Date.now()
 ) => {
     const strategy = strategies.find((s) => s.symbol === symbol);
 
-    const {
-        positions,
-        recentlyUpdatedDbPositions,
-        openOrders,
-    }: CurrentState = await getCachedCurrentState();
+    const { positions, recentlyUpdatedDbPositions, openOrders } = cachedCurrentState;
 
     if (recentlyUpdatedDbPositions.some((p) => p.symbol === symbol && p.average_entry_price)) {
         return null;
@@ -38,17 +38,18 @@ export const screenSymbol = async (
 
     const screenerData = await getTodaysBars(symbol, currentEpoch);
 
-    strategy.screenForNarrowRangeBars(screenerData, currentEpoch);
+    strategy.screenForNarrowRangeBars();
 
-    return strategy.rebalance(screenerData, currentEpoch, bar, positions);
+    return strategy.screenForEntry(screenerData, currentEpoch, bar, positions);
 };
 
 export const manageOpenOrder = async (
     symbol: string,
     strategy: NarrowRangeBarStrategy,
-    lastBar: Bar
+    lastBar: Bar,
+    cachedCurrentState: CurrentState
 ) => {
-    const { positions, openOrders, recentlyUpdatedDbPositions } = await getCachedCurrentState();
+    const { positions, openOrders, recentlyUpdatedDbPositions } = cachedCurrentState;
     const openingPositionOrders = openOrders.filter(
         (o) =>
             o.symbol === symbol &&
@@ -57,48 +58,63 @@ export const manageOpenOrder = async (
     );
 
     if (!openingPositionOrders.length) {
-        return;
+        return null;
     }
 
     if (openingPositionOrders.length > 1) {
-        await Promise.all(openingPositionOrders.map((o) => alpaca.cancelOrder(o.id)));
-        return;
+        return openingPositionOrders;
+    }
+
+    const order = openingPositionOrders[0];
+
+    if (isTimeToCancelPendingOrbOrders(Date.now())) {
+        return [order];
     }
 
     try {
-        const order = openingPositionOrders[0];
-        const screenerData = await getTodaysBars(symbol);
-        const manager = getUncachedManagerForPosition(recentlyUpdatedDbPositions, symbol);
-
-        if (!manager) {
-            return;
-        }
-
-        const newTrade = await manager.refreshPlan(
-            screenerData,
-            strategy.atr,
-            strategy.closePrice,
-            order,
-            lastBar
-        );
+        const newTrade = refreshTrade(symbol, strategy, recentlyUpdatedDbPositions, order, lastBar);
 
         if (newTrade) {
             LOGGER.error(
                 `canceling order as direction appears to be reversed for ${symbol} at ${new Date().toISOString()}`
             );
-            await cancelOrder(Number(order.client_order_id));
-            return {
-                trade: newTrade,
-                orderToReplace: order,
-            };
+            return [order];
         }
     } catch (e) {
         LOGGER.error(e);
     }
+    return null;
 };
 
 export const getTodaysBars = async (symbol: string, currentEpoch = Date.now()) => {
     const screenerData: Bar[] = await getBarsFromDataService(symbol, currentEpoch);
 
     return screenerData.filter((b) => isSameDay(b.t, currentEpoch));
+};
+
+export const refreshTrade = async (
+    symbol: string,
+    strategy: NarrowRangeBarStrategy,
+    recentlyUpdatedDbPositions: Position[],
+    order: AlpacaOrder,
+    lastBar: Bar
+) => {
+    const screenerData = await getTodaysBars(symbol);
+    const manager = getUncachedManagerForPosition(recentlyUpdatedDbPositions, symbol);
+
+    if (!manager) {
+        return;
+    }
+
+    return _refreshTrade(strategy, order, lastBar, screenerData, manager);
+};
+
+export const _refreshTrade = async (
+    strategy: NarrowRangeBarStrategy,
+    order: AlpacaOrder,
+    lastBar: Bar,
+    screenerData: Bar[],
+    manager: TradeManagement
+) => {
+    return manager.refreshPlan(screenerData, strategy.atr, strategy.closePrice, order, lastBar);
 };

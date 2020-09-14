@@ -1,7 +1,6 @@
 import { EventEmitter } from "events";
 import {
     addMilliseconds,
-    addDays,
     startOfDay,
     addHours,
     differenceInMonths,
@@ -11,22 +10,19 @@ import {
     isSameDay,
 } from "date-fns";
 import Sinon from "sinon";
-import { TradeConfig, DefaultDuration, PeriodType, Bar } from "../data/data.model";
+import { TradeConfig, Bar } from "../data/data.model";
 import {
     isMarketOpening,
     isAfterMarketClose,
     confirmMarketOpen,
     isMarketOpen,
 } from "../util/market";
-import { NarrowRangeBarStrategy, isTimeForOrbEntry } from "../strategy/narrowRangeBar";
-import { getBarsByDate } from "../data/bars";
+import { NarrowRangeBarStrategy, isTimeToCancelPendingOrbOrders } from "../strategy/narrowRangeBar";
 import { TradeManagement } from "./tradeManagement";
 import { LOGGER } from "../instrumentation/log";
 import { MockBroker } from "./mockExecution";
 import { alpaca } from "../resources/alpaca";
-import { getDetailedPerformanceReport } from "./performance";
 import { Calendar } from "@neeschit/alpaca-trade-api";
-import { FilledPositionConfig } from "../resources/position";
 import { getSimpleData, getData } from "../resources/stockData";
 import { appendToCollectionFile } from "../util";
 
@@ -37,6 +33,9 @@ export class Backtester {
     daysElapsed: number = 0;
     clock: Sinon.SinonFakeTimers;
     replayBars: {
+        [index: string]: Bar[];
+    } = {};
+    todaysReplayBars: {
         [index: string]: Bar[];
     } = {};
     screenerDailyBars: {
@@ -97,14 +96,13 @@ export class Backtester {
             ) {
                 const prevDate = context.currentDate;
 
-                context.clock.tick(context.updateIntervalMillis);
-
                 yield prevDate;
                 if (i % (context.updateIntervalMillis * 100) === 0) {
                     LOGGER.trace(prevDate);
                 }
                 i = context.currentDate.getTime();
 
+                context.clock.tick(context.updateIntervalMillis);
                 context.incrementDate();
             }
         };
@@ -123,8 +121,6 @@ export class Backtester {
             batchSize
         );
 
-        let pastLength = 0;
-
         for (const batch of batches) {
             this.replayBars = {};
             this.screenerDailyBars = {};
@@ -139,17 +135,12 @@ export class Backtester {
 
             if (filename) {
                 try {
-                    const pastPositionConfigs = this.broker.getPastPositions().slice(pastLength);
+                    const pastPositionConfigs = this.broker.getPastPositions();
                     appendToCollectionFile(filename, pastPositionConfigs);
                     this.broker.reset();
                 } catch (e) {
                     LOGGER.warn(`no positions so far`);
                 }
-            }
-            try {
-                global.gc();
-            } catch (e) {
-                LOGGER.error(e);
             }
         }
     }
@@ -163,11 +154,13 @@ export class Backtester {
                     addBusinessDays(startDate, -25).getTime(),
                     false,
                     endDate.getTime()
-                ).then((data) => {
-                    Object.assign(this.screenerDailyBars, {
-                        [symbol]: data,
-                    });
-                })
+                )
+                    .then((data) => {
+                        Object.assign(this.screenerDailyBars, {
+                            [symbol]: data,
+                        });
+                    })
+                    .catch(LOGGER.error)
             );
         }
 
@@ -177,13 +170,15 @@ export class Backtester {
 
         for (const symbol of symbols) {
             replayPromises.push(
-                getSimpleData(symbol, startDate.getTime(), true, endDate.getTime()).then((data) => {
-                    Object.assign(this.replayBars, {
-                        [symbol]: data.filter((b) => {
-                            return confirmMarketOpen(this.calendar, b.t);
-                        }),
-                    });
-                })
+                getSimpleData(symbol, startDate.getTime(), true, endDate.getTime())
+                    .then((data) => {
+                        Object.assign(this.replayBars, {
+                            [symbol]: data.filter((b) => {
+                                return confirmMarketOpen(this.calendar, b.t);
+                            }),
+                        });
+                    })
+                    .catch(LOGGER.error)
             );
         }
 
@@ -221,8 +216,6 @@ export class Backtester {
                 isMarketOpen(this.currentDate.getTime())
             ) {
                 /* Sinon.clock.restore(); */
-
-                const startMarket = Date.now();
 
                 /* this.clock = Sinon.useFakeTimers(this.currentDate); */
 
@@ -262,7 +255,7 @@ export class Backtester {
                 /* this.clock = Sinon.useFakeTimers(this.currentDate); */
 
                 for (const i of this.strategyInstances) {
-                    i.screenForNarrowRangeBars([], this.currentDate.getTime());
+                    i.screenForNarrowRangeBars();
                 }
 
                 /* Sinon.clock.restore(); */
@@ -300,7 +293,7 @@ export class Backtester {
                             (b) => b.t < this.currentDate.getTime()
                         );
 
-                        return i.rebalance(recentBars, this.currentDate, bar);
+                        return i.screenForEntry(recentBars, this.currentDate, bar);
                     } catch (e) {
                         LOGGER.warn(e);
                     }
@@ -327,13 +320,9 @@ export class Backtester {
                     }
                 }
 
-                if (isTimeForOrbEntry(this.currentDate)) {
-                    await this.executeAndRecord();
-                }
+                await this.executeAndRecord();
 
                 /* Sinon.clock.restore(); */
-
-                const endMarket = Date.now();
 
                 /* const text = `whole shebang took ${
                     (endMarket - startMarket) / 1000
@@ -517,18 +506,23 @@ export class Backtester {
         this.managers = [];
         this.strategyInstances = [];
         this.broker.cancelAllOrders();
-        this.replayBars = {};
         this.todaysScreenerBars = {};
+        this.todaysReplayBars = {};
     }
 
     public async executeAndRecord() {
         if (!this.managers.length) {
-            return [];
+            return;
+        }
+
+        if (isTimeToCancelPendingOrbOrders(this.currentDate)) {
+            return;
         }
 
         for (const manager of this.managers) {
             const symbol = manager.plan.symbol;
             const bars = this.getTodaysBars(symbol);
+            const minuteBars = this.getTodaysReplayBars(symbol);
 
             if (manager.filledPosition) {
                 continue;
@@ -537,32 +531,22 @@ export class Backtester {
             const strategy = this.strategyInstances.find((i) => i.symbol === symbol);
             const refreshBars = bars.filter(
                 (b) =>
-                    isMarketOpen(b.t) &&
+                    confirmMarketOpen(this.calendar, b.t) &&
                     isSameDay(this.currentDate, b.t) &&
-                    b.t <= this.currentDate.getTime()
+                    b.t < this.currentDate.getTime()
             );
-            manager.refreshPlan(
-                refreshBars,
-                strategy!.atr,
-                strategy!.closePrice,
-                ({
-                    id: "test",
-                } as unknown) as any,
-                refreshBars[refreshBars.length - 1]
+            const filteredMinuteBars = minuteBars.filter(
+                (b) =>
+                    confirmMarketOpen(this.calendar, b.t) &&
+                    isSameDay(this.currentDate, b.t) &&
+                    b.t < this.currentDate.getTime()
             );
 
             if (!bars) {
                 LOGGER.error(`No bars for ${JSON.stringify(manager.plan)}`);
                 continue;
             }
-            const bar = await this.findOrFetchBarByDate(
-                this.currentDate.getTime(),
-                symbol,
-                bars,
-                0,
-                false,
-                false
-            );
+            const bar = filteredMinuteBars[filteredMinuteBars.length - 1];
 
             if (!bar) {
                 LOGGER.error(`No bars for ${JSON.stringify(manager.plan)}`);
@@ -579,7 +563,7 @@ export class Backtester {
             }
         }
 
-        return [];
+        return;
     }
 
     private async findPositionConfigAndRebalance(tradeConfig: TradeConfig) {
@@ -666,6 +650,22 @@ export class Backtester {
             });
 
             todaysBars = this.todaysScreenerBars[symbol];
+        }
+
+        return todaysBars;
+    }
+
+    getTodaysReplayBars(symbol: string) {
+        let todaysBars = this.todaysReplayBars[symbol];
+
+        if (!todaysBars) {
+            this.todaysReplayBars[symbol] = this.replayBars[symbol].filter((b) => {
+                const sameDay = isSameDay(b.t, this.currentDate);
+                const marketOpen = confirmMarketOpen(this.calendar, b.t);
+                return sameDay && marketOpen;
+            });
+
+            todaysBars = this.todaysReplayBars[symbol];
         }
 
         return todaysBars;

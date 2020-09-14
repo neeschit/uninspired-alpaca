@@ -1,8 +1,14 @@
 import { getConnection } from "../connection/pg";
-import { AlpacaTradeConfig, AlpacaOrder } from "@neeschit/alpaca-trade-api";
+import {
+    AlpacaTradeConfig,
+    AlpacaOrder,
+    TradeDirection,
+    OrderStatus,
+    TradeType,
+    TimeInForce,
+} from "@neeschit/alpaca-trade-api";
 import { LOGGER } from "../instrumentation/log";
 import { PositionConfig } from "./position";
-import { TimeInForce, OrderStatus, TradeDirection, TradeType } from "../data/data.model";
 import { isBacktestingEnv } from "../util/env";
 import { QueryResult } from "pg";
 
@@ -80,7 +86,14 @@ const getInsertOrdersSql = (
 ) => {
     return `
         begin;
-        select * from orders where symbol = '${position.symbol}' FOR SHARE;
+        select * from orders where symbol = '${position.symbol}' AND status in (
+            'new',
+            'accepted',
+            'pending_new',
+            'accepted_for_bidding',
+            'pending_cancel',
+            'pending_replace'
+        ) FOR SHARE;
         insert into orders (position_id, symbol, status, side, type, tif, quantity ${
             order.stop_price || order.limit_price ? "," : ""
         } ${order.stop_price ? "stop_price," : ""} ${order.limit_price ? "limit_price" : ""}) 
@@ -140,6 +153,8 @@ export const insertOrder = async (
     if (results.length < 3) {
         return null;
     }
+
+    const selectLockResult = results[1];
 
     const result = results[2];
 
@@ -275,10 +290,12 @@ export const cancelAllOrdersForSymbol = async (symbol: string) => {
     return [];
 };
 
-export const cancelOrder = async (id: number) => {
+export const cancelOrder = async (id: number, status = OrderStatus.pending_cancel) => {
     const pool = getConnection();
 
-    const query = `update orders set status = 'canceled' where id = ${id} and status='new';`;
+    const query = `update orders set status = '${status}' where id = ${Number(
+        id
+    )} and status='new';`;
 
     try {
         const result = await pool.query(query);

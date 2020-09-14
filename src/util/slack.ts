@@ -1,6 +1,5 @@
 import { TradePlan } from "../data/data.model";
 import { postHttps } from "./post";
-import { Order } from "../resources/order";
 import { AlpacaOrder } from "@neeschit/alpaca-trade-api";
 
 const slackHookOptions = {

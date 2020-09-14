@@ -7,8 +7,9 @@ const API_KEY = (config && config.ALPACA_SECRET_KEY_ID) || process.env.ALPACA_SE
 
 const SECRET_KEY = (config && config.ALPACA_SECRET_KEY) || process.env.ALPACA_SECRET_KEY || "";
 
-export const alpaca = new Alpaca({
+export const alpaca = Alpaca({
     keyId: API_KEY,
     secretKey: SECRET_KEY,
     paper: true,
+    usePolygon: true,
 });

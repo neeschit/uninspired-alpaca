@@ -1,22 +1,16 @@
-import { getMegaCaps, getLargeCaps, currentIndices, getUnfilteredMegaCaps } from "../data/filters";
+import { getLargeCaps, currentIndices, getMegaCaps } from "../data/filters";
 import { DefaultDuration, PeriodType } from "../data/data.model";
 import { addDays, startOfDay, addBusinessDays, endOfDay } from "date-fns";
 import { LOGGER } from "../instrumentation/log";
 import { getPolyonData } from "../resources/polygon";
-import {
-    insertBar,
-    insertDailyBar,
-    batchInsertBars,
-    dropStorageTables,
-    batchInsertDailyBars,
-} from "../resources/stockData";
+import { insertBar, batchInsertBars, batchInsertDailyBars } from "../resources/stockData";
 
-const companies: string[] = getLargeCaps();
+const companies: string[] = getMegaCaps();
 
 companies.push(...currentIndices);
 
 async function run(duration = DefaultDuration.one, period = PeriodType.minute) {
-    const startDate = startOfDay(addBusinessDays(Date.now(), -3));
+    const startDate = startOfDay(addBusinessDays(Date.now(), -5));
     for (const symbol of companies) {
         const endDate = startOfDay(addBusinessDays(Date.now(), 1));
 
@@ -52,7 +46,7 @@ async function run(duration = DefaultDuration.one, period = PeriodType.minute) {
     }
 
     for (const symbol of companies) {
-        const endDate = endOfDay(addDays(Date.now(), -1));
+        const endDate = endOfDay(addDays(Date.now(), 0));
         for (
             let date = startDate;
             date.getTime() < endDate.getTime();
