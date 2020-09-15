@@ -37,10 +37,10 @@
   dependencies:
     arrify "^1.0.1"
 
-"@neeschit/alpaca-trade-api@1.4.1":
-  version "1.4.1"
-  resolved "https://registry.yarnpkg.com/@neeschit/alpaca-trade-api/-/alpaca-trade-api-1.4.1.tgz#9fb8785d414117f80442f1e0b16b4774fe20a0d1"
-  integrity sha512-ADCIT6mLYDNXnI26/z6YcNHIIQoGO0C5tz1keSD4Zt3CQWULD88VpxZ/bsAIQ7pd7GQNZEGtAC0ZHnVn9ChwTA==
+"@neeschit/alpaca-trade-api@1.4.2":
+  version "1.4.2"
+  resolved "https://registry.yarnpkg.com/@neeschit/alpaca-trade-api/-/alpaca-trade-api-1.4.2.tgz#63fbeac1bb3dc0e105afe57b4fdb6f4e24df1a36"
+  integrity sha512-PMoT4C+KAQ+CzVgkpevnPJge/Pt6WYTrispmybyRdH8I406Zxg0Hh1N9mbh/x5pOxgQC19SB09U0LYHCCJCi0g==
   dependencies:
     dotenv "^6.0.0"
     lodash "^4.17.11"
