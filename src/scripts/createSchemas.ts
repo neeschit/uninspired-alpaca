@@ -2,7 +2,8 @@ import {
     checkIfTableExistsForSymbol,
     createStorageTables,
     createMetadataTables,
-    dropStorageTables,
+    dropStorageTables, 
+    createDbIfNotExists
 } from "../resources/stockData";
 import { LOGGER } from "../instrumentation/log";
 import { endPooledConnection } from "../connection/pg";
@@ -12,6 +13,10 @@ const drop = process.argv[2] && Boolean(process.argv[2]);
 
 async function run() {
     const newSymbols = [];
+
+    await createDbIfNotExists();
+
+    await createMetadataTables();
 
     const symbols = getLargeCaps();
 
@@ -28,8 +33,6 @@ async function run() {
     LOGGER.info(newSymbols);
 
     await createStorageTables(newSymbols);
-
-    await createMetadataTables();
 
     await endPooledConnection();
 }
