@@ -5,6 +5,31 @@ import { getCreateOrdersTableSql } from "./order";
 import { getCreatePositionsTableSql } from "./position";
 import { set, addBusinessDays } from "date-fns";
 import { getPolyonData } from "./polygon";
+import { Client, Pool } from "pg";
+
+export const createDbIfNotExists = async () => {
+    const checkQuery = `select datname FROM pg_catalog.pg_database where lower(datname) = lower('stock_data');`;
+    const pool = new Client({
+        database: 'postgres'
+    });
+    await pool.connect();
+    const result = await pool.query(checkQuery);
+
+    if (!result.rowCount) {
+        try {
+            await pool.query('create database stock_data;');
+            LOGGER.info('successfully created database');
+        } catch (e) {
+            LOGGER.error(e);
+        }
+    }
+    await pool.end();
+
+    const connection = getConnection();
+
+    await connection.query('CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;');
+}
+
 const getAggregatedTickTableNameForSymbol = (symbol: string) => `tick_${symbol.toLowerCase()}`;
 
 const getCreateAggregatedBarsTableSql = (tablename: string) => `create table ${tablename} (
