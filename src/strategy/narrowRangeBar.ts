@@ -1,4 +1,8 @@
-import { TRADING_RISK_UNIT_CONSTANT, assessRisk, getActualStop } from "../services/riskManagement";
+import {
+    TRADING_RISK_UNIT_CONSTANT,
+    assessRisk,
+    getActualStop,
+} from "../services/riskManagement";
 import { TimestampType, Bar, PlannedTradeConfig } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
 import { convertToLocalTime } from "../util/date";
@@ -25,12 +29,13 @@ export interface ORBParams {
 }
 
 export const isTimeForOrbEntry = (now: TimestampType) => {
-    const timeStart = convertToLocalTime(now, " 09:44:45.000");
+    const timeStart = convertToLocalTime(now, " 09:59:45.000");
     const timeEnd = convertToLocalTime(now, " 11:45:15.000");
 
     const nowMillis = now instanceof Date ? now.getTime() : now;
 
-    const isWithinEntryRange = timeStart.getTime() <= nowMillis && timeEnd.getTime() >= nowMillis;
+    const isWithinEntryRange =
+        timeStart.getTime() <= nowMillis && timeEnd.getTime() >= nowMillis;
 
     if (!isWithinEntryRange) {
         LOGGER.trace("come back later hooomie", nowMillis);
@@ -40,7 +45,7 @@ export const isTimeForOrbEntry = (now: TimestampType) => {
 };
 
 export const isTimeToCancelPendingOrbOrders = (now: TimestampType) => {
-    const timeStart = convertToLocalTime(now, " 10:00:00.000");
+    const timeStart = convertToLocalTime(now, " 11:45:15.000");
 
     const nowMillis = now instanceof Date ? now.getTime() : now;
 
@@ -54,12 +59,19 @@ export const refreshOpeningRangeBreakoutPlan = (
     closePrice: number,
     lastBar: Bar
 ) => {
-    const { atr: currentIntradayAtrs } = getAverageTrueRange(todaysBars, true, 5);
+    const { atr: currentIntradayAtrs } = getAverageTrueRange(
+        todaysBars,
+        true,
+        5
+    );
 
-    const currentIntradayAtrObject = currentIntradayAtrs[currentIntradayAtrs.length - 1];
+    const currentIntradayAtrObject =
+        currentIntradayAtrs[currentIntradayAtrs.length - 1];
 
     if (!currentIntradayAtrObject) {
-        throw new Error(`couldn't calculate atr for ${symbol} at ${new Date().toISOString()}`);
+        throw new Error(
+            `couldn't calculate atr for ${symbol} at ${new Date().toISOString()}`
+        );
     }
 
     const currentIntradayAtr = currentIntradayAtrObject.value;
@@ -77,7 +89,10 @@ export const refreshOpeningRangeBreakoutPlan = (
     });
 };
 
-export const getOrbDirection = (bars: Bar[], close: number): TradeDirection | null => {
+export const getOrbDirection = (
+    bars: Bar[],
+    close: number
+): TradeDirection | null => {
     const firstBar = bars[0];
     const distanceFromLongEntry = Math.abs(close - firstBar.h);
     const distanceFromShortEntry = Math.abs(close - firstBar.l);
@@ -120,7 +135,10 @@ export const getOpeningRangeBreakoutPlan = ({
 
     const stopUnits = assessRisk(atr, currentIntradayAtr, closePrice);
 
-    const { entryLong, entryShort } = getOrbEntryPrices(entryBar, currentIntradayAtr);
+    const { entryLong, entryShort } = getOrbEntryPrices(
+        entryBar,
+        currentIntradayAtr
+    );
 
     /* if (
         lastBar.c > entryLong &&
@@ -138,7 +156,8 @@ export const getOpeningRangeBreakoutPlan = ({
         return null;
     } */
 
-    const entryPrice = tradeDirection === TradeDirection.buy ? entryLong : entryShort;
+    const entryPrice =
+        tradeDirection === TradeDirection.buy ? entryLong : entryShort;
 
     const stop = getActualStop(
         entryPrice,
@@ -286,7 +305,9 @@ export class NarrowRangeBarStrategy {
 
         const isNarrowRangeBar = range.value <= sevenPeriodMin * 1.3;
 
-        return isNarrowRangeBar && this.isVeryNarrowRangeBar(max, sevenPeriodMin);
+        return (
+            isNarrowRangeBar && this.isVeryNarrowRangeBar(max, sevenPeriodMin)
+        );
     }
 
     isVeryNarrowRangeBar(max: number, min: number) {
@@ -326,8 +347,14 @@ export class NarrowRangeBarStrategy {
         lastBar: Bar,
         currentPositions?: { symbol: string }[]
     ): Promise<PlannedTradeConfig | null> {
-        if (!isTimeForOrbEntry(now) || !recentBars.length || !this.nrbs.length) {
-            LOGGER.trace(`not the time to enter for ${this.symbol} at ${new Date(now)}`);
+        if (
+            !isTimeForOrbEntry(now) ||
+            !recentBars.length ||
+            !this.nrbs.length
+        ) {
+            LOGGER.trace(
+                `not the time to enter for ${this.symbol} at ${new Date(now)}`
+            );
             return null;
         }
         now = now instanceof Date ? now.getTime() : now;

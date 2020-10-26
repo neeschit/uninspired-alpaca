@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "dependencies": {
-    "@neeschit/alpaca-trade-api": "1.4.2",
+    "@neeschit/alpaca-trade-api": "1.4.3",
     "date-fns": "^2.9.0",
     "date-fns-tz": "^1.0.10",
     "dotenv": "^8.2.0",
@@ -17,12 +17,15 @@
   "devDependencies": {
     "@ava/typescript": "^1.1.1",
     "@types/fs-extra": "^8.1.0",
+    "@types/jest": "^26.0.15",
     "@types/node": "^13.13.12",
     "@types/pg": "^7.14.3",
     "@types/sinon": "^7.5.2",
     "@types/uuid": "^7.0.4",
     "ava": "^3.7.0",
+    "jest": "^26.4.2",
     "sinon": "^9.0.0",
+    "ts-jest": "^26.4.1",
     "ts-node": "^8.6.2",
     "typescript": "^3.7.5"
   },
@@ -38,7 +41,9 @@
     "streamer": "SERVICE_NAME=streamer node --inspect=9696 --enable-source-maps build/deployable/streamer.service.js",
     "manager": "SERVICE_NAME=manager node --inspect=9697 --enable-source-maps build/deployable/manager.service.js",
     "screener": "SERVICE_NAME=screener node --inspect=9698 --enable-source-maps build/deployable/screener.service.js",
-    "data": "SERVICE_NAME=data node --inspect=9699 --enable-source-maps build/deployable/data.service.js"
+    "data": "SERVICE_NAME=data node --inspect=9699 --enable-source-maps build/deployable/data.service.js",
+    "test:jest": "NODE_ENV=test jest",
+    "verse": "tsc --version"
   },
   "ava": {
     "typescript": {

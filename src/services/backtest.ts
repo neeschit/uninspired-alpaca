@@ -17,12 +17,19 @@ import {
     confirmMarketOpen,
     isMarketOpen,
 } from "../util/market";
-import { NarrowRangeBarStrategy, isTimeToCancelPendingOrbOrders } from "../strategy/narrowRangeBar";
+import {
+    NarrowRangeBarStrategy,
+    isTimeToCancelPendingOrbOrders,
+} from "../strategy/narrowRangeBar";
 import { TradeManagement } from "./tradeManagement";
 import { LOGGER } from "../instrumentation/log";
 import { MockBroker } from "./mockExecution";
 import { alpaca } from "../resources/alpaca";
-import { Calendar } from "@neeschit/alpaca-trade-api";
+import {
+    Calendar,
+    PositionDirection,
+    TradeDirection,
+} from "@neeschit/alpaca-trade-api";
 import { getSimpleData, getData } from "../resources/stockData";
 import { appendToCollectionFile } from "../util";
 
@@ -67,11 +74,15 @@ export class Backtester {
                 const stockBars = this.screenerDailyBars[symbol];
 
                 if (!stockBars || stockBars.length < 15) {
-                    LOGGER.warn(`No bars for ${symbol} on ${this.currentDate.toLocaleString()}`);
+                    LOGGER.warn(
+                        `No bars for ${symbol} on ${this.currentDate.toLocaleString()}`
+                    );
                     continue;
                 }
 
-                const bars = stockBars.filter((b) => b.t < startOfDay(this.currentDate).getTime());
+                const bars = stockBars.filter(
+                    (b) => b.t < startOfDay(this.currentDate).getTime()
+                );
 
                 const nrbInstance = new NarrowRangeBarStrategy({
                     symbol,
@@ -129,9 +140,15 @@ export class Backtester {
             this.currentDate = batch.startDate;
             this.clock.setSystemTime(this.currentDate);
 
-            LOGGER.info(`Starting simulation for batch ${JSON.stringify(batch)}`);
+            LOGGER.info(
+                `Starting simulation for batch ${JSON.stringify(batch)}`
+            );
 
-            await this.batchSimulate(batch.startDate, batch.endDate, batch.symbols);
+            await this.batchSimulate(
+                batch.startDate,
+                batch.endDate,
+                batch.symbols
+            );
 
             if (filename) {
                 try {
@@ -170,7 +187,12 @@ export class Backtester {
 
         for (const symbol of symbols) {
             replayPromises.push(
-                getSimpleData(symbol, startDate.getTime(), true, endDate.getTime())
+                getSimpleData(
+                    symbol,
+                    startDate.getTime(),
+                    true,
+                    endDate.getTime()
+                )
                     .then((data) => {
                         Object.assign(this.replayBars, {
                             [symbol]: data.filter((b) => {
@@ -227,11 +249,14 @@ export class Backtester {
 
                 const filteredInstances = this.strategyInstances.filter(
                     (i) =>
-                        pendingTradeConfigs.every((c) => c.symbol !== i.symbol) &&
+                        pendingTradeConfigs.every(
+                            (c) => c.symbol !== i.symbol
+                        ) &&
                         this.managers.every(
                             (m) =>
                                 m.plan.symbol !== i.symbol ||
-                                (m.filledPosition && m.filledPosition.quantity === 0)
+                                (m.filledPosition &&
+                                    m.filledPosition.quantity === 0)
                         )
                 );
 
@@ -241,7 +266,9 @@ export class Backtester {
                     for await (const tradeRebalance of rebalancingPositionTrades) {
                         if (tradeRebalance) {
                             LOGGER.debug(tradeRebalance);
-                            await this.findPositionConfigAndRebalance(tradeRebalance);
+                            await this.findPositionConfigAndRebalance(
+                                tradeRebalance
+                            );
                         }
                     }
                 } catch (e) {
@@ -266,38 +293,44 @@ export class Backtester {
 
                 LOGGER.debug(`took  ${(now1 - now) / 1000}`);
 
-                const potentialTradesToPlace = filteredInstances.map(async (i) => {
-                    if (!i.nrbs.length) {
-                        return;
-                    }
-                    const todaysBars = this.getTodaysBars(i.symbol);
-
-                    const bars = this.replayBars[i.symbol];
-
-                    try {
-                        const bar = await this.findOrFetchBarByDate(
-                            this.currentDate.getTime(),
-                            i.symbol,
-                            bars,
-                            0,
-                            false,
-                            false
-                        );
-
-                        if (!bar) {
-                            LOGGER.warn(`no bar found`);
+                const potentialTradesToPlace = filteredInstances.map(
+                    async (i) => {
+                        if (!i.nrbs.length) {
                             return;
                         }
+                        const todaysBars = this.getTodaysBars(i.symbol);
 
-                        const recentBars = todaysBars.filter(
-                            (b) => b.t < this.currentDate.getTime()
-                        );
+                        const bars = this.replayBars[i.symbol];
 
-                        return i.screenForEntry(recentBars, this.currentDate, bar);
-                    } catch (e) {
-                        LOGGER.warn(e);
+                        try {
+                            const bar = await this.findOrFetchBarByDate(
+                                this.currentDate.getTime(),
+                                i.symbol,
+                                bars,
+                                0,
+                                false,
+                                false
+                            );
+
+                            if (!bar) {
+                                LOGGER.warn(`no bar found`);
+                                return;
+                            }
+
+                            const recentBars = todaysBars.filter(
+                                (b) => b.t < this.currentDate.getTime()
+                            );
+
+                            return i.screenForEntry(
+                                recentBars,
+                                this.currentDate,
+                                bar
+                            );
+                        } catch (e) {
+                            LOGGER.warn(e);
+                        }
                     }
-                });
+                );
 
                 /* Sinon.clock.restore(); */
 
@@ -344,22 +377,34 @@ export class Backtester {
 
             if (isAfterMarketClose(this.currentDate)) {
                 Object.keys(this.screenerBars).map((symbol) => {
-                    this.screenerBars[symbol] = this.screenerBars[symbol].filter(
-                        (b) => b.t > addBusinessDays(this.currentDate, -3).getTime()
+                    this.screenerBars[symbol] = this.screenerBars[
+                        symbol
+                    ].filter(
+                        (b) =>
+                            b.t >
+                            addBusinessDays(this.currentDate, -3).getTime()
                     );
                 });
                 Object.keys(this.replayBars).map((symbol) => {
                     this.replayBars[symbol] = this.replayBars[symbol].filter(
-                        (b) => b.t > addBusinessDays(this.currentDate, -3).getTime()
+                        (b) =>
+                            b.t >
+                            addBusinessDays(this.currentDate, -3).getTime()
                     );
                 });
                 Object.keys(this.screenerDailyBars).map((symbol) => {
-                    this.screenerDailyBars[symbol] = this.screenerDailyBars[symbol].filter(
-                        (b) => b.t > addBusinessDays(this.currentDate, -25).getTime()
+                    this.screenerDailyBars[symbol] = this.screenerDailyBars[
+                        symbol
+                    ].filter(
+                        (b) =>
+                            b.t >
+                            addBusinessDays(this.currentDate, -25).getTime()
                     );
                 });
                 this.goToNextDay();
-                LOGGER.info(`Going to next day at ${this.currentDate.toLocaleString()}`);
+                LOGGER.info(
+                    `Going to next day at ${this.currentDate.toLocaleString()}`
+                );
             }
         }
     }
@@ -388,7 +433,11 @@ export class Backtester {
         this.replayBars[symbol] = minuteBars;
         this.screenerBars[symbol] = fifteenBars;
 
-        return this.findBarByDate(time, symbol, useLongerBars ? fifteenBars : minuteBars);
+        return this.findBarByDate(
+            time,
+            symbol,
+            useLongerBars ? fifteenBars : minuteBars
+        );
     }
 
     async findOrFetchBarByDate(
@@ -400,7 +449,13 @@ export class Backtester {
         shouldForceAggregate = true
     ): Promise<Bar | null> {
         try {
-            const bar = this.findBarByDate(time, symbol, bars, offset, shouldForceAggregate);
+            const bar = this.findBarByDate(
+                time,
+                symbol,
+                bars,
+                offset,
+                shouldForceAggregate
+            );
 
             return bar;
         } catch (e) {
@@ -437,7 +492,10 @@ export class Backtester {
         const offsetBarIndex = barIndex + offset;
 
         if (aggregate < 5 && shouldForceAggregate) {
-            const aggregateBars = bars.slice(barIndex - 5 / aggregate, barIndex);
+            const aggregateBars = bars.slice(
+                barIndex - 5 / aggregate,
+                barIndex
+            );
 
             return aggregateBars.reduce(
                 (aggregatedBar, currentBar) => {
@@ -492,7 +550,10 @@ export class Backtester {
     tradeUpdater: EventEmitter = new EventEmitter();
 
     incrementDate() {
-        this.currentDate = addMilliseconds(this.currentDate, this.updateIntervalMillis);
+        this.currentDate = addMilliseconds(
+            this.currentDate,
+            this.updateIntervalMillis
+        );
     }
 
     goToNextDay() {
@@ -528,7 +589,9 @@ export class Backtester {
                 continue;
             }
 
-            const strategy = this.strategyInstances.find((i) => i.symbol === symbol);
+            const strategy = this.strategyInstances.find(
+                (i) => i.symbol === symbol
+            );
             const refreshBars = bars.filter(
                 (b) =>
                     confirmMarketOpen(this.calendar, b.t) &&
@@ -553,6 +616,19 @@ export class Backtester {
                 continue;
             }
 
+            const riskUnit =
+                (manager.plan.plannedEntryPrice -
+                    manager.plan.plannedStopPrice) /
+                5;
+
+            if (
+                (manager.plan.side === PositionDirection.long &&
+                    bar.l > manager.plan.plannedEntryPrice + riskUnit) ||
+                (manager.plan.side === PositionDirection.short &&
+                    bar.h < manager.plan.plannedEntryPrice + riskUnit)
+            ) {
+                continue;
+            }
             const position = this.broker.executeTrade(bar, manager);
 
             if (position) {
@@ -574,7 +650,11 @@ export class Backtester {
                 p.filledPosition.quantity
         );
 
-        if (!manager || !manager.filledPosition || !manager.filledPosition.quantity) {
+        if (
+            !manager ||
+            !manager.filledPosition ||
+            !manager.filledPosition.quantity
+        ) {
             return null;
         }
 
@@ -609,19 +689,30 @@ export class Backtester {
             const bars = this.replayBars[symbol];
 
             if (!bars) {
-                LOGGER.warn(`no bars found for date ${this.currentDate} for ${symbol}`);
+                LOGGER.warn(
+                    `no bars found for date ${this.currentDate} for ${symbol}`
+                );
                 continue;
             }
 
-            const bar = await this.findOrFetchBarByDate(this.currentDate.getTime(), symbol, bars);
+            const bar = await this.findOrFetchBarByDate(
+                this.currentDate.getTime(),
+                symbol,
+                bars
+            );
 
             if (!bar) {
-                LOGGER.warn(`no bars found for date ${this.currentDate} for ${symbol}`);
+                LOGGER.warn(
+                    `no bars found for date ${this.currentDate} for ${symbol}`
+                );
                 continue;
             }
 
             const manager = this.managers.find(
-                (p) => p.plan.symbol === symbol && p.filledPosition && p.filledPosition.quantity
+                (p) =>
+                    p.plan.symbol === symbol &&
+                    p.filledPosition &&
+                    p.filledPosition.quantity
             );
 
             if (!manager) {
@@ -629,11 +720,15 @@ export class Backtester {
                 continue;
             }
             if (!bar) {
-                LOGGER.warn(`no bar for ${symbol} at ${this.currentDate.toISOString()}`);
+                LOGGER.warn(
+                    `no bar for ${symbol} at ${this.currentDate.toISOString()}`
+                );
                 continue;
             }
 
-            trades.push(await manager.rebalancePosition(bar, this.currentDate.getTime()));
+            trades.push(
+                await manager.rebalancePosition(bar, this.currentDate.getTime())
+            );
         }
 
         return trades;
@@ -643,11 +738,13 @@ export class Backtester {
         let todaysBars = this.todaysScreenerBars[symbol];
 
         if (!todaysBars) {
-            this.todaysScreenerBars[symbol] = this.screenerBars[symbol].filter((b) => {
-                const sameDay = isSameDay(b.t, this.currentDate);
-                const marketOpen = confirmMarketOpen(this.calendar, b.t);
-                return sameDay && marketOpen;
-            });
+            this.todaysScreenerBars[symbol] = this.screenerBars[symbol].filter(
+                (b) => {
+                    const sameDay = isSameDay(b.t, this.currentDate);
+                    const marketOpen = confirmMarketOpen(this.calendar, b.t);
+                    return sameDay && marketOpen;
+                }
+            );
 
             todaysBars = this.todaysScreenerBars[symbol];
         }
@@ -659,11 +756,13 @@ export class Backtester {
         let todaysBars = this.todaysReplayBars[symbol];
 
         if (!todaysBars) {
-            this.todaysReplayBars[symbol] = this.replayBars[symbol].filter((b) => {
-                const sameDay = isSameDay(b.t, this.currentDate);
-                const marketOpen = confirmMarketOpen(this.calendar, b.t);
-                return sameDay && marketOpen;
-            });
+            this.todaysReplayBars[symbol] = this.replayBars[symbol].filter(
+                (b) => {
+                    const sameDay = isSameDay(b.t, this.currentDate);
+                    const marketOpen = confirmMarketOpen(this.calendar, b.t);
+                    return sameDay && marketOpen;
+                }
+            );
 
             todaysBars = this.todaysReplayBars[symbol];
         }

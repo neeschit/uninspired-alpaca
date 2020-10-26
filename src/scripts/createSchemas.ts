@@ -2,8 +2,8 @@ import {
     checkIfTableExistsForSymbol,
     createStorageTables,
     createMetadataTables,
-    dropStorageTables, 
-    createDbIfNotExists
+    dropStorageTables,
+    createDbIfNotExists,
 } from "../resources/stockData";
 import { LOGGER } from "../instrumentation/log";
 import { endPooledConnection } from "../connection/pg";
@@ -37,6 +37,10 @@ async function run() {
     await endPooledConnection();
 }
 
-run().then(() => {
-    LOGGER.info("all done");
-});
+run()
+    .then(() => {
+        LOGGER.info("all done");
+    })
+    .catch((e) => {
+        console.error(e);
+    });
