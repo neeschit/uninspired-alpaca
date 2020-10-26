@@ -43,7 +43,7 @@
     "screener": "SERVICE_NAME=screener node --inspect=9698 --enable-source-maps build/deployable/screener.service.js",
     "data": "SERVICE_NAME=data node --inspect=9699 --enable-source-maps build/deployable/data.service.js",
     "test:jest": "NODE_ENV=test jest",
-    "version": "tsc --version"
+    "verse": "tsc --version"
   },
   "ava": {
     "typescript": {
