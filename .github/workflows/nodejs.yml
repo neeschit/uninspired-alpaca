@@ -20,6 +20,7 @@ jobs:
               run: |
                   curl --compressed -o- -L https://yarnpkg.com/install.sh | bash
                   yarn install
+                  yarn version
                   yarn build
                   yarn test:ci
                   yarn test:jest --ci
