@@ -125,23 +125,6 @@ export const insertOrder = async (
     position: PositionConfig,
     orderStatus = OrderStatus.new
 ): Promise<Order | null> => {
-    if (isBacktestingEnv()) {
-        return {
-            id: 1,
-            positionId: position.id,
-            symbol: order.symbol,
-            status: orderStatus,
-            filledQuantity: 0,
-            averagePrice: 0,
-            stopPrice: order.stop_price || 0,
-            limitPrice: order.limit_price || 0,
-            side: order.side,
-            quantity: order.qty,
-            tif: order.time_in_force,
-            type: order.type,
-        };
-    }
-
     const pool = getConnection();
 
     const query = getInsertOrdersSql(order, position, orderStatus);

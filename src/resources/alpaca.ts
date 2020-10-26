@@ -1,5 +1,6 @@
-import Alpaca from "@neeschit/alpaca-trade-api";
+import Alpaca, { OrderStatus } from "@neeschit/alpaca-trade-api";
 import * as dotenv from "dotenv";
+import { open } from "fs";
 
 const config = dotenv.config().parsed;
 
@@ -13,3 +14,9 @@ export const alpaca = Alpaca({
     paper: true,
     usePolygon: true,
 });
+
+export const getOpenOrders = () => {
+    return alpaca.getOrders({
+        status: 'open'
+    })
+}

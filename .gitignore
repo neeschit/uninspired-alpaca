@@ -5,3 +5,5 @@ build
 tf/credentials.json
 tf/**/terraform-provider-*
 data/cache
+coverage
+.DS_Store
