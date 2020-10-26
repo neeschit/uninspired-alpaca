@@ -23,7 +23,7 @@ jobs:
                   yarn verse
                   yarn build
                   yarn test:ci
-                  yarn test:jest --ci
+                  yarn test:jest --ci --debug
               env:
                   CI: true
                   ALPACA_SECRET_KEY_ID: ${{ secrets.ALPACA_SECRET_KEY_ID }}
