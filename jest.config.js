@@ -147,7 +147,7 @@ module.exports = {
     //   "**/?(*.)+(spec|test).[tj]s?(x)"
     // ],
 
-    testMatch: ["**/*.jest.spec.ts"],
+    testMatch: ["**/*.jest.ts"],
 
     // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
     // testPathIgnorePatterns: [
