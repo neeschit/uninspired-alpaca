@@ -10,11 +10,15 @@ export const createOrderSynchronized = async (
 ): Promise<Order | null> => {
     const openOrders = await getOpenOrders();
 
+    if (!openOrders?.length) {
+        return insertOrder(order, position, orderStatus);
+    }
+
     const openOrderForSymbol = openOrders.filter(
         (o) => o.symbol === order.symbol
     );
 
-    if (openOrderForSymbol?.length) {
+    if (openOrderForSymbol.length) {
         return null;
     }
 

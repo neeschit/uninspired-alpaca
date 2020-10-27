@@ -10,10 +10,12 @@ import { PositionConfig } from "../resources/position";
 jest.mock("../resources/alpaca");
 
 import * as AlpacaResources from "../resources/alpaca";
+import { insertOrder } from "../resources/order";
 
 jest.mock("../resources/order");
 
 const mockGetOpenOrders = <jest.Mock>AlpacaResources.getOpenOrders;
+const mockInsertOrder = <jest.Mock>insertOrder;
 
 const position: PositionConfig = {
     plannedEntryPrice: 200,
@@ -25,12 +27,11 @@ const position: PositionConfig = {
     originalQuantity: 100,
     id: 1,
 };
+
 test("simple create order", async () => {
-    mockGetOpenOrders.mockReturnValue([
-        {
-            symbol: "ABC",
-        },
-    ]);
+    mockInsertOrder.mockResolvedValueOnce({
+        id: 1,
+    });
     const order = await createOrderSynchronized(
         {
             symbol: "VZ",
@@ -46,7 +47,35 @@ test("simple create order", async () => {
         position
     );
 
-    expect(order).toBeFalsy();
+    expect(order).toBeTruthy();
+});
+
+test("simple create order with unrelated pending", async () => {
+    mockGetOpenOrders.mockReturnValue([
+        {
+            symbol: "Z",
+        },
+    ]);
+    mockInsertOrder.mockResolvedValueOnce({
+        id: 1,
+    });
+
+    const order = await createOrderSynchronized(
+        {
+            symbol: "VZ",
+            side: TradeDirection.buy,
+            qty: 100,
+            stop_price: 200,
+            limit_price: 200,
+            type: TradeType.market,
+            time_in_force: TimeInForce.gtc,
+            extended_hours: false,
+            order_class: "simple",
+        },
+        position
+    );
+
+    expect(order).toBeTruthy();
 });
 
 test("create order with an open order already existing", async () => {
