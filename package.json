@@ -48,7 +48,7 @@
   "ava": {
     "typescript": {
       "rewritePaths": {
-        "src/": "build/src"
+        "src/": "build/"
       }
     }
   }
