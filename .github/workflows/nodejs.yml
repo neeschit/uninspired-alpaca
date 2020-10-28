@@ -20,7 +20,6 @@ jobs:
               run: |
                   curl --compressed -o- -L https://yarnpkg.com/install.sh | bash
                   yarn install
-                  yarn verse
                   yarn build
                   yarn test:ci
                   yarn test --ci --debug --config jest.config.ci.js
