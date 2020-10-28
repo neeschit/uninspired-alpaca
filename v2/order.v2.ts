@@ -1,7 +1,7 @@
 import { AlpacaTradeConfig, OrderStatus } from "@neeschit/alpaca-trade-api";
-import { getOpenOrders } from "../resources/alpaca";
-import { insertOrder, Order } from "../resources/order";
-import { PositionConfig } from "../resources/position";
+import { getOpenOrders } from "../src/resources/alpaca";
+import { insertOrder, Order } from "../src/resources/order";
+import { PositionConfig } from "../src/resources/position";
 
 export const createOrderSynchronized = async (
     order: AlpacaTradeConfig,

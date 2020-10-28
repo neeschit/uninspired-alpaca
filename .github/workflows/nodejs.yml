@@ -20,10 +20,9 @@ jobs:
               run: |
                   curl --compressed -o- -L https://yarnpkg.com/install.sh | bash
                   yarn install
-                  yarn verse
                   yarn build
                   yarn test:ci
-                  yarn test:jest --ci --debug
+                  yarn test --ci --debug --config jest.config.ci.js
               env:
                   CI: true
                   ALPACA_SECRET_KEY_ID: ${{ secrets.ALPACA_SECRET_KEY_ID }}

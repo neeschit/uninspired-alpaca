@@ -3,7 +3,11 @@ import { DefaultDuration, PeriodType } from "../data/data.model";
 import { addDays, startOfDay, addBusinessDays, endOfDay } from "date-fns";
 import { LOGGER } from "../instrumentation/log";
 import { getPolyonData } from "../resources/polygon";
-import { insertBar, batchInsertBars, batchInsertDailyBars } from "../resources/stockData";
+import {
+    insertBar,
+    batchInsertBars,
+    batchInsertDailyBars,
+} from "../resources/stockData";
 
 const companies: string[] = getMegaCaps();
 
@@ -46,7 +50,7 @@ async function run(duration = DefaultDuration.one, period = PeriodType.minute) {
     }
 
     for (const symbol of companies) {
-        const endDate = endOfDay(addDays(Date.now(), 0));
+        const endDate = endOfDay(addDays(Date.now(), 1));
         for (
             let date = startDate;
             date.getTime() < endDate.getTime();

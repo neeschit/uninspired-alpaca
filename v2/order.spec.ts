@@ -5,14 +5,14 @@ import {
     TimeInForce,
 } from "@neeschit/alpaca-trade-api";
 import { createOrderSynchronized } from "./order.v2";
-import { PositionConfig } from "../resources/position";
+import { PositionConfig } from "../src/resources/position";
 
-jest.mock("../resources/alpaca");
+jest.mock("../src/resources/alpaca");
 
-import * as AlpacaResources from "../resources/alpaca";
-import { insertOrder } from "../resources/order";
+import * as AlpacaResources from "../src/resources/alpaca";
+import { insertOrder } from "../src/resources/order";
 
-jest.mock("../resources/order");
+jest.mock("../src/resources/order");
 
 const mockGetOpenOrders = <jest.Mock>AlpacaResources.getOpenOrders;
 const mockInsertOrder = <jest.Mock>insertOrder;

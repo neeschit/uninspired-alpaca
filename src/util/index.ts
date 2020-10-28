@@ -4,6 +4,7 @@ import { LOGGER } from "../instrumentation/log";
 import { existsSync, readdirSync, writeFileSync, appendFileSync } from "fs";
 import { ensureDirSync } from "fs-extra";
 import { isMarketHoliday } from "./market";
+import { currentTradingSymbols } from "../data/filters";
 
 export * from "./get";
 
@@ -50,7 +51,9 @@ export const verifyBarData = (bars: Bar[]) => {
 
             if (!isHoliday) {
                 LOGGER.warn(
-                    `Expected diff of 1 - got ${diff} for ${new Date(bars[i].t)} for 
+                    `Expected diff of 1 - got ${diff} for ${new Date(
+                        bars[i].t
+                    )} for 
                         ${new Date(bars[i - 1].t)}`
                 );
                 return false;
