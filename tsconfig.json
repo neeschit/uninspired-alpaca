@@ -12,6 +12,6 @@
         "esModuleInterop": true,
         "sourceMap": true
     },
-    "include": ["src/**/*"],
+    "include": ["src/**/*", "v2/**/*"],
     "exclude": ["node_modules"]
 }

@@ -8,10 +8,10 @@ import { getDetailedPerformanceReport } from "../services/performance";
 import { getMegaCaps, getLargeCaps } from "../data/filters";
 import { MockBroker } from "../services/mockExecution";
 
-const startDate = "2020-09-03 09:00:00.000";
+const startDate = "2020-10-27 09:00:00.000";
 const zonedStartDate = zonedTimeToUtc(startDate, MarketTimezone);
 
-const endDate = parseISO("2020-09-14 16:40:00.000");
+const endDate = parseISO("2020-10-27 16:40:00.000");
 
 const zonedEndDate = zonedTimeToUtc(endDate, MarketTimezone);
 
