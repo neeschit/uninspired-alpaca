@@ -15,7 +15,7 @@ companies.push(...currentIndices);
 
 async function run(duration = DefaultDuration.one, period = PeriodType.minute) {
     const startDate = startOfDay(addBusinessDays(Date.now(), -5));
-    /* for (const symbol of companies) {
+    for (const symbol of companies) {
         const endDate = startOfDay(addBusinessDays(Date.now(), 1));
 
         for (
@@ -47,7 +47,7 @@ async function run(duration = DefaultDuration.one, period = PeriodType.minute) {
                 } catch (e) {}
             }
         }
-    } */
+    }
 
     for (const symbol of companies) {
         const endDate = endOfDay(addDays(Date.now(), 1));
