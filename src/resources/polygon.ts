@@ -1,7 +1,12 @@
 import * as dotenv from "dotenv";
 import { format } from "date-fns";
 import { getHttps } from "../util/get";
-import { PeriodType, DefaultDuration, Bar, PolygonBar } from "../data/data.model";
+import {
+    PeriodType,
+    DefaultDuration,
+    Bar,
+    PolygonBar,
+} from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
 
 const config = dotenv.config().parsed;
@@ -17,6 +22,13 @@ const getPolygonApiUrl = (resourceUrl: string, version = "v1") =>
 export const getTickerDetails = (symbol: string) => {
     const resourceUrl = `meta/symbols/${symbol.toUpperCase()}/company`;
     const url = getPolygonApiUrl(resourceUrl);
+
+    return getHttps(url);
+};
+
+export const getStockFinancials = (symbol: string) => {
+    const resourceUrl = `reference/financials/${symbol.toUpperCase()}`;
+    const url = getPolygonApiUrl(resourceUrl, "v2");
 
     return getHttps(url);
 };
@@ -79,7 +91,13 @@ export const getSymbolDataGenerator = (
 ) => {
     return async function* () {
         for (const symbol of symbols) {
-            const bars = await getSimplePolygonData(symbol, startDate, endDate, period, duration);
+            const bars = await getSimplePolygonData(
+                symbol,
+                startDate,
+                endDate,
+                period,
+                duration
+            );
 
             yield {
                 bars,
@@ -98,7 +116,13 @@ export const getSymbolDataPromises = async (
 ) => {
     const allBars: { bars: Promise<Bar[]>; symbol: string }[] = [];
     for (const symbol of symbols) {
-        const bars = getSimplePolygonData(symbol, startDate, endDate, period, duration);
+        const bars = getSimplePolygonData(
+            symbol,
+            startDate,
+            endDate,
+            period,
+            duration
+        );
 
         allBars.push({
             bars,

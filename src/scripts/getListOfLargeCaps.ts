@@ -1,6 +1,6 @@
-import  { getCompaniesByMarketCap } from "../data/marketcap"
-import  { writeFileSync } from "fs"
+import { getCompaniesByMarketCap } from "../data/marketcap";
+import { writeFileSync } from "fs";
 
-getCompaniesByMarketCap(10000000000).then(response => {
-    writeFileSync("./largecaps.json", JSON.stringify(response));
+getCompaniesByMarketCap(50000000000).then((response) => {
+    writeFileSync("./megacaps_new.json", JSON.stringify(response));
 });
