@@ -22,7 +22,6 @@ jobs:
                   yarn install
                   yarn build
                   yarn test:ci
-                  yarn test --ci --debug --config jest.config.ci.js
               env:
                   CI: true
                   ALPACA_SECRET_KEY_ID: ${{ secrets.ALPACA_SECRET_KEY_ID }}
