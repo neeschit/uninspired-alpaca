@@ -16,11 +16,9 @@ export interface ORBParams {
     shouldCancelIfAboveEntry: boolean;
 }
 
-export const isTimeForOrbEntry = (now: TimestampType) => {
-    const timeStart = convertToLocalTime(now, " 09:59:45.000");
-    const timeEnd = convertToLocalTime(now, " 11:45:15.000");
-
-    const nowMillis = now instanceof Date ? now.getTime() : now;
+export const isTimeForOrbEntry = (nowMillis: number) => {
+    const timeStart = convertToLocalTime(nowMillis, " 09:59:45.000");
+    const timeEnd = convertToLocalTime(nowMillis, " 11:45:15.000");
 
     const isWithinEntryRange =
         timeStart.getTime() <= nowMillis && timeEnd.getTime() >= nowMillis;
@@ -73,6 +71,26 @@ export interface TradePlan {
     symbol: string;
 }
 
+export const getLongStop = (
+    marketBarsSoFar: Bar[],
+    spread: number,
+    proposedTradeStop: number
+) => {
+    return marketBarsSoFar.slice(-6).reduce((stop, b) => {
+        return b.l >= stop - spread && b.l < stop ? b.l : stop;
+    }, proposedTradeStop);
+};
+
+export const getShortStop = (
+    marketBarsSoFar: Bar[],
+    spread: number,
+    proposedTradeStop: number
+) => {
+    return marketBarsSoFar.slice(-6).reduce((stop, b) => {
+        return b.h <= stop + spread && b.h > stop ? b.h : stop;
+    }, proposedTradeStop);
+};
+
 export const getSafeOrbEntryPlan = ({
     lastPrice,
     openingBar,
@@ -87,38 +105,53 @@ export const getSafeOrbEntryPlan = ({
 
     let plan: TradePlan;
 
+    const spread = currentAtr / 5;
+
+    const rangeHigh = Math.max(
+        openingBar.h,
+        marketBarsSoFar.reduce((prev, bar) => {
+            return bar.h > prev && bar.h <= prev + spread ? bar.h : prev;
+        }, marketBarsSoFar[0].h)
+    );
+
+    const rangeLow = Math.min(
+        openingBar.l,
+        marketBarsSoFar.reduce((prev, bar) => {
+            return bar.l < prev && bar.l >= prev - spread ? bar.l : prev;
+        }, marketBarsSoFar[0].l)
+    );
+
     if (direction === PositionDirection.long) {
-        const rangeHigh = Math.max(
-            openingBar.h,
-            marketBarsSoFar.reduce((prev, bar) => {
-                return bar.h > prev && bar.h < prev + currentAtr / 5
-                    ? bar.h
-                    : prev;
-            }, marketBarsSoFar[0].h)
-        );
         const stopEntryLong = rangeHigh + currentAtr / 20;
+        const proposedTradeStop = rangeHigh - currentAtr * 1.2;
+
+        const tradeStop = getLongStop(
+            marketBarsSoFar,
+            spread,
+            proposedTradeStop
+        );
+
         plan = {
             entry: stopEntryLong,
             limit: stopEntryLong + currentAtr / 12,
-            stop: rangeHigh - currentAtr * 1.2,
+            stop: tradeStop,
             symbol,
             direction,
         };
     } else {
-        const rangeLow = Math.min(
-            openingBar.l,
-            marketBarsSoFar.reduce((prev, bar) => {
-                return bar.l < prev && bar.l > prev - currentAtr / 5
-                    ? bar.l
-                    : prev;
-            }, marketBarsSoFar[0].l)
-        );
         const stopEntryShort = rangeLow - currentAtr / 20;
+        const proposedTradeStop = rangeLow + currentAtr * 1.2;
+
+        const tradeStop = getShortStop(
+            marketBarsSoFar,
+            spread,
+            proposedTradeStop
+        );
 
         plan = {
             entry: stopEntryShort,
             limit: stopEntryShort - currentAtr / 12,
-            stop: rangeLow + currentAtr * 1.2,
+            stop: tradeStop,
             symbol,
             direction,
         };

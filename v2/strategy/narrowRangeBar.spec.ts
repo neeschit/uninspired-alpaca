@@ -4,7 +4,12 @@ import { Bar } from "../../src/data/data.model";
 import { getAverageTrueRange } from "../../src/indicator/trueRange";
 import { ceilHalf } from "../../src/util";
 import { isMarketOpen } from "../../src/util/market";
-import { getSafeOrbEntryPlan, NarrowRangeBarStrategy } from "./narrowRangeBar";
+import {
+    getLongStop,
+    getSafeOrbEntryPlan,
+    getShortStop,
+    NarrowRangeBarStrategy,
+} from "./narrowRangeBar";
 
 const getTestData = (bars: Bar[], entryTime: number) => {
     const marketBarsSoFar = bars.filter((b) => b.t < entryTime);
@@ -95,7 +100,7 @@ test("getSafeORBPlan - short", () => {
     expect(plan!.direction).toEqual(PositionDirection.short);
     expect(plan!.entry).toBeGreaterThanOrEqual(120.65);
     expect(plan!.entry).toBeLessThanOrEqual(120.68);
-    expect(plan!.stop).toBeLessThanOrEqual(ceilHalf(openingBar.h));
+    expect(plan!.stop).toEqual(121.53);
 });
 
 test("getSafeORBPlan - outside range long", () => {
@@ -122,4 +127,22 @@ test("getSafeORBPlan - outside range long", () => {
     expect(plan!.entry).toBeLessThanOrEqual(25.64);
     expect(plan!.limit).toEqual(plan!.entry);
     expect(plan!.stop).toBeGreaterThanOrEqual(25.48);
+});
+
+test("getShortStop", () => {
+    const bars = readJsonSync("./fixtures/short-stop.json");
+
+    const stop = getShortStop(bars, 0.150391678154366, 158.6723500689262);
+
+    expect(stop).toBeGreaterThan(158.7);
+    expect(stop).toBeLessThanOrEqual(158.8);
+});
+
+test("getLongStop", () => {
+    const bars: Bar[] = readJsonSync("./fixtures/long-stop.json");
+
+    const stop = getLongStop(bars, 0.1074375000000007, 120.885375);
+
+    expect(stop).toBeGreaterThan(120.69);
+    expect(stop).toBeLessThanOrEqual(120.79);
 });

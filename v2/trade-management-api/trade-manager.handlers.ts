@@ -1,9 +1,13 @@
-import Alpaca from "@neeschit/alpaca-trade-api";
 import { format } from "date-fns";
 import { getWatchlistFromScreenerService } from "../screener-api/screener.interfaces";
-import { isTimeForOrbEntry } from "../../src/strategy/narrowRangeBar";
-
-export const positionCache: Alpaca.AlpacaPosition[] = [];
+import { getOpenPositions } from "../../src/resources/alpaca";
+import { getAverageTrueRange } from "../../src/indicator/trueRange";
+import {
+    getSafeOrbEntryPlan,
+    isTimeForOrbEntry,
+} from "../strategy/narrowRangeBar";
+import { getData, getSimpleData } from "../../src/resources/stockData";
+import { getMarketOpenMillis, isMarketOpen } from "../../src/util/market";
 
 export const lookForEntry = async (symbol: string, epoch = Date.now()) => {
     const watchlist = await getWatchlistFromScreenerService(
@@ -14,9 +18,34 @@ export const lookForEntry = async (symbol: string, epoch = Date.now()) => {
         return null;
     }
 
+    const positions = await getOpenPositions();
+
+    if (positions.some((p) => p.symbol === symbol)) {
+        return null;
+    }
+
     if (!isTimeForOrbEntry(epoch)) {
         return null;
     }
 
-    return true;
+    const data = await getData(
+        symbol,
+        getMarketOpenMillis(epoch).getTime(),
+        "5 minutes",
+        epoch
+    );
+
+    const { atr } = getAverageTrueRange(data, false);
+
+    const currentAtr = atr!.pop()!.value;
+
+    const plan = getSafeOrbEntryPlan({
+        currentAtr,
+        marketBarsSoFar: data,
+        symbol,
+        lastPrice: data[data.length - 1].c,
+        openingBar: data[0],
+    });
+
+    return plan;
 };
