@@ -77,7 +77,7 @@ export const getLongStop = (
     proposedTradeStop: number
 ) => {
     return marketBarsSoFar.slice(-6).reduce((stop, b) => {
-        return b.l >= stop - spread && b.l < stop ? b.l : stop;
+        return b.l >= proposedTradeStop - spread && b.l < stop ? b.l : stop;
     }, proposedTradeStop);
 };
 
@@ -87,7 +87,7 @@ export const getShortStop = (
     proposedTradeStop: number
 ) => {
     return marketBarsSoFar.slice(-6).reduce((stop, b) => {
-        return b.h <= stop + spread && b.h > stop ? b.h : stop;
+        return b.h <= proposedTradeStop + spread && b.h > stop ? b.h : stop;
     }, proposedTradeStop);
 };
 

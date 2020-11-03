@@ -143,6 +143,5 @@ test("getLongStop", () => {
 
     const stop = getLongStop(bars, 0.1074375000000007, 120.885375);
 
-    expect(stop).toBeGreaterThan(120.69);
-    expect(stop).toBeLessThanOrEqual(120.79);
+    expect(stop).toEqual(120.79459);
 });
