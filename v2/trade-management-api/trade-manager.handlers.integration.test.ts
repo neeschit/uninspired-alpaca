@@ -32,7 +32,7 @@ test("lookForEntry when in watchlist & timing for entry is correct", async () =>
 test("lookForEntry in CCI", async () => {
     mockGetOpenPositions.mockResolvedValueOnce([{ symbol: "BDX" }]);
     mockWatchlist.mockReturnValueOnce(["AAPL", "BDX", "CCI", "VZ"]);
-    const result = await lookForEntry("CCI", 1603895590000); //?
+    const result = await lookForEntry("CCI", 1603895590000);
 
     expect(result).toBeTruthy();
     expect(result!.symbol).toEqual("CCI");

@@ -119,7 +119,7 @@ test("convert to bracket order", async () => {
 
     const bracketOrder = convertPlanToAlpacaBracketOrder(plan, {
         id: 1,
-    } as Order); //?
+    } as Order);
 
     expect(bracketOrder.order_class).toEqual("bracket");
     expect(bracketOrder.take_profit).toBeTruthy();

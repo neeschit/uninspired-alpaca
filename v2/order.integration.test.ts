@@ -25,7 +25,7 @@ test("create bracket order", async () => {
 
     const result = await createBracketOrder(order);
 
-    const orders = await getOpenOrders(); //?
+    const orders = await getOpenOrders();
 
     expect(orders.some((o) => o.client_order_id === orderId)).toBeTruthy();
 
