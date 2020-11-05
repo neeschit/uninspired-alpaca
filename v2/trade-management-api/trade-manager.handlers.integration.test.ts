@@ -1,6 +1,7 @@
 import { lookForEntry } from "./trade-manager.handlers";
 import { getWatchlistFromScreenerService } from "../screener-api/screener.interfaces";
 import { getOpenPositions } from "../../src/resources/alpaca";
+import { endPooledConnection } from "../../src/connection/pg";
 
 jest.mock("../screener-api/screener.interfaces");
 
@@ -31,7 +32,8 @@ test("lookForEntry when in watchlist & timing for entry is correct", async () =>
 test("lookForEntry in CCI", async () => {
     mockGetOpenPositions.mockResolvedValueOnce([{ symbol: "BDX" }]);
     mockWatchlist.mockReturnValueOnce(["AAPL", "BDX", "CCI", "VZ"]);
-    const result = await lookForEntry("CCI", 1603895590000);
+    const result = await lookForEntry("CCI", 1603895590000); //?
+
     expect(result).toBeTruthy();
     expect(result!.symbol).toEqual("CCI");
     expect(result!.entry).not.toEqual(result!.limit);
@@ -55,4 +57,8 @@ test("lookForEntry when in watchlist but also has an open position", async () =>
     const result = await lookForEntry("VZ", 1603895590000);
 
     expect(result).toBeFalsy();
+});
+
+afterAll(async () => {
+    await endPooledConnection();
 });

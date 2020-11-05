@@ -1,3 +1,4 @@
+import { endPooledConnection } from "../../src/connection/pg";
 import { currentTradingSymbols } from "../../src/data/filters";
 import { getWatchlistForDate } from "./screener.handlers";
 
@@ -8,4 +9,8 @@ test("getWatchListForDate", async () => {
 
     expect(watchList).toBeTruthy();
     expect(watchList).toStrictEqual(["AMZN", "JNJ", "NFLX", "PFE", "VRTX"]);
+});
+
+afterAll(async () => {
+    await endPooledConnection();
 });

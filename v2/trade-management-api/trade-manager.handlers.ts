@@ -6,8 +6,8 @@ import {
     getSafeOrbEntryPlan,
     isTimeForOrbEntry,
 } from "../strategy/narrowRangeBar";
-import { getData, getSimpleData } from "../../src/resources/stockData";
-import { getMarketOpenMillis, isMarketOpen } from "../../src/util/market";
+import { getData } from "../../src/resources/stockData";
+import { getMarketOpenMillis } from "../../src/util/market";
 
 export const lookForEntry = async (symbol: string, epoch = Date.now()) => {
     const watchlist = await getWatchlistFromScreenerService(

@@ -1,6 +1,3 @@
-import { VolumeProfileBar } from "../indicator/volumeProfile";
-import { IndicatorValue } from "../indicator/adx";
-import { Bar } from "../data/data.model";
 import { roundHalf, ceilHalf, floorHalf } from "../util";
 
 export const TRADING_RISK_UNIT_CONSTANT = 100;
@@ -11,8 +8,6 @@ export const assessRisk = (
     currentPrice: number
 ): number => {
     const minStop = Number((dailyAtr / 8).toFixed(2));
-
-    // const minStop = rawStop > 0.5 ? roundHalf(rawStop) : rawStop;
 
     const proposedStopUnits = Math.max(minStop, currentIntradayAtr, 0.3);
 

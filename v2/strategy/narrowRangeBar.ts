@@ -1,9 +1,12 @@
-import { TimestampType, Bar } from "../../src/data/data.model";
+import { Bar } from "../../src/data/data.model";
 import { LOGGER } from "../../src/instrumentation/log";
 import { convertToLocalTime } from "../../src/util/date";
-import { PositionDirection, TradeDirection } from "@neeschit/alpaca-trade-api";
+import { PositionDirection } from "@neeschit/alpaca-trade-api";
 import { getAverageTrueRange } from "../../src/indicator/trueRange";
 import { IndicatorValue } from "../../src/indicator/adx";
+
+export const RISK_PER_ORDER = 100;
+export const PROFIT_RATIO = 1;
 
 export interface ORBParams {
     currentIntradayAtr: number;
@@ -67,6 +70,8 @@ export interface TradePlan {
     stop: number;
     limit: number;
     entry: number;
+    target: number;
+    quantity: number;
     direction: PositionDirection;
     symbol: string;
 }
@@ -103,7 +108,7 @@ export const getSafeOrbEntryPlan = ({
 
     const direction = getOrbDirection(openingBar, lastPrice);
 
-    let plan: TradePlan;
+    let plan: Omit<TradePlan, "quantity">;
 
     const spread = currentAtr / 5;
 
@@ -122,36 +127,36 @@ export const getSafeOrbEntryPlan = ({
     );
 
     if (direction === PositionDirection.long) {
-        const stopEntryLong = rangeHigh + currentAtr / 20;
+        const entry = rangeHigh + currentAtr / 20;
         const proposedTradeStop = rangeHigh - currentAtr * 1.2;
 
-        const tradeStop = getLongStop(
-            marketBarsSoFar,
-            spread,
-            proposedTradeStop
-        );
+        const stop = getLongStop(marketBarsSoFar, spread, proposedTradeStop);
+
+        const limit = entry + currentAtr / 12;
+
+        const target = entry + (entry - stop) * PROFIT_RATIO;
 
         plan = {
-            entry: stopEntryLong,
-            limit: stopEntryLong + currentAtr / 12,
-            stop: tradeStop,
+            entry,
+            limit,
+            stop,
+            target,
             symbol,
             direction,
         };
     } else {
-        const stopEntryShort = rangeLow - currentAtr / 20;
+        const entry = rangeLow - currentAtr / 20;
         const proposedTradeStop = rangeLow + currentAtr * 1.2;
 
-        const tradeStop = getShortStop(
-            marketBarsSoFar,
-            spread,
-            proposedTradeStop
-        );
+        const stop = getShortStop(marketBarsSoFar, spread, proposedTradeStop);
+        const limit = entry - currentAtr / 12;
+        const target = entry + (entry - stop) * PROFIT_RATIO;
 
         plan = {
-            entry: stopEntryShort,
-            limit: stopEntryShort - currentAtr / 12,
-            stop: tradeStop,
+            entry,
+            limit,
+            target,
+            stop,
             symbol,
             direction,
         };
@@ -161,7 +166,14 @@ export const getSafeOrbEntryPlan = ({
         plan.entry = plan.limit;
     }
 
-    return plan;
+    const quantity = Math.floor(RISK_PER_ORDER / plan.limit - plan.stop);
+
+    return Object.assign(
+        {
+            quantity,
+        },
+        plan
+    );
 };
 
 export class NarrowRangeBarStrategy {
