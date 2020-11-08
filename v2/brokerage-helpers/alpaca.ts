@@ -4,7 +4,7 @@ import Alpaca, {
 } from "@neeschit/alpaca-trade-api";
 import * as dotenv from "dotenv";
 
-const config = dotenv.config().parsed;
+dotenv.config();
 
 const API_KEY = process.env.ALPACA_SECRET_KEY_ID;
 

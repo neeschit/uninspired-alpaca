@@ -62,6 +62,26 @@ test("create bracket order - no quantity", async () => {
         time_in_force: TimeInForce.day,
         side: TradeDirection.sell,
         extended_hours: false,
+        qty: 0,
+    };
+
+    expect(createBracketOrder.bind({}, order)).toThrow();
+});
+
+test("create bracket order - negative quantity", async () => {
+    const orderId = "01" + Date.now();
+    const order = {
+        order_class: "bracket" as any,
+        client_order_id: orderId,
+        symbol,
+        stop_price: 77.7324020804614,
+        limit_price: 77.66973888123042,
+        stop_loss: { stop_price: 158.79 },
+        take_profit: { limit_price: 156.67480416092283 },
+        type: TradeType.stop_limit,
+        time_in_force: TimeInForce.day,
+        side: TradeDirection.sell,
+        extended_hours: false,
         qty: -159,
     };
 
