@@ -1,27 +1,39 @@
 import {
+    TradeType,
     TimeInForce,
     TradeDirection,
-    TradeType,
 } from "@neeschit/alpaca-trade-api";
-import { alpaca, getOpenOrders } from "../src/resources/alpaca";
-import { createBracketOrder } from "./order.v2";
+import {
+    createBracketOrder,
+    getOpenOrders,
+    alpaca,
+    getOpenPositions,
+} from "./alpaca";
+
+const symbol = "ARWR";
 
 test("create bracket order", async () => {
     const orderId = "01" + Date.now();
     const order = {
         order_class: "bracket" as any,
         client_order_id: orderId,
-        symbol: "CCI",
-        stop_price: 157.7324020804614,
-        limit_price: 157.66973888123042,
-        stop_loss: { stop_price: 158.79 },
-        take_profit: { limit_price: 156.67480416092283 },
+        symbol,
+        stop_price: 92.924020804614,
+        limit_price: 93.65973888123042,
+        stop_loss: { stop_price: 91.79 },
+        take_profit: { limit_price: 94.67480416092283 },
         type: TradeType.stop_limit,
         time_in_force: TimeInForce.day,
-        side: TradeDirection.sell,
+        side: TradeDirection.buy,
         extended_hours: false,
         qty: 159,
     };
+
+    const prevOpenOrders = await getOpenOrders();
+
+    if (prevOpenOrders.some((o) => o.symbol === symbol)) {
+        return null;
+    }
 
     const result = await createBracketOrder(order);
 
@@ -33,7 +45,7 @@ test("create bracket order", async () => {
 
     const latestOrdersFetch = await getOpenOrders();
 
-    expect(orders.every((o) => o.client_order_id !== orderId));
+    expect(latestOrdersFetch.every((o) => o.client_order_id !== orderId));
 });
 
 test("create bracket order - no quantity", async () => {
@@ -41,9 +53,9 @@ test("create bracket order - no quantity", async () => {
     const order = {
         order_class: "bracket" as any,
         client_order_id: orderId,
-        symbol: "CCI",
-        stop_price: 157.7324020804614,
-        limit_price: 157.66973888123042,
+        symbol,
+        stop_price: 77.7324020804614,
+        limit_price: 77.66973888123042,
         stop_loss: { stop_price: 158.79 },
         take_profit: { limit_price: 156.67480416092283 },
         type: TradeType.stop_limit,
@@ -54,4 +66,10 @@ test("create bracket order - no quantity", async () => {
     };
 
     expect(createBracketOrder.bind({}, order)).toThrow();
+});
+
+test("getOpenPositions in mocked CI mode", async () => {
+    const result = await getOpenPositions();
+
+    expect(result).toBeTruthy();
 });

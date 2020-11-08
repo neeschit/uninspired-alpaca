@@ -1,11 +1,11 @@
 import { lookForEntry } from "./trade-manager.handlers";
 import { getWatchlistFromScreenerService } from "../screener-api/screener.interfaces";
-import { getOpenPositions } from "../../src/resources/alpaca";
+import { getOpenPositions } from "../brokerage-helpers";
 import { endPooledConnection } from "../../src/connection/pg";
 
 jest.mock("../screener-api/screener.interfaces");
 
-jest.mock("../../src/resources/alpaca");
+jest.mock("../brokerage-helpers");
 
 const mockGetOpenPositions = <jest.Mock>getOpenPositions;
 
@@ -25,7 +25,7 @@ test("lookForEntry when in watchlist & timing for entry is correct", async () =>
 
     expect(result).toBeTruthy();
     expect(result!.symbol).toEqual("VZ");
-    expect(result!.entry).not.toEqual(result!.limit);
+    expect(result!.entry).not.toEqual(result!.limit_price);
     expect(result!.entry).toBeGreaterThanOrEqual(56.72);
 });
 
@@ -36,7 +36,7 @@ test("lookForEntry in CCI", async () => {
 
     expect(result).toBeTruthy();
     expect(result!.symbol).toEqual("CCI");
-    expect(result!.entry).not.toEqual(result!.limit);
+    expect(result!.entry).not.toEqual(result!.limit_price);
     expect(result!.entry).toBeLessThanOrEqual(157.78);
     expect(result!.entry).toBeGreaterThanOrEqual(157.68);
     expect(result!.stop).toBeGreaterThanOrEqual(158.79);

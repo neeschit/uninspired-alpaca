@@ -4,6 +4,7 @@ import { convertToLocalTime } from "../../src/util/date";
 import { PositionDirection } from "@neeschit/alpaca-trade-api";
 import { getAverageTrueRange } from "../../src/indicator/trueRange";
 import { IndicatorValue } from "../../src/indicator/adx";
+import { TradePlan } from "../trade-management-helpers";
 
 export const RISK_PER_ORDER = 100;
 export const PROFIT_RATIO = 1;
@@ -64,16 +65,6 @@ export interface OrbEntryParams {
     currentAtr: number;
     symbol: string;
     marketBarsSoFar: Bar[];
-}
-
-export interface TradePlan {
-    stop: number;
-    limit: number;
-    entry: number;
-    target: number;
-    quantity: number;
-    direction: PositionDirection;
-    symbol: string;
 }
 
 export const getLongStop = (
@@ -138,7 +129,7 @@ export const getSafeOrbEntryPlan = ({
 
         plan = {
             entry,
-            limit,
+            limit_price: limit,
             stop,
             target,
             symbol,
@@ -154,7 +145,7 @@ export const getSafeOrbEntryPlan = ({
 
         plan = {
             entry,
-            limit,
+            limit_price: limit,
             target,
             stop,
             symbol,
@@ -163,10 +154,10 @@ export const getSafeOrbEntryPlan = ({
     }
 
     if (isCurrentlyOutsideRange) {
-        plan.entry = plan.limit;
+        plan.entry = plan.limit_price;
     }
 
-    const quantity = Math.floor(RISK_PER_ORDER / plan.limit - plan.stop);
+    const quantity = Math.floor(RISK_PER_ORDER / plan.limit_price - plan.stop);
 
     return Object.assign(
         {

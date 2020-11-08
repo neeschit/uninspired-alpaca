@@ -125,7 +125,7 @@ test("getSafeORBPlan - outside range long", () => {
     expect(plan!.direction).toEqual(PositionDirection.long);
     expect(plan!.entry).toBeGreaterThanOrEqual(25.63);
     expect(plan!.entry).toBeLessThanOrEqual(25.64);
-    expect(plan!.limit).toEqual(plan!.entry);
+    expect(plan!.limit_price).toEqual(plan!.entry);
     expect(plan!.stop).toBeGreaterThanOrEqual(25.48);
 });
 

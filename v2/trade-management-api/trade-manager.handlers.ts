@@ -1,6 +1,5 @@
 import { format } from "date-fns";
 import { getWatchlistFromScreenerService } from "../screener-api/screener.interfaces";
-import { getOpenPositions } from "../../src/resources/alpaca";
 import { getAverageTrueRange } from "../../src/indicator/trueRange";
 import {
     getSafeOrbEntryPlan,
@@ -8,6 +7,7 @@ import {
 } from "../strategy/narrowRangeBar";
 import { getData } from "../../src/resources/stockData";
 import { getMarketOpenMillis } from "../../src/util/market";
+import { getOpenPositions } from "../brokerage-helpers";
 
 export const lookForEntry = async (symbol: string, epoch = Date.now()) => {
     const watchlist = await getWatchlistFromScreenerService(
