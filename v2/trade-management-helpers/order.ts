@@ -7,7 +7,7 @@ import {
     TradeType,
 } from "@neeschit/alpaca-trade-api";
 import { getConnection } from "../../src/connection/pg";
-import { createBracketOrder, getOpenOrders } from "../../src/resources/alpaca";
+import { createBracketOrder, getOpenOrders } from "../brokerage-helpers";
 import {
     ensureUpdateTriggerExists,
     TimestampedRecord,

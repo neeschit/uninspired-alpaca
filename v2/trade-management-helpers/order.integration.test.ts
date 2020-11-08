@@ -1,12 +1,13 @@
-import { PositionDirection } from "@neeschit/alpaca-trade-api";
+import { AlpacaOrder, PositionDirection } from "@neeschit/alpaca-trade-api";
 import {
     createOrderSynchronized,
-    deleteOrder,
     insertOrderForTradePlan,
     updateOrderWithAlpacaId,
 } from "./order";
 import { persistTradePlan, TradePlan } from "./position";
 import { getOpenOrders, createBracketOrder } from "../brokerage-helpers";
+import { readJsonSync } from "fs-extra";
+import { endPooledConnection, getConnection } from "../../src/connection/pg";
 
 jest.mock("../brokerage-helpers");
 
@@ -71,4 +72,23 @@ test("crud plan and order in database with a dupe - concurrent", async () => {
     expect(order.length).toEqual(1);
 
     await updateOrderWithAlpacaId(order[0]!.id, "TEST" + Date.now().toString());
+});
+
+test("createOrderSynchronized", async () => {
+    const alpacaResult: AlpacaOrder = readJsonSync(
+        "./fixtures/alpaca-order-response.json"
+    ) as any;
+
+    alpacaResult.id += Date.now();
+
+    mockCreateBracketOrder.mockResolvedValueOnce(alpacaResult);
+    mockGetOpenOrders.mockReturnValueOnce([]);
+    const order = await createOrderSynchronized(position);
+
+    expect(order).toBeTruthy();
+    expect(order?.qty).toEqual(Math.abs(position.quantity).toString());
+});
+
+afterAll(async () => {
+    endPooledConnection();
 });

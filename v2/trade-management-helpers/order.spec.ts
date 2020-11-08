@@ -1,21 +1,12 @@
-import {
-    PositionDirection,
-    TradeDirection,
-    TradeType,
-    TimeInForce,
-} from "@neeschit/alpaca-trade-api";
+import { PositionDirection, TradeType } from "@neeschit/alpaca-trade-api";
 import {
     convertPlanToAlpacaBracketOrder,
-    createOrderSynchronized,
     PersistedUnfilledOrder,
 } from "./order";
 
-jest.mock("../../src/resources/alpaca");
+jest.mock("../brokerage-helpers");
 
-import * as AlpacaResources from "../../src/resources/alpaca";
 import { TradePlan } from "../trade-management-helpers";
-
-const mockGetOpenOrders = <jest.Mock>AlpacaResources.getOpenOrders;
 
 test("convert to bracket order", async () => {
     const plan: TradePlan = {
