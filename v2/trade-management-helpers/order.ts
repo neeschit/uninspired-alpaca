@@ -65,8 +65,6 @@ export const updateOrderWithAlpacaId = async (
 
     const query = updateQuery(id, alpaca_order_id);
 
-    console.log(query);
-
     await connection.query(query);
 };
 

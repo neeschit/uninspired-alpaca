@@ -38,3 +38,37 @@ test("crud plan and order in database", async () => {
 
     expect(insertedOrder).toBeTruthy();
 });
+
+test("crud plan and order in database with a dupe not concurrent", async () => {
+    const insertedPlan = await persistTradePlan(position);
+
+    const insertedOrder = await insertOrderForTradePlan(insertedPlan);
+
+    expect(insertedOrder).toBeTruthy();
+
+    const insertedOrder1 = await insertOrderForTradePlan(insertedPlan);
+
+    expect(insertedOrder1).toBeFalsy();
+
+    if (insertedOrder) {
+        await updateOrderWithAlpacaId(
+            insertedOrder.id,
+            "TEST" + Date.now().toString()
+        );
+    }
+});
+
+test("crud plan and order in database with a dupe - concurrent", async () => {
+    const insertedPlan = await persistTradePlan(position);
+
+    const results = await Promise.all([
+        insertOrderForTradePlan(insertedPlan),
+        insertOrderForTradePlan(insertedPlan),
+    ]);
+
+    const order = results.filter((r) => r);
+
+    expect(order.length).toEqual(1);
+
+    await updateOrderWithAlpacaId(order[0]!.id, "TEST" + Date.now().toString());
+});
