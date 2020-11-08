@@ -4,19 +4,15 @@ import Alpaca, {
 } from "@neeschit/alpaca-trade-api";
 import * as dotenv from "dotenv";
 
-const config = dotenv.config().parsed;
+dotenv.config();
 
-const API_KEY =
-    (config && config.ALPACA_SECRET_KEY_ID) ||
-    process.env.ALPACA_SECRET_KEY_ID ||
-    "";
+const API_KEY = process.env.ALPACA_SECRET_KEY_ID;
 
-const SECRET_KEY =
-    (config && config.ALPACA_SECRET_KEY) || process.env.ALPACA_SECRET_KEY || "";
+const SECRET_KEY = process.env.ALPACA_SECRET_KEY;
 
 export const alpaca = Alpaca({
-    keyId: API_KEY,
-    secretKey: SECRET_KEY,
+    keyId: API_KEY!,
+    secretKey: SECRET_KEY!,
     paper: true,
     usePolygon: true,
 });

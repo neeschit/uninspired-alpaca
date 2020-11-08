@@ -14,7 +14,7 @@ const companies: string[] = getMegaCaps();
 companies.push(...currentIndices);
 
 async function run(duration = DefaultDuration.one, period = PeriodType.minute) {
-    const startDate = startOfDay(addBusinessDays(Date.now(), -5));
+    const startDate = startOfDay(addBusinessDays(Date.now(), -3));
     for (const symbol of companies) {
         const endDate = startOfDay(addBusinessDays(Date.now(), 1));
 
@@ -50,7 +50,7 @@ async function run(duration = DefaultDuration.one, period = PeriodType.minute) {
     }
 
     for (const symbol of companies) {
-        const endDate = endOfDay(addDays(Date.now(), 1));
+        const endDate = endOfDay(addDays(Date.now(), 0));
         for (
             let date = startDate;
             date.getTime() < endDate.getTime();

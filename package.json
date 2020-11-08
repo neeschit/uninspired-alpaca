@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "dependencies": {
-    "@neeschit/alpaca-trade-api": "1.4.3",
+    "@neeschit/alpaca-trade-api": "1.4.4",
     "date-fns": "^2.9.0",
     "date-fns-tz": "^1.0.10",
     "dotenv": "^8.2.0",
@@ -23,15 +23,16 @@
     "@types/sinon": "^7.5.2",
     "@types/uuid": "^7.0.4",
     "ava": "^3.7.0",
-    "jest": "^26.4.2",
+    "jest": "^26.6.3",
     "sinon": "^9.0.0",
-    "ts-jest": "^26.4.1",
+    "ts-jest": "^26.4.4",
     "ts-node": "^8.6.2",
     "typescript": "^3.7.5"
   },
   "scripts": {
     "test:ava": "NODE_ENV=test ava --watch --verbose",
-    "test:ci": "NODE_ENV=test LOGLEVEL=4 ava **/src/**/*.spec.ts --verbose",
+    "test:ci": "NODE_ENV=test LOGLEVEL=4 ava **/src/**/*.spec.ts --verbose && yarn test:jest:ci",
+    "test:jest:ci": "yarn test --ci --debug --config jest.config.ci.js",
     "build": "tsc",
     "build:w": "tsc -w",
     "backtest": "NODE_ENV=backtest node --expose-gc --enable-source-maps build/src/scripts/backtest.js",
@@ -43,6 +44,7 @@
     "screener": "SERVICE_NAME=screener node --inspect=9698 --enable-source-maps build/src/deployable/screener.service.js",
     "data": "SERVICE_NAME=data node --inspect=9699 --enable-source-maps build/src/deployable/data.service.js",
     "test": "NODE_ENV=test jest",
+    "test:debug": "NODE_ENV=test node --inspect-brk --inspect=9339 node_modules/.bin/jest",
     "s2": "SERVICE_NAME=screener node --inspect=9698 --enable-source-maps build/v2/screener-api/screener.js"
   },
   "ava": {

@@ -1,6 +1,6 @@
 import { addBusinessDays, parse } from "date-fns";
 import { getSimpleData } from "../../src/resources/stockData";
-import { NarrowRangeBarStrategy } from "../../src/strategy/narrowRangeBar";
+import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
 
 export const getWatchlistForDate = async (
     date: string,
@@ -20,8 +20,7 @@ export const getWatchlistForDate = async (
             symbol,
             bars: data,
         });
-        strategy.screenForNarrowRangeBars();
-        if (strategy.nrbs.length) {
+        if (strategy.screenForNarrowRangeBars()) {
             return symbol;
         }
     });

@@ -1,19 +1,24 @@
+import { Exchange } from "@neeschit/alpaca-trade-api";
 import { alpaca } from "../resources/alpaca";
-import { getTickerDetails } from "../resources/polygon";
+import { getStockFinancials, getTickerDetails } from "../resources/polygon";
 import { LOGGER } from "../instrumentation/log";
+import { symlink } from "fs";
 
 const allowedCountries = ["usa", "chn", "hkg", "can"];
 
 export const getAlpacaCompanies = async () => {
     const assets = await alpaca.getAssets({
         status: "active",
+        asset_class: "us_equity",
     });
 
     return assets;
 };
 
 export const getCompaniesByMarketCap = async (marketcap: number) => {
-    const companies = await getAlpacaCompanies();
+    const companies = (await getAlpacaCompanies()).filter(
+        (c) => c.exchange === Exchange.NASDAQ || c.exchange === Exchange.NYSE
+    );
 
     const filteredAssets = [];
 
@@ -28,18 +33,26 @@ export const getCompaniesByMarketCap = async (marketcap: number) => {
             LOGGER.info("completed " + i + " assets");
         }
         try {
-            const details: any = await getTickerDetails(companies[i].symbol);
+            const details: any = await getStockFinancials(companies[i].symbol);
 
-            if (
-                details &&
-                details.marketcap > marketcap &&
-                allowedCountries.indexOf(details.country) !== -1 &&
-                details.type === "CS"
-            ) {
-                filteredAssets.push(companies[i].symbol);
+            const results = details.results;
+
+            /* if (results.length) console.log(Object.keys(results[0])); */
+
+            if (results.length && results[0].marketCapitalization > marketcap) {
+                const details: any = await getTickerDetails(
+                    companies[i].symbol
+                );
+                const isAllowedCountry =
+                    allowedCountries.indexOf(details.country) !== -1;
+
+                if (isAllowedCountry) {
+                    filteredAssets.push(companies[i].symbol);
+                    console.log(filteredAssets.length);
+                }
             }
         } catch (e) {}
     }
 
-    return filteredAssets;
+    return filteredAssets.sort();
 };

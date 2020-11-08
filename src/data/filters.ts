@@ -5,7 +5,7 @@ export const getLargeCaps = (): string[] => {
 };
 
 export const getMegaCaps = (): string[] => {
-    return JSON.parse(readFileSync("./megacaps-filtered.json").toString());
+    return JSON.parse(readFileSync("./megacaps-new.json").toString());
 };
 
 export const getUnfilteredMegaCaps = (): string[] => {
@@ -13,11 +13,16 @@ export const getUnfilteredMegaCaps = (): string[] => {
 };
 
 export const getFilteredHighVolumeCompanies = (): string[] => {
-    return JSON.parse(readFileSync("./filteredLargeCapsHighVolume.json").toString());
+    return JSON.parse(
+        readFileSync("./filteredLargeCapsHighVolume.json").toString()
+    );
 };
 
 export const currentTradingSymbols = getMegaCaps();
 
 export const currentIndices = ["SPY"];
 
-export const currentStreamingSymbols = [...currentTradingSymbols, ...currentIndices];
+export const currentStreamingSymbols = [
+    ...currentTradingSymbols,
+    ...currentIndices,
+];
