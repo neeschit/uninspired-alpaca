@@ -8,6 +8,7 @@ import {
 import { getData } from "../../src/resources/stockData";
 import { getMarketOpenMillis } from "../../src/util/market";
 import { getOpenPositions } from "../brokerage-helpers";
+import { createOrderSynchronized } from "../trade-management-helpers";
 
 export const lookForEntry = async (symbol: string, epoch = Date.now()) => {
     const watchlist = await getWatchlistFromScreenerService(
@@ -48,4 +49,16 @@ export const lookForEntry = async (symbol: string, epoch = Date.now()) => {
     });
 
     return plan;
+};
+
+export const enterSymbol = async (symbol: string, epoch = Date.now()) => {
+    const plan = await lookForEntry(symbol, epoch);
+
+    if (!plan) {
+        return null;
+    }
+
+    const order = await createOrderSynchronized(plan);
+
+    return order;
 };

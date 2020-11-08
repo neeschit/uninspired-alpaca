@@ -1,13 +1,16 @@
-import { lookForEntry } from "./trade-manager.handlers";
+import { enterSymbol, lookForEntry } from "./trade-manager.handlers";
 import { getWatchlistFromScreenerService } from "../screener-api/screener.interfaces";
 import { getOpenPositions } from "../brokerage-helpers";
+import { createOrderSynchronized } from "../trade-management-helpers";
 import { endPooledConnection } from "../../src/connection/pg";
 
 jest.mock("../screener-api/screener.interfaces");
 
 jest.mock("../brokerage-helpers");
+jest.mock("../trade-management-helpers");
 
 const mockGetOpenPositions = <jest.Mock>getOpenPositions;
+const mockCreateOrder = <jest.Mock>createOrderSynchronized;
 
 const mockWatchlist = <jest.Mock>getWatchlistFromScreenerService;
 
@@ -57,6 +60,23 @@ test("lookForEntry when in watchlist but also has an open position", async () =>
     const result = await lookForEntry("VZ", 1603895590000);
 
     expect(result).toBeFalsy();
+});
+
+test("enterSymbol with no plan returned", async () => {
+    mockGetOpenPositions.mockResolvedValueOnce([{ symbol: "VZ" }]);
+    mockWatchlist.mockReturnValueOnce(["AAPL", "BDX", "VZ"]);
+    const result = await enterSymbol("VZ", 1603895590000);
+
+    expect(result).toBeFalsy();
+});
+
+test("enterSymbol with plan returned", async () => {
+    mockGetOpenPositions.mockResolvedValueOnce([]);
+    mockWatchlist.mockReturnValueOnce(["AAPL", "BDX", "VZ"]);
+    mockCreateOrder.mockReturnValueOnce(true);
+    const result = await enterSymbol("VZ", 1603895590000);
+
+    expect(result).toBeTruthy();
 });
 
 afterAll(async () => {

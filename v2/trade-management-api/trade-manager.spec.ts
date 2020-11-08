@@ -2,10 +2,10 @@ import { getApiServer } from "../../src/util/api";
 jest.mock("../../src/util/api");
 jest.mock("./trade-manager.handlers");
 
-import { lookForEntry } from "./trade-manager.handlers";
+import { enterSymbol } from "./trade-manager.handlers";
 
 const mockGetApiServer = <jest.Mock>getApiServer;
-const mockLookForEntry = <jest.Mock>lookForEntry;
+const mockLookForEntry = <jest.Mock>enterSymbol;
 
 mockGetApiServer.mockReturnValue({
     get: () => {},
