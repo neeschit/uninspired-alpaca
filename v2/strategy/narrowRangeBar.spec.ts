@@ -6,6 +6,7 @@ import { ceilHalf } from "../../src/util";
 import { isMarketOpen } from "../../src/util/market";
 import {
     getLongStop,
+    getQuantityForPlan,
     getSafeOrbEntryPlan,
     getShortStop,
     NarrowRangeBarStrategy,
@@ -144,4 +145,17 @@ test("getLongStop", () => {
     const stop = getLongStop(bars, 0.1074375000000007, 120.885375);
 
     expect(stop).toEqual(120.79459);
+});
+
+test("make sure risk management is correct", () => {
+    const quantity = getQuantityForPlan(100, {
+        entry: 487.07,
+        stop: 484.44,
+        target: 489.71,
+        direction: PositionDirection.long,
+        symbol: "NFLX",
+        limit_price: 487.25,
+    });
+
+    expect(quantity).toEqual(35);
 });

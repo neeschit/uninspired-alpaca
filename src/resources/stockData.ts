@@ -613,15 +613,45 @@ export const cacheDailyBarsForSymbol = async (symbol: string) => {
     }
 };
 
-export const deleteDailyBars = async (symbol: string, epoch: number) => {
-    const tablename = getDailyTableNameForSymbol(symbol);
+export const deleteDailyBars = async (symbols: string[], epoch: number) => {
+    console.log(epoch);
+    const queries: string[] = [];
+    for (const symbol of symbols) {
+        const tablename = getDailyTableNameForSymbol(symbol);
+        const query = `delete from ${tablename} where t >= ${getTimestampValue(
+            epoch
+        )};`;
+        queries.push(query);
+    }
 
+    await deleteBatch(queries.slice(0, 10).join("\n"));
+    LOGGER.info("no prob so far");
+    await deleteBatch(queries.slice(10, 20).join("\n"));
+    LOGGER.info("no prob so far");
+    await deleteBatch(queries.slice(20, 30).join("\n"));
+    LOGGER.info("no prob so far");
+    await deleteBatch(queries.slice(30, 40).join("\n"));
+    LOGGER.info("no prob so far");
+    await deleteBatch(queries.slice(40, 50).join("\n"));
+    LOGGER.info("no prob so far");
+    await deleteBatch(queries.slice(50, 60).join("\n"));
+    LOGGER.info("no prob so far");
+    await deleteBatch(queries.slice(60, 70).join("\n"));
+    LOGGER.info("no prob so far");
+    await deleteBatch(queries.slice(70, 80).join("\n"));
+    LOGGER.info("no prob so far");
+    await deleteBatch(queries.slice(80, 90).join("\n"));
+    LOGGER.info("no prob so far");
+    await deleteBatch(queries.slice(90, 100).join("\n"));
+    LOGGER.info("no prob so far");
+    await deleteBatch(queries.slice(100).join("\n"));
+    LOGGER.info(queries);
+
+    return queries;
+};
+
+export const deleteBatch = async (queries: string) => {
     const pool = getConnection();
-    const query = `delete from ${tablename} where t >= ${getTimestampValue(
-        epoch
-    )};`;
-    LOGGER.info(query);
-    const result = await pool.query(query);
 
-    return result;
+    await pool.query(queries);
 };
