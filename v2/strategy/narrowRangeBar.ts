@@ -22,7 +22,7 @@ export interface ORBParams {
 
 export const isTimeForOrbEntry = (nowMillis: number) => {
     const timeStart = convertToLocalTime(nowMillis, " 09:59:45.000");
-    const timeEnd = convertToLocalTime(nowMillis, " 11:45:15.000");
+    const timeEnd = convertToLocalTime(nowMillis, " 12:45:15.000");
 
     const isWithinEntryRange =
         timeStart.getTime() <= nowMillis && timeEnd.getTime() >= nowMillis;
@@ -157,7 +157,7 @@ export const getSafeOrbEntryPlan = ({
         plan.entry = plan.limit_price;
     }
 
-    const quantity = Math.floor(RISK_PER_ORDER / plan.limit_price - plan.stop);
+    const quantity = getQuantityForPlan(RISK_PER_ORDER, plan);
 
     return Object.assign(
         {
@@ -165,6 +165,13 @@ export const getSafeOrbEntryPlan = ({
         },
         plan
     );
+};
+
+export const getQuantityForPlan = (
+    riskUnits: number,
+    plan: Omit<TradePlan, "quantity">
+) => {
+    return Math.floor(riskUnits / (plan.limit_price - plan.stop));
 };
 
 export class NarrowRangeBarStrategy {

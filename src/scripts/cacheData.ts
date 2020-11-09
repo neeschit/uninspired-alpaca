@@ -8,6 +8,7 @@ import {
     batchInsertBars,
     batchInsertDailyBars,
 } from "../resources/stockData";
+import { isAfterMarketClose } from "../util/market";
 
 const companies: string[] = getMegaCaps();
 
@@ -49,30 +50,34 @@ async function run(duration = DefaultDuration.one, period = PeriodType.minute) {
         }
     }
 
-    for (const symbol of companies) {
-        const endDate = endOfDay(addDays(Date.now(), 0));
-        for (
-            let date = startDate;
-            date.getTime() < endDate.getTime();
-            date = addBusinessDays(date, 90)
-        ) {
-            const end = addBusinessDays(date, 90);
-            const daysMinutes = await getPolyonData(
-                symbol,
-                date,
-                end.getTime() > endDate.getTime() ? endDate : end,
-                PeriodType.day,
-                DefaultDuration.one
-            );
+    const hasDayEnded = isAfterMarketClose(Date.now());
 
-            if (!daysMinutes[symbol] || !daysMinutes[symbol].length) {
-                continue;
-            }
+    if (hasDayEnded) {
+        for (const symbol of companies) {
+            const endDate = endOfDay(addDays(Date.now(), 0));
+            for (
+                let date = startDate;
+                date.getTime() < endDate.getTime();
+                date = addBusinessDays(date, 90)
+            ) {
+                const end = addBusinessDays(date, 90);
+                const daysMinutes = await getPolyonData(
+                    symbol,
+                    date,
+                    end.getTime() > endDate.getTime() ? endDate : end,
+                    PeriodType.day,
+                    DefaultDuration.one
+                );
 
-            try {
-                await batchInsertDailyBars(daysMinutes[symbol], symbol);
-            } catch (e) {
-                LOGGER.error(`Error inserting for ${symbol}`, e);
+                if (!daysMinutes[symbol] || !daysMinutes[symbol].length) {
+                    continue;
+                }
+
+                try {
+                    await batchInsertDailyBars(daysMinutes[symbol], symbol);
+                } catch (e) {
+                    LOGGER.error(`Error inserting for ${symbol}`, e);
+                }
             }
         }
     }
