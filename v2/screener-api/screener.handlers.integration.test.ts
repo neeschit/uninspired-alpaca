@@ -3,6 +3,7 @@ import { currentTradingSymbols } from "../../src/data/filters";
 import { getWatchlistForDate } from "./screener.handlers";
 
 test("getWatchListForDate", async () => {
+    jest.setTimeout(10000);
     const date = "10-23-2020";
 
     const watchList = await getWatchlistForDate(date, currentTradingSymbols);
