@@ -2,6 +2,7 @@ import { AlpacaOrder, PositionDirection } from "@neeschit/alpaca-trade-api";
 import {
     createOrderSynchronized,
     insertOrderForTradePlan,
+    selectAllNewOrders,
     updateOrderWithAlpacaId,
 } from "./order";
 import { persistTradePlan, TradePlan } from "./position";
@@ -15,7 +16,7 @@ const mockGetOpenOrders = getOpenOrders as jest.Mock;
 
 const mockCreateBracketOrder = createBracketOrder as jest.Mock;
 
-const position: TradePlan = {
+const plan: TradePlan = {
     entry: 157.66973888123042,
     limit_price: 157.66973888123042,
     stop: 156.79,
@@ -26,22 +27,24 @@ const position: TradePlan = {
 };
 
 test("crud plan and order in database", async () => {
-    const insertedPlan = await persistTradePlan(position);
+    const insertedPlan = await persistTradePlan(plan);
 
     const insertedOrder = await insertOrderForTradePlan(insertedPlan);
 
+    const orders = await selectAllNewOrders();
+
+    expect(orders?.length).toEqual(1);
     if (insertedOrder) {
         await updateOrderWithAlpacaId(
             insertedOrder.id,
             "TEST" + Date.now().toString()
         );
     }
-
     expect(insertedOrder).toBeTruthy();
 });
 
 test("crud plan and order in database with a dupe not concurrent", async () => {
-    const insertedPlan = await persistTradePlan(position);
+    const insertedPlan = await persistTradePlan(plan);
 
     const insertedOrder = await insertOrderForTradePlan(insertedPlan);
 
@@ -60,7 +63,7 @@ test("crud plan and order in database with a dupe not concurrent", async () => {
 });
 
 test("crud plan and order in database with a dupe - concurrent", async () => {
-    const insertedPlan = await persistTradePlan(position);
+    const insertedPlan = await persistTradePlan(plan);
 
     const results = await Promise.all([
         insertOrderForTradePlan(insertedPlan),
@@ -83,10 +86,26 @@ test("createOrderSynchronized", async () => {
 
     mockCreateBracketOrder.mockResolvedValueOnce(alpacaResult);
     mockGetOpenOrders.mockReturnValueOnce([]);
-    const order = await createOrderSynchronized(position);
+    const order = await createOrderSynchronized(plan);
 
     expect(order).toBeTruthy();
-    expect(order?.qty).toEqual(Math.abs(position.quantity).toString());
+    expect(order?.qty).toEqual(Math.abs(plan.quantity).toString());
+});
+
+test("createOrderSynchronized", async () => {
+    const alpacaResult: AlpacaOrder = readJsonSync(
+        "./fixtures/alpaca-order-response.json"
+    ) as any;
+
+    alpacaResult.id += Date.now();
+
+    mockCreateBracketOrder.mockRejectedValueOnce(new Error("test_error"));
+    mockGetOpenOrders.mockReturnValueOnce([]);
+    await expect(createOrderSynchronized(plan)).rejects.toThrow();
+
+    const orders = await selectAllNewOrders();
+
+    expect(orders?.length).toBeFalsy();
 });
 
 afterAll(async () => {

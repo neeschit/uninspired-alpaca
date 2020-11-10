@@ -37,16 +37,41 @@ export const createOrderSynchronized = async (
     const order = await insertOrderForTradePlan(persistedPlan);
 
     if (!order) {
-        throw new Error("order_exists");
+        throw new Error("error_inserting_order");
     }
 
-    const alpacaOrder = await createBracketOrder(
-        convertPlanToAlpacaBracketOrder(persistedPlan, order)
-    );
+    let alpacaOrder: AlpacaOrder;
 
+    try {
+        alpacaOrder = await createBracketOrder(
+            convertPlanToAlpacaBracketOrder(persistedPlan, order)
+        );
+    } catch (e) {
+        await updateOrderWithAlpacaId(
+            order.id,
+            "brokerage_failure" + Date.now()
+        );
+        throw new Error("error placing order - " + order.id + "- " + e.message);
+    }
     await updateOrderWithAlpacaId(order.id, alpacaOrder.id);
 
     return alpacaOrder;
+};
+
+const unplacedAlpacaOrderId = "new";
+
+const selectAllNewOrdersQuery = `select * from new_order where alpaca_order_id = '${unplacedAlpacaOrderId}'`;
+
+export const selectAllNewOrders = async () => {
+    const connection = getConnection();
+
+    const result = await connection.query(selectAllNewOrdersQuery);
+
+    if (!result.rowCount) {
+        return null;
+    }
+
+    return result.rows;
 };
 
 const updateQuery = (id: number, alpaca_order_id: string) => {
@@ -65,6 +90,22 @@ export const updateOrderWithAlpacaId = async (
     const query = updateQuery(id, alpaca_order_id);
 
     await connection.query(query);
+};
+
+const selectQueryById = (id: number) =>
+    `select * from new_order where id = ${id} limit 1;`;
+
+export const getOrderById = async (id: number) => {
+    const connection = getConnection();
+    const query = selectQueryById(id);
+
+    const result = await connection.query(query);
+
+    if (!result || !result.rowCount) {
+        return null;
+    }
+
+    return result.rows[0];
 };
 
 const getInsertQuery = (order: UnfilledOrder) => {
@@ -209,7 +250,7 @@ create table new_order (
     limit_price numeric not null,
     bracket bracket_order_legs,
     stop_price numeric,
-    alpaca_order_id text default 'new',
+    alpaca_order_id text default '${unplacedAlpacaOrderId}',
     leg_client_order_ids text[] DEFAULT array[]::varchar[],
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
