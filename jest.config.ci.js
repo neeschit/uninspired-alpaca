@@ -9,7 +9,7 @@ module.exports = Object.assign(baseConfig, {
             branches: 75,
         },
     },
-    coveragePathIgnorePatterns: baseConfig.coveragePathIgnorePatterns.push(
-        "test.ts"
-    ),
+    coveragePathIgnorePatterns: baseConfig.coveragePathIgnorePatterns.concat([
+        "test.ts",
+    ]),
 });
