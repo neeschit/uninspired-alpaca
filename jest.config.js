@@ -28,7 +28,7 @@ module.exports = {
     //   "/node_modules/"
     // ],
 
-    coveragePathIgnorePatterns: ["index.ts"],
+    coveragePathIgnorePatterns: ["index.ts", "./v2/backtest"],
 
     // Indicates which provider should be used to instrument code for coverage
     coverageProvider: "v8",

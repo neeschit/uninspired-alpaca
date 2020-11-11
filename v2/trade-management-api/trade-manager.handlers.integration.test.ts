@@ -1,10 +1,10 @@
 import { enterSymbol, lookForEntry } from "./trade-manager.handlers";
-import { getWatchlistFromScreenerService } from "../screener-api/screener.interfaces";
+import { getWatchlistFromScreenerService } from "../screener-api";
 import { getOpenPositions } from "../brokerage-helpers";
 import { createOrderSynchronized } from "../trade-management-helpers";
 import { endPooledConnection } from "../../src/connection/pg";
 
-jest.mock("../screener-api/screener.interfaces");
+jest.mock("../screener-api");
 
 jest.mock("../brokerage-helpers");
 jest.mock("../trade-management-helpers");

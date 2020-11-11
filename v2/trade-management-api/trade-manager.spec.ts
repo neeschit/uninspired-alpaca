@@ -9,6 +9,7 @@ const mockLookForEntry = <jest.Mock>enterSymbol;
 
 mockGetApiServer.mockReturnValue({
     get: () => {},
+    post: () => {},
 });
 
 import { queueEntryForSymbol } from "./trade-manager";
@@ -30,6 +31,21 @@ test("queueEntryForSymbol on exception", async () => {
     const result = await queueEntryForSymbol({
         params: {
             symbol: "AMZN",
+        },
+    });
+
+    expect(result).toStrictEqual([]);
+});
+
+test("queueEntryForSymbol on exception", async () => {
+    mockLookForEntry.mockRejectedValueOnce(new Error("test"));
+
+    const result = await queueEntryForSymbol({
+        params: {
+            symbol: "AMZN",
+            body: {
+                epoch: Date.now(),
+            },
         },
     });
 

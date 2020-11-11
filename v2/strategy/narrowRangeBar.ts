@@ -22,7 +22,7 @@ export interface ORBParams {
 
 export const isTimeForOrbEntry = (nowMillis: number) => {
     const timeStart = convertToLocalTime(nowMillis, " 09:59:45.000");
-    const timeEnd = convertToLocalTime(nowMillis, " 12:45:15.000");
+    const timeEnd = convertToLocalTime(nowMillis, " 13:45:15.000");
 
     const isWithinEntryRange =
         timeStart.getTime() <= nowMillis && timeEnd.getTime() >= nowMillis;

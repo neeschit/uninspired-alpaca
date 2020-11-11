@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { getWatchlistFromScreenerService } from "../screener-api/screener.interfaces";
+import { getWatchlistFromScreenerService } from "../screener-api";
 import { getAverageTrueRange } from "../../src/indicator/trueRange";
 import {
     getSafeOrbEntryPlan,
