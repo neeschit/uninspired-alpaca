@@ -262,11 +262,9 @@ export const batchInsertDailyBars = async (bars: TickBar[], symbol: string) => {
             ${bar.c}, 
             ${bar.v}
         ) ON CONFLICT DO NOTHING;`;
-
-        LOGGER.trace(query);
-
         queries.push(query);
     }
+    LOGGER.debug(queries);
 
     return pool.query(queries.join("\n"));
 };
@@ -613,8 +611,18 @@ export const cacheDailyBarsForSymbol = async (symbol: string) => {
     }
 };
 
+export const deleteBarsForSymbol = async (symbol: string) => {
+    const connection = getConnection();
+
+    const dailyQuery = `truncate ${getDailyTableNameForSymbol(symbol)}`;
+    const minuteQuery = `truncate ${getAggregatedMinuteTableNameForSymbol(
+        symbol
+    )}`;
+
+    await getConnection().query([dailyQuery, minuteQuery].join("\n"));
+};
+
 export const deleteDailyBars = async (symbols: string[], epoch: number) => {
-    console.log(epoch);
     const queries: string[] = [];
     for (const symbol of symbols) {
         const tablename = getDailyTableNameForSymbol(symbol);

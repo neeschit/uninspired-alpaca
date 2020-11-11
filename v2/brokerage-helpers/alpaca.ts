@@ -35,3 +35,16 @@ export const createBracketOrder = (
     }
     return alpaca.createOrder(order);
 };
+
+export const getConnectedDataWebsocket = (params: {
+    onStockAggMin: (subject: string, data: string) => void;
+    onStateChange: (state: string) => void;
+    onConnect: () => void;
+}) => {
+    alpaca.data_ws.onStockAggMin(params.onStockAggMin);
+    alpaca.data_ws.onConnect(params.onConnect);
+    alpaca.data_ws.onStateChange(params.onStateChange);
+    alpaca.data_ws.connect();
+
+    return alpaca.data_ws;
+};
