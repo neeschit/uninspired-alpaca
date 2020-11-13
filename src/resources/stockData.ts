@@ -507,6 +507,34 @@ export const getSimpleData = async (
     });
 };
 
+export const getLastPrice = async (
+    symbol: string,
+    endTimeStamp: number = Date.now()
+) => {
+    const pool = getConnection();
+
+    const tableName = getAggregatedMinuteTableNameForSymbol(symbol);
+
+    const query = `select * from ${tableName} where t <= ${getTimestampValue(
+        endTimeStamp
+    )} order by t desc limit 1;`;
+
+    LOGGER.debug(query);
+
+    const result = await pool.query(query);
+
+    return result.rows.map((r) => {
+        return {
+            v: Number(r.v),
+            c: Number(r.c),
+            o: Number(r.o),
+            h: Number(r.h),
+            l: Number(r.l),
+            t: new Date(r.t).getTime(),
+        };
+    })[0];
+};
+
 export const getTodaysData = (
     symbol: string,
     currentEpoch = Date.now(),

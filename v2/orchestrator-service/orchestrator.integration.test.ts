@@ -38,6 +38,8 @@ jest.mock("../screener-api", () => {
     };
 });
 
+jest.setTimeout(10000);
+
 test("onStockMinuteAggPosted", async () => {
     const dailyData = readJsonSync("./fixtures/jnj-nrb.json");
 

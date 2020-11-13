@@ -5,7 +5,7 @@ import {
     getSafeOrbEntryPlan,
     isTimeForOrbEntry,
 } from "../strategy/narrowRangeBar";
-import { getData } from "../../src/resources/stockData";
+import { getData, getLastPrice } from "../../src/resources/stockData";
 import { getMarketOpenMillis } from "../../src/util/market";
 import { getOpenPositions } from "../brokerage-helpers";
 import { createOrderSynchronized } from "../trade-management-helpers";
@@ -36,6 +36,8 @@ export const lookForEntry = async (symbol: string, epoch = Date.now()) => {
         epoch
     );
 
+    const lastBar = await getLastPrice(symbol, epoch);
+
     const { atr } = getAverageTrueRange(data, false);
 
     const currentAtr = atr!.pop()!.value;
@@ -44,7 +46,7 @@ export const lookForEntry = async (symbol: string, epoch = Date.now()) => {
         currentAtr,
         marketBarsSoFar: data,
         symbol,
-        lastPrice: data[data.length - 1].c,
+        lastPrice: lastBar.c,
         openingBar: data[0],
     });
 

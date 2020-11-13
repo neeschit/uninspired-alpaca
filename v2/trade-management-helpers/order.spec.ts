@@ -1,4 +1,8 @@
-import { PositionDirection, TradeType } from "@neeschit/alpaca-trade-api";
+import {
+    PositionDirection,
+    TradeDirection,
+    TradeType,
+} from "@neeschit/alpaca-trade-api";
 import {
     convertPlanToAlpacaBracketOrder,
     createOrderSynchronized,
@@ -133,9 +137,13 @@ test("createOrderSynchronized - mocked", async () => {
         target: 158.77480416092283,
     };
 
-    mockGetOpenOrders.mockReturnValueOnce([{ symbol: "TEST" }]);
+    mockGetOpenOrders.mockReturnValueOnce([
+        { symbol: "TEST", side: TradeDirection.buy },
+    ]);
 
-    await expect(createOrderSynchronized(plan)).rejects.toThrow();
+    await expect(createOrderSynchronized(plan)).rejects.toThrowError(
+        new Error("order_exists")
+    );
 });
 
 test("createOrderSynchronized - mocked with dupe order", async () => {

@@ -14,6 +14,8 @@ const mockCreateOrder = <jest.Mock>createOrderSynchronized;
 
 const mockWatchlist = <jest.Mock>getWatchlistFromScreenerService;
 
+jest.setTimeout(25000);
+
 test("lookForEntry", async () => {
     mockWatchlist.mockReturnValueOnce(["AAPL", "BDX"]);
     const result = await lookForEntry("VZ");
