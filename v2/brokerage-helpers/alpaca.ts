@@ -17,6 +17,10 @@ export const alpaca = Alpaca({
     usePolygon: true,
 });
 
+export const cancelAlpacaOrder = (oid: string) => {
+    return alpaca.cancelOrder(oid);
+};
+
 export const getOpenOrders = () => {
     return alpaca.getOrders({
         status: "open",

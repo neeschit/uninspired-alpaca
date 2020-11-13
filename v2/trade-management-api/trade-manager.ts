@@ -18,5 +18,4 @@ export const queueEntryForSymbol = async (request: {
         return [];
     }
 };
-
 server.post("/enter_position/:symbol", queueEntryForSymbol);

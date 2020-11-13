@@ -1,4 +1,8 @@
-import { PositionDirection, TradeType } from "@neeschit/alpaca-trade-api";
+import {
+    PositionDirection,
+    TradeDirection,
+    TradeType,
+} from "@neeschit/alpaca-trade-api";
 import {
     convertPlanToAlpacaBracketOrder,
     createOrderSynchronized,
@@ -24,7 +28,7 @@ test("convert to bracket order", async () => {
         limit_price: 157.66973888123042,
         stop: 158.79,
         symbol: "CCI",
-        direction: PositionDirection.short,
+        side: PositionDirection.short,
         quantity: -159,
         target: 156.67480416092283,
     };
@@ -52,7 +56,7 @@ test("convert to bracket order - 2", async () => {
         limit_price: 157.66973888123042,
         stop: 156.79,
         symbol: "CCI",
-        direction: PositionDirection.long,
+        side: PositionDirection.long,
         quantity: 159,
         target: 158.77480416092283,
     };
@@ -80,7 +84,7 @@ test("convert persisted plan opening order", async () => {
         limit_price: 157.66973888123042,
         stop: 156.79,
         symbol: "CCI",
-        direction: PositionDirection.long,
+        side: PositionDirection.long,
         quantity: 159,
         target: 158.77480416092283,
         created_at: "11",
@@ -104,7 +108,7 @@ test("convert persisted plan opening order", async () => {
         limit_price: 157.66973888123042,
         stop: 156.79,
         symbol: "CCI",
-        direction: PositionDirection.short,
+        side: PositionDirection.short,
         quantity: 159,
         target: 158.77480416092283,
         created_at: "11",
@@ -128,14 +132,18 @@ test("createOrderSynchronized - mocked", async () => {
         limit_price: 157.66973888123042,
         stop: 156.79,
         symbol: "TEST",
-        direction: PositionDirection.long,
+        side: PositionDirection.long,
         quantity: 159,
         target: 158.77480416092283,
     };
 
-    mockGetOpenOrders.mockReturnValueOnce([{ symbol: "TEST" }]);
+    mockGetOpenOrders.mockReturnValueOnce([
+        { symbol: "TEST", side: TradeDirection.buy },
+    ]);
 
-    await expect(createOrderSynchronized(plan)).rejects.toThrow();
+    await expect(createOrderSynchronized(plan)).rejects.toThrowError(
+        new Error("order_exists")
+    );
 });
 
 test("createOrderSynchronized - mocked with dupe order", async () => {
@@ -144,7 +152,7 @@ test("createOrderSynchronized - mocked with dupe order", async () => {
         limit_price: 157.66973888123042,
         stop: 156.79,
         symbol: "TEST",
-        direction: PositionDirection.long,
+        side: PositionDirection.long,
         quantity: 159,
         target: 158.77480416092283,
     };

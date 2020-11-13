@@ -7,7 +7,11 @@ import {
     TradeType,
 } from "@neeschit/alpaca-trade-api";
 import { getConnection } from "../../src/connection/pg";
-import { createBracketOrder, getOpenOrders } from "../brokerage-helpers";
+import {
+    cancelAlpacaOrder,
+    createBracketOrder,
+    getOpenOrders,
+} from "../brokerage-helpers";
 import {
     ensureUpdateTriggerExists,
     TimestampedRecord,
@@ -29,9 +33,26 @@ export const createOrderSynchronized = async (
     );
 
     if (openOrderForSymbol.length) {
-        throw new Error("order_exists");
+        const existingAlpacaOrder = openOrderForSymbol[0];
+
+        const expectedOrderDirection =
+            plan.side === PositionDirection.long
+                ? TradeDirection.buy
+                : TradeDirection.sell;
+
+        if (expectedOrderDirection === existingAlpacaOrder.side) {
+            throw new Error("order_exists");
+        }
+
+        await cancelAlpacaOrder(existingAlpacaOrder.id);
     }
 
+    const { persistedPlan, order } = await persistPlanAndOrder(plan);
+
+    return createAlpacaOrder(persistedPlan, order);
+};
+
+async function persistPlanAndOrder(plan: TradePlan) {
     const persistedPlan = await persistTradePlan(plan);
 
     const order = await insertOrderForTradePlan(persistedPlan);
@@ -39,13 +60,18 @@ export const createOrderSynchronized = async (
     if (!order) {
         throw new Error("error_inserting_order");
     }
+    return { persistedPlan, order };
+}
 
+async function createAlpacaOrder(
+    persistedPlan: PersistedTradePlan,
+    order: PersistedUnfilledOrder
+) {
     let alpacaOrder: AlpacaOrder;
 
+    const bracketOrder = convertPlanToAlpacaBracketOrder(persistedPlan, order);
     try {
-        alpacaOrder = await createBracketOrder(
-            convertPlanToAlpacaBracketOrder(persistedPlan, order)
-        );
+        alpacaOrder = await createBracketOrder(bracketOrder);
     } catch (e) {
         await updateOrderWithAlpacaId(
             order.id,
@@ -56,7 +82,7 @@ export const createOrderSynchronized = async (
     await updateOrderWithAlpacaId(order.id, alpacaOrder.id);
 
     return alpacaOrder;
-};
+}
 
 const unplacedAlpacaOrderId = "new";
 
@@ -146,7 +172,7 @@ export const getOpeningOrderForPlan = (plan: PersistedTradePlan) => {
         },
         symbol: plan.symbol,
         side:
-            plan.direction === PositionDirection.short
+            plan.side === PositionDirection.short
                 ? TradeDirection.sell
                 : TradeDirection.buy,
         tif: TimeInForce.day,

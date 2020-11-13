@@ -1,4 +1,8 @@
-import { enterSymbol, lookForEntry } from "./trade-manager.handlers";
+import {
+    enterSymbol,
+    getPersistedData,
+    lookForEntry,
+} from "./trade-manager.handlers";
 import { getWatchlistFromScreenerService } from "../screener-api";
 import { getOpenPositions } from "../brokerage-helpers";
 import { createOrderSynchronized } from "../trade-management-helpers";
@@ -13,6 +17,8 @@ const mockGetOpenPositions = <jest.Mock>getOpenPositions;
 const mockCreateOrder = <jest.Mock>createOrderSynchronized;
 
 const mockWatchlist = <jest.Mock>getWatchlistFromScreenerService;
+
+jest.setTimeout(25000);
 
 test("lookForEntry", async () => {
     mockWatchlist.mockReturnValueOnce(["AAPL", "BDX"]);
@@ -42,7 +48,7 @@ test("lookForEntry in CCI", async () => {
     expect(result!.entry).not.toEqual(result!.limit_price);
     expect(result!.entry).toBeLessThanOrEqual(157.78);
     expect(result!.entry).toBeGreaterThanOrEqual(157.68);
-    expect(result!.stop).toBeGreaterThanOrEqual(158.79);
+    expect(result!.stop).toBeGreaterThanOrEqual(158.61);
     expect(result!.stop).toBeLessThanOrEqual(158.81);
 });
 
@@ -74,9 +80,16 @@ test("enterSymbol with plan returned", async () => {
     mockGetOpenPositions.mockResolvedValueOnce([]);
     mockWatchlist.mockReturnValueOnce(["AAPL", "BDX", "VZ"]);
     mockCreateOrder.mockReturnValueOnce(true);
-    const result = await enterSymbol("VZ", 1603895590000);
+    const result = await enterSymbol("VZ", 1603895400000);
 
     expect(result).toBeTruthy();
+});
+
+test("getPersistedData for VZ", async () => {
+    const { data, lastBar } = await getPersistedData("VZ", 1603895400000);
+
+    expect(data.length).toEqual(12);
+    expect(Math.round(lastBar.c * 100)).toEqual(5685);
 });
 
 afterAll(async () => {

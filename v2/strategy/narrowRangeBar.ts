@@ -6,7 +6,7 @@ import { getAverageTrueRange } from "../../src/indicator/trueRange";
 import { IndicatorValue } from "../../src/indicator/adx";
 import { TradePlan } from "../trade-management-helpers";
 
-export const RISK_PER_ORDER = 100;
+export const RISK_PER_ORDER = 10;
 export const PROFIT_RATIO = 1;
 
 export interface ORBParams {
@@ -133,7 +133,7 @@ export const getSafeOrbEntryPlan = ({
             stop,
             target,
             symbol,
-            direction,
+            side: direction,
         };
     } else {
         const entry = rangeLow - currentAtr / 20;
@@ -149,7 +149,7 @@ export const getSafeOrbEntryPlan = ({
             target,
             stop,
             symbol,
-            direction,
+            side: direction,
         };
     }
 

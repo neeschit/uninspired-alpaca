@@ -5,7 +5,7 @@ import {
     getSafeOrbEntryPlan,
     isTimeForOrbEntry,
 } from "../strategy/narrowRangeBar";
-import { getData } from "../../src/resources/stockData";
+import { getData, getLastPrice } from "../../src/resources/stockData";
 import { getMarketOpenMillis } from "../../src/util/market";
 import { getOpenPositions } from "../brokerage-helpers";
 import { createOrderSynchronized } from "../trade-management-helpers";
@@ -29,12 +29,7 @@ export const lookForEntry = async (symbol: string, epoch = Date.now()) => {
         return null;
     }
 
-    const data = await getData(
-        symbol,
-        getMarketOpenMillis(epoch).getTime(),
-        "5 minutes",
-        epoch
-    );
+    const { data, lastBar } = await getPersistedData(symbol, epoch);
 
     const { atr } = getAverageTrueRange(data, false);
 
@@ -44,7 +39,7 @@ export const lookForEntry = async (symbol: string, epoch = Date.now()) => {
         currentAtr,
         marketBarsSoFar: data,
         symbol,
-        lastPrice: data[data.length - 1].c,
+        lastPrice: lastBar.c,
         openingBar: data[0],
     });
 
@@ -62,3 +57,19 @@ export const enterSymbol = async (symbol: string, epoch = Date.now()) => {
 
     return order;
 };
+
+export async function getPersistedData(symbol: string, epoch: number) {
+    const data = await getData(
+        symbol,
+        getMarketOpenMillis(epoch).getTime(),
+        "5 minutes",
+        epoch
+    );
+
+    const lastBar =
+        Number(data[data.length - 1].n) < 5
+            ? data.pop()!
+            : data[data.length - 1];
+
+    return { data, lastBar };
+}
