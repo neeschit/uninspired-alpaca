@@ -36,7 +36,7 @@ export const createOrderSynchronized = async (
         const existingAlpacaOrder = openOrderForSymbol[0];
 
         const expectedOrderDirection =
-            plan.direction === PositionDirection.long
+            plan.side === PositionDirection.long
                 ? TradeDirection.buy
                 : TradeDirection.sell;
 
@@ -69,10 +69,9 @@ async function createAlpacaOrder(
 ) {
     let alpacaOrder: AlpacaOrder;
 
+    const bracketOrder = convertPlanToAlpacaBracketOrder(persistedPlan, order);
     try {
-        alpacaOrder = await createBracketOrder(
-            convertPlanToAlpacaBracketOrder(persistedPlan, order)
-        );
+        alpacaOrder = await createBracketOrder(bracketOrder);
     } catch (e) {
         await updateOrderWithAlpacaId(
             order.id,
@@ -173,7 +172,7 @@ export const getOpeningOrderForPlan = (plan: PersistedTradePlan) => {
         },
         symbol: plan.symbol,
         side:
-            plan.direction === PositionDirection.short
+            plan.side === PositionDirection.short
                 ? TradeDirection.sell
                 : TradeDirection.buy,
         tif: TimeInForce.day,

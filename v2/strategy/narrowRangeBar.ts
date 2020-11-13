@@ -133,7 +133,7 @@ export const getSafeOrbEntryPlan = ({
             stop,
             target,
             symbol,
-            direction,
+            side: direction,
         };
     } else {
         const entry = rangeLow - currentAtr / 20;
@@ -149,7 +149,7 @@ export const getSafeOrbEntryPlan = ({
             target,
             stop,
             symbol,
-            direction,
+            side: direction,
         };
     }
 

@@ -11,7 +11,7 @@ export interface TradePlan {
     entry: number;
     target: number;
     quantity: number;
-    direction: PositionDirection;
+    side: PositionDirection;
     symbol: string;
 }
 
@@ -53,7 +53,7 @@ const getUnfilledPositionInsert = (plan: TradePlan) => {
             ${plan.stop},
             ${Math.abs(plan.quantity)},
             '${plan.symbol}',
-            '${plan.direction}',
+            '${plan.side}',
             DEFAULT,
             DEFAULT
         ) returning *;

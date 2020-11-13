@@ -10,7 +10,7 @@ test("trade_plan insert", async () => {
         limit_price: 101,
         quantity: -100,
         symbol: "TEST",
-        direction: PositionDirection.short,
+        side: PositionDirection.short,
     });
 
     expect(insertResult.id).toBeGreaterThan(0);

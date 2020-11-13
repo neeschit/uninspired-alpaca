@@ -73,7 +73,7 @@ test("getSafeORBPlan - long", () => {
     });
 
     expect(plan).toBeTruthy();
-    expect(plan!.direction).toEqual(PositionDirection.long);
+    expect(plan!.side).toEqual(PositionDirection.long);
     expect(plan!.entry).toBeGreaterThanOrEqual(121.55);
     expect(plan!.entry).toBeLessThanOrEqual(121.57);
     expect(plan!.stop).toBeGreaterThanOrEqual(openingBar.l);
@@ -98,7 +98,7 @@ test("getSafeORBPlan - short", () => {
     });
 
     expect(plan).toBeTruthy();
-    expect(plan!.direction).toEqual(PositionDirection.short);
+    expect(plan!.side).toEqual(PositionDirection.short);
     expect(plan!.entry).toBeGreaterThanOrEqual(120.65);
     expect(plan!.entry).toBeLessThanOrEqual(120.68);
     expect(plan!.stop).toEqual(121.53);
@@ -123,7 +123,7 @@ test("getSafeORBPlan - outside range long", () => {
     });
 
     expect(plan).toBeTruthy();
-    expect(plan!.direction).toEqual(PositionDirection.long);
+    expect(plan!.side).toEqual(PositionDirection.long);
     expect(plan!.entry).toBeGreaterThanOrEqual(25.63);
     expect(plan!.entry).toBeLessThanOrEqual(25.64);
     expect(plan!.limit_price).toEqual(plan!.entry);
@@ -152,7 +152,7 @@ test("make sure risk management is correct", () => {
         entry: 487.07,
         stop: 484.44,
         target: 489.71,
-        direction: PositionDirection.long,
+        side: PositionDirection.long,
         symbol: "NFLX",
         limit_price: 487.25,
     });

@@ -33,7 +33,7 @@ const plan: TradePlan = {
     limit_price: 157.66973888123042,
     stop: 156.79,
     symbol: symbolName,
-    direction: PositionDirection.long,
+    side: PositionDirection.long,
     quantity: 159,
     target: 158.77480416092283,
 };
@@ -130,7 +130,7 @@ test("createOrderSynchronized - mocked short that does cancel existing order", a
         limit_price: 157.66973888123042,
         stop: 158.79,
         symbol: symbolName,
-        direction: PositionDirection.short,
+        side: PositionDirection.short,
         quantity: 159,
         target: 155.77480416092283,
     };
