@@ -473,6 +473,7 @@ export const getData = async (
             h: Number(r.h),
             l: Number(r.l),
             t: new Date(r.time_bucket).getTime(),
+            n: Number(r.n),
         };
     });
 };
