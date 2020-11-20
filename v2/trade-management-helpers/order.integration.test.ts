@@ -16,9 +16,9 @@ import {
     cancelAlpacaOrder,
 } from "../brokerage-helpers";
 import { readJsonSync } from "fs-extra";
-import { endPooledConnection } from "../../src/connection/pg";
+import { endPooledConnection, getConnection } from "../../src/connection/pg";
 
-const symbolName = "ORDERINT";
+const symbolName = "OINT_";
 
 jest.mock("../brokerage-helpers");
 
@@ -28,22 +28,23 @@ const mockCreateBracketOrder = createBracketOrder as jest.Mock;
 
 const mockCancelAlpacaOrder = cancelAlpacaOrder as jest.Mock;
 
-const plan: TradePlan = {
+const getPlan = (index: number) => ({
     entry: 157.66973888123042,
     limit_price: 157.66973888123042,
     stop: 156.79,
-    symbol: symbolName,
+    symbol: symbolName + index,
     side: PositionDirection.long,
     quantity: 159,
     target: 158.77480416092283,
-};
+});
 
 test("crud plan and order in database", async () => {
+    const plan = getPlan(0);
     const insertedPlan = await persistTradePlan(plan);
 
     const insertedOrder = await insertOrderForTradePlan(insertedPlan);
 
-    const orders = await selectAllNewOrders();
+    const orders = await selectAllNewOrders(plan.symbol);
 
     expect(orders?.length).toEqual(1);
     if (insertedOrder) {
@@ -56,6 +57,7 @@ test("crud plan and order in database", async () => {
 });
 
 test("crud plan and order in database with a dupe not concurrent", async () => {
+    const plan = getPlan(1);
     const insertedPlan = await persistTradePlan(plan);
 
     const insertedOrder = await insertOrderForTradePlan(insertedPlan);
@@ -75,6 +77,7 @@ test("crud plan and order in database with a dupe not concurrent", async () => {
 });
 
 test("crud plan and order in database with a dupe - concurrent", async () => {
+    const plan = getPlan(2);
     const insertedPlan = await persistTradePlan(plan);
 
     const results = await Promise.all([
@@ -93,6 +96,7 @@ test("crud plan and order in database with a dupe - concurrent", async () => {
 });
 
 test("createOrderSynchronized", async () => {
+    const plan = getPlan(3);
     const alpacaResult: AlpacaOrder = readJsonSync(
         "./fixtures/alpaca-order-response.json"
     ) as any;
@@ -107,14 +111,43 @@ test("createOrderSynchronized", async () => {
     expect(order?.qty).toEqual(Math.abs(plan.quantity).toString());
 });
 
-test("createOrderSynchronized - with error creating bracket order", async () => {
-    mockCreateBracketOrder.mockRejectedValueOnce(new Error("test_error"));
-    mockGetOpenOrders.mockReturnValueOnce([]);
-    await expect(createOrderSynchronized(plan)).rejects.toThrow();
+test("createOrderSynchronized - concurrent", async () => {
+    const plan = getPlan(4);
+    const alpacaResult: AlpacaOrder = readJsonSync(
+        "./fixtures/alpaca-order-response.json"
+    ) as any;
 
-    const orders = await selectAllNewOrders();
+    alpacaResult.id += Date.now();
 
-    expect(orders?.length).toBeFalsy();
+    mockCreateBracketOrder.mockResolvedValueOnce(alpacaResult);
+    mockGetOpenOrders.mockReturnValue([]);
+
+    const promise = () =>
+        new Promise((resolve, reject) => {
+            setTimeout(async () => {
+                try {
+                    alpacaResult.id += Date.now();
+                    mockCreateBracketOrder.mockResolvedValueOnce(alpacaResult);
+                    await expect(
+                        createOrderSynchronized(plan)
+                    ).rejects.toThrowError("error_inserting_order");
+
+                    resolve();
+                } catch (e) {
+                    reject(e);
+                }
+            }, 1);
+        });
+
+    const orders = await Promise.all([
+        createOrderSynchronized(plan),
+        promise(),
+    ]);
+
+    const order = orders[0];
+
+    expect(order).toBeTruthy();
+    expect(order?.qty).toEqual(Math.abs(plan.quantity).toString());
 });
 
 test("createOrderSynchronized - mocked short that does cancel existing order", async () => {
@@ -129,7 +162,7 @@ test("createOrderSynchronized - mocked short that does cancel existing order", a
         entry: 157.66973888123042,
         limit_price: 157.66973888123042,
         stop: 158.79,
-        symbol: symbolName,
+        symbol: symbolName + 6,
         side: PositionDirection.short,
         quantity: 159,
         target: 155.77480416092283,
@@ -144,6 +177,59 @@ test("createOrderSynchronized - mocked short that does cancel existing order", a
     const order = await createOrderSynchronized(plan);
 
     expect(order).toBeTruthy();
+});
+
+test("createOrderSynchronized - with error creating bracket order", async () => {
+    const plan = getPlan(7);
+    mockCreateBracketOrder.mockReset();
+    mockCreateBracketOrder.mockRejectedValueOnce(new Error("test_error"));
+    mockGetOpenOrders.mockReturnValueOnce([]);
+    await expect(createOrderSynchronized(plan)).rejects.toThrowError(
+        "test_error"
+    );
+
+    const orders = await selectAllNewOrders(plan.symbol);
+
+    expect(orders?.length).toBeFalsy();
+});
+test("createOrderSynchronized - tiny delay", async () => {
+    const plan = getPlan(8);
+    const alpacaResult: AlpacaOrder = readJsonSync(
+        "./fixtures/alpaca-order-response.json"
+    ) as any;
+
+    alpacaResult.id += Date.now();
+
+    mockCreateBracketOrder.mockReset();
+    mockCreateBracketOrder.mockResolvedValueOnce(alpacaResult);
+    mockGetOpenOrders.mockReturnValue([]);
+
+    const promise = () =>
+        new Promise((resolve, reject) => {
+            setTimeout(async () => {
+                try {
+                    alpacaResult.id += Date.now();
+                    mockCreateBracketOrder.mockResolvedValueOnce(alpacaResult);
+                    await expect(
+                        createOrderSynchronized(plan)
+                    ).rejects.toThrowError("order_placed_recently_for_symbol");
+
+                    resolve();
+                } catch (e) {
+                    reject(e);
+                }
+            }, 150);
+        });
+
+    const orders = await Promise.all([
+        createOrderSynchronized(plan),
+        promise(),
+    ]);
+
+    const order = orders[0];
+
+    expect(order).toBeTruthy();
+    expect(order?.qty).toEqual(Math.abs(plan.quantity).toString());
 });
 
 afterAll(async () => {
