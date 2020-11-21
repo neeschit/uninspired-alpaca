@@ -7,11 +7,16 @@ import {
     convertPlanToAlpacaBracketOrder,
     createOrderSynchronized,
     getOpeningOrderForPlan,
+    getOrderById,
+    insertOrderForTradePlan,
     PersistedUnfilledOrder,
+    updateOrderWithAlpacaId,
+    persistPlanAndOrder,
 } from "./order";
 
 import { getOpenOrders } from "../brokerage-helpers";
 import { TradePlan, persistTradePlan, PersistedTradePlan } from "./position";
+import { getConnection } from "../../src/connection/pg";
 
 jest.mock("../brokerage-helpers");
 
@@ -21,6 +26,7 @@ jest.mock("../../src/connection/pg");
 
 const mockPersist = persistTradePlan as jest.Mock;
 const mockGetOpenOrders = getOpenOrders as jest.Mock;
+const mockGetConnection = getConnection as jest.Mock;
 
 test("convert to bracket order", async () => {
     const plan: TradePlan = {
@@ -169,4 +175,129 @@ test("createOrderSynchronized - mocked with dupe order", async () => {
     );
 
     await expect(createOrderSynchronized(plan)).rejects.toThrow();
+});
+
+test("getOrderById - no results", async () => {
+    const id = 320;
+
+    mockGetConnection.mockImplementationOnce(() => {
+        return {
+            query: () => {
+                return {
+                    rowCount: 0,
+                };
+            },
+        };
+    });
+
+    const result = await getOrderById(320);
+
+    expect(result).toBeFalsy();
+});
+
+test("getOrderById - with results", async () => {
+    const id = 320;
+
+    mockGetConnection.mockImplementationOnce(() => {
+        return {
+            query: () => {
+                return {
+                    rowCount: 1,
+                    rows: [
+                        {
+                            test: true,
+                        },
+                    ],
+                };
+            },
+        };
+    });
+    const result = await getOrderById(320);
+
+    expect(result).toBeTruthy();
+});
+
+test("updateOrderWithAlpacaId", async () => {
+    let expectedFailureThrown = false;
+    mockGetConnection.mockImplementationOnce(() => {
+        return {
+            query: (qs: string) => {
+                if (qs.indexOf("unknown_failure") === -1) {
+                    expectedFailureThrown = true;
+                    throw new Error("test_error");
+                }
+                return {
+                    rowCount: 0,
+                    rows: [],
+                };
+            },
+        };
+    });
+    expect(expectedFailureThrown).toBeFalsy();
+
+    await updateOrderWithAlpacaId(1, "new");
+
+    expect(expectedFailureThrown).toBeTruthy();
+});
+
+test("insertOrderForTradePlan", async () => {
+    mockGetConnection.mockImplementationOnce(() => {
+        return {
+            query: (qs: string) => {
+                throw new Error("test_error");
+            },
+        };
+    });
+
+    const result = await insertOrderForTradePlan({
+        id: 1,
+        side: PositionDirection.long,
+        stop: 100,
+        symbol: "test",
+        entry: 101,
+        target: 110,
+        created_at: "",
+        updated_at: "",
+        limit_price: 101.1,
+        quantity: 100,
+    });
+
+    expect(result).toBeFalsy();
+});
+
+test("persistPlanAndOrder", async () => {
+    const plan = {
+        entry: 157.66973888123042,
+        limit_price: 157.66973888123042,
+        stop: 156.79,
+        symbol: "TEST",
+        side: PositionDirection.long,
+        quantity: 159,
+        target: 158.77480416092283,
+    };
+    mockGetConnection.mockImplementation(() => {
+        return {
+            query: (qs: string) => {
+                const lowercaseQs = qs.toLowerCase();
+
+                console.log(lowercaseQs);
+
+                return {
+                    rowCount: 0,
+                    rows: [],
+                };
+            },
+        };
+    });
+
+    mockPersist.mockReturnValueOnce({
+        ...plan,
+        id: 1,
+    });
+
+    await expect(persistPlanAndOrder(plan)).rejects.toThrowError(
+        "order_insertion_failed"
+    );
+
+    mockGetConnection.mockReset();
 });

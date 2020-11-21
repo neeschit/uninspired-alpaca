@@ -11,6 +11,7 @@ import {
     cancelAlpacaOrder,
     createBracketOrder,
     getOpenOrders,
+    getOpenPositions,
 } from "../brokerage-helpers";
 import {
     ensureUpdateTriggerExists,
@@ -22,6 +23,22 @@ export interface OrderUpdate extends AlpacaOrder {
     position_id: number;
     position_qty: number;
 }
+
+export const getRecentOrders = async (
+    symbol: string
+): Promise<PersistedUnfilledOrder[]> => {
+    const getRecentOrders = `select * from new_order where symbol = '${symbol.toLocaleLowerCase()}' and created_at >= NOW() - INTERVAL '3 seconds';`;
+
+    const connection = getConnection();
+
+    const recentOrdersQueryResult = await connection.query(getRecentOrders);
+
+    if (!recentOrdersQueryResult.rowCount) {
+        return [];
+    }
+
+    return recentOrdersQueryResult.rows;
+};
 
 export const createOrderSynchronized = async (
     plan: TradePlan
@@ -44,6 +61,12 @@ export const createOrderSynchronized = async (
             throw new Error("order_exists");
         }
 
+        const positions = await getOpenPositions();
+
+        if (positions.some((p) => p.symbol === plan.symbol)) {
+            throw new Error("position_exists");
+        }
+
         await cancelAlpacaOrder(existingAlpacaOrder.id);
     }
 
@@ -52,16 +75,23 @@ export const createOrderSynchronized = async (
     return createAlpacaOrder(persistedPlan, order);
 };
 
-async function persistPlanAndOrder(plan: TradePlan) {
+export const persistPlanAndOrder = async (plan: TradePlan) => {
+    const recentOrdersForSymbol = await getRecentOrders(plan.symbol);
+
+    if (recentOrdersForSymbol.length) {
+        throw new Error("order_placed_recently_for_symbol");
+    }
+
     const persistedPlan = await persistTradePlan(plan);
 
     const order = await insertOrderForTradePlan(persistedPlan);
 
     if (!order) {
-        throw new Error("error_inserting_order");
+        throw new Error("order_insertion_failed");
     }
+
     return { persistedPlan, order };
-}
+};
 
 async function createAlpacaOrder(
     persistedPlan: PersistedTradePlan,
@@ -79,6 +109,7 @@ async function createAlpacaOrder(
         );
         throw new Error("error placing order - " + order.id + "- " + e.message);
     }
+
     await updateOrderWithAlpacaId(order.id, alpacaOrder.id);
 
     return alpacaOrder;
@@ -86,9 +117,8 @@ async function createAlpacaOrder(
 
 const unplacedAlpacaOrderId = "new";
 
-const selectAllNewOrdersQuery = `select * from new_order where alpaca_order_id = '${unplacedAlpacaOrderId}'`;
-
-export const selectAllNewOrders = async () => {
+export const selectAllNewOrders = async (symbol: string) => {
+    const selectAllNewOrdersQuery = `select * from new_order where alpaca_order_id = '${unplacedAlpacaOrderId}' and symbol = '${symbol.toLowerCase()}'`;
     const connection = getConnection();
 
     const result = await connection.query(selectAllNewOrdersQuery);
@@ -102,8 +132,10 @@ export const selectAllNewOrders = async () => {
 
 const updateQuery = (id: number, alpaca_order_id: string) => {
     return `
+        begin;
         update new_order set (alpaca_order_id) = ROW('${alpaca_order_id}')
-            where id = ${id};
+            where id = ${id}; 
+        commit;
     `;
 };
 
@@ -115,7 +147,16 @@ export const updateOrderWithAlpacaId = async (
 
     const query = updateQuery(id, alpaca_order_id);
 
-    await connection.query(query);
+    try {
+        await connection.query(query);
+    } catch (e) {
+        console.error("error_updating_order", e);
+        console.error(query);
+
+        await connection.query(
+            updateQuery(id, "unknown_failure_" + Date.now())
+        );
+    }
 };
 
 const selectQueryById = (id: number) =>
@@ -138,7 +179,7 @@ const getInsertQuery = (order: UnfilledOrder) => {
     return `insert into new_order values(
         DEFAULT,
         ${order.trade_plan_id},
-        '${order.symbol}',
+        '${order.symbol.toLowerCase()}',
         '${order.side}',
         '${order.type}',
         '${order.tif}',
@@ -153,7 +194,7 @@ const getInsertQuery = (order: UnfilledOrder) => {
         DEFAULT,
         DEFAULT,
         DEFAULT
-    ) returning *;`;
+    ) ON CONFLICT DO NOTHING returning *;`;
 };
 
 export const getOpeningOrderForPlan = (plan: PersistedTradePlan) => {
@@ -184,18 +225,21 @@ export const getOpeningOrderForPlan = (plan: PersistedTradePlan) => {
 export const insertOrderForTradePlan = async (
     plan: PersistedTradePlan
 ): Promise<PersistedUnfilledOrder | null> => {
+    "insert " + Date.now();
     const unfilledOrder = getOpeningOrderForPlan(plan);
 
     const connection = getConnection();
 
     try {
-        const result = await connection.query(getInsertQuery(unfilledOrder));
+        const insertQuery = getInsertQuery(unfilledOrder);
+
+        const result = await connection.query(insertQuery);
 
         if (result.rows) {
             return result.rows[0] as PersistedUnfilledOrder;
         }
     } catch (e) {
-        console.error("error inserting new order", e);
+        console.error("error inserting new order - ", e);
     }
 
     return null;
