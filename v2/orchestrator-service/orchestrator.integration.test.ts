@@ -40,6 +40,10 @@ jest.mock("../screener-api", () => {
 
 jest.setTimeout(10000);
 
+beforeEach(() => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
+});
+
 test("onStockMinuteAggPosted", async () => {
     const dailyData = readJsonSync("./fixtures/jnj-nrb.json");
 

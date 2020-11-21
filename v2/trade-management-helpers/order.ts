@@ -75,7 +75,7 @@ export const createOrderSynchronized = async (
     return createAlpacaOrder(persistedPlan, order);
 };
 
-async function persistPlanAndOrder(plan: TradePlan) {
+export const persistPlanAndOrder = async (plan: TradePlan) => {
     const recentOrdersForSymbol = await getRecentOrders(plan.symbol);
 
     if (recentOrdersForSymbol.length) {
@@ -87,10 +87,11 @@ async function persistPlanAndOrder(plan: TradePlan) {
     const order = await insertOrderForTradePlan(persistedPlan);
 
     if (!order) {
-        throw new Error("error_inserting_order");
+        throw new Error("order_insertion_failed");
     }
+
     return { persistedPlan, order };
-}
+};
 
 async function createAlpacaOrder(
     persistedPlan: PersistedTradePlan,
@@ -108,6 +109,7 @@ async function createAlpacaOrder(
         );
         throw new Error("error placing order - " + order.id + "- " + e.message);
     }
+
     await updateOrderWithAlpacaId(order.id, alpacaOrder.id);
 
     return alpacaOrder;
@@ -145,7 +147,16 @@ export const updateOrderWithAlpacaId = async (
 
     const query = updateQuery(id, alpaca_order_id);
 
-    await connection.query(query);
+    try {
+        await connection.query(query);
+    } catch (e) {
+        console.error("error_updating_order", e);
+        console.error(query);
+
+        await connection.query(
+            updateQuery(id, "unknown_failure_" + Date.now())
+        );
+    }
 };
 
 const selectQueryById = (id: number) =>
