@@ -9,7 +9,13 @@ test("getWatchListForDate", async () => {
     const watchList = await getWatchlistForDate(currentTradingSymbols, date);
 
     expect(watchList).toBeTruthy();
-    expect(watchList).toStrictEqual(["AMZN", "JNJ", "NFLX", "PFE", "VRTX"]);
+    expect(watchList).toStrictEqual([
+        { symbol: "AMZN", atr: 104.6453783727994 },
+        { symbol: "JNJ", atr: 2.343836803469414 },
+        { symbol: "NFLX", atr: 20.50041363999451 },
+        { symbol: "PFE", atr: 0.7495092625174182 },
+        { symbol: "VRTX", atr: 10.892275997243448 },
+    ]);
 
     const watchListCached = await getWatchlistForDate(
         currentTradingSymbols,

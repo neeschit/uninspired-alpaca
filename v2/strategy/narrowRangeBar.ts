@@ -24,7 +24,8 @@ export const isTimeForOrbEntry = (nowMillis: number) => {
     const timeStart = convertToLocalTime(nowMillis, " 09:59:45.000");
     const timeEnd = convertToLocalTime(nowMillis, " 11:45:15.000");
 
-    const isWithinEntryRange = timeStart.getTime() <= nowMillis && timeEnd.getTime() >= nowMillis;
+    const isWithinEntryRange =
+        timeStart.getTime() <= nowMillis && timeEnd.getTime() >= nowMillis;
 
     if (!isWithinEntryRange) {
         LOGGER.trace("come back later hooomie", nowMillis);
@@ -33,7 +34,10 @@ export const isTimeForOrbEntry = (nowMillis: number) => {
     return isWithinEntryRange;
 };
 
-export const getOrbDirection = (openingBar: Bar, close: number): PositionDirection => {
+export const getOrbDirection = (
+    openingBar: Bar,
+    close: number
+): PositionDirection => {
     const distanceFromLongEntry = Math.abs(close - openingBar.h);
     const distanceFromShortEntry = Math.abs(close - openingBar.l);
 
@@ -61,15 +65,24 @@ export interface OrbEntryParams {
     currentAtr: number;
     symbol: string;
     marketBarsSoFar: Bar[];
+    dailyAtr: number;
 }
 
-export const getLongStop = (marketBarsSoFar: Bar[], spread: number, proposedTradeStop: number) => {
+export const getLongStop = (
+    marketBarsSoFar: Bar[],
+    spread: number,
+    proposedTradeStop: number
+) => {
     return marketBarsSoFar.slice(-6).reduce((stop, b) => {
         return b.l >= proposedTradeStop - spread && b.l < stop ? b.l : stop;
     }, proposedTradeStop);
 };
 
-export const getShortStop = (marketBarsSoFar: Bar[], spread: number, proposedTradeStop: number) => {
+export const getShortStop = (
+    marketBarsSoFar: Bar[],
+    spread: number,
+    proposedTradeStop: number
+) => {
     return marketBarsSoFar.slice(-6).reduce((stop, b) => {
         return b.h <= proposedTradeStop + spread && b.h > stop ? b.h : stop;
     }, proposedTradeStop);
@@ -81,8 +94,10 @@ export const getSafeOrbEntryPlan = ({
     currentAtr,
     symbol,
     marketBarsSoFar,
+    dailyAtr,
 }: OrbEntryParams): TradePlan | null => {
-    const isCurrentlyOutsideRange = lastPrice > openingBar.h || lastPrice < openingBar.l;
+    const isCurrentlyOutsideRange =
+        lastPrice > openingBar.h || lastPrice < openingBar.l;
 
     const direction = getOrbDirection(openingBar, lastPrice);
 
@@ -154,7 +169,10 @@ export const getSafeOrbEntryPlan = ({
     );
 };
 
-export const getQuantityForPlan = (riskUnits: number, plan: Omit<TradePlan, "quantity">) => {
+export const getQuantityForPlan = (
+    riskUnits: number,
+    plan: Omit<TradePlan, "quantity">
+) => {
     return Math.floor(riskUnits / (plan.limit_price - plan.stop));
 };
 
@@ -165,10 +183,16 @@ export class NarrowRangeBarStrategy {
     bars: Bar[];
     nrb: boolean = false;
 
-    constructor({ symbol, bars }: { symbol: string; bars: Bar[] }) {
+    constructor({
+        symbol,
+        bars,
+        tr,
+    }: {
+        symbol: string;
+        bars: Bar[];
+        tr: IndicatorValue<number>[];
+    }) {
         this.symbol = symbol;
-
-        const { tr } = getAverageTrueRange(bars, false);
 
         this.closeBar = bars[bars.length - 1];
         this.tr = tr;
@@ -202,7 +226,9 @@ export class NarrowRangeBarStrategy {
 
         const isNarrowRangeBar = range.value <= sevenPeriodMin * 1.3;
 
-        return isNarrowRangeBar && this.isVeryNarrowRangeBar(max, sevenPeriodMin);
+        return (
+            isNarrowRangeBar && this.isVeryNarrowRangeBar(max, sevenPeriodMin)
+        );
     }
 
     isVeryNarrowRangeBar(max: number, min: number) {
