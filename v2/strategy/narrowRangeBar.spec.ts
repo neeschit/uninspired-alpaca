@@ -31,9 +31,13 @@ const getTestData = (bars: Bar[], entryTime: number) => {
 
 test("screener should find all narrow range bars", () => {
     const bars = readJsonSync("./fixtures/aapl-not-nrb.json");
+
+    const { tr } = getAverageTrueRange(bars, false);
+
     const narrowRangeBarStrategyInstance = new NarrowRangeBarStrategy({
         symbol: "AAPL",
         bars,
+        tr,
     });
     const result = narrowRangeBarStrategyInstance.screenForNarrowRangeBars();
 
@@ -42,9 +46,11 @@ test("screener should find all narrow range bars", () => {
 
 test("screener should find all narrow range bars", () => {
     const bars1 = readJsonSync("./fixtures/jnj-nrb.json");
+    const { tr } = getAverageTrueRange(bars1, false);
     const narrowRangeBarStrategyInstance = new NarrowRangeBarStrategy({
         symbol: "JNJ",
         bars: bars1,
+        tr,
     });
 
     const result = narrowRangeBarStrategyInstance.screenForNarrowRangeBars();
@@ -70,6 +76,7 @@ test("getSafeORBPlan - long", () => {
         openingBar,
         currentAtr,
         marketBarsSoFar,
+        dailyAtr: 2.98,
     });
 
     expect(plan).toBeTruthy();
@@ -95,13 +102,15 @@ test("getSafeORBPlan - short", () => {
         openingBar,
         currentAtr,
         marketBarsSoFar,
+        dailyAtr: 2.98,
     });
 
     expect(plan).toBeTruthy();
     expect(plan!.side).toEqual(PositionDirection.short);
     expect(plan!.entry).toBeGreaterThanOrEqual(120.65);
     expect(plan!.entry).toBeLessThanOrEqual(120.68);
-    expect(plan!.stop).toEqual(121.53);
+    expect(plan!.stop).toBeLessThanOrEqual(121.27);
+    expect(plan!.stop).toBeGreaterThan(121);
 });
 
 test("getSafeORBPlan - outside range long", () => {
@@ -120,6 +129,7 @@ test("getSafeORBPlan - outside range long", () => {
         openingBar,
         currentAtr,
         marketBarsSoFar,
+        dailyAtr: 0.83,
     });
 
     expect(plan).toBeTruthy();
@@ -127,7 +137,7 @@ test("getSafeORBPlan - outside range long", () => {
     expect(plan!.entry).toBeGreaterThanOrEqual(25.63);
     expect(plan!.entry).toBeLessThanOrEqual(25.64);
     expect(plan!.limit_price).toEqual(plan!.entry);
-    expect(plan!.stop).toBeGreaterThanOrEqual(25.48);
+    expect(plan!.stop).toBeGreaterThanOrEqual(25.3);
 });
 
 test("getShortStop", () => {

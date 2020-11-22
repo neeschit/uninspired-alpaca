@@ -5,6 +5,7 @@ import { PositionDirection } from "@neeschit/alpaca-trade-api";
 import { getAverageTrueRange } from "../../src/indicator/trueRange";
 import { IndicatorValue } from "../../src/indicator/adx";
 import { TradePlan } from "../trade-management-helpers";
+import { getActualStop } from "../../src/services/riskManagement";
 
 export const RISK_PER_ORDER = 10;
 export const PROFIT_RATIO = 1;
@@ -24,7 +25,8 @@ export const isTimeForOrbEntry = (nowMillis: number) => {
     const timeStart = convertToLocalTime(nowMillis, " 09:59:45.000");
     const timeEnd = convertToLocalTime(nowMillis, " 11:45:15.000");
 
-    const isWithinEntryRange = timeStart.getTime() <= nowMillis && timeEnd.getTime() >= nowMillis;
+    const isWithinEntryRange =
+        timeStart.getTime() <= nowMillis && timeEnd.getTime() >= nowMillis;
 
     if (!isWithinEntryRange) {
         LOGGER.trace("come back later hooomie", nowMillis);
@@ -33,7 +35,10 @@ export const isTimeForOrbEntry = (nowMillis: number) => {
     return isWithinEntryRange;
 };
 
-export const getOrbDirection = (openingBar: Bar, close: number): PositionDirection => {
+export const getOrbDirection = (
+    openingBar: Bar,
+    close: number
+): PositionDirection => {
     const distanceFromLongEntry = Math.abs(close - openingBar.h);
     const distanceFromShortEntry = Math.abs(close - openingBar.l);
 
@@ -45,13 +50,14 @@ export const getOrbDirection = (openingBar: Bar, close: number): PositionDirecti
 };
 
 export const getOrbEntryPrices = (
-    bar: Bar,
+    high: number,
+    low: number,
     atr: number
 ): { entryLong: number; entryShort: number } => {
-    const noiseSmoother = atr / 12;
+    const noiseSmoother = atr / 20;
     return {
-        entryLong: bar.h + noiseSmoother,
-        entryShort: bar.l - noiseSmoother,
+        entryLong: high + noiseSmoother,
+        entryShort: low - noiseSmoother,
     };
 };
 
@@ -61,15 +67,24 @@ export interface OrbEntryParams {
     currentAtr: number;
     symbol: string;
     marketBarsSoFar: Bar[];
+    dailyAtr: number;
 }
 
-export const getLongStop = (marketBarsSoFar: Bar[], spread: number, proposedTradeStop: number) => {
+export const getLongStop = (
+    marketBarsSoFar: Bar[],
+    spread: number,
+    proposedTradeStop: number
+) => {
     return marketBarsSoFar.slice(-6).reduce((stop, b) => {
         return b.l >= proposedTradeStop - spread && b.l < stop ? b.l : stop;
     }, proposedTradeStop);
 };
 
-export const getShortStop = (marketBarsSoFar: Bar[], spread: number, proposedTradeStop: number) => {
+export const getShortStop = (
+    marketBarsSoFar: Bar[],
+    spread: number,
+    proposedTradeStop: number
+) => {
     return marketBarsSoFar.slice(-6).reduce((stop, b) => {
         return b.h <= proposedTradeStop + spread && b.h > stop ? b.h : stop;
     }, proposedTradeStop);
@@ -81,8 +96,10 @@ export const getSafeOrbEntryPlan = ({
     currentAtr,
     symbol,
     marketBarsSoFar,
+    dailyAtr,
 }: OrbEntryParams): TradePlan | null => {
-    const isCurrentlyOutsideRange = lastPrice > openingBar.h || lastPrice < openingBar.l;
+    const isCurrentlyOutsideRange =
+        lastPrice > openingBar.h || lastPrice < openingBar.l;
 
     const direction = getOrbDirection(openingBar, lastPrice);
 
@@ -94,21 +111,26 @@ export const getSafeOrbEntryPlan = ({
         openingBar.h,
         marketBarsSoFar.reduce((prev, bar) => {
             return bar.h > prev && bar.h <= prev + spread ? bar.h : prev;
-        }, marketBarsSoFar[0].h)
+        }, openingBar.h)
     );
 
     const rangeLow = Math.min(
         openingBar.l,
         marketBarsSoFar.reduce((prev, bar) => {
             return bar.l < prev && bar.l >= prev - spread ? bar.l : prev;
-        }, marketBarsSoFar[0].l)
+        }, openingBar.l)
+    );
+
+    const { entryLong, entryShort } = getOrbEntryPrices(
+        rangeHigh,
+        rangeLow,
+        currentAtr
     );
 
     if (direction === PositionDirection.long) {
-        const entry = rangeHigh + currentAtr / 20;
-        const proposedTradeStop = rangeHigh - currentAtr * 1.2;
+        const entry = entryLong;
 
-        const stop = getLongStop(marketBarsSoFar, spread, proposedTradeStop);
+        const stop = getActualStop(entry, currentAtr, false, dailyAtr);
 
         const limit = entry + currentAtr / 12;
 
@@ -123,10 +145,8 @@ export const getSafeOrbEntryPlan = ({
             side: direction,
         };
     } else {
-        const entry = rangeLow - currentAtr / 20;
-        const proposedTradeStop = rangeLow + currentAtr * 1.2;
-
-        const stop = getShortStop(marketBarsSoFar, spread, proposedTradeStop);
+        const entry = entryShort;
+        const stop = getActualStop(entry, currentAtr, true, dailyAtr);
         const limit = entry - currentAtr / 12;
         const target = entry + (entry - stop) * PROFIT_RATIO;
 
@@ -154,7 +174,10 @@ export const getSafeOrbEntryPlan = ({
     );
 };
 
-export const getQuantityForPlan = (riskUnits: number, plan: Omit<TradePlan, "quantity">) => {
+export const getQuantityForPlan = (
+    riskUnits: number,
+    plan: Omit<TradePlan, "quantity">
+) => {
     return Math.floor(riskUnits / (plan.limit_price - plan.stop));
 };
 
@@ -165,10 +188,16 @@ export class NarrowRangeBarStrategy {
     bars: Bar[];
     nrb: boolean = false;
 
-    constructor({ symbol, bars }: { symbol: string; bars: Bar[] }) {
+    constructor({
+        symbol,
+        bars,
+        tr,
+    }: {
+        symbol: string;
+        bars: Bar[];
+        tr: IndicatorValue<number>[];
+    }) {
         this.symbol = symbol;
-
-        const { tr } = getAverageTrueRange(bars, false);
 
         this.closeBar = bars[bars.length - 1];
         this.tr = tr;
@@ -202,7 +231,9 @@ export class NarrowRangeBarStrategy {
 
         const isNarrowRangeBar = range.value <= sevenPeriodMin * 1.3;
 
-        return isNarrowRangeBar && this.isVeryNarrowRangeBar(max, sevenPeriodMin);
+        return (
+            isNarrowRangeBar && this.isVeryNarrowRangeBar(max, sevenPeriodMin)
+        );
     }
 
     isVeryNarrowRangeBar(max: number, min: number) {

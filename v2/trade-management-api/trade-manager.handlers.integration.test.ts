@@ -21,7 +21,7 @@ const mockWatchlist = <jest.Mock>getWatchlistFromScreenerService;
 jest.setTimeout(25000);
 
 test("lookForEntry", async () => {
-    mockWatchlist.mockReturnValueOnce(["AAPL", "BDX"]);
+    mockWatchlist.mockReturnValueOnce([{ symbol: "AAPL" }, { symbol: "BDX" }]);
     const result = await lookForEntry("VZ");
 
     expect(result).toBeFalsy();
@@ -29,7 +29,11 @@ test("lookForEntry", async () => {
 
 test("lookForEntry when in watchlist & timing for entry is correct", async () => {
     mockGetOpenPositions.mockResolvedValueOnce([{ symbol: "BDX" }]);
-    mockWatchlist.mockReturnValueOnce(["AAPL", "BDX", "VZ"]);
+    mockWatchlist.mockReturnValueOnce([
+        { symbol: "AAPL" },
+        { symbol: "BDX" },
+        { symbol: "VZ" },
+    ]);
     const result = await lookForEntry("VZ", 1603895590000);
 
     expect(result).toBeTruthy();
@@ -40,7 +44,12 @@ test("lookForEntry when in watchlist & timing for entry is correct", async () =>
 
 test("lookForEntry in CCI", async () => {
     mockGetOpenPositions.mockResolvedValueOnce([{ symbol: "BDX" }]);
-    mockWatchlist.mockReturnValueOnce(["AAPL", "BDX", "CCI", "VZ"]);
+    mockWatchlist.mockReturnValueOnce([
+        { symbol: "AAPL" },
+        { symbol: "BDX" },
+        { symbol: "CCI" },
+        { symbol: "VZ" },
+    ]);
     const result = await lookForEntry("CCI", 1603895590000);
 
     expect(result).toBeTruthy();
@@ -54,7 +63,11 @@ test("lookForEntry in CCI", async () => {
 
 test("lookForEntry when in watchlist but not the right time", async () => {
     mockGetOpenPositions.mockResolvedValueOnce([{ symbol: "BDX" }]);
-    mockWatchlist.mockReturnValueOnce(["AAPL", "BDX", "VZ"]);
+    mockWatchlist.mockReturnValueOnce([
+        { symbol: "AAPL" },
+        { symbol: "BDX" },
+        { symbol: "VZ" },
+    ]);
     const result = await lookForEntry("VZ", 1603924390000);
 
     expect(result).toBeFalsy();
@@ -62,23 +75,35 @@ test("lookForEntry when in watchlist but not the right time", async () => {
 
 test("lookForEntry when in watchlist but also has an open position", async () => {
     mockGetOpenPositions.mockResolvedValueOnce([{ symbol: "VZ" }]);
-    mockWatchlist.mockReturnValueOnce(["AAPL", "BDX", "VZ"]);
+    mockWatchlist.mockReturnValueOnce([
+        { symbol: "AAPL" },
+        { symbol: "BDX" },
+        { symbol: "VZ" },
+    ]);
     const result = await lookForEntry("VZ", 1603895590000);
 
     expect(result).toBeFalsy();
 });
 
-test("enterSymbol with no plan returned", async () => {
+test("enterSymbol with position returned", async () => {
     mockGetOpenPositions.mockResolvedValueOnce([{ symbol: "VZ" }]);
-    mockWatchlist.mockReturnValueOnce(["AAPL", "BDX", "VZ"]);
+    mockWatchlist.mockReturnValueOnce([
+        { symbol: "AAPL" },
+        { symbol: "BDX" },
+        { symbol: "VZ" },
+    ]);
     const result = await enterSymbol("VZ", 1603895590000);
 
     expect(result).toBeFalsy();
 });
 
-test("enterSymbol with plan returned", async () => {
+test("enterSymbol with no position returned", async () => {
     mockGetOpenPositions.mockResolvedValueOnce([]);
-    mockWatchlist.mockReturnValueOnce(["AAPL", "BDX", "VZ"]);
+    mockWatchlist.mockReturnValueOnce([
+        { symbol: "AAPL" },
+        { symbol: "BDX" },
+        { symbol: "VZ" },
+    ]);
     mockCreateOrder.mockReturnValueOnce(true);
     const result = await enterSymbol("VZ", 1603895400000);
 

@@ -1,5 +1,8 @@
 import { format } from "date-fns";
-import { getWatchlistFromScreenerService } from "../screener-api";
+import {
+    getWatchlistFromScreenerService,
+    GetWatchlistResponse,
+} from "../screener-api";
 import { getAverageTrueRange } from "../../src/indicator/trueRange";
 import {
     getSafeOrbEntryPlan,
@@ -15,7 +18,7 @@ export const lookForEntry = async (symbol: string, epoch = Date.now()) => {
         format(new Date(), "MM-dd-yyyy")
     );
 
-    if (watchlist.every((watchedSymbol) => watchedSymbol !== symbol)) {
+    if (watchlist.every((item) => item.symbol !== symbol)) {
         return null;
     }
 
@@ -41,6 +44,7 @@ export const lookForEntry = async (symbol: string, epoch = Date.now()) => {
         symbol,
         lastPrice: lastBar.c,
         openingBar: data[0],
+        dailyAtr: atr.pop()!.value,
     });
 
     return plan;
