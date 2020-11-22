@@ -36,6 +36,7 @@
     "build": "tsc",
     "build:w": "tsc -w",
     "backtest": "NODE_ENV=backtest node --expose-gc --enable-source-maps build/src/scripts/backtest.js",
+    "b2": "NODE_ENV=backtest jest --config jest.config.backtest.js",
     "fixDataForToday": "NODE_ENV=backtest node --expose-gc --enable-source-maps build/src/scripts/symbolDataFixer.js",
     "backtest:inspect": "NODE_ENV=backtest node --inspect --expose-gc --enable-source-maps build/src/scripts/backtest.js",
     "createSchemas": "node --enable-source-maps build/src/scripts/createSchemas.js",

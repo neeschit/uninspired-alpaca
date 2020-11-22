@@ -15,23 +15,23 @@ module.exports = {
     clearMocks: true,
 
     // Indicates whether the coverage information should be collected while executing the test
-    collectCoverage: true,
+    collectCoverage: false,
 
     // An array of glob patterns indicating a set of files for which coverage information should be collected
-    collectCoverageFrom: ["./v2/**/*.ts"],
+    // collectCoverageFrom: ["./v2/**/*.ts"],
 
     // The directory where Jest should output its coverage files
-    coverageDirectory: "coverage",
+    // coverageDirectory: "coverage",
 
     // An array of regexp pattern strings used to skip coverage collection
     // coveragePathIgnorePatterns: [
     //   "/node_modules/"
     // ],
 
-    coveragePathIgnorePatterns: ["index.ts", "./v2/backtest"],
+    // coveragePathIgnorePatterns: ["index.ts", "./v2/backtest"],
 
     // Indicates which provider should be used to instrument code for coverage
-    coverageProvider: "v8",
+    // coverageProvider: "v8",
 
     // A list of reporter names that Jest uses when writing coverage reports
     // coverageReporters: [
@@ -42,11 +42,7 @@ module.exports = {
     // ],
 
     // An object that configures minimum threshold enforcement for coverage results
-    coverageThreshold: {
-        global: {
-            branches: 100,
-        },
-    },
+    // coverageThreshold: {},
 
     // A path to a custom dependency extractor
     // dependencyExtractor: undefined,
@@ -149,7 +145,7 @@ module.exports = {
     //   "**/?(*.)+(spec|test).[tj]s?(x)"
     // ],
 
-    testMatch: ["**/v2/**/*.integration.test.ts", "**/v2/**/*.spec.ts"],
+    testMatch: ["**/backtest/backtest.ts"],
 
     // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
     // testPathIgnorePatterns: [
@@ -171,6 +167,8 @@ module.exports = {
     // Setting this value to "fake" allows the use of fake timers for functions such as "setTimeout"
     // timers: "real",
 
+    testTimeout: 3600000,
+
     // A map from regular expressions to paths to transformers
     // transform: undefined,
 
@@ -184,7 +182,7 @@ module.exports = {
     // unmockedModulePathPatterns: undefined,
 
     // Indicates whether each individual test should be reported during the run
-    verbose: false,
+    verbose: true,
 
     // An array of regexp patterns that are matched against all source file paths before re-running tests in watch mode
     // watchPathIgnorePatterns: [],
