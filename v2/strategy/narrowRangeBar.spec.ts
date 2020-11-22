@@ -109,7 +109,8 @@ test("getSafeORBPlan - short", () => {
     expect(plan!.side).toEqual(PositionDirection.short);
     expect(plan!.entry).toBeGreaterThanOrEqual(120.65);
     expect(plan!.entry).toBeLessThanOrEqual(120.68);
-    expect(plan!.stop).toEqual(121.53);
+    expect(plan!.stop).toBeLessThanOrEqual(121.27);
+    expect(plan!.stop).toBeGreaterThan(121);
 });
 
 test("getSafeORBPlan - outside range long", () => {
@@ -136,7 +137,7 @@ test("getSafeORBPlan - outside range long", () => {
     expect(plan!.entry).toBeGreaterThanOrEqual(25.63);
     expect(plan!.entry).toBeLessThanOrEqual(25.64);
     expect(plan!.limit_price).toEqual(plan!.entry);
-    expect(plan!.stop).toBeGreaterThanOrEqual(25.48);
+    expect(plan!.stop).toBeGreaterThanOrEqual(25.3);
 });
 
 test("getShortStop", () => {

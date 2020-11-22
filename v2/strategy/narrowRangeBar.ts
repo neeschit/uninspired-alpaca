@@ -5,6 +5,7 @@ import { PositionDirection } from "@neeschit/alpaca-trade-api";
 import { getAverageTrueRange } from "../../src/indicator/trueRange";
 import { IndicatorValue } from "../../src/indicator/adx";
 import { TradePlan } from "../trade-management-helpers";
+import { getActualStop } from "../../src/services/riskManagement";
 
 export const RISK_PER_ORDER = 10;
 export const PROFIT_RATIO = 1;
@@ -49,13 +50,14 @@ export const getOrbDirection = (
 };
 
 export const getOrbEntryPrices = (
-    bar: Bar,
+    high: number,
+    low: number,
     atr: number
 ): { entryLong: number; entryShort: number } => {
-    const noiseSmoother = atr / 12;
+    const noiseSmoother = atr / 20;
     return {
-        entryLong: bar.h + noiseSmoother,
-        entryShort: bar.l - noiseSmoother,
+        entryLong: high + noiseSmoother,
+        entryShort: low - noiseSmoother,
     };
 };
 
@@ -109,21 +111,26 @@ export const getSafeOrbEntryPlan = ({
         openingBar.h,
         marketBarsSoFar.reduce((prev, bar) => {
             return bar.h > prev && bar.h <= prev + spread ? bar.h : prev;
-        }, marketBarsSoFar[0].h)
+        }, openingBar.h)
     );
 
     const rangeLow = Math.min(
         openingBar.l,
         marketBarsSoFar.reduce((prev, bar) => {
             return bar.l < prev && bar.l >= prev - spread ? bar.l : prev;
-        }, marketBarsSoFar[0].l)
+        }, openingBar.l)
+    );
+
+    const { entryLong, entryShort } = getOrbEntryPrices(
+        rangeHigh,
+        rangeLow,
+        currentAtr
     );
 
     if (direction === PositionDirection.long) {
-        const entry = rangeHigh + currentAtr / 20;
-        const proposedTradeStop = rangeHigh - currentAtr * 1.2;
+        const entry = entryLong;
 
-        const stop = getLongStop(marketBarsSoFar, spread, proposedTradeStop);
+        const stop = getActualStop(entry, currentAtr, false, dailyAtr);
 
         const limit = entry + currentAtr / 12;
 
@@ -138,10 +145,8 @@ export const getSafeOrbEntryPlan = ({
             side: direction,
         };
     } else {
-        const entry = rangeLow - currentAtr / 20;
-        const proposedTradeStop = rangeLow + currentAtr * 1.2;
-
-        const stop = getShortStop(marketBarsSoFar, spread, proposedTradeStop);
+        const entry = entryShort;
+        const stop = getActualStop(entry, currentAtr, true, dailyAtr);
         const limit = entry - currentAtr / 12;
         const target = entry + (entry - stop) * PROFIT_RATIO;
 

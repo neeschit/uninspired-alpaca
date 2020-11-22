@@ -85,7 +85,7 @@ test("lookForEntry when in watchlist but also has an open position", async () =>
     expect(result).toBeFalsy();
 });
 
-test("enterSymbol with no plan returned", async () => {
+test("enterSymbol with position returned", async () => {
     mockGetOpenPositions.mockResolvedValueOnce([{ symbol: "VZ" }]);
     mockWatchlist.mockReturnValueOnce([
         { symbol: "AAPL" },
@@ -97,7 +97,7 @@ test("enterSymbol with no plan returned", async () => {
     expect(result).toBeFalsy();
 });
 
-test("enterSymbol with plan returned", async () => {
+test("enterSymbol with no position returned", async () => {
     mockGetOpenPositions.mockResolvedValueOnce([]);
     mockWatchlist.mockReturnValueOnce([
         { symbol: "AAPL" },
