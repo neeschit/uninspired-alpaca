@@ -8,7 +8,7 @@ import { TradePlan } from "../trade-management-helpers";
 import { getActualStop } from "../../src/services/riskManagement";
 
 export const RISK_PER_ORDER = 10;
-export const PROFIT_RATIO = 1;
+export const PROFIT_RATIO = 2;
 
 export interface ORBParams {
     currentIntradayAtr: number;
