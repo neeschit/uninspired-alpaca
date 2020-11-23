@@ -13,7 +13,7 @@ const mockConfig = () => {
             ALPACA_SECRET_KEY_ID: "PKYCXXSMDJXMUBRKL2A7",
             ALPACA_SECRET_KEY: "PUrfzOZqpYrpzlG4Rzj2acTA8U4lfmE5TnKLajbM",
             LIVE_SECRET_KEY_ID: "PKYCXXSMDJXMUBRKL2A7",
-            LOGLEVEL = "4"
+            LOGLEVEL: "4",
         },
     };
 };
