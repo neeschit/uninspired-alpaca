@@ -1,7 +1,6 @@
-import { TickBar } from "../../src/data/data.model";
-import { insertBar } from "../../src/resources/stockData";
 import { PolygonTradeUpdate } from "../brokerage-helpers";
 import { enterSymbolForTrade } from "../trade-management-api";
+import { insertBarData } from "../trade-management-helpers/stream";
 
 export const onStockMinuteDataPosted = async (
     subject: string,
@@ -10,27 +9,7 @@ export const onStockMinuteDataPosted = async (
 ) => {
     const data = JSON.parse(dataJson) as PolygonTradeUpdate[];
 
-    const uniqueSymbols = [];
-
-    for (const d of data) {
-        try {
-            const bar: TickBar = {
-                o: d.o,
-                vw: d.a,
-                h: d.h,
-                l: d.l,
-                v: d.v,
-                c: d.c,
-                t: d.s,
-            };
-
-            await insertBar(bar, d.sym, true);
-
-            if (uniqueSymbols.indexOf(d.sym) === -1) uniqueSymbols.push(d.sym);
-        } catch (e) {
-            console.error("couldnt insert bar", e);
-        }
-    }
+    const uniqueSymbols = await insertBarData(data);
 
     for (const sym of uniqueSymbols) {
         try {
