@@ -1,9 +1,6 @@
 import { PositionDirection } from "@neeschit/alpaca-trade-api";
 import { getConnection } from "../../src/connection/pg";
-import {
-    TimestampedRecord,
-    ensureUpdateTriggerExists,
-} from "../schema-helpers";
+import { TimestampedRecord, ensureUpdateTriggerExists } from "../schema-helpers";
 
 export interface TradePlan {
     stop: number;
@@ -17,7 +14,7 @@ export interface TradePlan {
 
 export interface PersistedTradePlan extends TradePlan, TimestampedRecord {}
 
-export const getCreatePositionsTableSql = () => `
+export const getCreateTradePlanTableSql = () => `
 ${ensureUpdateTriggerExists}
 
 create table trade_plan (
@@ -60,9 +57,7 @@ const getUnfilledPositionInsert = (plan: TradePlan) => {
     `;
 };
 
-export const persistTradePlan = async (
-    plan: TradePlan
-): Promise<PersistedTradePlan> => {
+export const persistTradePlan = async (plan: TradePlan): Promise<PersistedTradePlan> => {
     const pool = getConnection();
 
     const query = getUnfilledPositionInsert(plan);
