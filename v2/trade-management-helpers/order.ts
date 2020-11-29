@@ -13,10 +13,7 @@ import {
     getOpenOrders,
     getOpenPositions,
 } from "../brokerage-helpers";
-import {
-    ensureUpdateTriggerExists,
-    TimestampedRecord,
-} from "../schema-helpers";
+import { ensureUpdateTriggerExists, TimestampedRecord } from "../schema-helpers";
 import { persistTradePlan, TradePlan, PersistedTradePlan } from "./position";
 
 export interface OrderUpdate extends AlpacaOrder {
@@ -24,9 +21,7 @@ export interface OrderUpdate extends AlpacaOrder {
     position_qty: number;
 }
 
-export const getRecentOrders = async (
-    symbol: string
-): Promise<PersistedUnfilledOrder[]> => {
+export const getRecentOrders = async (symbol: string): Promise<PersistedUnfilledOrder[]> => {
     const getRecentOrders = `select * from new_order where symbol = '${symbol.toLocaleLowerCase()}' and created_at >= NOW() - INTERVAL '3 seconds';`;
 
     const connection = getConnection();
@@ -40,22 +35,16 @@ export const getRecentOrders = async (
     return recentOrdersQueryResult.rows;
 };
 
-export const createOrderSynchronized = async (
-    plan: TradePlan
-): Promise<AlpacaOrder> => {
+export const createOrderSynchronized = async (plan: TradePlan): Promise<AlpacaOrder> => {
     const openOrders = await getOpenOrders();
 
-    const openOrderForSymbol = openOrders.filter(
-        (o) => o.symbol === plan.symbol
-    );
+    const openOrderForSymbol = openOrders.filter((o) => o.symbol === plan.symbol);
 
     if (openOrderForSymbol.length) {
         const existingAlpacaOrder = openOrderForSymbol[0];
 
         const expectedOrderDirection =
-            plan.side === PositionDirection.long
-                ? TradeDirection.buy
-                : TradeDirection.sell;
+            plan.side === PositionDirection.long ? TradeDirection.buy : TradeDirection.sell;
 
         if (expectedOrderDirection === existingAlpacaOrder.side) {
             throw new Error("order_exists");
@@ -93,20 +82,14 @@ export const persistPlanAndOrder = async (plan: TradePlan) => {
     return { persistedPlan, order };
 };
 
-async function createAlpacaOrder(
-    persistedPlan: PersistedTradePlan,
-    order: PersistedUnfilledOrder
-) {
+async function createAlpacaOrder(persistedPlan: PersistedTradePlan, order: PersistedUnfilledOrder) {
     let alpacaOrder: AlpacaOrder;
 
     const bracketOrder = convertPlanToAlpacaBracketOrder(persistedPlan, order);
     try {
         alpacaOrder = await createBracketOrder(bracketOrder);
     } catch (e) {
-        await updateOrderWithAlpacaId(
-            order.id,
-            "brokerage_failure" + Date.now()
-        );
+        await updateOrderWithAlpacaId(order.id, "brokerage_failure" + Date.now());
         throw new Error("error placing order - " + order.id + "- " + e.message);
     }
 
@@ -139,10 +122,7 @@ const updateQuery = (id: number, alpaca_order_id: string) => {
     `;
 };
 
-export const updateOrderWithAlpacaId = async (
-    id: number,
-    alpaca_order_id: string
-) => {
+export const updateOrderWithAlpacaId = async (id: number, alpaca_order_id: string) => {
     const connection = getConnection();
 
     const query = updateQuery(id, alpaca_order_id);
@@ -153,14 +133,11 @@ export const updateOrderWithAlpacaId = async (
         console.error("error_updating_order", e);
         console.error(query);
 
-        await connection.query(
-            updateQuery(id, "unknown_failure_" + Date.now())
-        );
+        await connection.query(updateQuery(id, "unknown_failure_" + Date.now()));
     }
 };
 
-const selectQueryById = (id: number) =>
-    `select * from new_order where id = ${id} limit 1;`;
+const selectQueryById = (id: number) => `select * from new_order where id = ${id} limit 1;`;
 
 export const getOrderById = async (id: number) => {
     const connection = getConnection();
@@ -198,10 +175,7 @@ const getInsertQuery = (order: UnfilledOrder) => {
 };
 
 export const getOpeningOrderForPlan = (plan: PersistedTradePlan) => {
-    const type =
-        plan.entry === plan.limit_price
-            ? TradeType.limit
-            : TradeType.stop_limit;
+    const type = plan.entry === plan.limit_price ? TradeType.limit : TradeType.stop_limit;
 
     return {
         trade_plan_id: plan.id,
@@ -212,10 +186,7 @@ export const getOpeningOrderForPlan = (plan: PersistedTradePlan) => {
             target: plan.target,
         },
         symbol: plan.symbol,
-        side:
-            plan.side === PositionDirection.short
-                ? TradeDirection.sell
-                : TradeDirection.buy,
+        side: plan.side === PositionDirection.short ? TradeDirection.sell : TradeDirection.buy,
         tif: TimeInForce.day,
         type,
         quantity: plan.quantity,
@@ -296,11 +267,9 @@ export const deleteOrder = async (id: number) => {
     await connection.query(query);
 };
 
-export interface PersistedUnfilledOrder
-    extends UnfilledOrder,
-        TimestampedRecord {}
+export interface PersistedUnfilledOrder extends UnfilledOrder, TimestampedRecord {}
 
-export const getCreateOrdersTableSql = () => `
+export const getCreateUnfilledOrdersTableSql = () => `
 ${ensureUpdateTriggerExists}
 
 create type bracket_order_legs as ( 

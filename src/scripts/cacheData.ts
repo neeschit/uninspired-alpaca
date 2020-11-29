@@ -3,11 +3,7 @@ import { DefaultDuration, PeriodType } from "../data/data.model";
 import { addDays, startOfDay, addBusinessDays, endOfDay } from "date-fns";
 import { LOGGER } from "../instrumentation/log";
 import { getPolyonData } from "../resources/polygon";
-import {
-    insertBar,
-    batchInsertBars,
-    batchInsertDailyBars,
-} from "../resources/stockData";
+import { insertBar, batchInsertBars, batchInsertDailyBars } from "../resources/stockData";
 import { isAfterMarketClose } from "../util/market";
 
 const companies: string[] = getMegaCaps();
@@ -15,7 +11,7 @@ const companies: string[] = getMegaCaps();
 companies.push(...currentIndices);
 
 async function run(duration = DefaultDuration.one, period = PeriodType.minute) {
-    const startDate = startOfDay(addBusinessDays(Date.now(), -3));
+    const startDate = startOfDay(new Date("01-01-2017"));
     for (const symbol of companies) {
         const endDate = startOfDay(addBusinessDays(Date.now(), 1));
 

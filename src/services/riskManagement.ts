@@ -1,6 +1,6 @@
 import { roundHalf, ceilHalf, floorHalf } from "../util";
 
-export const TRADING_RISK_UNIT_CONSTANT = 100;
+export const TRADING_RISK_UNIT_CONSTANT = 10;
 
 export const assessRisk = (
     dailyAtr: number,
