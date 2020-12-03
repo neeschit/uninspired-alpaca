@@ -1,16 +1,17 @@
 import { format } from "date-fns";
-import {
-    getWatchlistFromScreenerService,
-    GetWatchlistResponse,
-} from "../screener-api";
+import { getWatchlistFromScreenerService } from "../screener-api";
 import { getAverageTrueRange } from "../../src/indicator/trueRange";
 import {
     getSafeOrbEntryPlan,
     isTimeForOrbEntry,
 } from "../strategy/narrowRangeBar";
-import { getData, getLastPrice } from "../../src/resources/stockData";
+import { getData } from "../../src/resources/stockData";
 import { getMarketOpenMillis } from "../../src/util/market";
-import { getOpenPositions } from "../brokerage-helpers";
+import {
+    cancelAlpacaOrder,
+    getOpenOrders,
+    getOpenPositions,
+} from "../brokerage-helpers";
 import { createOrderSynchronized } from "../trade-management-helpers";
 
 export const lookForEntry = async (symbol: string, epoch = Date.now()) => {
@@ -29,7 +30,7 @@ export const lookForEntry = async (symbol: string, epoch = Date.now()) => {
     }
 
     if (!isTimeForOrbEntry(epoch)) {
-        return null;
+        return cancelOpenOrdersAfterEntryTimePassed(symbol, epoch);
     }
 
     const { data, lastBar } = await getPersistedData(symbol, epoch);
@@ -48,6 +49,22 @@ export const lookForEntry = async (symbol: string, epoch = Date.now()) => {
     });
 
     return plan;
+};
+
+export const cancelOpenOrdersAfterEntryTimePassed = async (
+    symbol: string,
+    epoch = Date.now()
+) => {
+    const openOrders = await getOpenOrders();
+    const ordersForSymbol = openOrders.filter((o) => o.symbol === symbol);
+
+    if (!ordersForSymbol.length) {
+        return null;
+    }
+
+    await cancelAlpacaOrder(ordersForSymbol[0].id);
+
+    return null;
 };
 
 export const enterSymbol = async (symbol: string, epoch = Date.now()) => {
