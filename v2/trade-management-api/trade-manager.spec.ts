@@ -1,8 +1,13 @@
 import { getApiServer } from "../../src/util/api";
+
 jest.mock("../../src/util/api");
 jest.mock("./trade-manager.handlers");
+jest.mock("../brokerage-helpers");
 
-import { enterSymbol } from "./trade-manager.handlers";
+import {
+    cancelOpenOrdersAfterEntryTimePassed,
+    enterSymbol,
+} from "./trade-manager.handlers";
 
 const mockGetApiServer = <jest.Mock>getApiServer;
 const mockLookForEntry = <jest.Mock>enterSymbol;
@@ -13,6 +18,7 @@ mockGetApiServer.mockReturnValue({
 });
 
 import { queueEntryForSymbol } from "./trade-manager";
+import { cancelAlpacaOrder, getOpenOrders } from "../brokerage-helpers";
 
 test("queueEntryForSymbol", async () => {
     mockLookForEntry.mockResolvedValueOnce(true);
