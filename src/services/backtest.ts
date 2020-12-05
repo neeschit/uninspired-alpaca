@@ -108,9 +108,6 @@ export class Backtester {
                 const prevDate = context.currentDate;
 
                 yield prevDate;
-                if (i % (context.updateIntervalMillis * 100) === 0) {
-                    LOGGER.trace(prevDate);
-                }
                 i = context.currentDate.getTime();
 
                 context.clock.tick(context.updateIntervalMillis);
