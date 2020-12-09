@@ -11,7 +11,7 @@ const companies: string[] = getMegaCaps();
 companies.push(...currentIndices);
 
 async function run(duration = DefaultDuration.one, period = PeriodType.minute) {
-    const startDate = startOfDay(new Date("01-01-2017"));
+    const startDate = startOfDay(addBusinessDays(Date.now(), -1));
     for (const symbol of companies) {
         const endDate = startOfDay(addBusinessDays(Date.now(), 1));
 
