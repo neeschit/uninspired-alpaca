@@ -4,21 +4,14 @@ import {
     addMonths,
     differenceInMonths,
     format,
-    getDate,
     parseISO,
     startOfDay,
 } from "date-fns";
 import { zonedTimeToUtc } from "date-fns-tz";
 import { MarketTimezone } from "../../src/data/data.model";
-import { alpaca, getCalendar } from "../brokerage-helpers";
+import { getCalendar } from "../brokerage-helpers";
 import { DailyWatchlist } from "../screener-api";
-import {
-    isAfterMarketClose,
-    isBeforeMarketOpening,
-    isMarketClosing,
-    isMarketOpen,
-    isMarketOpening,
-} from "./timing.util";
+import { isAfterMarketClose, isBeforeMarketOpening, isMarketOpen } from "./timing.util";
 
 export class Simulator {
     private readonly updateInterval = 60000;

@@ -4,6 +4,7 @@ import { zonedTimeToUtc } from "date-fns-tz";
 import { MarketTimezone } from "../../src/data/data.model";
 
 const dateFormat = "yyyy-MM-dd";
+const fifteenMinutes = 1000 * 60 * 15;
 
 const getDateAndCurrentCalendarObject = (calendar: Calendar[], currentTimeEpoch: number) => {
     const currentDateString = format(currentTimeEpoch, dateFormat);
@@ -30,7 +31,7 @@ export const isMarketOpening = (calendar: Calendar[], currentTimeEpoch: number) 
         const marketOpenToday = zonedTimeToUtc(openTime, MarketTimezone);
 
         return (
-            marketOpenToday.getTime() - 1000 * 60 * 15 <= currentTimeEpoch &&
+            marketOpenToday.getTime() - fifteenMinutes <= currentTimeEpoch &&
             currentTimeEpoch < marketOpenToday.getTime()
         );
     } catch (e) {
@@ -49,7 +50,7 @@ export const isMarketClosing = (calendar: Calendar[], currentTimeEpoch: number) 
         const marketCloseToday = zonedTimeToUtc(closeTime, MarketTimezone);
 
         return (
-            marketCloseToday.getTime() - 1000 * 60 * 15 <= currentTimeEpoch &&
+            marketCloseToday.getTime() - fifteenMinutes <= currentTimeEpoch &&
             currentTimeEpoch < marketCloseToday.getTime()
         );
     } catch (e) {
