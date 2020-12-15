@@ -55,6 +55,13 @@ export const getCalendar = (start: Date, end: Date) => {
     });
 };
 
-export const liquidatePosition = (symbol: string) => {
-    return alpaca.closePosition(symbol);
+export const liquidatePosition = async (symbol: string) => {
+    try {
+        const response = await alpaca.closePosition(symbol);
+
+        return response;
+    } catch (e) {
+        console.error(e);
+        throw e;
+    }
 };
