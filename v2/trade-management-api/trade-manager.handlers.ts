@@ -1,23 +1,35 @@
-import { format } from "date-fns";
+import { addDays, format } from "date-fns";
 import { getWatchlistFromScreenerService } from "../screener-api";
 import { getAverageTrueRange } from "../../src/indicator/trueRange";
-import {
-    getSafeOrbEntryPlan,
-    isTimeForOrbEntry,
-} from "../strategy/narrowRangeBar";
+import { getSafeOrbEntryPlan, isTimeForOrbEntry } from "../strategy/narrowRangeBar";
 import { getData } from "../../src/resources/stockData";
 import { getMarketOpenMillis } from "../../src/util/market";
 import {
     cancelAlpacaOrder,
     getOpenOrders,
     getOpenPositions,
+    getCalendar,
+    liquidatePosition,
 } from "../brokerage-helpers";
 import { createOrderSynchronized } from "../trade-management-helpers";
+import { isMarketClosing } from "../simulation-helpers";
+import { Calendar } from "@neeschit/alpaca-trade-api";
 
-export const lookForEntry = async (symbol: string, epoch = Date.now()) => {
-    const watchlist = await getWatchlistFromScreenerService(
-        format(new Date(), "MM-dd-yyyy")
-    );
+class CalendarCached {
+    private static calendar: Calendar[];
+
+    public static async getCalendarCached(epoch = Date.now()) {
+        if (!CalendarCached.calendar) {
+            const date = new Date(epoch);
+            CalendarCached.calendar = await getCalendar(date, date);
+        }
+
+        return CalendarCached.calendar;
+    }
+}
+
+export const rebalanceForSymbol = async (symbol: string, epoch = Date.now()) => {
+    const watchlist = await getWatchlistFromScreenerService(format(new Date(), "MM-dd-yyyy"));
 
     if (watchlist.every((item) => item.symbol !== symbol)) {
         return null;
@@ -26,6 +38,10 @@ export const lookForEntry = async (symbol: string, epoch = Date.now()) => {
     const positions = await getOpenPositions();
 
     if (positions.some((p) => p.symbol === symbol)) {
+        const calendar = await CalendarCached.getCalendarCached(epoch);
+        if (isMarketClosing(calendar, epoch)) {
+            await liquidatePosition(symbol);
+        }
         return null;
     }
 
@@ -51,10 +67,7 @@ export const lookForEntry = async (symbol: string, epoch = Date.now()) => {
     return plan;
 };
 
-export const cancelOpenOrdersAfterEntryTimePassed = async (
-    symbol: string,
-    epoch = Date.now()
-) => {
+export const cancelOpenOrdersAfterEntryTimePassed = async (symbol: string, epoch = Date.now()) => {
     const openOrders = await getOpenOrders();
     const ordersForSymbol = openOrders.filter((o) => o.symbol === symbol);
 
@@ -67,8 +80,8 @@ export const cancelOpenOrdersAfterEntryTimePassed = async (
     return null;
 };
 
-export const enterSymbol = async (symbol: string, epoch = Date.now()) => {
-    const plan = await lookForEntry(symbol, epoch);
+export const rebalanceSymbol = async (symbol: string, epoch = Date.now()) => {
+    const plan = await rebalanceForSymbol(symbol, epoch);
 
     if (!plan) {
         return null;
@@ -80,17 +93,9 @@ export const enterSymbol = async (symbol: string, epoch = Date.now()) => {
 };
 
 export async function getPersistedData(symbol: string, epoch: number) {
-    const data = await getData(
-        symbol,
-        getMarketOpenMillis(epoch).getTime(),
-        "5 minutes",
-        epoch
-    );
+    const data = await getData(symbol, getMarketOpenMillis(epoch).getTime(), "5 minutes", epoch);
 
-    const lastBar =
-        Number(data[data.length - 1].n) < 5
-            ? data.pop()!
-            : data[data.length - 1];
+    const lastBar = Number(data[data.length - 1].n) < 5 ? data.pop()! : data[data.length - 1];
 
     return { data, lastBar };
 }

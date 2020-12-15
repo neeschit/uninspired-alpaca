@@ -1,17 +1,14 @@
 import { getApiServer, Service } from "../../src/util/api";
-import { enterSymbol } from "./trade-manager.handlers";
+import { rebalanceSymbol } from "./trade-manager.handlers";
 
 const server = getApiServer(Service.manager);
 
-export const queueEntryForSymbol = async (request: {
-    params: any;
-    body?: any;
-}) => {
+export const queueEntryForSymbol = async (request: { params: any; body?: any }) => {
     const symbol = request.params.symbol as string;
     const epoch = request.params.body && (request.params.body.epoch as number);
 
     try {
-        const result = await enterSymbol(symbol, epoch);
+        const result = await rebalanceSymbol(symbol, epoch);
 
         return result;
     } catch (e) {

@@ -8,6 +8,7 @@ const fifteenMinutes = 1000 * 60 * 15;
 
 const getDateAndCurrentCalendarObject = (calendar: Calendar[], currentTimeEpoch: number) => {
     const currentDateString = format(currentTimeEpoch, dateFormat);
+
     const currentCalendarObject = calendar.find((c) => c.date === currentDateString);
 
     if (!currentCalendarObject) {

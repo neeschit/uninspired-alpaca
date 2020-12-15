@@ -54,3 +54,7 @@ export const getCalendar = (start: Date, end: Date) => {
         end,
     });
 };
+
+export const liquidatePosition = (symbol: string) => {
+    return alpaca.closePosition(symbol);
+};

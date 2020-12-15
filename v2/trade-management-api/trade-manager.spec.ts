@@ -4,13 +4,10 @@ jest.mock("../../src/util/api");
 jest.mock("./trade-manager.handlers");
 jest.mock("../brokerage-helpers");
 
-import {
-    cancelOpenOrdersAfterEntryTimePassed,
-    enterSymbol,
-} from "./trade-manager.handlers";
+import { cancelOpenOrdersAfterEntryTimePassed, rebalanceSymbol } from "./trade-manager.handlers";
 
 const mockGetApiServer = <jest.Mock>getApiServer;
-const mockLookForEntry = <jest.Mock>enterSymbol;
+const mockLookForEntry = <jest.Mock>rebalanceSymbol;
 
 mockGetApiServer.mockReturnValue({
     get: () => {},
@@ -18,7 +15,6 @@ mockGetApiServer.mockReturnValue({
 });
 
 import { queueEntryForSymbol } from "./trade-manager";
-import { cancelAlpacaOrder, getOpenOrders } from "../brokerage-helpers";
 
 test("queueEntryForSymbol", async () => {
     mockLookForEntry.mockResolvedValueOnce(true);
