@@ -8,20 +8,20 @@ jest.mock("../../src/util/api");
 jest.mock("./trade-manager.handlers");
 jest.mock("../brokerage-helpers");
 
-import { enterSymbol, rebalanceForSymbol } from "./trade-manager.handlers";
+import { rebalanceForSymbol } from "./trade-manager.handlers";
 
 const mockGetApiServer = <jest.Mock>getApiServer;
-const mockLookForEntry = <jest.Mock>enterSymbol;
+const mockRebalance = <jest.Mock>rebalanceForSymbol;
 
 mockGetApiServer.mockReturnValue({
     get: () => {},
     post: () => {},
 });
-import { queueEntryForSymbol, rebalance } from "./trade-manager";
+import { rebalance } from "./trade-manager";
 
 test("queueEntryForSymbol", async () => {
-    mockLookForEntry.mockResolvedValueOnce(true);
-    const result = await queueEntryForSymbol({
+    mockRebalance.mockResolvedValueOnce(true);
+    const result = await rebalance({
         params: {
             symbol: "AMZN",
         },
@@ -31,28 +31,29 @@ test("queueEntryForSymbol", async () => {
 });
 
 test("queueEntryForSymbol on exception", async () => {
-    mockLookForEntry.mockRejectedValueOnce(new Error("test"));
+    mockRebalance.mockRejectedValueOnce(new Error("test"));
 
-    const result = await queueEntryForSymbol({
+    const result = await rebalance({
         params: {
             symbol: "AMZN",
         },
     });
 
-    expect(result).toStrictEqual([]);
+    expect(result).toEqual(false);
 });
 
 test("queueEntryForSymbol on exception", async () => {
-    mockLookForEntry.mockRejectedValueOnce(new Error("test"));
+    mockRebalance.mockRejectedValueOnce(new Error("test"));
 
-    const result = await queueEntryForSymbol({
+    const result = await rebalance({
         params: {
             symbol: "AMZN",
-            body: {
-                epoch: Date.now(),
-            },
+        },
+        body: {
+            epoch: Date.now(),
+            calendar: [],
         },
     });
 
-    expect(result).toStrictEqual([]);
+    expect(result).toEqual(false);
 });

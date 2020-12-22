@@ -1,5 +1,5 @@
 import { readJsonSync } from "fs-extra";
-import { enterSymbolForTrade, rebalance } from "../trade-management-api";
+import { rebalance } from "../trade-management-api";
 import { Bar } from "../../src/data/data.model";
 import { onStockMinuteDataPosted } from "./orchestrator";
 

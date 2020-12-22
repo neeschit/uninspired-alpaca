@@ -1,7 +1,7 @@
 import { Calendar } from "@neeschit/alpaca-trade-api";
 import { endOfDay, startOfDay } from "date-fns";
 import { getCalendar, PolygonTradeUpdate } from "../brokerage-helpers";
-import { enterSymbolForTrade, rebalance } from "../trade-management-api";
+import { rebalance } from "../trade-management-api";
 import { insertBarData } from "../trade-management-helpers/stream";
 
 export class CachedCalendar {
