@@ -1,23 +1,25 @@
 import { format } from "date-fns";
 import { getWatchlistFromScreenerService } from "../screener-api";
 import { getAverageTrueRange } from "../../src/indicator/trueRange";
-import {
-    getSafeOrbEntryPlan,
-    isTimeForOrbEntry,
-} from "../strategy/narrowRangeBar";
+import { getSafeOrbEntryPlan, isTimeForOrbEntry } from "../strategy/narrowRangeBar";
 import { getData } from "../../src/resources/stockData";
 import { getMarketOpenMillis } from "../../src/util/market";
-import {
-    cancelAlpacaOrder,
-    getOpenOrders,
-    getOpenPositions,
-} from "../brokerage-helpers";
+import { cancelAlpacaOrder, getOpenOrders, getOpenPositions } from "../brokerage-helpers";
 import { createOrderSynchronized } from "../trade-management-helpers";
+import {
+    isBeforeMarketOpening,
+    isMarketClosing,
+    isMarketOpen,
+    isMarketOpening,
+} from "../simulation-helpers";
+import { Calendar } from "@neeschit/alpaca-trade-api";
+import { NarrowRangeBarSimulation } from "../strategy/narrowRangeBar.simulation";
+import { SimulationStrategy } from "../simulation-helpers/simulation.strategy";
+
+const nrbStrategies: { [index: string]: NarrowRangeBarSimulation } = {};
 
 export const lookForEntry = async (symbol: string, epoch = Date.now()) => {
-    const watchlist = await getWatchlistFromScreenerService(
-        format(new Date(), "MM-dd-yyyy")
-    );
+    const watchlist = await getWatchlistFromScreenerService(format(new Date(), "MM-dd-yyyy"));
 
     if (watchlist.every((item) => item.symbol !== symbol)) {
         return null;
@@ -30,7 +32,7 @@ export const lookForEntry = async (symbol: string, epoch = Date.now()) => {
     }
 
     if (!isTimeForOrbEntry(epoch)) {
-        return cancelOpenOrdersAfterEntryTimePassed(symbol, epoch);
+        return cancelOpenOrdersForSymbol(symbol);
     }
 
     const { data, lastBar } = await getPersistedData(symbol, epoch);
@@ -51,10 +53,7 @@ export const lookForEntry = async (symbol: string, epoch = Date.now()) => {
     return plan;
 };
 
-export const cancelOpenOrdersAfterEntryTimePassed = async (
-    symbol: string,
-    epoch = Date.now()
-) => {
+export const cancelOpenOrdersForSymbol = async (symbol: string) => {
     const openOrders = await getOpenOrders();
     const ordersForSymbol = openOrders.filter((o) => o.symbol === symbol);
 
@@ -65,6 +64,43 @@ export const cancelOpenOrdersAfterEntryTimePassed = async (
     await cancelAlpacaOrder(ordersForSymbol[0].id);
 
     return null;
+};
+
+export const rebalanceForSymbol = async (
+    symbol: string,
+    calendar: Calendar[],
+    epoch = Date.now()
+) => {
+    let sim = nrbStrategies[symbol];
+
+    if (!sim) {
+        sim = new NarrowRangeBarSimulation(symbol);
+
+        nrbStrategies[symbol] = sim;
+    }
+
+    return runStrategy(symbol, calendar, sim, epoch);
+};
+
+export const runStrategy = async (
+    symbol: string,
+    calendar: Calendar[],
+    sim: SimulationStrategy,
+    epoch: number
+) => {
+    if (isMarketOpening(calendar, epoch) || isBeforeMarketOpening(calendar, epoch)) {
+        await sim.beforeMarketStarts(epoch);
+    } else if (isMarketClosing(calendar, epoch)) {
+        await sim.tenMinutesToMarketClose(epoch);
+    } else if (isMarketOpen(calendar, epoch)) {
+        if (sim.hasEntryTimePassed(epoch)) {
+            await sim.afterEntryTimePassed(epoch);
+        } else {
+            await sim.rebalance(epoch);
+        }
+    } else {
+        await sim.onMarketClose(epoch);
+    }
 };
 
 export const enterSymbol = async (symbol: string, epoch = Date.now()) => {
@@ -80,17 +116,9 @@ export const enterSymbol = async (symbol: string, epoch = Date.now()) => {
 };
 
 export async function getPersistedData(symbol: string, epoch: number) {
-    const data = await getData(
-        symbol,
-        getMarketOpenMillis(epoch).getTime(),
-        "5 minutes",
-        epoch
-    );
+    const data = await getData(symbol, getMarketOpenMillis(epoch).getTime(), "5 minutes", epoch);
 
-    const lastBar =
-        Number(data[data.length - 1].n) < 5
-            ? data.pop()!
-            : data[data.length - 1];
+    const lastBar = Number(data[data.length - 1].n) < 5 ? data.pop()! : data[data.length - 1];
 
     return { data, lastBar };
 }

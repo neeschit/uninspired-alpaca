@@ -1,21 +1,27 @@
 import {
-    cancelOpenOrdersAfterEntryTimePassed,
+    cancelOpenOrdersForSymbol,
     enterSymbol,
     getPersistedData,
     lookForEntry,
+    rebalanceForSymbol,
 } from "./trade-manager.handlers";
 import { getWatchlistFromScreenerService } from "../screener-api";
-import {
-    cancelAlpacaOrder,
-    getOpenOrders,
-    getOpenPositions,
-} from "../brokerage-helpers";
+import { cancelAlpacaOrder, getOpenOrders, getOpenPositions } from "../brokerage-helpers";
 import { createOrderSynchronized } from "../trade-management-helpers";
 import { endPooledConnection } from "../../src/connection/pg";
+import { CachedCalendar } from "../orchestrator-service/orchestrator";
 
 jest.mock("../screener-api");
 
-jest.mock("../brokerage-helpers");
+jest.mock("../brokerage-helpers", () => {
+    const { getCalendar } = jest.requireActual("../brokerage-helpers");
+    return {
+        getCalendar,
+        getOpenPositions: jest.fn(),
+        getOpenOrders: jest.fn(),
+        cancelAlpacaOrder: jest.fn(),
+    };
+});
 jest.mock("../trade-management-helpers");
 
 const mockGetOpenOrders = getOpenOrders as jest.Mock;
@@ -50,11 +56,7 @@ test("lookForEntry", async () => {
 
 test("lookForEntry when in watchlist & timing for entry is correct", async () => {
     mockGetOpenPositions.mockResolvedValueOnce([{ symbol: "BDX" }]);
-    mockWatchlist.mockReturnValueOnce([
-        { symbol: "AAPL" },
-        { symbol: "BDX" },
-        { symbol: "VZ" },
-    ]);
+    mockWatchlist.mockReturnValueOnce([{ symbol: "AAPL" }, { symbol: "BDX" }, { symbol: "VZ" }]);
     const result = await lookForEntry("VZ", 1603895590000);
 
     expect(result).toBeTruthy();
@@ -82,13 +84,31 @@ test("lookForEntry in CCI", async () => {
     expect(result!.stop).toBeLessThanOrEqual(158.81);
 });
 
+test("rebalanceForSymbol in CCI", async () => {
+    mockGetOpenPositions.mockResolvedValueOnce([{ symbol: "BDX" }]);
+
+    mockCreateOrder.mockReset();
+
+    const epoch = 1603895590000;
+
+    const calendar = await CachedCalendar.getCalendar(epoch);
+
+    await rebalanceForSymbol("CCI", calendar, epoch);
+
+    expect(mockCreateOrder).toHaveBeenCalledWith({
+        entry: 157.7356947082247,
+        limit_price: 157.67851922193256,
+        quantity: -10,
+        side: "short",
+        stop: 158.7356947082247,
+        symbol: "CCI",
+        target: 155.7356947082247,
+    });
+});
+
 test("lookForEntry when in watchlist but not the right time", async () => {
     mockGetOpenPositions.mockResolvedValueOnce([{ symbol: "BDX" }]);
-    mockWatchlist.mockReturnValueOnce([
-        { symbol: "AAPL" },
-        { symbol: "BDX" },
-        { symbol: "VZ" },
-    ]);
+    mockWatchlist.mockReturnValueOnce([{ symbol: "AAPL" }, { symbol: "BDX" }, { symbol: "VZ" }]);
     const result = await lookForEntry("VZ", 1603924390000);
 
     expect(result).toBeFalsy();
@@ -96,11 +116,7 @@ test("lookForEntry when in watchlist but not the right time", async () => {
 
 test("lookForEntry when in watchlist but not the right time with a previously open order", async () => {
     mockGetOpenPositions.mockResolvedValueOnce([{ symbol: "BDX" }]);
-    mockWatchlist.mockReturnValueOnce([
-        { symbol: "AAPL" },
-        { symbol: "BDX" },
-        { symbol: "VZ" },
-    ]);
+    mockWatchlist.mockReturnValueOnce([{ symbol: "AAPL" }, { symbol: "BDX" }, { symbol: "VZ" }]);
     mockGetOpenOrders.mockResolvedValueOnce([{ symbol: "VZ", id: 1 }]);
 
     const result = await lookForEntry("VZ", 1603903166000);
@@ -112,11 +128,7 @@ test("lookForEntry when in watchlist but not the right time with a previously op
 
 test("lookForEntry when in watchlist but also has an open position", async () => {
     mockGetOpenPositions.mockResolvedValueOnce([{ symbol: "VZ" }]);
-    mockWatchlist.mockReturnValueOnce([
-        { symbol: "AAPL" },
-        { symbol: "BDX" },
-        { symbol: "VZ" },
-    ]);
+    mockWatchlist.mockReturnValueOnce([{ symbol: "AAPL" }, { symbol: "BDX" }, { symbol: "VZ" }]);
     const result = await lookForEntry("VZ", 1603895590000);
 
     expect(result).toBeFalsy();
@@ -124,11 +136,7 @@ test("lookForEntry when in watchlist but also has an open position", async () =>
 
 test("enterSymbol with position returned", async () => {
     mockGetOpenPositions.mockResolvedValueOnce([{ symbol: "VZ" }]);
-    mockWatchlist.mockReturnValueOnce([
-        { symbol: "AAPL" },
-        { symbol: "BDX" },
-        { symbol: "VZ" },
-    ]);
+    mockWatchlist.mockReturnValueOnce([{ symbol: "AAPL" }, { symbol: "BDX" }, { symbol: "VZ" }]);
     const result = await enterSymbol("VZ", 1603895590000);
 
     expect(result).toBeFalsy();
@@ -136,11 +144,7 @@ test("enterSymbol with position returned", async () => {
 
 test("enterSymbol with no position returned", async () => {
     mockGetOpenPositions.mockResolvedValueOnce([]);
-    mockWatchlist.mockReturnValueOnce([
-        { symbol: "AAPL" },
-        { symbol: "BDX" },
-        { symbol: "VZ" },
-    ]);
+    mockWatchlist.mockReturnValueOnce([{ symbol: "AAPL" }, { symbol: "BDX" }, { symbol: "VZ" }]);
     mockCreateOrder.mockReturnValueOnce(true);
     const result = await enterSymbol("VZ", 1603895400000);
 
@@ -159,7 +163,7 @@ test("cancelOpenOrdersAfterEntryTimePassed - order to cancel", async () => {
 
     mockGetOpenOrders.mockResolvedValueOnce([{ symbol, id: 2 }]);
 
-    await cancelOpenOrdersAfterEntryTimePassed(symbol);
+    await cancelOpenOrdersForSymbol(symbol);
 
     expect(mockCancel).toHaveBeenCalledWith(2);
 });
@@ -169,7 +173,7 @@ test("cancelOpenOrdersAfterEntryTimePassed - no cancel", async () => {
 
     mockGetOpenOrders.mockResolvedValueOnce([]);
 
-    await cancelOpenOrdersAfterEntryTimePassed(symbol);
+    await cancelOpenOrdersForSymbol(symbol);
 
     expect(mockCancel).not.toHaveBeenCalled();
 });

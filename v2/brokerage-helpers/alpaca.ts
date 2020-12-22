@@ -1,5 +1,6 @@
 import Alpaca, { AlpacaOrder, AlpacaTradeConfig } from "@neeschit/alpaca-trade-api";
 import * as dotenv from "dotenv";
+import { LOGGER } from "../../src/instrumentation/log";
 
 dotenv.config();
 
@@ -37,12 +38,15 @@ export const createBracketOrder = (order: AlpacaTradeConfig): Promise<AlpacaOrde
 
 export const getConnectedDataWebsocket = (params: {
     onStockAggMin: (subject: string, data: string) => void;
-    onStateChange: (state: string) => void;
     onConnect: () => void;
 }) => {
     alpaca.data_ws.onStockAggMin(params.onStockAggMin);
     alpaca.data_ws.onConnect(params.onConnect);
-    alpaca.data_ws.onStateChange(params.onStateChange);
+    alpaca.data_ws.onStateChange((newState: string) => {
+        if (newState === "disconnected") {
+            alpaca.data_ws.reconnect();
+        }
+    });
     alpaca.data_ws.connect();
 
     return alpaca.data_ws;
@@ -53,4 +57,12 @@ export const getCalendar = (start: Date, end: Date) => {
         start,
         end,
     });
+};
+
+export const closePosition = async (symbol: string) => {
+    try {
+        return alpaca.closePosition(symbol);
+    } catch (e) {
+        LOGGER.error(e);
+    }
 };
