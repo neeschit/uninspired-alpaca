@@ -17,7 +17,8 @@ mockGetApiServer.mockReturnValue({
     get: () => {},
     post: () => {},
 });
-import { queueEntryForSymbol } from "./trade-manager";
+import { queueEntryForSymbol, rebalance } from "./trade-manager";
+
 test("queueEntryForSymbol", async () => {
     mockLookForEntry.mockResolvedValueOnce(true);
     const result = await queueEntryForSymbol({

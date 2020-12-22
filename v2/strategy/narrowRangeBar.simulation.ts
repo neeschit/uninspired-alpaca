@@ -2,7 +2,11 @@ import { AlpacaOrder } from "@neeschit/alpaca-trade-api";
 import { addBusinessDays } from "date-fns";
 import { closePosition, getOpenPositions } from "../brokerage-helpers";
 import { SimulationStrategy } from "../simulation-helpers/simulation.strategy";
-import { getSafeOrbEntryPlan, isTimeForOrbEntry, NarrowRangeBarStrategy } from "./narrowRangeBar";
+import {
+    getSafeOrbEntryPlan,
+    isTimeForOrbEntry,
+    NarrowRangeBarStrategy,
+} from "./narrowRangeBar";
 import {
     cancelOpenOrdersForSymbol,
     getPersistedData,
@@ -13,7 +17,10 @@ import { IndicatorValue } from "../../src/indicator/adx";
 import { getAverageTrueRange } from "../../src/indicator/trueRange";
 import { LOGGER } from "../../src/instrumentation/log";
 import { getPolyonData } from "../../src/resources/polygon";
-import { batchInsertDailyBars, getSimpleData } from "../../src/resources/stockData";
+import {
+    batchInsertDailyBars,
+    getSimpleData,
+} from "../../src/resources/stockData";
 
 export class NarrowRangeBarSimulation implements SimulationStrategy {
     private strategy?: NarrowRangeBarStrategy;
@@ -62,11 +69,7 @@ export class NarrowRangeBarSimulation implements SimulationStrategy {
             await this.beforeMarketStarts(epoch);
         }
 
-        if (!this.strategy) {
-            return;
-        }
-
-        if (!this.strategy.screenForNarrowRangeBars()) {
+        if (!this.strategy!.screenForNarrowRangeBars()) {
             return;
         }
 
@@ -93,13 +96,9 @@ export class NarrowRangeBarSimulation implements SimulationStrategy {
             dailyAtr: this.atr!.pop()!.value,
         });
 
-        if (!plan) {
-            return;
-        }
-
         const order = await createOrderSynchronized(plan);
     }
-    async afterEntryTimePassed(epoch: number): Promise<void> {
+    async afterEntryTimePassed(): Promise<void> {
         const positions = await getOpenPositions();
 
         const hasOpenPosition = positions.some((p) => p.symbol === this.symbol);
@@ -110,7 +109,7 @@ export class NarrowRangeBarSimulation implements SimulationStrategy {
 
         await cancelOpenOrdersForSymbol(this.symbol);
     }
-    async tenMinutesToMarketClose(epoch: number): Promise<void> {
+    async tenMinutesToMarketClose(): Promise<void> {
         await cancelOpenOrdersForSymbol(this.symbol);
         await closePosition(this.symbol);
     }

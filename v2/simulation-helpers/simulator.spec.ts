@@ -1,4 +1,5 @@
 import { getCalendar } from "../brokerage-helpers";
+import { SimulationStrategy } from "./simulation.strategy";
 import { Simulator } from "./simulator";
 
 beforeAll(() => {
@@ -125,21 +126,27 @@ test("Simulator should fake system time when executing batches", async () => {
 });
 
 test("get market open time for day", async () => {
-    const calendar = await getCalendar(new Date("12-11-2020"), new Date("12-12-2020"));
+    const calendar = await getCalendar(
+        new Date("12-11-2020"),
+        new Date("12-12-2020")
+    );
     const openTime = Simulator.getMarketOpenTimeForDay(1607663300000, calendar);
 
     expect(openTime).toEqual(1607697000000);
 });
 
 test("get market open time for a weekend", async () => {
-    const calendar = await getCalendar(new Date("12-05-2020"), new Date("12-07-2020"));
+    const calendar = await getCalendar(
+        new Date("12-05-2020"),
+        new Date("12-07-2020")
+    );
     const openTime = Simulator.getMarketOpenTimeForDay(1607178600000, calendar);
 
     expect(openTime).toEqual(1607351400000);
 });
 
 test("get market open time without calendar", async () => {
-    expect(Simulator.getMarketOpenTimeForDay.bind({}, 1607178600000, [])).toThrow(
-        `no_calendar_found_2020-12-05`
-    );
+    expect(
+        Simulator.getMarketOpenTimeForDay.bind({}, 1607178600000, [])
+    ).toThrow(`no_calendar_found_2020-12-05`);
 });
