@@ -57,7 +57,7 @@ test("multiple orders for same position result in single order", async (t) => {
         position1
     );
 
-    await new Promise((resolve) => setTimeout(() => resolve(), 0));
+    await new Promise((resolve) => setTimeout(() => resolve(), 10));
 
     const order1Promise = insertOrder(
         {
@@ -74,7 +74,11 @@ test("multiple orders for same position result in single order", async (t) => {
         position
     );
 
-    const results = await Promise.all([orderPromise, order1Promise, order2Promise]);
+    const results = await Promise.all([
+        orderPromise,
+        order1Promise,
+        order2Promise,
+    ]);
 
     t.is(results[1], null);
     t.truthy(results[0]!.id);
