@@ -109,7 +109,7 @@ export class NarrowRangeBarSimulation implements SimulationStrategy {
 
         await cancelOpenOrdersForSymbol(this.symbol);
     }
-    async tenMinutesToMarketClose(): Promise<void> {
+    async beforeMarketCloses(): Promise<void> {
         await cancelOpenOrdersForSymbol(this.symbol);
         await closePosition(this.symbol);
     }

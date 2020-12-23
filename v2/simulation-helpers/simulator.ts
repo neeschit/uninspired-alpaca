@@ -10,60 +10,98 @@ import {
 import { zonedTimeToUtc } from "date-fns-tz";
 import { MarketTimezone } from "../../src/data/data.model";
 import { getCalendar } from "../brokerage-helpers";
-import { DailyWatchlist } from "../screener-api";
-import { isAfterMarketClose, isBeforeMarketOpening, isMarketOpen } from "./timing.util";
+import { SimulationStrategy } from "./simulation.strategy";
+import {
+    isAfterMarketClose,
+    isBeforeMarketOpening,
+    isMarketClosing,
+    isMarketOpen,
+    isMarketOpening,
+} from "./timing.util";
+
+export type SimulationImpl = new (...args: any[]) => SimulationStrategy;
 
 export class Simulator {
     private readonly updateInterval = 60000;
+
+    private strategies: { [index: string]: SimulationStrategy } = {};
 
     constructor() {
         jest.useFakeTimers("modern");
     }
 
-    async run(batches: BacktestBatch[]) {
+    async run(batches: BacktestBatch[], strategy: SimulationImpl) {
         const results: BacktestBatchResult[] = [];
-        for await (const batchResult of this.syncToAsyncIterable(batches)) {
+        for await (const batchResult of this.syncToAsyncIterable(
+            batches,
+            strategy
+        )) {
             results.push(batchResult);
         }
     }
 
-    async *syncToAsyncIterable(batches: BacktestBatch[]) {
+    private async *syncToAsyncIterable(
+        batches: BacktestBatch[],
+        strategy: SimulationImpl
+    ) {
         for (const batch of batches) {
             const start = parseISO(batch.startDate);
             const end = parseISO(batch.endDate);
             const calendar = await getCalendar(start, end);
-            const result = await this.executeBatch(batch, calendar);
+            const result = await this.executeBatch(batch, calendar, strategy);
             yield result;
         }
     }
 
-    async executeBatch(batch: BacktestBatch, calendar: Calendar[]): Promise<BacktestBatchResult> {
+    private async executeBatch(
+        batch: BacktestBatch,
+        calendar: Calendar[],
+        Strategy: SimulationImpl
+    ): Promise<BacktestBatchResult> {
         const start = parseISO(batch.startDate).getTime();
         const end = parseISO(batch.endDate).getTime();
 
-        let currentTime = Simulator.getMarketOpenTimeForDay(start, calendar);
+        let currentTime =
+            Simulator.getMarketOpenTimeForDay(start, calendar) -
+            15 * this.updateInterval;
 
         while (currentTime <= end) {
             jest.setSystemTime(currentTime);
 
+            for (const symbol of batch.symbols) {
+                if (!this.strategies[symbol]) {
+                    this.strategies[symbol] = new Strategy(symbol);
+                }
+
+                await runStrategy(
+                    symbol,
+                    calendar,
+                    this.strategies[symbol],
+                    currentTime
+                );
+            }
+
             if (isMarketOpen(calendar, currentTime)) {
-                // call rebalance
                 currentTime += this.updateInterval;
             } else if (isBeforeMarketOpening(calendar, currentTime)) {
-                //call hook
-                currentTime = Simulator.getMarketOpenTimeForDay(currentTime, calendar);
+                currentTime = Simulator.getMarketOpenTimeForDay(
+                    currentTime,
+                    calendar
+                );
             } else if (isAfterMarketClose(calendar, currentTime)) {
-                //call hook
-                currentTime = startOfDay(addBusinessDays(currentTime, 1)).getTime();
-            } else {
-                currentTime += this.updateInterval;
+                currentTime = startOfDay(
+                    addBusinessDays(currentTime, 1)
+                ).getTime();
             }
         }
 
         return {};
     }
 
-    static getMarketOpenTimeForDay(epoch: number, calendar: Calendar[]): number {
+    static getMarketOpenTimeForDay(
+        epoch: number,
+        calendar: Calendar[]
+    ): number {
         try {
             return Simulator._getMarketOpenTimeForDay(epoch, calendar, 0);
         } catch (e) {
@@ -164,7 +202,30 @@ export interface BacktestBatch {
 
 export interface BacktestBatchResult {
     [index: string]: {
-        watchlist: DailyWatchlist[];
         trades: string[];
     };
 }
+
+export const runStrategy = async (
+    symbol: string,
+    calendar: Calendar[],
+    sim: SimulationStrategy,
+    epoch: number
+) => {
+    if (
+        isMarketOpening(calendar, epoch) ||
+        isBeforeMarketOpening(calendar, epoch)
+    ) {
+        await sim.beforeMarketStarts(epoch);
+    } else if (isMarketClosing(calendar, epoch)) {
+        await sim.beforeMarketCloses(epoch);
+    } else if (isMarketOpen(calendar, epoch)) {
+        if (sim.hasEntryTimePassed(epoch)) {
+            await sim.afterEntryTimePassed(epoch);
+        } else {
+            await sim.rebalance(epoch);
+        }
+    } else {
+        await sim.onMarketClose(epoch);
+    }
+};

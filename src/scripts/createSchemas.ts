@@ -4,6 +4,7 @@ import {
     createMetadataTables,
     dropStorageTables,
     createDbIfNotExists,
+    createNewMetadataTables,
 } from "../resources/stockData";
 import { LOGGER } from "../instrumentation/log";
 import { endPooledConnection } from "../connection/pg";
@@ -17,6 +18,8 @@ async function run() {
     await createDbIfNotExists();
 
     await createMetadataTables();
+
+    await createNewMetadataTables();
 
     const symbols = getMegaCaps();
 

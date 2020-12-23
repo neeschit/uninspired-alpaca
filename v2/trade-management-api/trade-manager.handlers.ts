@@ -18,6 +18,7 @@ import {
     isMarketClosing,
     isMarketOpen,
     isMarketOpening,
+    runStrategy,
 } from "../simulation-helpers";
 import { Calendar } from "@neeschit/alpaca-trade-api";
 import { NarrowRangeBarSimulation } from "../strategy/narrowRangeBar.simulation";
@@ -89,30 +90,6 @@ export const rebalanceForSymbol = async (
     }
 
     return runStrategy(symbol, calendar, sim, epoch);
-};
-
-export const runStrategy = async (
-    symbol: string,
-    calendar: Calendar[],
-    sim: SimulationStrategy,
-    epoch: number
-) => {
-    if (
-        isMarketOpening(calendar, epoch) ||
-        isBeforeMarketOpening(calendar, epoch)
-    ) {
-        await sim.beforeMarketStarts(epoch);
-    } else if (isMarketClosing(calendar, epoch)) {
-        await sim.tenMinutesToMarketClose(epoch);
-    } else if (isMarketOpen(calendar, epoch)) {
-        if (sim.hasEntryTimePassed(epoch)) {
-            await sim.afterEntryTimePassed(epoch);
-        } else {
-            await sim.rebalance(epoch);
-        }
-    } else {
-        await sim.onMarketClose(epoch);
-    }
 };
 
 export const enterSymbol = async (symbol: string, epoch = Date.now()) => {
