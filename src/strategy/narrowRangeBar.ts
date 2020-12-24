@@ -284,7 +284,6 @@ export class NarrowRangeBarStrategy {
         );
 
         if (isYdayNrb) {
-            console.log(this.symbol);
             this.nrbs.push(this.closeBar);
             this.nrbTimestamps.push(this.closeBar.t);
         }

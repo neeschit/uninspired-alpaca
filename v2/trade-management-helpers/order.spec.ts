@@ -280,8 +280,6 @@ test("persistPlanAndOrder", async () => {
             query: (qs: string) => {
                 const lowercaseQs = qs.toLowerCase();
 
-                console.log(lowercaseQs);
-
                 return {
                     rowCount: 0,
                     rows: [],

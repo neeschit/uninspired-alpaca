@@ -18,6 +18,7 @@ import {
     isMarketOpen,
     isMarketOpening,
 } from "./timing.util";
+import { LOGGER } from "../../src/instrumentation/log";
 
 export type SimulationImpl = new (...args: any[]) => SimulationStrategy;
 
@@ -27,7 +28,7 @@ export class Simulator {
     private strategies: { [index: string]: SimulationStrategy } = {};
 
     constructor() {
-        jest.useFakeTimers("modern");
+        /* jest.useFakeTimers("modern"); */
     }
 
     async run(batches: BacktestBatch[], strategy: SimulationImpl) {
@@ -48,6 +49,7 @@ export class Simulator {
             const start = parseISO(batch.startDate);
             const end = parseISO(batch.endDate);
             const calendar = await getCalendar(start, end);
+            LOGGER.info(`running batch ${JSON.stringify(batch)}`);
             const result = await this.executeBatch(batch, calendar, strategy);
             yield result;
         }
@@ -66,12 +68,14 @@ export class Simulator {
             15 * this.updateInterval;
 
         while (currentTime <= end) {
-            jest.setSystemTime(currentTime);
+            /* jest.setSystemTime(currentTime); */
 
             for (const symbol of batch.symbols) {
                 if (!this.strategies[symbol]) {
                     this.strategies[symbol] = new Strategy(symbol);
                 }
+
+                console.log(`running for ${symbol}`);
 
                 await runStrategy(
                     symbol,

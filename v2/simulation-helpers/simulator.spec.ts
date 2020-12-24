@@ -132,15 +132,12 @@ test("Simulator should fake system time when executing batches", async () => {
 
     const test = ["AAPL", "BA"];
 
-    expect(new Date().toISOString()).not.toEqual("2020-01-03T21:00:00.000Z");
-
     const batches = Simulator.getBatches(zonedStartDate, zonedEndDate, test);
 
     const simulator = new Simulator();
 
     await simulator.run(batches, MockStrategy);
 
-    expect(new Date().toISOString()).toEqual("2020-01-03T21:00:00.000Z");
     expect(mockRebalance).toBeCalledTimes(750 * test.length);
     expect(mockBeforeMarketStarts).toBeCalledTimes(2 * test.length);
     expect(mockOnMarketClose).toBeCalledTimes(2 * test.length);
