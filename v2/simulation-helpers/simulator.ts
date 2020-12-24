@@ -19,6 +19,7 @@ import {
     isMarketOpening,
 } from "./timing.util";
 import { LOGGER } from "../../src/instrumentation/log";
+import { MockBrokerage } from "./mockBrokerage";
 
 export type SimulationImpl = new (...args: any[]) => SimulationStrategy;
 
@@ -60,6 +61,8 @@ export class Simulator {
         calendar: Calendar[],
         Strategy: SimulationImpl
     ): Promise<BacktestBatchResult> {
+        const mockBroker = MockBrokerage.getInstance();
+
         const start = parseISO(batch.startDate).getTime();
         const end = parseISO(batch.endDate).getTime();
 
@@ -97,6 +100,9 @@ export class Simulator {
                     addBusinessDays(currentTime, 1)
                 ).getTime();
             }
+
+            // call hook for mock brokerage
+            mockBroker.tick(currentTime);
         }
 
         return {};
