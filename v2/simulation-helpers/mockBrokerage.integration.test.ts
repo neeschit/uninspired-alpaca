@@ -176,3 +176,66 @@ test("ticking past a long entry price with stop triggered as well", async () => 
     expect(closedOrders.some((o) => o.id === closingOrderId)).toBeTruthy();
     expect(closedOrders.some((o) => o.id === openingOrderId)).toBeTruthy();
 });
+/* 
+test("multiple open orders at the same time", async () => {
+    await instance.createBracketOrder({
+        client_order_id: "test_" + Date.now(),
+        symbol: "AAPL",
+        qty: 10,
+        limit_price: 132.05,
+        stop_price: 132.01,
+        side: TradeDirection.buy,
+        type: TradeType.stop_limit,
+        extended_hours: false,
+        time_in_force: TimeInForce.day,
+        order_class: "bracket",
+        stop_loss: {
+            stop_price: 131.49,
+        },
+        take_profit: {
+            limit_price: 132.55,
+        },
+    });
+
+    await instance.createBracketOrder({
+        client_order_id: "test_" + Date.now(),
+        symbol: "SNAP",
+        qty: 10,
+        limit_price: 51.37,
+        stop_price: 51.39,
+        side: TradeDirection.buy,
+        type: TradeType.stop_limit,
+        extended_hours: false,
+        time_in_force: TimeInForce.day,
+        order_class: "bracket",
+        stop_loss: {
+            stop_price: 51.6,
+        },
+        take_profit: {
+            limit_price: 51.01,
+        },
+    });
+
+    await instance.tick(1608820500000);
+
+    let openPositions = await instance.getOpenPositions();
+
+    expect(openPositions.length).toEqual(2);
+
+    let openOrders = await instance.getOpenOrders();
+
+    expect(openOrders.length).toEqual(2);
+
+    expect(instance.stopLegs.length).toEqual(2);
+    expect(instance.profitLegs.length).toEqual(0);
+
+    await instance.tick(1608821100000);
+    openPositions = await instance.getOpenPositions();
+    openOrders = await instance.getOpenOrders();
+
+    expect(openPositions.length).toEqual(0);
+    expect(instance.stopLegs.length).toEqual(0);
+    expect(instance.profitLegs.length).toEqual(0);
+    expect(instance.closedPositions.length).toEqual(1);
+});
+ */
