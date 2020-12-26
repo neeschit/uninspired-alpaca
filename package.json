@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "dependencies": {
-    "@neeschit/alpaca-trade-api": "1.4.4",
+    "@neeschit/alpaca-trade-api": "1.4.5",
     "date-fns": "^2.9.0",
     "date-fns-tz": "^1.0.10",
     "dotenv": "^8.2.0",

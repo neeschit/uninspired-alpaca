@@ -20,6 +20,10 @@ export interface ClosedMockPosition {
     symbol: string;
     entryTime: string;
     exitTime: string;
+    orderIds: {
+        open: string;
+        close: string;
+    };
 }
 
 export interface MockAlpacaPosition extends AlpacaPosition {
@@ -195,7 +199,7 @@ export class MockBrokerage {
                 : order.stop_price!;
 
         const index = this.orders.findIndex((o) => o.id === order.id);
-        const filledAtTime = fromUnixTime(minuteBar.t).toISOString();
+        const filledAtTime = fromUnixTime(minuteBar.t / 1000).toISOString();
 
         const filled = isShort
             ? minuteBar.l <= strikePrice
@@ -266,6 +270,10 @@ export class MockBrokerage {
                         : PositionDirection.long,
                     entryTime: originalOrder!.filled_at as string,
                     exitTime: closingOrder!.filled_at as string,
+                    orderIds: {
+                        open: originalOrder!.id,
+                        close: closingOrder!.id,
+                    },
                 });
             }
         }
@@ -296,7 +304,7 @@ const getFakeNewOrder = (
     >,
     epoch: number
 ) => {
-    const currentDate = fromUnixTime(epoch).toISOString();
+    const currentDate = fromUnixTime(epoch / 1000).toISOString();
 
     return {
         id: v4(),
