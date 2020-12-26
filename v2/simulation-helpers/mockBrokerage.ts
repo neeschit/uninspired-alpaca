@@ -140,17 +140,50 @@ export class MockBrokerage {
                 epoch + 1000
             );
 
+            const isCurrentPosition = this.openPositions.some(
+                (p) => p.symbol === order.symbol
+            );
+
             const isOrderFillable = this.checkIfOrderIsFillable(
                 order,
-                minuteBar[0]
+                minuteBar[0],
+                isCurrentPosition
             );
+
+            if (isCurrentPosition) {
+                const stopOrderIndex = this.stopLegs.findIndex(
+                    (o) => o.id === order.associatedOrderIds.stopLoss
+                );
+
+                const stopOrder = this.stopLegs[stopOrderIndex];
+
+                if (!isOrderFillable) {
+                    const orderFilled = this.checkIfOrderIsFillable(
+                        stopOrder!,
+                        minuteBar[0],
+                        isCurrentPosition
+                    );
+
+                    const takeProfitOrderIndex = this.orders.findIndex(
+                        (o) => o.symbol === order.symbol
+                    );
+
+                    if (orderFilled) {
+                        this.orders.splice(takeProfitOrderIndex, 1);
+                        this.stopLegs.splice(stopOrderIndex, 1);
+                    }
+                } else {
+                    this.stopLegs.splice(stopOrderIndex, 1);
+                }
+            }
         }
     }
 
-    public checkIfOrderIsFillable(order: AlpacaOrder, minuteBar: Bar) {
-        const isCurrentPosition = this.openPositions.some(
-            (p) => p.symbol === order.symbol
-        );
+    public checkIfOrderIsFillable(
+        order: AlpacaOrder,
+        minuteBar: Bar,
+        isCurrentPosition: boolean
+    ) {
         const isShort =
             !isCurrentPosition && order.side === TradeDirection.sell;
 
@@ -163,10 +196,6 @@ export class MockBrokerage {
 
         const index = this.orders.findIndex((o) => o.id === order.id);
         const filledAtTime = fromUnixTime(minuteBar.t).toISOString();
-
-        const takeProfitOrderIndex = this.orders.findIndex(
-            (o) => o.symbol === order.symbol
-        );
 
         const filled = isShort
             ? minuteBar.l <= strikePrice
@@ -181,12 +210,14 @@ export class MockBrokerage {
 
             this.closedOrders.push(mockOrder);
 
-            const takeProfitOrder = this.profitLegs.splice(
-                takeProfitOrderIndex,
-                1
-            )[0];
-
             if (!isCurrentPosition) {
+                const takeProfitOrderIndex = this.profitLegs.findIndex(
+                    (o) => o.symbol === order.symbol
+                );
+                const takeProfitOrder = this.profitLegs.splice(
+                    takeProfitOrderIndex,
+                    1
+                )[0];
                 this.openPositions.push({
                     ...getFilledPosition(
                         order,

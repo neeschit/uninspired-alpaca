@@ -77,3 +77,45 @@ test("ticking past a long entry price with an open order should create an open p
     expect(instance.stopLegs.length).toEqual(0);
     expect(instance.profitLegs.length).toEqual(0);
 });
+
+test("ticking past a long entry price with stop triggered as well", async () => {
+    const orderCreationResponse = await instance.createBracketOrder({
+        client_order_id: "test_" + Date.now(),
+        symbol: "AAPL",
+        qty: 10,
+        limit_price: 132.05,
+        stop_price: 132.01,
+        side: TradeDirection.buy,
+        type: TradeType.limit,
+        extended_hours: false,
+        time_in_force: TimeInForce.day,
+        order_class: "bracket",
+        stop_loss: {
+            stop_price: 131.79,
+        },
+        take_profit: {
+            limit_price: 132.55,
+        },
+    });
+
+    await instance.tick(1608820500000);
+
+    let openPositions = await instance.getOpenPositions();
+
+    expect(openPositions.length).toEqual(1);
+
+    let openOrders = await instance.getOpenOrders();
+
+    expect(openOrders.length).toEqual(1);
+
+    expect(instance.stopLegs.length).toEqual(1);
+    expect(instance.profitLegs.length).toEqual(0);
+
+    await instance.tick(1608820560000);
+    openPositions = await instance.getOpenPositions();
+    openOrders = await instance.getOpenOrders();
+
+    expect(openPositions.length).toEqual(0);
+    expect(instance.stopLegs.length).toEqual(0);
+    expect(instance.profitLegs.length).toEqual(0);
+});
