@@ -76,6 +76,7 @@ test("ticking past a long entry price with an open order should create an open p
     expect(openPositions.length).toEqual(0);
     expect(instance.stopLegs.length).toEqual(0);
     expect(instance.profitLegs.length).toEqual(0);
+    expect(instance.closedPositions.length).toEqual(1);
 });
 
 test("ticking past a long entry price with stop triggered as well", async () => {
@@ -118,4 +119,8 @@ test("ticking past a long entry price with stop triggered as well", async () => 
     expect(openPositions.length).toEqual(0);
     expect(instance.stopLegs.length).toEqual(0);
     expect(instance.profitLegs.length).toEqual(0);
+
+    expect(instance.closedPositions.length).toEqual(1);
+
+    console.log(instance.closedPositions);
 });

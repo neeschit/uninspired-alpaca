@@ -42,9 +42,9 @@ export class MockBrokerage {
     public stopLegs: AlpacaOrder[] = [];
     public profitLegs: AlpacaOrder[] = [];
     public closedPositions: ClosedMockPosition[] = [];
+    public closedOrders: MockAlpacaOrder[] = [];
     private orders: MockAlpacaOrder[] = [];
     private openPositions: MockAlpacaPosition[] = [];
-    private closedOrders: MockAlpacaOrder[] = [];
     private static instance: MockBrokerage;
     private epoch = Date.now();
 
@@ -207,6 +207,7 @@ export class MockBrokerage {
 
             mockOrder.filled_at = filledAtTime;
             mockOrder.filled_qty = order.qty;
+            mockOrder.filled_avg_price = strikePrice;
 
             this.closedOrders.push(mockOrder);
 
