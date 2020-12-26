@@ -549,6 +549,8 @@ export const getSimpleData = async (
 
     const query = getSimpleDataQuery(tableName, fromTimestamp, endTimeStamp);
 
+    console.log(query);
+
     try {
         const result = await client.query(query);
 

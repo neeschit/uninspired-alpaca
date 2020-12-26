@@ -189,7 +189,7 @@ export const updateOrder = async (
     const pool = getConnection();
 
     const query = getUpdateOrdersSql(
-        order.client_order_id,
+        order.client_order_id!,
         Math.abs(Number(positionQuantity)),
         Number(price),
         order.status

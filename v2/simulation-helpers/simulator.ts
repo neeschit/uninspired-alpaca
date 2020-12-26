@@ -28,10 +28,6 @@ export class Simulator {
 
     private strategies: { [index: string]: SimulationStrategy } = {};
 
-    constructor() {
-        /* jest.useFakeTimers("modern"); */
-    }
-
     async run(batches: BacktestBatch[], strategy: SimulationImpl) {
         const results: BacktestBatchResult[] = [];
         for await (const batchResult of this.syncToAsyncIterable(
@@ -71,14 +67,10 @@ export class Simulator {
             15 * this.updateInterval;
 
         while (currentTime <= end) {
-            /* jest.setSystemTime(currentTime); */
-
             for (const symbol of batch.symbols) {
                 if (!this.strategies[symbol]) {
                     this.strategies[symbol] = new Strategy(symbol);
                 }
-
-                console.log(`running for ${symbol}`);
 
                 await runStrategy(
                     symbol,
@@ -87,6 +79,9 @@ export class Simulator {
                     currentTime
                 );
             }
+
+            // call hook for mock brokerage
+            await mockBroker.tick(currentTime + this.updateInterval);
 
             if (isMarketOpen(calendar, currentTime)) {
                 currentTime += this.updateInterval;
@@ -100,9 +95,6 @@ export class Simulator {
                     addBusinessDays(currentTime, 1)
                 ).getTime();
             }
-
-            // call hook for mock brokerage
-            mockBroker.tick(currentTime);
         }
 
         return {};
