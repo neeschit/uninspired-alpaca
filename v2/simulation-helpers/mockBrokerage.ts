@@ -175,8 +175,7 @@ export class MockBrokerage {
         isCurrentPosition: boolean
     ) {
         const isShort =
-            (isCurrentPosition && order.side === TradeDirection.buy) ||
-            (!isCurrentPosition && order.side === TradeDirection.sell);
+            !isCurrentPosition && order.side === TradeDirection.sell;
 
         const tradeType = order.type;
 
@@ -185,24 +184,55 @@ export class MockBrokerage {
                 ? order.limit_price!
                 : order.stop_price!;
 
-        const index = this.orders.findIndex((o) => o.id === order.id);
         const filledAtTime = fromUnixTime(minuteBar.t / 1000).toISOString();
 
-        const filled = isShort
-            ? minuteBar.l <= strikePrice
-            : minuteBar.h >= strikePrice;
+        let filled = false;
+
+        if (!isCurrentPosition) {
+            filled = isShort
+                ? minuteBar.l <= strikePrice
+                : minuteBar.h >= strikePrice;
+        } else {
+            const position = this.openPositions.find(
+                (p) => p.symbol === order.symbol
+            );
+
+            filled =
+                position!.side === PositionDirection.long &&
+                TradeType.limit === order.type
+                    ? minuteBar.h >= strikePrice
+                    : PositionDirection.long === position!.side &&
+                      TradeType.stop === order.type
+                    ? minuteBar.l <= strikePrice
+                    : filled;
+
+            filled =
+                position!.side === PositionDirection.short &&
+                TradeType.limit === order.type
+                    ? minuteBar.l <= strikePrice
+                    : PositionDirection.short === position!.side &&
+                      TradeType.stop === order.type
+                    ? minuteBar.h >= strikePrice
+                    : filled;
+        }
 
         if (filled) {
-            // fill order
-            const mockOrder = this.orders.splice(index, 1)[0];
-
-            mockOrder.filled_at = filledAtTime;
-            mockOrder.filled_qty = order.qty;
-            mockOrder.filled_avg_price = strikePrice;
-
-            this.closedOrders.push(mockOrder);
-
             if (!isCurrentPosition) {
+                // fill order
+
+                let index = this.orders.findIndex((o) => o.id === order.id);
+
+                if (index < 0) {
+                    throw new Error("this cannot be");
+                }
+
+                const mockOrder = this.orders.splice(index, 1)[0];
+
+                mockOrder.filled_at = filledAtTime;
+                mockOrder.filled_qty = order.qty;
+                mockOrder.filled_avg_price = strikePrice;
+
+                this.closedOrders.push(mockOrder);
                 const takeProfitOrderIndex = this.profitLegs.findIndex(
                     (o) => o.symbol === order.symbol
                 );
@@ -235,31 +265,44 @@ export class MockBrokerage {
                     (p) => p.symbol === order.symbol
                 );
 
-                const position = this.openPositions.splice(positionIndex, 1)[0];
+                if (positionIndex < 0) {
+                    throw new Error("this cannot be");
+                }
 
+                const position = this.openPositions.splice(positionIndex, 1)[0];
                 const originalOrder = this.closedOrders.find(
                     (o) => o.id === position.orderIds.original
                 );
 
-                const closingOrder = this.closedOrders.find(
-                    (o) =>
-                        o.id === position.orderIds.stopLoss ||
-                        o.id === position.orderIds.takeProfit
-                );
+                const closingOrder = order;
+
+                closingOrder!.filled_at = filledAtTime;
+                closingOrder!.filled_qty = order.qty;
+                closingOrder!.filled_avg_price = strikePrice;
 
                 this.closedPositions.push({
                     symbol: order.symbol,
                     avg_entry_price: originalOrder!.filled_avg_price,
                     avg_exit_price: closingOrder!.filled_avg_price,
                     qty: originalOrder!.filled_qty,
-                    side: isShort
-                        ? PositionDirection.short
-                        : PositionDirection.long,
+                    side:
+                        originalOrder!.side === TradeDirection.sell
+                            ? PositionDirection.short
+                            : PositionDirection.long,
                     entryTime: originalOrder!.filled_at as string,
                     exitTime: closingOrder!.filled_at as string,
                     orderIds: {
                         open: originalOrder!.id,
                         close: closingOrder!.id,
+                    },
+                });
+
+                this.closedOrders.push({
+                    ...order,
+                    associatedOrderIds: {
+                        takeProfit: originalOrder!.associatedOrderIds
+                            .takeProfit,
+                        stopLoss: originalOrder!.associatedOrderIds.stopLoss,
                     },
                 });
 
@@ -349,7 +392,7 @@ const getFilledPosition = (
 ) => {
     return {
         id: v4(),
-        side: PositionDirection.long,
+        side: isShort ? PositionDirection.short : PositionDirection.long,
         symbol: order.symbol,
         qty: order.qty + "",
         asset_class: "",

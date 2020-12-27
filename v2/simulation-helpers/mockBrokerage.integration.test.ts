@@ -213,6 +213,8 @@ test("ticking past a short entry price with an open order should create an open 
     let openPositions = await instance.getOpenPositions();
 
     expect(openPositions.length).toEqual(1);
+    const position = openPositions[0];
+    expect(position.side).toEqual(PositionDirection.short);
     expect(instance.stopLegs.length).toEqual(1);
     expect(instance.profitLegs.length).toEqual(0);
 
@@ -275,6 +277,8 @@ test("multiple open orders at the same time", async () => {
     await instance.tick(1608820500000);
 
     let openPositions = await instance.getOpenPositions();
+
+    console.log(openPositions);
 
     expect(openPositions.length).toEqual(2);
     expect(instance.stopLegs.length).toEqual(2);
