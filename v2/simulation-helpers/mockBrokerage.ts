@@ -11,6 +11,7 @@ import { v4 } from "uuid";
 import { fromUnixTime } from "date-fns";
 import { getSimpleData } from "../../src/resources/stockData";
 import { Bar } from "../../src/data/data.model";
+import { LOGGER } from "../../src/instrumentation/log";
 
 export interface ClosedMockPosition {
     avg_exit_price: number;
@@ -134,39 +135,45 @@ export class MockBrokerage {
     public async tick(epoch: number) {
         this.epoch = epoch;
 
-        for (const order of this.orders) {
-            const symbol = order.symbol;
-            const minuteBar = await getSimpleData(
-                symbol,
-                epoch,
-                true,
-                epoch + 1000
-            );
-
-            const isCurrentPosition = this.openPositions.some(
-                (p) => p.symbol === order.symbol
-            );
-
-            const isOrderFillable = this.checkIfOrderIsFillable(
-                order,
-                minuteBar[0],
-                isCurrentPosition
-            );
-
-            if (isCurrentPosition && !isOrderFillable) {
-                const stopOrderIndex = this.stopLegs.findIndex(
-                    (o) => o.id === order.associatedOrderIds.stopLoss
+        const promises = this.orders.map(async (order) => {
+            try {
+                const symbol = order.symbol;
+                const minuteBar = await getSimpleData(
+                    symbol,
+                    epoch,
+                    true,
+                    epoch + 1000
                 );
 
-                const stopOrder = this.stopLegs[stopOrderIndex];
+                const isCurrentPosition = this.openPositions.some(
+                    (p) => p.symbol === order.symbol
+                );
 
-                const orderFilled = this.checkIfOrderIsFillable(
-                    stopOrder!,
+                const isOrderFillable = this.checkIfOrderIsFillable(
+                    order,
                     minuteBar[0],
                     isCurrentPosition
                 );
+
+                if (isCurrentPosition && !isOrderFillable) {
+                    const stopOrderIndex = this.stopLegs.findIndex(
+                        (o) => o.id === order.associatedOrderIds.stopLoss
+                    );
+
+                    const stopOrder = this.stopLegs[stopOrderIndex];
+
+                    const orderFilled = this.checkIfOrderIsFillable(
+                        stopOrder!,
+                        minuteBar[0],
+                        isCurrentPosition
+                    );
+                }
+            } catch (e) {
+                LOGGER.error(e);
             }
-        }
+        });
+
+        await Promise.all(promises);
     }
 
     public checkIfOrderIsFillable(

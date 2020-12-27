@@ -278,8 +278,6 @@ test("multiple open orders at the same time", async () => {
 
     let openPositions = await instance.getOpenPositions();
 
-    console.log(openPositions);
-
     expect(openPositions.length).toEqual(2);
     expect(instance.stopLegs.length).toEqual(2);
     expect(instance.profitLegs.length).toEqual(0);
@@ -288,8 +286,21 @@ test("multiple open orders at the same time", async () => {
     openPositions = await instance.getOpenPositions();
     openOrders = await instance.getOpenOrders();
 
-    expect(openPositions.length).toEqual(0);
-    expect(instance.stopLegs.length).toEqual(0);
+    expect(openPositions.length).toEqual(1);
+    expect(openOrders.length).toEqual(1);
+    expect(instance.stopLegs.length).toEqual(1);
     expect(instance.profitLegs.length).toEqual(0);
     expect(instance.closedPositions.length).toEqual(1);
+
+    await instance.tick(1608821280000);
+
+    openPositions = await instance.getOpenPositions();
+    openOrders = await instance.getOpenOrders();
+
+    expect(openPositions.length).toEqual(0);
+    expect(openOrders.length).toEqual(0);
+    expect(instance.stopLegs.length).toEqual(0);
+    expect(instance.profitLegs.length).toEqual(0);
+    expect(instance.closedPositions.length).toEqual(2);
+    expect(instance.closedOrders.length).toEqual(4);
 });
