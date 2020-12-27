@@ -3,6 +3,7 @@ import {
     TradeDirection,
     TradeType,
     TimeInForce,
+    PositionDirection,
 } from "@neeschit/alpaca-trade-api";
 
 const instance = MockBrokerage.getInstance();
@@ -116,6 +117,7 @@ test("ticking past a long entry price with an open order should create an open p
     openOrders = await instance.getOpenOrders();
 
     expect(openPositions.length).toEqual(0);
+    expect(openOrders.length).toEqual(0);
     expect(instance.stopLegs.length).toEqual(0);
     expect(instance.profitLegs.length).toEqual(0);
     expect(instance.closedPositions.length).toEqual(1);
@@ -166,6 +168,7 @@ test("ticking past a long entry price with stop triggered as well", async () => 
     const applePosition = instance.closedPositions[0];
     expect(applePosition.entryTime).toEqual("2020-12-24T14:35:00.000Z");
     expect(applePosition.exitTime).toEqual("2020-12-24T14:36:00.000Z");
+    expect(applePosition.side).toEqual(PositionDirection.long);
     expect(applePosition.avg_entry_price).toBeGreaterThanOrEqual(132.01);
     expect(applePosition.avg_entry_price).toBeLessThanOrEqual(132.05);
     expect(applePosition.avg_exit_price).toBeLessThanOrEqual(131.79);
@@ -177,6 +180,53 @@ test("ticking past a long entry price with stop triggered as well", async () => 
 
     expect(closedOrders.some((o) => o.id === closingOrderId)).toBeTruthy();
     expect(closedOrders.some((o) => o.id === openingOrderId)).toBeTruthy();
+});
+
+test("ticking past a short entry price with an open order should create an open position", async () => {
+    await instance.createBracketOrder({
+        client_order_id: "test_" + Date.now(),
+        symbol: "BABA",
+        qty: 10,
+        limit_price: 227.9,
+        stop_price: 227.98,
+        side: TradeDirection.sell,
+        type: TradeType.stop_limit,
+        extended_hours: false,
+        time_in_force: TimeInForce.day,
+        order_class: "bracket",
+        stop_loss: {
+            stop_price: 229,
+        },
+        take_profit: {
+            limit_price: 226,
+        },
+    });
+
+    let openOrders = await instance.getOpenOrders();
+
+    expect(openOrders.length).toEqual(1);
+    expect(instance.stopLegs.length).toEqual(1);
+    expect(instance.profitLegs.length).toEqual(1);
+
+    await instance.tick(1608820320000);
+
+    let openPositions = await instance.getOpenPositions();
+
+    expect(openPositions.length).toEqual(1);
+    expect(instance.stopLegs.length).toEqual(1);
+    expect(instance.profitLegs.length).toEqual(0);
+
+    await instance.tick(1608820440000);
+    openPositions = await instance.getOpenPositions();
+    openOrders = await instance.getOpenOrders();
+
+    expect(openPositions.length).toEqual(0);
+    expect(instance.stopLegs.length).toEqual(0);
+    expect(openOrders.length).toEqual(0);
+    expect(instance.profitLegs.length).toEqual(0);
+    expect(instance.closedPositions.length).toEqual(1);
+    const closedPosition = instance.closedPositions[0];
+    expect(closedPosition.side).toEqual(PositionDirection.short);
 });
 
 test("multiple open orders at the same time", async () => {
@@ -201,20 +251,20 @@ test("multiple open orders at the same time", async () => {
 
     await instance.createBracketOrder({
         client_order_id: "test_" + Date.now(),
-        symbol: "SNAP",
+        symbol: "WFC",
         qty: 10,
-        limit_price: 51.37,
-        stop_price: 51.39,
-        side: TradeDirection.buy,
+        limit_price: 29.97,
+        stop_price: 29.99,
+        side: TradeDirection.sell,
         type: TradeType.stop_limit,
         extended_hours: false,
         time_in_force: TimeInForce.day,
         order_class: "bracket",
         stop_loss: {
-            stop_price: 51.6,
+            stop_price: 30.1,
         },
         take_profit: {
-            limit_price: 51.01,
+            limit_price: 29.83,
         },
     });
 

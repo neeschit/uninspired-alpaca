@@ -153,20 +153,18 @@ export class MockBrokerage {
                 isCurrentPosition
             );
 
-            if (isCurrentPosition) {
+            if (isCurrentPosition && !isOrderFillable) {
                 const stopOrderIndex = this.stopLegs.findIndex(
                     (o) => o.id === order.associatedOrderIds.stopLoss
                 );
 
                 const stopOrder = this.stopLegs[stopOrderIndex];
 
-                if (!isOrderFillable) {
-                    const orderFilled = this.checkIfOrderIsFillable(
-                        stopOrder!,
-                        minuteBar[0],
-                        isCurrentPosition
-                    );
-                }
+                const orderFilled = this.checkIfOrderIsFillable(
+                    stopOrder!,
+                    minuteBar[0],
+                    isCurrentPosition
+                );
             }
         }
     }
@@ -177,7 +175,8 @@ export class MockBrokerage {
         isCurrentPosition: boolean
     ) {
         const isShort =
-            !isCurrentPosition && order.side === TradeDirection.sell;
+            (isCurrentPosition && order.side === TradeDirection.buy) ||
+            (!isCurrentPosition && order.side === TradeDirection.sell);
 
         const tradeType = order.type;
 
@@ -269,7 +268,10 @@ export class MockBrokerage {
                 );
 
                 if (stopOrderIndex > -1) {
-                    this.stopLegs.splice(stopOrderIndex, 1);
+                    const removedOrder = this.stopLegs.splice(
+                        stopOrderIndex,
+                        1
+                    );
                 }
 
                 const takeProfitOrderIndex = this.orders.findIndex(
@@ -277,7 +279,10 @@ export class MockBrokerage {
                 );
 
                 if (takeProfitOrderIndex > -1) {
-                    this.orders.splice(takeProfitOrderIndex, 1);
+                    const takeProfitOrder = this.orders.splice(
+                        takeProfitOrderIndex,
+                        1
+                    );
                 }
             }
         }
