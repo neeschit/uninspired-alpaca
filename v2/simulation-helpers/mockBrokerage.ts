@@ -133,7 +133,6 @@ export class MockBrokerage {
 
     public async tick(epoch: number) {
         this.epoch = epoch;
-        // check open orders
 
         for (const order of this.orders) {
             const symbol = order.symbol;
@@ -167,17 +166,6 @@ export class MockBrokerage {
                         minuteBar[0],
                         isCurrentPosition
                     );
-
-                    const takeProfitOrderIndex = this.orders.findIndex(
-                        (o) => o.symbol === order.symbol
-                    );
-
-                    if (orderFilled) {
-                        this.orders.splice(takeProfitOrderIndex, 1);
-                        this.stopLegs.splice(stopOrderIndex, 1);
-                    }
-                } else {
-                    this.stopLegs.splice(stopOrderIndex, 1);
                 }
             }
         }
@@ -275,6 +263,22 @@ export class MockBrokerage {
                         close: closingOrder!.id,
                     },
                 });
+
+                const stopOrderIndex = this.stopLegs.findIndex(
+                    (o) => o.id === originalOrder!.associatedOrderIds.stopLoss
+                );
+
+                if (stopOrderIndex > -1) {
+                    this.stopLegs.splice(stopOrderIndex, 1);
+                }
+
+                const takeProfitOrderIndex = this.orders.findIndex(
+                    (o) => o.id === originalOrder!.associatedOrderIds.takeProfit
+                );
+
+                if (takeProfitOrderIndex > -1) {
+                    this.orders.splice(takeProfitOrderIndex, 1);
+                }
             }
         }
 

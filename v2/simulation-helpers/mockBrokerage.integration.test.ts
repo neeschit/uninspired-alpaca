@@ -11,6 +11,8 @@ beforeEach(() => {
     instance.reset();
 });
 
+jest.setTimeout(600000);
+
 test("createBracketOrder without stop_loss shoud error", async () => {
     await expect(
         instance.createBracketOrder({
@@ -176,7 +178,7 @@ test("ticking past a long entry price with stop triggered as well", async () => 
     expect(closedOrders.some((o) => o.id === closingOrderId)).toBeTruthy();
     expect(closedOrders.some((o) => o.id === openingOrderId)).toBeTruthy();
 });
-/* 
+
 test("multiple open orders at the same time", async () => {
     await instance.createBracketOrder({
         client_order_id: "test_" + Date.now(),
@@ -216,16 +218,15 @@ test("multiple open orders at the same time", async () => {
         },
     });
 
+    let openOrders = await instance.getOpenOrders();
+
+    expect(openOrders.length).toEqual(2);
+
     await instance.tick(1608820500000);
 
     let openPositions = await instance.getOpenPositions();
 
     expect(openPositions.length).toEqual(2);
-
-    let openOrders = await instance.getOpenOrders();
-
-    expect(openOrders.length).toEqual(2);
-
     expect(instance.stopLegs.length).toEqual(2);
     expect(instance.profitLegs.length).toEqual(0);
 
@@ -238,4 +239,3 @@ test("multiple open orders at the same time", async () => {
     expect(instance.profitLegs.length).toEqual(0);
     expect(instance.closedPositions.length).toEqual(1);
 });
- */

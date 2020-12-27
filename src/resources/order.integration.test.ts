@@ -57,7 +57,7 @@ test("multiple orders for same position result in single order", async (t) => {
         position1
     );
 
-    await new Promise((resolve) => setTimeout(() => resolve(), 10));
+    await new Promise((resolve) => setTimeout(() => resolve({}), 10));
 
     const order1Promise = insertOrder(
         {

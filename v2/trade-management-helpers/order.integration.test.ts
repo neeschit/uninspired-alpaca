@@ -144,7 +144,7 @@ test("createOrderSynchronized - concurrent", async () => {
                         createOrderSynchronized(plan)
                     ).rejects.toThrow();
 
-                    resolve();
+                    resolve({});
                 } catch (e) {
                     reject(e);
                 }
@@ -241,7 +241,7 @@ test("createOrderSynchronized - tiny delay", async () => {
                         createOrderSynchronized(plan)
                     ).rejects.toThrowError("order_placed_recently_for_symbol");
 
-                    resolve();
+                    resolve({});
                 } catch (e) {
                     reject(e);
                 }

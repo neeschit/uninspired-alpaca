@@ -39,7 +39,10 @@ test("positions out of sync in db are identfied", async (t) => {
         },
     ];
 
-    const unequalPositions = checkIfPositionsNeedRefreshing(alpacaPositionsMap, dbPositions);
+    const unequalPositions = checkIfPositionsNeedRefreshing(
+        alpacaPositionsMap,
+        dbPositions
+    );
 
     t.is(unequalPositions.length, 1);
 });
@@ -66,7 +69,10 @@ test("positions out of sync in db on quantity alone are identified", async (t) =
         },
     ];
 
-    const unequalPositions = checkIfPositionsNeedRefreshing(alpacaPositionsMap, dbPositions);
+    const unequalPositions = checkIfPositionsNeedRefreshing(
+        alpacaPositionsMap,
+        dbPositions
+    );
 
     t.is(unequalPositions.length, 1);
 });
@@ -87,7 +93,10 @@ test("non-existent positions need to be reset", async (t) => {
         },
     ];
 
-    const unequalPositions = checkIfPositionsNeedRefreshing(alpacaPositionsMap, dbPositions);
+    const unequalPositions = checkIfPositionsNeedRefreshing(
+        alpacaPositionsMap,
+        dbPositions
+    );
 
     t.is(unequalPositions.length, 1);
 });
@@ -145,10 +154,14 @@ test.cb("should result in only one replacement order", (t) => {
 
     const promises: Promise<AlpacaOrder | null>[] = [];
 
-    promises.push(handlePositionOrderReplacement(config, "test", order, manager));
+    promises.push(
+        handlePositionOrderReplacement(config, "test", order, manager)
+    );
 
     setTimeout(async () => {
-        promises.push(handlePositionOrderReplacement(config, "test", order, manager));
+        promises.push(
+            handlePositionOrderReplacement(config, "test", order, manager)
+        );
 
         const results = await Promise.all(promises);
 
@@ -162,50 +175,57 @@ test.cb("should result in only one replacement order", (t) => {
     }, 0);
 });
 
-test.cb("should result in only one replacement order even with a delayed response", (t) => {
-    const manager = ({
-        queueTrade: () => {
-            return new Promise((resolve, reject) => {
-                setTimeout(() => {
-                    resolve();
-                }, 40);
-            });
-        },
-    } as any) as TradeManagement;
+test.cb(
+    "should result in only one replacement order even with a delayed response",
+    (t) => {
+        const manager = ({
+            queueTrade: () => {
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        resolve({});
+                    }, 40);
+                });
+            },
+        } as any) as TradeManagement;
 
-    const config: { plan: TradePlan; config: TradeConfig } = {
-        plan: {
-            plannedEntryPrice: 200,
-            plannedStopPrice: 195,
-            quantity: 100,
-            symbol: "test",
-            riskAtrRatio: 1,
-            side: PositionDirection.long,
-        },
-        config: ({
-            tif: TimeInForce.gtc,
-        } as any) as TradeConfig,
-    };
+        const config: { plan: TradePlan; config: TradeConfig } = {
+            plan: {
+                plannedEntryPrice: 200,
+                plannedStopPrice: 195,
+                quantity: 100,
+                symbol: "test",
+                riskAtrRatio: 1,
+                side: PositionDirection.long,
+            },
+            config: ({
+                tif: TimeInForce.gtc,
+            } as any) as TradeConfig,
+        };
 
-    const order = ({
-        id: 1,
-    } as any) as AlpacaOrder;
+        const order = ({
+            id: 1,
+        } as any) as AlpacaOrder;
 
-    const promises: Promise<AlpacaOrder | null>[] = [];
+        const promises: Promise<AlpacaOrder | null>[] = [];
 
-    promises.push(handlePositionOrderReplacement(config, "test", order, manager));
-
-    setTimeout(async () => {
-        promises.push(handlePositionOrderReplacement(config, "test", order, manager));
-
-        const results = await Promise.all(promises);
-
-        t.truthy(results.length);
-        t.truthy(
-            results.some((r) => !r),
-            "expected only one item to be true"
+        promises.push(
+            handlePositionOrderReplacement(config, "test", order, manager)
         );
 
-        t.end();
-    }, 0);
-});
+        setTimeout(async () => {
+            promises.push(
+                handlePositionOrderReplacement(config, "test", order, manager)
+            );
+
+            const results = await Promise.all(promises);
+
+            t.truthy(results.length);
+            t.truthy(
+                results.some((r) => !r),
+                "expected only one item to be true"
+            );
+
+            t.end();
+        }, 0);
+    }
+);

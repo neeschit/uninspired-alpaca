@@ -1,7 +1,11 @@
 import { Service, getApiServer } from "../util/api";
 import { TradePlan, TradeConfig } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
-import { AlpacaStreamingOrderUpdate, AlpacaOrder, OrderStatus } from "@neeschit/alpaca-trade-api";
+import {
+    AlpacaStreamingOrderUpdate,
+    AlpacaOrder,
+    OrderStatus,
+} from "@neeschit/alpaca-trade-api";
 import { getRecentlyUpdatedPositions } from "../resources/position";
 import { postEntry, postErrorReplacing } from "../util/slack";
 import {
@@ -43,13 +47,17 @@ server.post("/trade/:symbol", async (request) => {
 
     const currentPositions = positionCache.map((p) => p.symbol);
     const openOrderSymbols = openOrderCache.map(
-        (o) => o.symbol && (o.status === OrderStatus.new || o.status === OrderStatus.partial_fill)
+        (o) =>
+            o.symbol &&
+            (o.status === OrderStatus.new ||
+                o.status === OrderStatus.partial_fill)
     );
 
     const trade = request.body as { plan: TradePlan; config: TradeConfig };
 
     const pendingOrders =
-        currentPositions.indexOf(symbol) !== -1 || openOrderSymbols.indexOf(symbol) !== -1;
+        currentPositions.indexOf(symbol) !== -1 ||
+        openOrderSymbols.indexOf(symbol) !== -1;
 
     if (pendingOrders) {
         server.log.error(
@@ -71,9 +79,9 @@ server.post("/trade/:symbol", async (request) => {
             await postEntry(trade.plan.symbol, trade.config.t, trade.plan);
         } catch (e) {
             LOGGER.error(
-                `Trying to enter ${trade.plan.symbol} at ${new Date()} with ${JSON.stringify(
-                    trade.plan
-                )}`
+                `Trying to enter ${
+                    trade.plan.symbol
+                } at ${new Date()} with ${JSON.stringify(trade.plan)}`
             );
         }
     }
@@ -90,7 +98,7 @@ server.post("/replace_trade/:symbol", async (request) => {
     if (!replacedOrder) {
         server.log.error(`could not replace order`);
 
-        await new Promise((resolve) => setTimeout(() => resolve(), 2000));
+        await new Promise((resolve) => setTimeout(() => resolve({}), 2000));
 
         replacedOrder = await handleOrderReplacement(trade, order);
 
@@ -107,9 +115,9 @@ server.post("/replace_trade/:symbol", async (request) => {
         await postEntry(trade.plan.symbol, trade.config.t, trade.plan);
     } catch (e) {
         LOGGER.error(
-            `Trying to enter ${trade.plan.symbol} at ${new Date()} with ${JSON.stringify(
-                trade.plan
-            )}`
+            `Trying to enter ${
+                trade.plan.symbol
+            } at ${new Date()} with ${JSON.stringify(trade.plan)}`
         );
     }
     return {
