@@ -8,6 +8,7 @@ export enum Service {
     manager = 6969,
     screener = 6970,
     data = 6971,
+    backtest = 6972,
 }
 
 const serviceMap = {

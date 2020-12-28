@@ -99,6 +99,8 @@ export class Simulator {
                 currentTime = startOfDay(
                     addBusinessDays(currentTime, 1)
                 ).getTime();
+                mockBroker.resetForSimulator();
+                this.strategies = {};
             }
         }
 
