@@ -1,11 +1,7 @@
 import { AlpacaOrder } from "@neeschit/alpaca-trade-api";
 import { addBusinessDays } from "date-fns";
 import { SimulationStrategy } from "../simulation-helpers/simulation.strategy";
-import {
-    getSafeOrbEntryPlan,
-    isTimeForOrbEntry,
-    NarrowRangeBarStrategy,
-} from "./narrowRangeBar";
+import { getSafeOrbEntryPlan, isTimeForOrbEntry, NarrowRangeBarStrategy } from "./narrowRangeBar";
 import {
     cancelOpenOrdersForSymbol,
     getPersistedData,
@@ -16,10 +12,7 @@ import { IndicatorValue } from "../../src/indicator/adx";
 import { getAverageTrueRange } from "../../src/indicator/trueRange";
 import { LOGGER } from "../../src/instrumentation/log";
 import { getPolyonData } from "../../src/resources/polygon";
-import {
-    batchInsertDailyBars,
-    getSimpleData,
-} from "../../src/resources/stockData";
+import { batchInsertDailyBars, getSimpleData } from "../../src/resources/stockData";
 import { BrokerStrategy } from "../brokerage-helpers/brokerage.strategy";
 
 export class NarrowRangeBarSimulation implements SimulationStrategy {
@@ -29,22 +22,20 @@ export class NarrowRangeBarSimulation implements SimulationStrategy {
 
     constructor(private symbol: string, private broker: BrokerStrategy) {}
     async beforeMarketStarts(epoch = Date.now()): Promise<void> {
+        const startBusinessDay = addBusinessDays(epoch, -10);
         const lastBusinessDay = addBusinessDays(epoch, -1);
 
         if (process.env.NODE_ENV !== "backtest") {
             const daysMinutes = await getPolyonData(
                 this.symbol,
-                lastBusinessDay,
+                startBusinessDay,
                 lastBusinessDay,
                 PeriodType.day,
                 DefaultDuration.one
             );
 
             try {
-                await batchInsertDailyBars(
-                    daysMinutes[this.symbol],
-                    this.symbol
-                );
+                await batchInsertDailyBars(daysMinutes[this.symbol], this.symbol);
             } catch (e) {
                 LOGGER.error(`Error inserting for ${this.symbol}`, e);
             }
@@ -104,9 +95,7 @@ export class NarrowRangeBarSimulation implements SimulationStrategy {
         try {
             const order = await createOrderSynchronized(plan, this.broker);
         } catch (e) {
-            LOGGER.error(
-                `could not place order for ${this.symbol} at ${epoch}`
-            );
+            LOGGER.error(`could not place order for ${this.symbol} at ${epoch}`);
             throw e;
         }
     }
