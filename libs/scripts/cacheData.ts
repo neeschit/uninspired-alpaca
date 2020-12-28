@@ -14,8 +14,8 @@ import {
     batchInsertBars,
     batchInsertDailyBars,
 } from "../../libs/core-utils/resources/stockData";
-import { isAfterMarketClose } from "../../v2/simulation-helpers/timing.util";
-import { getCalendar } from "../../v2/brokerage-helpers/alpaca";
+import { isAfterMarketClose } from "../simulation-helpers/timing.util";
+import { getCalendar } from "../brokerage-helpers/alpaca";
 
 const companies: string[] = getMegaCaps();
 

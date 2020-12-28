@@ -30,11 +30,11 @@ module.exports = {
 
     coveragePathIgnorePatterns: [
         "index.ts",
-        "./v2/backtest",
+        "services/backtest",
         ".strategy.ts",
         ".d.ts",
         "build",
-        "src/scripts",
+        "scripts",
     ],
 
     // Indicates which provider should be used to instrument code for coverage

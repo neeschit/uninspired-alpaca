@@ -10,8 +10,8 @@ import { LOGGER } from "../instrumentation/log";
 import { set, addBusinessDays } from "date-fns";
 import { getPolyonData } from "./polygon";
 import { Client } from "pg";
-import { getCreateTradePlanTableSql } from "../../../v2/trade-management-helpers/position";
-import { getCreateUnfilledOrdersTableSql } from "../../../v2/trade-management-helpers/order";
+import { getCreateTradePlanTableSql } from "../../trade-management-helpers/position";
+import { getCreateUnfilledOrdersTableSql } from "../../trade-management-helpers/order";
 
 export const createDbIfNotExists = async () => {
     const checkQuery = `select datname FROM pg_catalog.pg_database where lower(datname) = lower('stock_data');`;
@@ -734,6 +734,20 @@ export const deleteDailyBars = async (symbols: string[], epoch: number) => {
     return queries;
 };
 
+export async function getPersistedData(
+    symbol: string,
+    startEpoch: number,
+    epoch: number
+) {
+    const data = await getData(symbol, startEpoch, "5 minutes", epoch);
+
+    const lastBar =
+        Number(data[data.length - 1].n) < 5
+            ? data.pop()!
+            : data[data.length - 1];
+
+    return { data, lastBar };
+}
 export const deleteBatch = async (queries: string) => {
     const pool = getConnection();
 

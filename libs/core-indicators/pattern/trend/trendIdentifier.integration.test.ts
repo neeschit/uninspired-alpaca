@@ -13,8 +13,8 @@ import {
 } from "../../../core-utils/data/data.model";
 import { readJSONSync } from "fs-extra";
 import { Calendar } from "@neeschit/alpaca-trade-api";
-import { getCalendar } from "../../../../v2/brokerage-helpers/alpaca";
-import { isMarketOpen } from "../../../../v2/simulation-helpers/timing.util";
+import { getCalendar } from "../../../brokerage-helpers/alpaca";
+import { isMarketOpen } from "../../../simulation-helpers/timing.util";
 
 const downtrend = readJSONSync("./fixtures/downtrend.json") as any;
 const uptrend = readJSONSync("./fixtures/uptrend.json") as any;
