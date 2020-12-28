@@ -10,12 +10,6 @@ import {
     updateOrderWithAlpacaId,
 } from "./order";
 import { persistTradePlan, TradePlan } from "./position";
-import {
-    getOpenOrders,
-    createBracketOrder,
-    cancelAlpacaOrder,
-    getOpenPositions,
-} from "../brokerage-helpers";
 import { readJsonSync } from "fs-extra";
 import { endPooledConnection, getConnection } from "../../src/connection/pg";
 
@@ -28,15 +22,21 @@ import { endPooledConnection, getConnection } from "../../src/connection/pg";
 
 const symbolName = "OINT_";
 
-jest.mock("../brokerage-helpers");
+const mockBrokerage = {
+    closePosition: jest.fn(),
+    createBracketOrder: jest.fn(),
+    getOpenPositions: jest.fn(),
+    getOpenOrders: jest.fn(),
+    cancelAlpacaOrder: jest.fn(),
+};
 
-const mockGetOpenOrders = getOpenOrders as jest.Mock;
+const mockGetOpenOrders = mockBrokerage.getOpenOrders as jest.Mock;
 
-const mockCreateBracketOrder = createBracketOrder as jest.Mock;
+const mockCreateBracketOrder = mockBrokerage.createBracketOrder as jest.Mock;
 
-const mockCancelAlpacaOrder = cancelAlpacaOrder as jest.Mock;
+const mockCancelAlpacaOrder = mockBrokerage.cancelAlpacaOrder as jest.Mock;
 
-const mockGetOpenPositions = getOpenPositions as jest.Mock;
+const mockGetOpenPositions = mockBrokerage.getOpenPositions as jest.Mock;
 
 const getPlan = (index: number) => ({
     entry: 157.66973888123042,
@@ -115,7 +115,7 @@ test("createOrderSynchronized", async () => {
 
     mockCreateBracketOrder.mockResolvedValueOnce(alpacaResult);
     mockGetOpenOrders.mockReturnValueOnce([]);
-    const order = await createOrderSynchronized(plan);
+    const order = await createOrderSynchronized(plan, mockBrokerage);
 
     expect(order).toBeTruthy();
     expect(order?.qty).toEqual(Math.abs(plan.quantity).toString());
@@ -141,10 +141,10 @@ test("createOrderSynchronized - concurrent", async () => {
                     mockResult.id += 1;
                     mockGetOpenOrders.mockReturnValueOnce([]);
                     await expect(
-                        createOrderSynchronized(plan)
+                        createOrderSynchronized(plan, mockBrokerage)
                     ).rejects.toThrow();
 
-                    resolve();
+                    resolve({});
                 } catch (e) {
                     reject(e);
                 }
@@ -152,7 +152,7 @@ test("createOrderSynchronized - concurrent", async () => {
         });
 
     const orders = await Promise.all([
-        createOrderSynchronized(plan),
+        createOrderSynchronized(plan, mockBrokerage),
         promise(),
     ]);
 
@@ -194,7 +194,7 @@ test("createOrderSynchronized - mocked short that does cancel existing order", a
 
     mockGetOpenPositions.mockReturnValueOnce([]);
 
-    const order = await createOrderSynchronized(plan);
+    const order = await createOrderSynchronized(plan, mockBrokerage);
 
     expect(mockCancelAlpacaOrder.mock.calls.length).toEqual(1);
 
@@ -208,9 +208,9 @@ test("createOrderSynchronized - with error creating bracket order", async () => 
     mockCreateBracketOrder.mockReset();
     mockCreateBracketOrder.mockRejectedValueOnce(new Error("test_error"));
     mockGetOpenOrders.mockReturnValueOnce([]);
-    await expect(createOrderSynchronized(plan)).rejects.toThrowError(
-        "test_error"
-    );
+    await expect(
+        createOrderSynchronized(plan, mockBrokerage)
+    ).rejects.toThrowError("test_error");
 
     const orders = await selectAllNewOrders(plan.symbol);
 
@@ -238,10 +238,10 @@ test("createOrderSynchronized - tiny delay", async () => {
                     mockGetOpenOrders.mockReturnValueOnce([]);
                     mockCreateBracketOrder.mockResolvedValueOnce(mockResult);
                     await expect(
-                        createOrderSynchronized(plan)
+                        createOrderSynchronized(plan, mockBrokerage)
                     ).rejects.toThrowError("order_placed_recently_for_symbol");
 
-                    resolve();
+                    resolve({});
                 } catch (e) {
                     reject(e);
                 }
@@ -249,7 +249,7 @@ test("createOrderSynchronized - tiny delay", async () => {
         });
 
     const orders = await Promise.all([
-        createOrderSynchronized(plan),
+        createOrderSynchronized(plan, mockBrokerage),
         promise(),
     ]);
 
@@ -295,9 +295,9 @@ test("createOrderSynchronized - mocked short that doesn't cancel existing order 
         },
     ]);
 
-    await expect(createOrderSynchronized(plan)).rejects.toThrowError(
-        "position_exists"
-    );
+    await expect(
+        createOrderSynchronized(plan, mockBrokerage)
+    ).rejects.toThrowError("position_exists");
 
     expect(mockCancelAlpacaOrder.mock.calls.length).toEqual(0);
 

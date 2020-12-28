@@ -56,7 +56,9 @@ test("screener should find all narrow range bars", () => {
     const result = narrowRangeBarStrategyInstance.screenForNarrowRangeBars();
 
     expect(result).toBeTruthy();
-    const result1 = narrowRangeBarStrategyInstance.screenForNarrowRangeBars();
+    let result1 = narrowRangeBarStrategyInstance.screenForNarrowRangeBars();
+    expect(result1).toBeTruthy();
+    result1 = narrowRangeBarStrategyInstance.screenForNarrowRangeBars();
     expect(result1).toBeTruthy();
 });
 

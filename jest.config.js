@@ -28,7 +28,7 @@ module.exports = {
     //   "/node_modules/"
     // ],
 
-    coveragePathIgnorePatterns: ["index.ts", "./v2/backtest"],
+    coveragePathIgnorePatterns: ["index.ts", "./v2/backtest", ".strategy.ts"],
 
     // Indicates which provider should be used to instrument code for coverage
     coverageProvider: "v8",
@@ -100,7 +100,7 @@ module.exports = {
     // reporters: undefined,
 
     // Automatically reset mock state between every test
-    // resetMocks: false,
+    resetMocks: true,
 
     // Reset the module registry before running each individual test
     // resetModules: false,

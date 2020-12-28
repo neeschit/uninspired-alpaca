@@ -1,5 +1,11 @@
 import { getConnection } from "../connection/pg";
-import { TickBar, TradeUpdate, Bar, PeriodType, DefaultDuration } from "../data/data.model";
+import {
+    TickBar,
+    TradeUpdate,
+    Bar,
+    PeriodType,
+    DefaultDuration,
+} from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
 import { getCreateOrdersTableSql } from "./order";
 import { getCreatePositionsTableSql } from "./position";
@@ -31,12 +37,17 @@ export const createDbIfNotExists = async () => {
 
     const connection = getConnection();
 
-    await connection.query("CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;");
+    await connection.query(
+        "CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;"
+    );
 };
 
-const getAggregatedTickTableNameForSymbol = (symbol: string) => `tick_${symbol.toLowerCase()}`;
+const getAggregatedTickTableNameForSymbol = (symbol: string) =>
+    `tick_${symbol.toLowerCase()}`;
 
-const getCreateAggregatedBarsTableSql = (tablename: string) => `create table ${tablename} (
+const getCreateAggregatedBarsTableSql = (
+    tablename: string
+) => `create table ${tablename} (
     t timestamptz(3) primary key,
     o numeric not null,
     h numeric not null,
@@ -51,9 +62,12 @@ SELECT create_hypertable('${tablename}', 't');
 SELECT set_chunk_time_interval('${tablename}', interval '1 month');
 `;
 
-const getDailyTableNameForSymbol = (symbol: string) => `daily_${symbol.toLowerCase()}`;
+const getDailyTableNameForSymbol = (symbol: string) =>
+    `daily_${symbol.toLowerCase()}`;
 
-const getCreateAggregatedDailyBarsTableSql = (tablename: string) => `create table ${tablename} (
+const getCreateAggregatedDailyBarsTableSql = (
+    tablename: string
+) => `create table ${tablename} (
     t timestamptz(3) primary key,
     o numeric not null,
     h numeric not null,
@@ -67,11 +81,15 @@ SELECT create_hypertable('${tablename}', 't');
 SELECT set_chunk_time_interval('${tablename}', interval '1 year');
 `;
 
-const getAggregatedMinuteTableNameForSymbol = (symbol: string) => `minute_${symbol.toLowerCase()}`;
+const getAggregatedMinuteTableNameForSymbol = (symbol: string) =>
+    `minute_${symbol.toLowerCase()}`;
 
-const getTradeTableNameForSymbol = (symbol: string) => `trades_${symbol.toLowerCase()}`;
+const getTradeTableNameForSymbol = (symbol: string) =>
+    `trades_${symbol.toLowerCase()}`;
 
-const getCreateTradesTableSql = (tablename: string) => `create table ${tablename} (
+const getCreateTradesTableSql = (
+    tablename: string
+) => `create table ${tablename} (
     t timestamptz(3) not null,
     i bigint not null,
     x integer not null,
@@ -90,7 +108,9 @@ const checkIfTableExists = async (tablename: string) => {
     const pool = getConnection();
 
     try {
-        const result = await pool.query(`SELECT '${tablename.toLowerCase()}'::regclass;`);
+        const result = await pool.query(
+            `SELECT '${tablename.toLowerCase()}'::regclass;`
+        );
 
         return result.rowCount > 0;
     } catch (e) {
@@ -102,7 +122,10 @@ export const checkIfTableExistsForSymbol = async (symbol: string) => {
     const tableName = getTradeTableNameForSymbol(symbol);
     const tickTableName = getDailyTableNameForSymbol(symbol);
 
-    return (await checkIfTableExists(tableName)) && (await checkIfTableExists(tickTableName));
+    return (
+        (await checkIfTableExists(tableName)) &&
+        (await checkIfTableExists(tickTableName))
+    );
 };
 
 export const createStorageTables = async (symbols: string[]) => {
@@ -112,7 +135,9 @@ export const createStorageTables = async (symbols: string[]) => {
 
     for (const symbol of symbols) {
         try {
-            results.push(await createAggregatedSecondsDataTableForSymbol(symbol, pool));
+            results.push(
+                await createAggregatedSecondsDataTableForSymbol(symbol, pool)
+            );
         } catch (e) {
             LOGGER.error(e);
         }
@@ -122,12 +147,16 @@ export const createStorageTables = async (symbols: string[]) => {
             LOGGER.error(e);
         }
         try {
-            results.push(await createAggregatedMinutesDataTableForSymbol(symbol, pool));
+            results.push(
+                await createAggregatedMinutesDataTableForSymbol(symbol, pool)
+            );
         } catch (e) {
             LOGGER.error(e);
         }
         try {
-            results.push(await createAggregatedDailyDataTableForSymbol(symbol, pool));
+            results.push(
+                await createAggregatedDailyDataTableForSymbol(symbol, pool)
+            );
         } catch (e) {
             LOGGER.error(e);
         }
@@ -144,25 +173,39 @@ export const dropStorageTables = async (symbols: string[]) => {
     for (const symbol of symbols) {
         try {
             results.push(
-                await pool.query(`drop table ${getAggregatedTickTableNameForSymbol(symbol)};`)
+                await pool.query(
+                    `drop table ${getAggregatedTickTableNameForSymbol(symbol)};`
+                )
             );
         } catch (e) {
             LOGGER.error(e);
         }
         try {
             results.push(
-                await pool.query(`drop table ${getAggregatedMinuteTableNameForSymbol(symbol)};`)
+                await pool.query(
+                    `drop table ${getAggregatedMinuteTableNameForSymbol(
+                        symbol
+                    )};`
+                )
             );
         } catch (e) {
             LOGGER.error(e);
         }
         try {
-            results.push(await pool.query(`drop table ${getTradeTableNameForSymbol(symbol)};`));
+            results.push(
+                await pool.query(
+                    `drop table ${getTradeTableNameForSymbol(symbol)};`
+                )
+            );
         } catch (e) {
             LOGGER.error(e);
         }
         try {
-            results.push(await pool.query(`drop table ${getDailyTableNameForSymbol(symbol)};`));
+            results.push(
+                await pool.query(
+                    `drop table ${getDailyTableNameForSymbol(symbol)};`
+                )
+            );
         } catch (e) {
             LOGGER.error(e);
         }
@@ -228,6 +271,8 @@ export const insertDailyBar = async (bar: TickBar, symbol: string) => {
 export const batchInsertDailyBars = async (bars: TickBar[], symbol: string) => {
     const pool = getConnection();
 
+    const client = await pool.connect();
+
     const tablename = getDailyTableNameForSymbol(symbol);
 
     const queries: string[] = [];
@@ -253,10 +298,20 @@ export const batchInsertDailyBars = async (bars: TickBar[], symbol: string) => {
     }
     LOGGER.debug(queries);
 
-    return pool.query(queries.join("\n"));
+    try {
+        return client.query(queries.join("\n"));
+    } catch (e) {
+        LOGGER.error(e);
+    } finally {
+        client.release();
+    }
 };
 
-export const insertBar = async (bar: TickBar, symbol: string, isMinute = false) => {
+export const insertBar = async (
+    bar: TickBar,
+    symbol: string,
+    isMinute = false
+) => {
     const pool = getConnection();
 
     const tablename = isMinute
@@ -284,7 +339,11 @@ export const insertBar = async (bar: TickBar, symbol: string, isMinute = false) 
     return pool.query(query);
 };
 
-export const batchInsertBars = async (bars: TickBar[], symbol: string, isMinute = false) => {
+export const batchInsertBars = async (
+    bars: TickBar[],
+    symbol: string,
+    isMinute = false
+) => {
     const pool = getConnection();
 
     const tablename = isMinute
@@ -354,7 +413,11 @@ export const createAggregatedSecondsDataTableForSymbol = (
     symbol: string,
     pool = getConnection()
 ) => {
-    return pool.query(getCreateAggregatedBarsTableSql(getAggregatedTickTableNameForSymbol(symbol)));
+    return pool.query(
+        getCreateAggregatedBarsTableSql(
+            getAggregatedTickTableNameForSymbol(symbol)
+        )
+    );
 };
 
 export const createAggregatedMinutesDataTableForSymbol = (
@@ -362,15 +425,25 @@ export const createAggregatedMinutesDataTableForSymbol = (
     pool = getConnection()
 ) => {
     return pool.query(
-        getCreateAggregatedBarsTableSql(getAggregatedMinuteTableNameForSymbol(symbol))
+        getCreateAggregatedBarsTableSql(
+            getAggregatedMinuteTableNameForSymbol(symbol)
+        )
     );
 };
 
-export const createAggregatedDailyDataTableForSymbol = (symbol: string, pool = getConnection()) => {
-    return pool.query(getCreateAggregatedDailyBarsTableSql(getDailyTableNameForSymbol(symbol)));
+export const createAggregatedDailyDataTableForSymbol = (
+    symbol: string,
+    pool = getConnection()
+) => {
+    return pool.query(
+        getCreateAggregatedDailyBarsTableSql(getDailyTableNameForSymbol(symbol))
+    );
 };
 
-export const createTradeDataTableForSymbol = (symbol: string, pool = getConnection()) => {
+export const createTradeDataTableForSymbol = (
+    symbol: string,
+    pool = getConnection()
+) => {
     const query = getCreateTradesTableSql(getTradeTableNameForSymbol(symbol));
     return pool.query(query);
 };
@@ -404,7 +477,11 @@ const getDataQuery = (
     `;
 };
 
-const getSimpleDataQuery = (tablename: string, fromTimestamp?: number, endTimeStamp?: number) => {
+const getSimpleDataQuery = (
+    tablename: string,
+    fromTimestamp?: number,
+    endTimeStamp?: number
+) => {
     return `
         select 
             *
@@ -427,23 +504,33 @@ export const getData = async (
 
     const tableName = getAggregatedMinuteTableNameForSymbol(symbol);
 
-    const query = getDataQuery(tableName, fromTimestamp, timeBucket, endTimeStamp);
+    const query = getDataQuery(
+        tableName,
+        fromTimestamp,
+        timeBucket,
+        endTimeStamp
+    );
 
     LOGGER.debug(query);
 
-    const result = await pool.query(query);
+    try {
+        const result = await pool.query(query);
 
-    return result.rows.map((r) => {
-        return {
-            v: Number(r.v),
-            c: Number(r.c),
-            o: Number(r.o),
-            h: Number(r.h),
-            l: Number(r.l),
-            t: new Date(r.time_bucket).getTime(),
-            n: Number(r.n),
-        };
-    });
+        return result.rows.map((r) => {
+            return {
+                v: Number(r.v),
+                c: Number(r.c),
+                o: Number(r.o),
+                h: Number(r.h),
+                l: Number(r.l),
+                t: new Date(r.time_bucket).getTime(),
+                n: Number(r.n),
+            };
+        });
+    } catch (e) {
+        LOGGER.error(e);
+        return [];
+    }
 };
 
 export const getSimpleData = async (
@@ -454,6 +541,8 @@ export const getSimpleData = async (
 ) => {
     const pool = getConnection();
 
+    const client = await pool.connect();
+
     const tableName = isMinute
         ? getAggregatedMinuteTableNameForSymbol(symbol)
         : getDailyTableNameForSymbol(symbol);
@@ -462,21 +551,31 @@ export const getSimpleData = async (
 
     LOGGER.debug(query);
 
-    const result = await pool.query(query);
+    try {
+        const result = await client.query(query);
 
-    return result.rows.map((r) => {
-        return {
-            v: Number(r.v),
-            c: Number(r.c),
-            o: Number(r.o),
-            h: Number(r.h),
-            l: Number(r.l),
-            t: new Date(r.t).getTime(),
-        };
-    });
+        return result.rows.map((r) => {
+            return {
+                v: Number(r.v),
+                c: Number(r.c),
+                o: Number(r.o),
+                h: Number(r.h),
+                l: Number(r.l),
+                t: new Date(r.t).getTime(),
+            };
+        });
+    } catch (e) {
+        LOGGER.error(e);
+        return [];
+    } finally {
+        client.release();
+    }
 };
 
-export const getLastPrice = async (symbol: string, endTimeStamp: number = Date.now()) => {
+export const getLastPrice = async (
+    symbol: string,
+    endTimeStamp: number = Date.now()
+) => {
     const pool = getConnection();
 
     const tableName = getAggregatedMinuteTableNameForSymbol(symbol);
@@ -517,7 +616,10 @@ export const getTodaysData = (
     return getData(symbol, startEpoch, timeBucket, currentEpoch);
 };
 
-export const getTodaysDataSimple = (symbol: string, currentEpoch = Date.now()) => {
+export const getTodaysDataSimple = (
+    symbol: string,
+    currentEpoch = Date.now()
+) => {
     const startEpoch = set(currentEpoch, {
         minutes: 30,
         seconds: 0,
@@ -606,7 +708,9 @@ export const deleteBarsForSymbol = async (symbol: string) => {
     const connection = getConnection();
 
     const dailyQuery = `truncate ${getDailyTableNameForSymbol(symbol)}`;
-    const minuteQuery = `truncate ${getAggregatedMinuteTableNameForSymbol(symbol)}`;
+    const minuteQuery = `truncate ${getAggregatedMinuteTableNameForSymbol(
+        symbol
+    )}`;
 
     await getConnection().query([dailyQuery, minuteQuery].join("\n"));
 };
@@ -615,7 +719,9 @@ export const deleteDailyBars = async (symbols: string[], epoch: number) => {
     const queries: string[] = [];
     for (const symbol of symbols) {
         const tablename = getDailyTableNameForSymbol(symbol);
-        const query = `delete from ${tablename} where t >= ${getTimestampValue(epoch)};`;
+        const query = `delete from ${tablename} where t >= ${getTimestampValue(
+            epoch
+        )};`;
         queries.push(query);
     }
 

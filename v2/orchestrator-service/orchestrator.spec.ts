@@ -1,11 +1,11 @@
 import { readJsonSync } from "fs-extra";
-import { enterSymbolForTrade } from "../trade-management-api";
+import { rebalance } from "../trade-management-api";
 import { Bar } from "../../src/data/data.model";
 import { onStockMinuteDataPosted } from "./orchestrator";
 
 jest.mock("../trade-management-api");
 
-const mockEnterTrade = enterSymbolForTrade as jest.Mock;
+const mockEnterTrade = rebalance as jest.Mock;
 
 jest.mock("pg", () => {
     const mClient = {
@@ -23,9 +23,7 @@ jest.mock("pg", () => {
 });
 
 test("onStockMinuteDataPosted - with data posted", async () => {
-    const minuteData: Bar[] = readJsonSync(
-        "./fixtures/jnj-replay-10-28-2020.json"
-    );
+    const minuteData: Bar[] = readJsonSync("./fixtures/jnj-replay-10-28-2020.json");
 
     const bars = [minuteData[0], minuteData[0]];
 
@@ -38,9 +36,7 @@ test("onStockMinuteDataPosted - with data posted", async () => {
 });
 
 test("onStockMinuteDataPosted - with data posted", async () => {
-    const minuteData: Bar[] = readJsonSync(
-        "./fixtures/jnj-replay-10-28-2020.json"
-    );
+    const minuteData: Bar[] = readJsonSync("./fixtures/jnj-replay-10-28-2020.json");
 
     const bars = [minuteData[0], minuteData[0]];
 

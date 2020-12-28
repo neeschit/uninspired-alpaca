@@ -6,7 +6,12 @@ import {
     SimpleAlpacaPosition,
     OrderStatus,
 } from "@neeschit/alpaca-trade-api";
-import { getOrder, updateOrder, cancelAllOrdersForSymbol, cancelOrder } from "../resources/order";
+import {
+    getOrder,
+    updateOrder,
+    cancelAllOrdersForSymbol,
+    cancelOrder,
+} from "../resources/order";
 import { LOGGER } from "../instrumentation/log";
 import { alpaca } from "../resources/alpaca";
 import {
@@ -18,13 +23,19 @@ import {
     forceUpdatePosition,
     getRecentlyUpdatedPositions,
 } from "../resources/position";
-import { TradeManagement, processOrderFromStrategy } from "../services/tradeManagement";
+import {
+    TradeManagement,
+    processOrderFromStrategy,
+} from "../services/tradeManagement";
 import { TradeConfig, Bar, TradePlan } from "../data/data.model";
 import { getTodaysData } from "../resources/stockData";
 import { postPartial, postEntry } from "../util/slack";
 import { Service } from "../util/api";
 import { postSubscriptionRequestForTickUpdates } from "./streamer.interfaces";
-import { CURRENT_PROFIT_RATIO, getUncachedManagerForPosition } from "./manager.interfaces";
+import {
+    CURRENT_PROFIT_RATIO,
+    getUncachedManagerForPosition,
+} from "./manager.interfaces";
 import { postRequestToRefreshPlan } from "./screener.interfaces";
 
 export const managerCache: TradeManagement[] = [];
@@ -124,7 +135,10 @@ async function checkIfOrderIsValid(
 ): Promise<boolean> {
     const myOrder = await getOrder(Number(order.client_order_id));
 
-    if (openingPositionOrders.findIndex((or) => or.symbol === order.symbol) !== index++) {
+    if (
+        openingPositionOrders.findIndex((or) => or.symbol === order.symbol) !==
+        index++
+    ) {
         LOGGER.error(`this is excessively weird`, order);
         await alpaca.cancelOrder(order.id);
         return false;
@@ -154,7 +168,11 @@ async function checkIfOrderIsValid(
         symbol: order.symbol,
         originalQuantity: plannedPosition.planned_quantity,
     };
-    const manager = new TradeManagement({} as TradeConfig, unfilledPosition, CURRENT_PROFIT_RATIO);
+    const manager = new TradeManagement(
+        {} as TradeConfig,
+        unfilledPosition,
+        CURRENT_PROFIT_RATIO
+    );
     manager.position = {
         ...unfilledPosition,
     };
@@ -162,7 +180,10 @@ async function checkIfOrderIsValid(
     return manager.checkIfPositionEntryIsInvalid(data, order);
 }
 
-export const handlePriceUpdateForPosition = async (symbol: string, bar: Bar) => {
+export const handlePriceUpdateForPosition = async (
+    symbol: string,
+    bar: Bar
+) => {
     if (!bar) {
         LOGGER.error(`No bar found for symbol ${symbol}`);
         return;
@@ -211,7 +232,10 @@ export const handlePositionOrderUpdate = async (
 
 export const getManager = async (symbol: string) => {
     let manager: TradeManagement | null | undefined = managerCache.find(
-        (m) => m.plan.symbol === symbol && m.filledPosition && m.filledPosition.quantity
+        (m) =>
+            m.plan.symbol === symbol &&
+            m.filledPosition &&
+            m.filledPosition.quantity
     );
 
     if (!manager) {
@@ -221,7 +245,10 @@ export const getManager = async (symbol: string) => {
     return manager;
 };
 
-export const handlePositionEntry = async (trade: { plan: TradePlan; config: TradeConfig }) => {
+export const handlePositionEntry = async (trade: {
+    plan: TradePlan;
+    config: TradeConfig;
+}) => {
     const symbol = trade.plan.symbol;
     let manager = await getManager(symbol);
 
@@ -229,12 +256,22 @@ export const handlePositionEntry = async (trade: { plan: TradePlan; config: Trad
         return null;
     }
 
-    if (!manager || !manager.filledPosition || !manager.filledPosition.quantity) {
-        manager = new TradeManagement(trade.config, trade.plan, CURRENT_PROFIT_RATIO);
+    if (
+        !manager ||
+        !manager.filledPosition ||
+        !manager.filledPosition.quantity
+    ) {
+        manager = new TradeManagement(
+            trade.config,
+            trade.plan,
+            CURRENT_PROFIT_RATIO
+        );
 
         const order = await manager.queueTrade();
         if (order && !recentOrdersCache[symbol]) {
-            const openOrders = openOrderCache.filter((o) => o.symbol === symbol);
+            const openOrders = openOrderCache.filter(
+                (o) => o.symbol === symbol
+            );
             await Promise.all(openOrders.map((o) => alpaca.cancelOrder(o.id)));
             managerCache.push(manager);
             recentOrdersCache[symbol] = true;
@@ -248,8 +285,12 @@ export const handlePositionEntry = async (trade: { plan: TradePlan; config: Trad
     }
 };
 
-export const handleOrderUpdateForSymbol = async (orderUpdate: AlpacaStreamingOrderUpdate) => {
-    refreshPositions().then(postSubscriptionRequestForTickUpdates).catch(LOGGER.error);
+export const handleOrderUpdateForSymbol = async (
+    orderUpdate: AlpacaStreamingOrderUpdate
+) => {
+    refreshPositions()
+        .then(postSubscriptionRequestForTickUpdates)
+        .catch(LOGGER.error);
 
     const order = await getOrder(Number(orderUpdate.order.client_order_id));
 
@@ -269,8 +310,12 @@ export const handleOrderUpdateForSymbol = async (orderUpdate: AlpacaStreamingOrd
     LOGGER.debug(`Position of ${position.id} updated for ${position.symbol}`);
 };
 
-export const handleOrderCancellationForSymbol = async (orderUpdate: AlpacaStreamingOrderUpdate) => {
-    refreshPositions().then(postSubscriptionRequestForTickUpdates).catch(LOGGER.error);
+export const handleOrderCancellationForSymbol = async (
+    orderUpdate: AlpacaStreamingOrderUpdate
+) => {
+    refreshPositions()
+        .then(postSubscriptionRequestForTickUpdates)
+        .catch(LOGGER.error);
 
     const order = await getOrder(Number(orderUpdate.order.client_order_id));
 
@@ -298,7 +343,11 @@ export const handleOrderCancellationForSymbol = async (orderUpdate: AlpacaStream
         return null;
     }
 
-    await updateOrder(orderUpdate.order, position.quantity, position.average_entry_price);
+    await updateOrder(
+        orderUpdate.order,
+        position.quantity,
+        position.average_entry_price
+    );
 
     const positions = await getRecentlyUpdatedPositions();
 
@@ -309,7 +358,10 @@ export const handleOrderCancellationForSymbol = async (orderUpdate: AlpacaStream
         return null;
     }
 
-    const trade = (await postRequestToRefreshPlan(symbol, orderUpdate.order)) as {
+    const trade = (await postRequestToRefreshPlan(
+        symbol,
+        orderUpdate.order
+    )) as {
         plan: TradePlan;
         config: TradeConfig;
     };
@@ -349,14 +401,24 @@ export const handleOrderReplacement = async (
     }
 
     try {
-        const result = await handlePositionOrderReplacement(trade, symbol, order, manager);
+        const result = await handlePositionOrderReplacement(
+            trade,
+            symbol,
+            order,
+            manager
+        );
         if (result) {
             return trade;
         }
     } catch (e) {
         cancelAllOrdersForSymbol(symbol).catch(LOGGER.error);
         refreshOpenOrders().catch(LOGGER.error);
-        LOGGER.error(`Couldn't cancel order for ${symbol} with order ${JSON.stringify(order)}`, e);
+        LOGGER.error(
+            `Couldn't cancel order for ${symbol} with order ${JSON.stringify(
+                order
+            )}`,
+            e
+        );
         return null;
     }
 
@@ -378,7 +440,7 @@ export const handlePositionOrderReplacement = async (
         let alpacaOrder: AlpacaOrder;
         if (newOrder.side !== order.side) {
             await alpaca.cancelOrder(order.id);
-            await new Promise((resolve) => setTimeout(() => resolve(), 2000));
+            await new Promise((resolve) => setTimeout(() => resolve({}), 2000));
             alpacaOrder = await alpaca.createOrder(newOrder);
         } else {
             alpacaOrder = await alpaca.replaceOrder(order.id, newOrder);
@@ -395,7 +457,10 @@ export const handlePositionOrderReplacement = async (
 
 export const handleOrderDeletion = async (order: AlpacaOrder) => {
     await alpaca.cancelOrder(order.id);
-    await cancelOrder(Number(order.client_order_id), OrderStatus.pending_cancel);
+    await cancelOrder(
+        Number(order.client_order_id),
+        OrderStatus.pending_cancel
+    );
 };
 
 export const getCallbackUrlForPositionUpdates = (symbol: string) => {

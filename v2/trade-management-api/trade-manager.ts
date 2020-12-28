@@ -1,21 +1,26 @@
+import { Calendar } from "@neeschit/alpaca-trade-api";
 import { getApiServer, Service } from "../../src/util/api";
-import { enterSymbol } from "./trade-manager.handlers";
+import { rebalanceForSymbol } from "./trade-manager.handlers";
+import { brokerImpl } from "../brokerage-helpers/alpaca";
 
 const server = getApiServer(Service.manager);
 
-export const queueEntryForSymbol = async (request: {
-    params: any;
-    body?: any;
-}) => {
+export const rebalance = async (request: { params: any; body?: any }) => {
     const symbol = request.params.symbol as string;
-    const epoch = request.params.body && (request.params.body.epoch as number);
+    const epoch = request.body && (request.body.epoch as number);
+    const calendar = request.body && (request.body.calendar as Calendar[]);
 
     try {
-        const result = await enterSymbol(symbol, epoch);
+        const result = await rebalanceForSymbol(
+            symbol,
+            calendar,
+            brokerImpl,
+            epoch
+        );
 
-        return result;
+        return true;
     } catch (e) {
-        return [];
+        return false;
     }
 };
-server.post("/enter_position/:symbol", queueEntryForSymbol);
+server.post("/rebalance/:symbol", rebalance);

@@ -97,7 +97,7 @@ export const getSafeOrbEntryPlan = ({
     symbol,
     marketBarsSoFar,
     dailyAtr,
-}: OrbEntryParams): TradePlan | null => {
+}: OrbEntryParams): TradePlan => {
     const isCurrentlyOutsideRange =
         lastPrice > openingBar.h || lastPrice < openingBar.l;
 

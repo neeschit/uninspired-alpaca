@@ -20,11 +20,6 @@ const socket = getConnectedDataWebsocket({
 
         socket.subscribe(defaultSubscriptions);
     },
-    onStateChange: (newState: string) => {
-        if (newState === "disconnected") {
-            socket.reconnect();
-        }
-    },
 });
 
 process.on("uncaughtException", (e) => {
