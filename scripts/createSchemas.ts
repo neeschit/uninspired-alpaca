@@ -4,10 +4,14 @@ import {
     dropStorageTables,
     createDbIfNotExists,
     createNewMetadataTables,
-} from "../resources/stockData";
-import { LOGGER } from "../instrumentation/log";
-import { endPooledConnection } from "../core/connection/pg";
-import { getLargeCaps, currentIndices, getMegaCaps } from "../data/filters";
+} from "../libs/core-utils/resources/stockData";
+import { LOGGER } from "../libs/core-utils/instrumentation/log";
+import { endPooledConnection } from "../libs/core-utils/connection/pg";
+import {
+    getLargeCaps,
+    currentIndices,
+    getMegaCaps,
+} from "../libs/core-utils/data/filters";
 
 const drop = process.argv[2] && Boolean(process.argv[2]);
 

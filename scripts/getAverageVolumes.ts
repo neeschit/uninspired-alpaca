@@ -1,9 +1,12 @@
 import { readFileSync, writeFileSync } from "fs";
 import { addDays } from "date-fns";
 
-import { getBarsByDate } from "../data/bars";
-import { DefaultDuration, PeriodType } from "../data/data.model";
-import { LOGGER } from "../instrumentation/log";
+import { getBarsByDate } from "../libs/core-utils/data/bars";
+import {
+    DefaultDuration,
+    PeriodType,
+} from "../libs/core-utils/data/data.model";
+import { LOGGER } from "../libs/core-utils/instrumentation/log";
 
 const LARGE_CAPS = JSON.parse(readFileSync("./largecaps.json").toString());
 
@@ -28,7 +31,7 @@ while (list.length > 200) {
 }
 
 Promise.all(barsFetched)
-    .then(allBars => {
+    .then((allBars) => {
         let array: {
             averageVolume: number;
             symbol: string;
@@ -42,13 +45,18 @@ Promise.all(barsFetched)
                     return {
                         symbol: LARGE_CAPS[index],
                         averageVolume: 0,
-                        t: 0
+                        t: 0,
                     };
                 }
 
                 return bars.reduce(
                     (acc, currentBar) => {
-                        let { averageVolume, currentVolume, days, symbol } = acc;
+                        let {
+                            averageVolume,
+                            currentVolume,
+                            days,
+                            symbol,
+                        } = acc;
 
                         currentVolume = currentBar.v;
                         days++;
@@ -59,7 +67,7 @@ Promise.all(barsFetched)
                             averageVolume,
                             days,
                             symbol,
-                            t: currentBar.t
+                            t: currentBar.t,
                         };
                     },
                     {
@@ -67,11 +75,11 @@ Promise.all(barsFetched)
                         averageVolume: 0,
                         days: 0,
                         symbol: LARGE_CAPS[index],
-                        t: 0
+                        t: 0,
                     }
                 );
             })
-            .filter(b => {
+            .filter((b) => {
                 LOGGER.debug(b.averageVolume);
                 return b.averageVolume > 1000000;
             })
@@ -79,17 +87,20 @@ Promise.all(barsFetched)
                 return a.symbol > b.symbol ? 1 : -1;
             });
 
-        writeFileSync("largeCapsHighVolume.json", JSON.stringify(array.map(b => b.symbol)));
+        writeFileSync(
+            "largeCapsHighVolume.json",
+            JSON.stringify(array.map((b) => b.symbol))
+        );
 
         return array.reduce((acc, bar) => {
             return Object.assign(acc, {
                 [bar.symbol]: {
                     averageVolume: bar.averageVolume,
-                    t: bar.t
-                }
+                    t: bar.t,
+                },
             });
         }, {});
     })
-    .then(bars => {
+    .then((bars) => {
         writeFileSync("sixtyDayAvgVol.json", JSON.stringify(bars));
     });

@@ -6,9 +6,6 @@ import { MockBrokerage } from "../../libs/simulation-helpers/mockBrokerage";
 import { format } from "date-fns";
 import { getApiServer, Service } from "../../libs/core-utils/util/api";
 
-const startDate = "2020-12-23";
-const endDate = "2020-12-23";
-
 const symbols = currentStreamingSymbols;
 
 async function run(startDate: string, endDate: string) {
