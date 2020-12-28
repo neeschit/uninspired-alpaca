@@ -1,5 +1,5 @@
 import { Calendar } from "@neeschit/alpaca-trade-api";
-import { getApiServer, Service } from "../../src/util/api";
+import { getApiServer, Service } from "../../libs/core-utils/util/api";
 import { rebalanceForSymbol } from "./trade-manager.handlers";
 import { brokerImpl } from "../brokerage-helpers/alpaca";
 

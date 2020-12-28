@@ -1,4 +1,4 @@
-import { getFromService, Service } from "../../src/util/api";
+import { getFromService, Service } from "../../libs/core-utils/util/api";
 
 export interface DailyWatchlist {
     atr: number;

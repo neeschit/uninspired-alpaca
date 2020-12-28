@@ -15,7 +15,7 @@ import {
 } from "./order";
 
 import { TradePlan, persistTradePlan, PersistedTradePlan } from "./position";
-import { getConnection } from "../../src/connection/pg";
+import { getConnection } from "../../libs/core-utils/connection/pg";
 
 jest.mock("./position");
 

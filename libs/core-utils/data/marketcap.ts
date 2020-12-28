@@ -1,5 +1,5 @@
 import { Exchange } from "@neeschit/alpaca-trade-api";
-import { alpaca } from "../../v2/brokerage-helpers/alpaca";
+import { alpaca } from "../../../v2/brokerage-helpers/alpaca";
 import { getStockFinancials, getTickerDetails } from "../resources/polygon";
 import { LOGGER } from "../instrumentation/log";
 

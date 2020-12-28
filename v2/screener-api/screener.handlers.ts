@@ -1,6 +1,6 @@
 import { addBusinessDays, parse } from "date-fns";
-import { getAverageTrueRange } from "../../src/indicator/trueRange";
-import { getPolyonData } from "../../src/resources/polygon";
+import { getAverageTrueRange } from "../../libs/core-indicators/indicator/trueRange";
+import { getPolyonData } from "../../libs/core-utils/resources/polygon";
 import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
 import { DailyWatchlist } from "./screener.interfaces";
 

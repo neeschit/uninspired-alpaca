@@ -10,8 +10,8 @@ import { LOGGER } from "../instrumentation/log";
 import { set, addBusinessDays } from "date-fns";
 import { getPolyonData } from "./polygon";
 import { Client } from "pg";
-import { getCreateTradePlanTableSql } from "../../v2/trade-management-helpers/position";
-import { getCreateUnfilledOrdersTableSql } from "../../v2/trade-management-helpers/order";
+import { getCreateTradePlanTableSql } from "../../../v2/trade-management-helpers/position";
+import { getCreateUnfilledOrdersTableSql } from "../../../v2/trade-management-helpers/order";
 
 export const createDbIfNotExists = async () => {
     const checkQuery = `select datname FROM pg_catalog.pg_database where lower(datname) = lower('stock_data');`;

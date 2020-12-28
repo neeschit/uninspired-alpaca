@@ -11,15 +11,18 @@ import {
     getPersistedData,
 } from "../trade-management-api/trade-manager.handlers";
 import { createOrderSynchronized } from "../trade-management-helpers/order";
-import { PeriodType, DefaultDuration } from "../../src/data/data.model";
-import { IndicatorValue } from "../../src/indicator/adx";
-import { getAverageTrueRange } from "../../src/indicator/trueRange";
-import { LOGGER } from "../../src/instrumentation/log";
-import { getPolyonData } from "../../src/resources/polygon";
+import {
+    PeriodType,
+    DefaultDuration,
+} from "../../libs/core-utils/data/data.model";
+import { IndicatorValue } from "../../libs/core-indicators/indicator/adx";
+import { getAverageTrueRange } from "../../libs/core-indicators/indicator/trueRange";
+import { LOGGER } from "../../libs/core-utils/instrumentation/log";
+import { getPolyonData } from "../../libs/core-utils/resources/polygon";
 import {
     batchInsertDailyBars,
     getSimpleData,
-} from "../../src/resources/stockData";
+} from "../../libs/core-utils/resources/stockData";
 import { BrokerStrategy } from "../brokerage-helpers/brokerage.strategy";
 
 export class NarrowRangeBarSimulation implements SimulationStrategy {

@@ -1,4 +1,4 @@
-import { getApiServer } from "../../src/util/api";
+import { getApiServer } from "../../libs/core-utils/util/api";
 
 /**
  * WARNING: DO NOT REORGANIZE IMPORTS WILLY NILLY

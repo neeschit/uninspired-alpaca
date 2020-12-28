@@ -1,7 +1,7 @@
 import { PositionDirection } from "@neeschit/alpaca-trade-api";
 import { readJsonSync } from "fs-extra";
-import { Bar } from "../../src/data/data.model";
-import { getAverageTrueRange } from "../../src/indicator/trueRange";
+import { Bar } from "../../libs/core-utils/data/data.model";
+import { getAverageTrueRange } from "../../libs/core-indicators/indicator/trueRange";
 import {
     getLongStop,
     getQuantityForPlan,

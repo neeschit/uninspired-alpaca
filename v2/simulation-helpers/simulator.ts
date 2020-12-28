@@ -8,7 +8,7 @@ import {
     startOfDay,
 } from "date-fns";
 import { zonedTimeToUtc } from "date-fns-tz";
-import { MarketTimezone } from "../../src/data/data.model";
+import { MarketTimezone } from "../../libs/core-utils/data/data.model";
 import { getCalendar } from "../brokerage-helpers/alpaca";
 import { SimulationStrategy } from "./simulation.strategy";
 import {
@@ -19,7 +19,7 @@ import {
     isMarketOpen,
     isMarketOpening,
 } from "./timing.util";
-import { LOGGER } from "../../src/instrumentation/log";
+import { LOGGER } from "../../libs/core-utils/instrumentation/log";
 import { MockBrokerage } from "./mockBrokerage";
 
 export type SimulationImpl = new (...args: any[]) => SimulationStrategy;

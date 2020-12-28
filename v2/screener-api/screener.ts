@@ -1,5 +1,5 @@
-import { getApiServer, Service } from "../../src/util/api";
-import { currentTradingSymbols } from "../../src/data/filters";
+import { getApiServer, Service } from "../../libs/core-utils/util/api";
+import { currentTradingSymbols } from "../../libs/core-utils/data/filters";
 import { getWatchlistForDate } from "./screener.handlers";
 
 const server = getApiServer(Service.screener);

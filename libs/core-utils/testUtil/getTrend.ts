@@ -1,4 +1,4 @@
-import { TrendType } from "../pattern/trend/trendIdentifier";
+import { TrendType } from "../../core-indicators/pattern/trend/trendIdentifier";
 import { Bar } from "../data/data.model";
 
 const getTrend = (
@@ -21,7 +21,8 @@ const getTrend = (
     let iterationStep = step;
 
     const closingPrices = trend.map((bar, index) => {
-        iterationStep = trendType === TrendType.sideways ? -iterationStep : iterationStep;
+        iterationStep =
+            trendType === TrendType.sideways ? -iterationStep : iterationStep;
         return start + index * iterationStep + iterationStep;
     });
 
@@ -29,7 +30,8 @@ const getTrend = (
     iterationStep = step;
 
     const highPrices = trend.map((bar, index) => {
-        iterationStep = trendType === TrendType.sideways ? -iterationStep : iterationStep;
+        iterationStep =
+            trendType === TrendType.sideways ? -iterationStep : iterationStep;
         return highPriceStart + index * step + step;
     });
 
@@ -37,7 +39,8 @@ const getTrend = (
     iterationStep = step;
 
     const lowPrices = trend.map((bar, index) => {
-        iterationStep = trendType === TrendType.sideways ? -iterationStep : iterationStep;
+        iterationStep =
+            trendType === TrendType.sideways ? -iterationStep : iterationStep;
         return lowPriceStart + index * step + step;
     });
 

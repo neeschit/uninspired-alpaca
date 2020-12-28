@@ -1,4 +1,4 @@
-import { getApiServer } from "../../src/util/api";
+import { getApiServer } from "../../libs/core-utils/util/api";
 jest.mock("../../src/util/api");
 jest.mock("./screener.handlers");
 

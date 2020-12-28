@@ -9,9 +9,9 @@ import {
 } from "@neeschit/alpaca-trade-api";
 import { v4 } from "uuid";
 import { fromUnixTime } from "date-fns";
-import { getSimpleData } from "../../src/resources/stockData";
-import { Bar } from "../../src/data/data.model";
-import { LOGGER } from "../../src/instrumentation/log";
+import { getSimpleData } from "../../libs/core-utils/resources/stockData";
+import { Bar } from "../../libs/core-utils/data/data.model";
+import { LOGGER } from "../../libs/core-utils/instrumentation/log";
 import { BrokerStrategy } from "../brokerage-helpers/brokerage.strategy";
 
 export interface ClosedMockPosition {

@@ -1,6 +1,6 @@
 import { getAverageDirectionalIndex } from "../../indicator/adx";
-import { Bar } from "../../data/data.model";
-import { LOGGER } from "../../instrumentation/log";
+import { Bar } from "../../../core-utils/data/data.model";
+import { LOGGER } from "../../../core-utils/instrumentation/log";
 import { getAverageTrueRange } from "../../indicator/trueRange";
 
 export enum TrendType {

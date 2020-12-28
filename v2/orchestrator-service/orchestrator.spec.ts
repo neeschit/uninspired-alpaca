@@ -1,6 +1,6 @@
 import { readJsonSync } from "fs-extra";
 import { rebalance } from "../trade-management-api/trade-manager.interfaces";
-import { Bar } from "../../src/data/data.model";
+import { Bar } from "../../libs/core-utils/data/data.model";
 import { onStockMinuteDataPosted } from "./orchestrator";
 
 jest.mock("../trade-management-api/trade-manager.interfaces");

@@ -1,6 +1,6 @@
-import { TickBar } from "../../src/data/data.model";
-import { PolygonTradeUpdate } from "../../src/resources/polygon";
-import { insertBar } from "../../src/resources/stockData";
+import { TickBar } from "../../libs/core-utils/data/data.model";
+import { PolygonTradeUpdate } from "../../libs/core-utils/resources/polygon";
+import { insertBar } from "../../libs/core-utils/resources/stockData";
 
 export async function insertBarData(data: PolygonTradeUpdate[]) {
     const uniqueSymbols = [];

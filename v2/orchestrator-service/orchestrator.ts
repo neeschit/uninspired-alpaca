@@ -1,6 +1,6 @@
 import { Calendar } from "@neeschit/alpaca-trade-api";
 import { endOfDay, startOfDay } from "date-fns";
-import { PolygonTradeUpdate } from "../../src/resources/polygon";
+import { PolygonTradeUpdate } from "../../libs/core-utils/resources/polygon";
 import { getCalendar } from "../brokerage-helpers/alpaca";
 import { rebalance } from "../trade-management-api/trade-manager.interfaces";
 import { insertBarData } from "../trade-management-helpers/stream";

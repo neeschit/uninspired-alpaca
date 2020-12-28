@@ -1,5 +1,5 @@
 import { NarrowRangeBarSimulation } from "./narrowRangeBar.simulation";
-import { batchInsertDailyBars } from "../../src/resources/stockData";
+import { batchInsertDailyBars } from "../../libs/core-utils/resources/stockData";
 import { cancelOpenOrdersForSymbol } from "../trade-management-api/trade-manager.handlers";
 import { createOrderSynchronized } from "../trade-management-helpers/order";
 import { getCalendar } from "../brokerage-helpers/alpaca";

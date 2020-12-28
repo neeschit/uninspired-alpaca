@@ -1,7 +1,7 @@
 import { getDirectionalMovementIndex, DEFAULT_DMI_PERIOD } from "./dmi";
 import { getExponentialAverage } from "./average";
 import { getAverageTrueRange } from "./trueRange";
-import { Bar } from "../data/data.model";
+import { Bar } from "../../core-utils/data/data.model";
 
 export interface IndicatorValue<X> {
     value: X;

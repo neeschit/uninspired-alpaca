@@ -11,7 +11,10 @@ import {
 } from "./order";
 import { persistTradePlan, TradePlan } from "./position";
 import { readJsonSync } from "fs-extra";
-import { endPooledConnection, getConnection } from "../../src/connection/pg";
+import {
+    endPooledConnection,
+    getConnection,
+} from "../../libs/core-utils/connection/pg";
 
 /**
  * Bit of a flaky mechanism as I'm actually hitting the database.

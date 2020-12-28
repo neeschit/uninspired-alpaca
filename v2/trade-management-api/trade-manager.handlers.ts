@@ -1,6 +1,6 @@
 import { Calendar } from "@neeschit/alpaca-trade-api";
 
-import { getData } from "../../src/resources/stockData";
+import { getData } from "../../libs/core-utils/resources/stockData";
 import { getMarketOpenMillis } from "../simulation-helpers/timing.util";
 import { runStrategy } from "../simulation-helpers/simulator";
 import { NarrowRangeBarSimulation } from "../strategy/narrowRangeBar.simulation";

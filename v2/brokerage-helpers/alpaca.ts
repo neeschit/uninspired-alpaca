@@ -3,7 +3,7 @@ import Alpaca, {
     AlpacaOrder,
 } from "@neeschit/alpaca-trade-api";
 import * as dotenv from "dotenv";
-import { LOGGER } from "../../src/instrumentation/log";
+import { LOGGER } from "../../libs/core-utils/instrumentation/log";
 
 dotenv.config();
 

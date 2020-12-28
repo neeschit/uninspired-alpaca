@@ -1,4 +1,4 @@
-import { Bar } from "../data/data.model";
+import { Bar } from "../../core-utils/data/data.model";
 
 export interface VolumeProfileBar {
     low: number;

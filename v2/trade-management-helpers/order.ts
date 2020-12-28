@@ -6,7 +6,7 @@ import {
     TradeDirection,
     TradeType,
 } from "@neeschit/alpaca-trade-api";
-import { getConnection } from "../../src/connection/pg";
+import { getConnection } from "../../libs/core-utils/connection/pg";
 import { TimestampedRecord } from "../schema-helpers/model";
 import { ensureUpdateTriggerExists } from "../schema-helpers/updated_at.trigger";
 import { persistTradePlan, TradePlan, PersistedTradePlan } from "./position";

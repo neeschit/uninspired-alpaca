@@ -1,4 +1,4 @@
-import { Bar } from "../data/data.model";
+import { Bar } from "../../core-utils/data/data.model";
 
 export const DEFAULT_DMI_PERIOD = 14;
 

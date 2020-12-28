@@ -1,5 +1,5 @@
-import { endPooledConnection } from "../../src/connection/pg";
-import { currentTradingSymbols } from "../../src/data/filters";
+import { endPooledConnection } from "../../libs/core-utils/connection/pg";
+import { currentTradingSymbols } from "../../libs/core-utils/data/filters";
 import { getWatchlistForDate } from "./screener.handlers";
 
 test("getWatchListForDate", async () => {

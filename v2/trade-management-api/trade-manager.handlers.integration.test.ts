@@ -5,7 +5,7 @@ import {
 } from "./trade-manager.handlers";
 import { getWatchlistFromScreenerService } from "../screener-api/screener.interfaces";
 import { createOrderSynchronized } from "../trade-management-helpers/order";
-import { endPooledConnection } from "../../src/connection/pg";
+import { endPooledConnection } from "../../libs/core-utils/connection/pg";
 import { CachedCalendar } from "../orchestrator-service/orchestrator";
 import { getCalendar } from "../brokerage-helpers/alpaca";
 

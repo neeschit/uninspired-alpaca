@@ -1,11 +1,6 @@
 import { addDays, startOfDay } from "date-fns";
 import { getPolyonData, getSimplePolygonData } from "../resources/polygon";
-import {
-    TimestampType,
-    Bar,
-    PeriodType,
-    DefaultDuration,
-} from "../data/data.model";
+import { TimestampType, Bar, PeriodType, DefaultDuration } from "./data.model";
 import { LOGGER } from "../instrumentation/log";
 
 const date = new Date();

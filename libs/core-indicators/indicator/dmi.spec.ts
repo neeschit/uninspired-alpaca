@@ -3,7 +3,7 @@ import { getDirectionalMovementIndex } from "./dmi";
 
 const fixture = readJSONSync("./fixtures/dmi.json");
 
-test("dmi", (t) => {
+test("dmi", () => {
     const { pdmi, ndmi } = getDirectionalMovementIndex(fixture);
 
     expect(pdmi.length).toEqual(fixture.length - 1);

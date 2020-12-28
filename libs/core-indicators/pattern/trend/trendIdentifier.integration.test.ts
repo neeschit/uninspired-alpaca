@@ -3,16 +3,18 @@ import {
     TrendType,
     getOverallTrend,
     getHeuristicTrend,
-    TrendPhase,
 } from "./trendIdentifier";
-import perfectDowntrend from "../../testUtil/perfectDownTrend";
-import perfectUptrend from "../../testUtil/perfectUpTrend";
-import { getPolyonData } from "../../resources/polygon";
-import { PeriodType, DefaultDuration } from "../../data/data.model";
+import perfectDowntrend from "../../../core-utils/testUtil/perfectDownTrend";
+import perfectUptrend from "../../../core-utils/testUtil/perfectUpTrend";
+import { getPolyonData } from "../../../core-utils/resources/polygon";
+import {
+    PeriodType,
+    DefaultDuration,
+} from "../../../core-utils/data/data.model";
 import { readJSONSync } from "fs-extra";
 import { Calendar } from "@neeschit/alpaca-trade-api";
-import { getCalendar } from "../../../v2/brokerage-helpers/alpaca";
-import { isMarketOpen } from "../../../v2/simulation-helpers/timing.util";
+import { getCalendar } from "../../../../v2/brokerage-helpers/alpaca";
+import { isMarketOpen } from "../../../../v2/simulation-helpers/timing.util";
 
 const downtrend = readJSONSync("./fixtures/downtrend.json") as any;
 const uptrend = readJSONSync("./fixtures/uptrend.json") as any;
@@ -22,17 +24,17 @@ test("up trend", async () => {
     expect(trend).toEqual(TrendType.up);
 });
 
-test("up trend - overall", async (t) => {
+test("up trend - overall", async () => {
     const trend = getOverallTrend(perfectUptrend);
     expect(trend).toEqual(TrendType.up);
 });
 
-test("up trend - overall realistic", async (t) => {
+test("up trend - overall realistic", async () => {
     const trend = getOverallTrend(uptrend);
     expect(trend).toEqual(TrendType.up);
 });
 
-test("up trend - overall manual test, no pattern", async (t) => {
+test("up trend - overall manual test, no pattern", async () => {
     for (let i = 1; i < perfectUptrend.length; i++) {
         expect(perfectUptrend[i].c > perfectUptrend[i - 1].c).toBeTruthy();
         expect(perfectUptrend[i].h > perfectUptrend[i - 1].h).toBeTruthy();
@@ -41,18 +43,18 @@ test("up trend - overall manual test, no pattern", async (t) => {
     }
 });
 
-test("down trend", async (t) => {
+test("down trend", async () => {
     const trend = getRecentTrend(perfectDowntrend);
 
     expect(trend).toEqual(TrendType.down);
 });
 
-test("down trend - overall", async (t) => {
+test("down trend - overall", async () => {
     const trend = getOverallTrend(perfectDowntrend);
     expect(trend).toEqual(TrendType.down);
 });
 
-test("down trend - overall manual test, no pattern", async (t) => {
+test("down trend - overall manual test, no pattern", async () => {
     for (let i = 1; i < perfectDowntrend.length; i++) {
         expect(perfectDowntrend[i].c < perfectDowntrend[i - 1].c).toBeTruthy();
         expect(perfectDowntrend[i].h < perfectDowntrend[i - 1].h).toBeTruthy();
@@ -61,12 +63,12 @@ test("down trend - overall manual test, no pattern", async (t) => {
     }
 });
 
-test("down trend - overall realistic", async (t) => {
+test("down trend - overall realistic", async () => {
     const trend = getOverallTrend(downtrend);
     expect(trend).toEqual(TrendType.down);
 });
 
-test("trend on a gap down and continue higher for SPY on 05/15", async (t) => {
+test("trend on a gap down and continue higher for SPY on 05/15", async () => {
     const bars = await getPolyonData(
         "SPY",
         new Date("2020-05-14T19:14:46.000Z"),
@@ -80,7 +82,7 @@ test("trend on a gap down and continue higher for SPY on 05/15", async (t) => {
     const closeYday = 1589485200000;
 
     const calendar: Calendar[] = await getCalendar(
-        new Date(preMarketToday),
+        new Date(closeYday),
         new Date(preMarketToday)
     );
 
@@ -94,7 +96,7 @@ test("trend on a gap down and continue higher for SPY on 05/15", async (t) => {
 
     expect(lastBarYday).toStrictEqual({
         v: 5837741,
-        vw: 284.32813,
+        vw: 284.3281,
         o: 284.63,
         c: 285.05,
         h: 285.11,
@@ -207,7 +209,7 @@ test("trend on a gap down and continue higher for SPY on 05/15", async (t) => {
     expect(trend.primary.value).toEqual(TrendType.up);
 });
 
-test("trend on a gap down and reverse for SPY on 05/13", async (t) => {
+test("trend on a gap down and reverse for SPY on 05/13", async () => {
     const bars = await getPolyonData(
         "SPY",
         new Date("2020-05-12T19:14:46.000Z"),
@@ -221,7 +223,7 @@ test("trend on a gap down and reverse for SPY on 05/13", async (t) => {
     const closeYday = 1589312400000;
 
     const calendar: Calendar[] = await getCalendar(
-        new Date(preMarketToday),
+        new Date(closeYday),
         new Date(preMarketToday)
     );
 
@@ -235,7 +237,7 @@ test("trend on a gap down and reverse for SPY on 05/13", async (t) => {
 
     expect(lastBarYday).toStrictEqual({
         v: 8212344,
-        vw: 288.52673,
+        vw: 288.5267,
         o: 287.35,
         c: 286.62,
         h: 287.67,
@@ -351,7 +353,7 @@ test("trend on a gap down and reverse for SPY on 05/13", async (t) => {
     });
 });
 
-test("trend on a gap up and reverse for AMT on 05/20", async (t) => {
+test("trend on a gap up and reverse for AMT on 05/20", async () => {
     const bars = await getPolyonData(
         "AMT",
         new Date("2020-05-19T19:14:46.000Z"),
@@ -365,7 +367,7 @@ test("trend on a gap up and reverse for AMT on 05/20", async (t) => {
     const closeYday = 1589916000000;
 
     const calendar: Calendar[] = await getCalendar(
-        new Date(preMarketToday),
+        new Date(closeYday),
         new Date(preMarketToday)
     );
 
@@ -400,7 +402,7 @@ test("trend on a gap up and reverse for AMT on 05/20", async (t) => {
     );
 });
 
-test("trend on a gap up and reverse for SPY on 05/20", async (t) => {
+test("trend on a gap up and reverse for SPY on 05/20", async () => {
     const bars = await getPolyonData(
         "SPY",
         new Date("2020-05-19T19:14:46.000Z"),
@@ -414,7 +416,7 @@ test("trend on a gap up and reverse for SPY on 05/20", async (t) => {
     const closeYday = 1589916000000;
 
     const calendar: Calendar[] = await getCalendar(
-        new Date(preMarketToday),
+        new Date(closeYday),
         new Date(preMarketToday)
     );
 
@@ -449,7 +451,7 @@ test("trend on a gap up and reverse for SPY on 05/20", async (t) => {
     );
 });
 
-test("trend on a gap up and reverse for SPY on 05/19", async (t) => {
+test("trend on a gap up and reverse for SPY on 05/19", async () => {
     const bars = await getPolyonData(
         "SPY",
         new Date("2020-05-18T19:14:46.000Z"),
@@ -463,7 +465,7 @@ test("trend on a gap up and reverse for SPY on 05/19", async (t) => {
     const closeYday = 1589829600000;
 
     const calendar: Calendar[] = await getCalendar(
-        new Date(preMarketToday),
+        new Date(closeYday),
         new Date(preMarketToday)
     );
 

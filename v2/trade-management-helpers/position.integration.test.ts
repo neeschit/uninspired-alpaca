@@ -1,5 +1,5 @@
 import { PositionDirection } from "@neeschit/alpaca-trade-api";
-import { endPooledConnection } from "../../src/connection/pg";
+import { endPooledConnection } from "../../libs/core-utils/connection/pg";
 import { persistTradePlan } from "./position";
 
 test("trade_plan insert", async () => {

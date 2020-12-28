@@ -1,10 +1,10 @@
 import { PositionDirection } from "@neeschit/alpaca-trade-api";
-import { Bar } from "../../src/data/data.model";
-import { LOGGER } from "../../src/instrumentation/log";
-import { convertToLocalTime } from "../../src/util/date";
-import { IndicatorValue } from "../../src/indicator/adx";
+import { Bar } from "../../libs/core-utils/data/data.model";
+import { LOGGER } from "../../libs/core-utils/instrumentation/log";
+import { convertToLocalTime } from "../../libs/core-utils/util/date";
+import { IndicatorValue } from "../../libs/core-indicators/indicator/adx";
 import { TradePlan } from "../trade-management-helpers/position";
-import { getActualStop } from "../../src/services/riskManagement";
+import { getActualStop } from "../../libs/core-indicators/services/riskManagement";
 
 export const RISK_PER_ORDER = 10;
 export const PROFIT_RATIO = 2;

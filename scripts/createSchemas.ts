@@ -6,7 +6,7 @@ import {
     createNewMetadataTables,
 } from "../resources/stockData";
 import { LOGGER } from "../instrumentation/log";
-import { endPooledConnection } from "../connection/pg";
+import { endPooledConnection } from "../core/connection/pg";
 import { getLargeCaps, currentIndices, getMegaCaps } from "../data/filters";
 
 const drop = process.argv[2] && Boolean(process.argv[2]);
