@@ -1,6 +1,6 @@
-import { getApiServer, Service } from "../../src/util/api";
-import { currentTradingSymbols } from "../../src/data/filters";
-import { getWatchlistForDate } from "./screener.handlers";
+import { getApiServer, Service } from "../../src/util/api.js";
+import { currentTradingSymbols } from "../../src/data/filters.js";
+import { getWatchlistForDate } from "./screener.handlers.js";
 
 const server = getApiServer(Service.screener);
 

@@ -1,4 +1,4 @@
-import { getCalendar } from "../brokerage-helpers";
+import { getCalendar } from "../brokerage-helpers/alpaca";
 import {
     isAfterMarketClose,
     isBeforeMarketOpening,
@@ -8,7 +8,10 @@ import {
 } from "./timing.util";
 
 test("isMarketOpening", async () => {
-    const calendar = await getCalendar(new Date("11-25-2020"), new Date("11-28-2020"));
+    const calendar = await getCalendar(
+        new Date("11-25-2020"),
+        new Date("11-28-2020")
+    );
 
     const tgivingEpoch = 1606401900000;
 
@@ -20,7 +23,10 @@ test("isMarketOpening", async () => {
 });
 
 test("isBeforeMarketOpen", async () => {
-    const calendar = await getCalendar(new Date("11-25-2020"), new Date("11-28-2020"));
+    const calendar = await getCalendar(
+        new Date("11-25-2020"),
+        new Date("11-28-2020")
+    );
 
     const tgivingEpoch = 1606401900000;
 
@@ -32,7 +38,10 @@ test("isBeforeMarketOpen", async () => {
 });
 
 test("isMarketOpen", async () => {
-    const calendar = await getCalendar(new Date("11-25-2020"), new Date("11-28-2020"));
+    const calendar = await getCalendar(
+        new Date("11-25-2020"),
+        new Date("11-28-2020")
+    );
 
     const tgivingEpoch = 1606401900000;
 
@@ -44,7 +53,10 @@ test("isMarketOpen", async () => {
 });
 
 test("isMarketClosing", async () => {
-    const calendar = await getCalendar(new Date("11-25-2020"), new Date("11-28-2020"));
+    const calendar = await getCalendar(
+        new Date("11-25-2020"),
+        new Date("11-28-2020")
+    );
 
     const dayAterEpochStillOpen = 1606500900000 - 60000 * 10;
 
@@ -60,7 +72,10 @@ test("isMarketClosing", async () => {
 });
 
 test("isAterMarketClose", async () => {
-    const calendar = await getCalendar(new Date("11-25-2020"), new Date("11-28-2020"));
+    const calendar = await getCalendar(
+        new Date("11-25-2020"),
+        new Date("11-28-2020")
+    );
 
     const tgivingDayAfter5 = 1606430700000;
 

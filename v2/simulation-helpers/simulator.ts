@@ -1,25 +1,28 @@
 import { Calendar } from "@neeschit/alpaca-trade-api";
+import DateFns from "date-fns";
+import DateFnsTz from "date-fns-tz";
+import { MarketTimezone } from "../../src/data/data.model.js";
+import { getCalendar } from "../brokerage-helpers/alpaca.js";
+import { SimulationStrategy } from "./simulation.strategy.js";
 import {
+    DATE_FORMAT,
+    isAfterMarketClose,
+    isBeforeMarketOpening,
+    isMarketClosing,
+    isMarketOpen,
+    isMarketOpening,
+} from "./timing.util.js";
+import { LOGGER } from "../../src/instrumentation/log.js";
+import { MockBrokerage } from "./mockBrokerage.js";
+const { zonedTimeToUtc } = DateFnsTz;
+const {
     addBusinessDays,
     addMonths,
     differenceInMonths,
     format,
     parseISO,
     startOfDay,
-} from "date-fns";
-import { zonedTimeToUtc } from "date-fns-tz";
-import { MarketTimezone } from "../../src/data/data.model";
-import { getCalendar } from "../brokerage-helpers";
-import { SimulationStrategy } from "./simulation.strategy";
-import {
-    isAfterMarketClose,
-    isBeforeMarketOpening,
-    isMarketClosing,
-    isMarketOpen,
-    isMarketOpening,
-} from "./timing.util";
-import { LOGGER } from "../../src/instrumentation/log";
-import { MockBrokerage } from "./mockBrokerage";
+} = DateFns;
 
 export type SimulationImpl = new (...args: any[]) => SimulationStrategy;
 
@@ -120,8 +123,7 @@ export class Simulator {
         calendar: Calendar[],
         attempt: number
     ): number {
-        const dateFormat = "yyyy-MM-dd";
-        const todaysDate = format(epoch, dateFormat);
+        const todaysDate = format(epoch, DATE_FORMAT);
 
         const calendarEntry = calendar.find((c) => c.date === todaysDate);
 
@@ -229,7 +231,7 @@ export const runStrategy = async (
         if (sim.hasEntryTimePassed(epoch)) {
             await sim.afterEntryTimePassed(epoch);
         } else {
-            await sim.rebalance(epoch);
+            await sim.rebalance(calendar, epoch);
         }
     } else {
         await sim.onMarketClose(epoch);

@@ -1,13 +1,14 @@
-import * as dotenv from "dotenv";
-import { format } from "date-fns";
-import { getHttps } from "../util/get";
+import dotenv from "dotenv";
+import DateFns from "date-fns";
+const { format } = DateFns;
+import { getHttps } from "../util/get.js";
 import {
     PeriodType,
     DefaultDuration,
     Bar,
     PolygonBar,
-} from "../data/data.model";
-import { LOGGER } from "../instrumentation/log";
+} from "../data/data.model.js";
+import { LOGGER } from "../instrumentation/log.js";
 
 dotenv.config();
 

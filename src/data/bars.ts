@@ -1,17 +1,31 @@
-import { addDays, startOfDay } from "date-fns";
-import { getPolyonData, getSimplePolygonData } from "../resources/polygon";
-import { TimestampType, Bar, PeriodType, DefaultDuration } from "../data/data.model";
-import { LOGGER } from "../instrumentation/log";
+import DateFns from "date-fns";
+const { addDays, startOfDay } = DateFns;
+import { getPolyonData, getSimplePolygonData } from "../resources/polygon.js";
+import {
+    TimestampType,
+    Bar,
+    PeriodType,
+    DefaultDuration,
+} from "../data/data.model.js";
+import { LOGGER } from "../instrumentation/log.js";
 
 const date = new Date();
 
 export const getDayBars = (symbols: string[], days = 100, lookback = 100) => {
-    LOGGER.debug(new Date(new Date().setDate(date.getDate() - lookback)).toLocaleDateString());
+    LOGGER.debug(
+        new Date(
+            new Date().setDate(date.getDate() - lookback)
+        ).toLocaleDateString()
+    );
 
     return getBars(PeriodType.day, symbols, days, lookback);
 };
 
-export const getDayBarsFormatted = (symbols: string[], days = 100, lookback = 100) => {
+export const getDayBarsFormatted = (
+    symbols: string[],
+    days = 100,
+    lookback = 100
+) => {
     return getDayBars(symbols, days, lookback).then((responses) => {
         const bars: { [index: string]: Bar[] } = {};
 
@@ -59,7 +73,9 @@ const getBars = (
     }
     const start = startOfDay(addDays(date, -(days + lookback)));
     const end = addDays(date, -lookback + 1);
-    const promises = symbols.map((symbol) => getPolyonData(symbol, start, end, period, duration));
+    const promises = symbols.map((symbol) =>
+        getPolyonData(symbol, start, end, period, duration)
+    );
 
     return Promise.all(promises);
 };

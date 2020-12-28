@@ -1,6 +1,8 @@
-import * as dotenv from "dotenv";
+import dotenv from "dotenv";
 
-dotenv.config();
+const { config } = dotenv;
+
+config();
 
 export enum LogLevel {
     ERROR = 1,

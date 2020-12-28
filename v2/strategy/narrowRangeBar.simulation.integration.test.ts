@@ -1,7 +1,8 @@
 import { NarrowRangeBarSimulation } from "./narrowRangeBar.simulation";
 import { batchInsertDailyBars } from "../../src/resources/stockData";
 import { cancelOpenOrdersForSymbol } from "../trade-management-api/trade-manager.handlers";
-import { createOrderSynchronized } from "../trade-management-helpers";
+import { createOrderSynchronized } from "../trade-management-helpers/order";
+import { getCalendar } from "../brokerage-helpers/alpaca";
 
 jest.mock("../../src/resources/stockData", () => {
     const module = jest.requireActual("../../src/resources/stockData");
@@ -79,7 +80,12 @@ test("nrb simulation - rebalance", async () => {
 
     mockGetOpenPositions.mockReturnValue([]);
 
-    await nrb.rebalance(1608649200000);
+    const calendar = await getCalendar(
+        new Date(1608649200000),
+        new Date(1608649200000)
+    );
+
+    await nrb.rebalance(calendar, 1608649200000);
 
     expect(createOrderSynchronized).toHaveBeenCalledWith(
         {
@@ -105,7 +111,11 @@ test("nrb simulation - rebalance when in open position", async () => {
 
     mockGetOpenPositions.mockReturnValue([{ symbol: "QCOM" }]);
 
-    await nrb.rebalance(1608649200000);
+    const calendar = await getCalendar(
+        new Date(1608649200000),
+        new Date(1608649200000)
+    );
+    await nrb.rebalance(calendar, 1608649200000);
 
     expect(mockCreateOrder).not.toHaveBeenCalled();
 });
@@ -120,7 +130,11 @@ test("nrb simulation - rebalance when not an nrb", async () => {
 
     mockGetOpenPositions.mockReturnValue([{ symbol: "QCOM" }]);
 
-    await nrb.rebalance(1608649200000);
+    const calendar = await getCalendar(
+        new Date(1608649200000),
+        new Date(1608649200000)
+    );
+    await nrb.rebalance(calendar, 1608649200000);
 
     expect(mockCreateOrder).not.toHaveBeenCalled();
 });

@@ -1,11 +1,10 @@
-import Alpaca, {
-    AlpacaOrder,
+import {
+    Alpaca,
     AlpacaTradeConfig,
-    AlpacaPosition,
+    AlpacaOrder,
 } from "@neeschit/alpaca-trade-api";
-import * as dotenv from "dotenv";
-import { LOGGER } from "../../src/instrumentation/log";
-import { Calendar } from "@neeschit/alpaca-trade-api";
+import dotenv from "dotenv";
+import { LOGGER } from "../../src/instrumentation/log.js";
 
 dotenv.config();
 
@@ -13,7 +12,7 @@ const API_KEY = process.env.ALPACA_SECRET_KEY_ID;
 
 const SECRET_KEY = process.env.ALPACA_SECRET_KEY;
 
-export const alpaca = Alpaca({
+export const alpaca = new Alpaca({
     keyId: API_KEY!,
     secretKey: SECRET_KEY!,
     paper: true,

@@ -1,4 +1,3 @@
-import test from "ava";
 import {
     getRecentTrend,
     TrendType,
@@ -6,61 +5,65 @@ import {
     getHeuristicTrend,
     TrendPhase,
 } from "./trendIdentifier";
-import uptrend from "../../fixtures/uptrend";
-import downtrend from "../../fixtures/downtrend";
-import perfectDowntrend from "../../fixtures/perfectDownTrend";
-import perfectUptrend from "../../fixtures/perfectUpTrend";
+import perfectDowntrend from "../../testUtil/perfectDownTrend";
+import perfectUptrend from "../../testUtil/perfectUpTrend";
 import { getPolyonData } from "../../resources/polygon";
 import { PeriodType, DefaultDuration } from "../../data/data.model";
-import { isMarketOpen } from "../../util/market";
+import { readJSONSync } from "fs-extra";
+import { Calendar } from "@neeschit/alpaca-trade-api";
+import { getCalendar } from "../../../v2/brokerage-helpers/alpaca";
+import { isMarketOpen } from "../../../v2/simulation-helpers/timing.util";
 
-test("up trend", async (t) => {
+const downtrend = readJSONSync("./fixtures/downtrend.json") as any;
+const uptrend = readJSONSync("./fixtures/uptrend.json") as any;
+
+test("up trend", async () => {
     const trend = getRecentTrend(perfectUptrend);
-    t.is(trend, TrendType.up);
+    expect(trend).toEqual(TrendType.up);
 });
 
 test("up trend - overall", async (t) => {
     const trend = getOverallTrend(perfectUptrend);
-    t.is(trend, TrendType.up);
+    expect(trend).toEqual(TrendType.up);
 });
 
 test("up trend - overall realistic", async (t) => {
     const trend = getOverallTrend(uptrend);
-    t.is(trend, TrendType.up);
+    expect(trend).toEqual(TrendType.up);
 });
 
 test("up trend - overall manual test, no pattern", async (t) => {
     for (let i = 1; i < perfectUptrend.length; i++) {
-        t.truthy(perfectUptrend[i].c > perfectUptrend[i - 1].c);
-        t.truthy(perfectUptrend[i].h > perfectUptrend[i - 1].h);
-        t.truthy(perfectUptrend[i].l > perfectUptrend[i - 1].l);
-        t.truthy(perfectUptrend[i].o > perfectUptrend[i - 1].o);
+        expect(perfectUptrend[i].c > perfectUptrend[i - 1].c).toBeTruthy();
+        expect(perfectUptrend[i].h > perfectUptrend[i - 1].h).toBeTruthy();
+        expect(perfectUptrend[i].l > perfectUptrend[i - 1].l).toBeTruthy();
+        expect(perfectUptrend[i].o > perfectUptrend[i - 1].o).toBeTruthy();
     }
 });
 
 test("down trend", async (t) => {
     const trend = getRecentTrend(perfectDowntrend);
 
-    t.is(trend, TrendType.down);
+    expect(trend).toEqual(TrendType.down);
 });
 
 test("down trend - overall", async (t) => {
     const trend = getOverallTrend(perfectDowntrend);
-    t.is(trend, TrendType.down);
+    expect(trend).toEqual(TrendType.down);
 });
 
 test("down trend - overall manual test, no pattern", async (t) => {
     for (let i = 1; i < perfectDowntrend.length; i++) {
-        t.truthy(perfectDowntrend[i].c < perfectDowntrend[i - 1].c);
-        t.truthy(perfectDowntrend[i].h < perfectDowntrend[i - 1].h);
-        t.truthy(perfectDowntrend[i].l < perfectDowntrend[i - 1].l);
-        t.truthy(perfectDowntrend[i].o < perfectDowntrend[i - 1].o);
+        expect(perfectDowntrend[i].c < perfectDowntrend[i - 1].c).toBeTruthy();
+        expect(perfectDowntrend[i].h < perfectDowntrend[i - 1].h).toBeTruthy();
+        expect(perfectDowntrend[i].l < perfectDowntrend[i - 1].l).toBeTruthy();
+        expect(perfectDowntrend[i].o < perfectDowntrend[i - 1].o).toBeTruthy();
     }
 });
 
 test("down trend - overall realistic", async (t) => {
     const trend = getOverallTrend(downtrend);
-    t.is(trend, TrendType.down);
+    expect(trend).toEqual(TrendType.down);
 });
 
 test("trend on a gap down and continue higher for SPY on 05/15", async (t) => {
@@ -76,13 +79,20 @@ test("trend on a gap down and continue higher for SPY on 05/15", async (t) => {
 
     const closeYday = 1589485200000;
 
-    const filteredBars = bars["SPY"].filter((b) => isMarketOpen(b.t));
+    const calendar: Calendar[] = await getCalendar(
+        new Date(preMarketToday),
+        new Date(preMarketToday)
+    );
 
-    const closingBarsYday = filteredBars.filter((b) => b.t > closeYday && b.t < preMarketToday);
+    const filteredBars = bars["SPY"].filter((b) => isMarketOpen(calendar, b.t));
+
+    const closingBarsYday = filteredBars.filter(
+        (b) => b.t > closeYday && b.t < preMarketToday
+    );
 
     const lastBarYday = closingBarsYday[closingBarsYday.length - 1];
 
-    t.deepEqual(lastBarYday, {
+    expect(lastBarYday).toStrictEqual({
         v: 5837741,
         vw: 284.32813,
         o: 284.63,
@@ -106,83 +116,95 @@ test("trend on a gap down and continue higher for SPY on 05/15", async (t) => {
         return isTodayMarketBar;
     });
 
-    t.is(testBars.length, 1);
+    expect(testBars.length).toEqual(1);
 
     let trend = getHeuristicTrend(lastBarYday, testBars);
-    t.deepEqual(trend.primary, {
+    expect(trend.primary).toStrictEqual({
         value: TrendType.down,
         trendBreakThreshold: 285.05,
         peaks: [285.05],
         troughs: [281.78],
     });
-    t.deepEqual(trend.secondary[0], {
+    expect(trend.secondary[0]).toStrictEqual({
         value: TrendType.down,
         trendBreakThreshold: 282.89,
         peaks: [282.89],
         troughs: [281.78],
     });
 
-    testBars = filteredBars.slice(firstIndexForToday, firstIndexForToday + testBars.length + 1);
+    testBars = filteredBars.slice(
+        firstIndexForToday,
+        firstIndexForToday + testBars.length + 1
+    );
 
-    t.is(testBars.length, 2);
+    expect(testBars.length).toEqual(2);
 
     trend = getHeuristicTrend(lastBarYday, testBars);
 
-    t.deepEqual(trend.primary, {
+    expect(trend.primary).toStrictEqual({
         value: TrendType.down,
         trendBreakThreshold: 285.05,
         peaks: [285.05, 282.94],
         troughs: [281.78, 281.34],
     });
 
-    t.deepEqual(trend.secondary[0], {
+    expect(trend.secondary[0]).toStrictEqual({
         value: TrendType.down,
         trendBreakThreshold: 282.89,
         peaks: [282.89],
         troughs: [281.78, 281.34],
     });
 
-    testBars = filteredBars.slice(firstIndexForToday, firstIndexForToday + testBars.length + 1);
+    testBars = filteredBars.slice(
+        firstIndexForToday,
+        firstIndexForToday + testBars.length + 1
+    );
 
-    t.is(testBars.length, 3);
+    expect(testBars.length).toEqual(3);
 
     trend = getHeuristicTrend(lastBarYday, testBars);
-    t.deepEqual(trend.primary, {
+    expect(trend.primary).toStrictEqual({
         value: TrendType.down,
         trendBreakThreshold: 285.05,
         peaks: [285.05, 282.94, 283.66],
         troughs: [281.78, 281.34],
     });
 
-    t.deepEqual(trend.secondary[0], {
+    expect(trend.secondary[0]).toStrictEqual({
         value: TrendType.down,
         trendBreakThreshold: 282.89,
         peaks: [282.89, 283.66],
         troughs: [281.78, 281.34],
     });
 
-    t.deepEqual(trend.secondary[1], {
+    expect(trend.secondary[1]).toStrictEqual({
         value: TrendType.up,
         trendBreakThreshold: 283.44,
         peaks: [283.66],
         troughs: [282.89],
     });
 
-    testBars = filteredBars.slice(firstIndexForToday, firstIndexForToday + testBars.length + 51);
+    testBars = filteredBars.slice(
+        firstIndexForToday,
+        firstIndexForToday + testBars.length + 51
+    );
 
-    t.is(testBars.length, 54);
-
-    trend = getHeuristicTrend(lastBarYday, testBars);
-    t.is(trend.primary.value, TrendType.down);
-    t.is(trend.secondary.length, 4);
-
-    testBars = filteredBars.slice(firstIndexForToday, firstIndexForToday + testBars.length + 1);
-
-    t.is(testBars[testBars.length - 1].t, 1589565600000); // 15th may 2020 at 1400 hrs
-    t.is(testBars.length, 55);
+    expect(testBars.length).toEqual(54);
 
     trend = getHeuristicTrend(lastBarYday, testBars);
-    t.is(trend.primary.value, TrendType.up);
+    expect(trend.primary.value).toEqual(TrendType.down);
+    expect(trend.secondary.length).toEqual(4);
+
+    testBars = filteredBars.slice(
+        firstIndexForToday,
+        firstIndexForToday + testBars.length + 1
+    );
+
+    expect(testBars[testBars.length - 1].t).toEqual(1589565600000); // 15th may 2020 at 1400 hrs
+    expect(testBars.length).toEqual(55);
+
+    trend = getHeuristicTrend(lastBarYday, testBars);
+    expect(trend.primary.value).toEqual(TrendType.up);
 });
 
 test("trend on a gap down and reverse for SPY on 05/13", async (t) => {
@@ -198,13 +220,20 @@ test("trend on a gap down and reverse for SPY on 05/13", async (t) => {
 
     const closeYday = 1589312400000;
 
-    const filteredBars = bars["SPY"].filter((b) => isMarketOpen(b.t));
+    const calendar: Calendar[] = await getCalendar(
+        new Date(preMarketToday),
+        new Date(preMarketToday)
+    );
 
-    const closingBarsYday = filteredBars.filter((b) => b.t > closeYday && b.t < preMarketToday);
+    const filteredBars = bars["SPY"].filter((b) => isMarketOpen(calendar, b.t));
+
+    const closingBarsYday = filteredBars.filter(
+        (b) => b.t > closeYday && b.t < preMarketToday
+    );
 
     const lastBarYday = closingBarsYday[closingBarsYday.length - 1];
 
-    t.deepEqual(lastBarYday, {
+    expect(lastBarYday).toStrictEqual({
         v: 8212344,
         vw: 288.52673,
         o: 287.35,
@@ -228,81 +257,93 @@ test("trend on a gap down and reverse for SPY on 05/13", async (t) => {
         return isTodayMarketBar;
     });
 
-    t.is(testBars.length, 1);
+    expect(testBars.length).toEqual(1);
 
     let trend = getHeuristicTrend(lastBarYday, testBars);
-    t.deepEqual(trend.primary, {
+    expect(trend.primary).toStrictEqual({
         value: TrendType.down,
         trendBreakThreshold: 286.62,
         peaks: [286.62],
         troughs: [284.51],
     });
-    t.deepEqual(trend.secondary[0], {
+    expect(trend.secondary[0]).toStrictEqual({
         value: TrendType.down,
         trendBreakThreshold: 286.38,
         peaks: [286.38],
         troughs: [284.51],
     });
 
-    testBars = filteredBars.slice(firstIndexForToday, firstIndexForToday + testBars.length + 1);
+    testBars = filteredBars.slice(
+        firstIndexForToday,
+        firstIndexForToday + testBars.length + 1
+    );
 
-    t.is(testBars.length, 2);
+    expect(testBars.length).toEqual(2);
 
     trend = getHeuristicTrend(lastBarYday, testBars);
 
-    t.deepEqual(trend.primary, {
+    expect(trend.primary).toStrictEqual({
         value: TrendType.down,
         trendBreakThreshold: 286.62,
         peaks: [286.62, 284.79],
         troughs: [284.51, 283.64],
     });
 
-    t.deepEqual(trend.secondary[0], {
+    expect(trend.secondary[0]).toStrictEqual({
         value: TrendType.down,
         trendBreakThreshold: 286.38,
         peaks: [286.38, 284.79],
         troughs: [284.51, 283.64],
     });
 
-    testBars = filteredBars.slice(firstIndexForToday, firstIndexForToday + testBars.length + 1);
+    testBars = filteredBars.slice(
+        firstIndexForToday,
+        firstIndexForToday + testBars.length + 1
+    );
 
-    t.is(testBars.length, 3);
+    expect(testBars.length).toEqual(3);
 
     trend = getHeuristicTrend(lastBarYday, testBars);
 
-    t.deepEqual(trend.primary, {
+    expect(trend.primary).toStrictEqual({
         value: TrendType.down,
         trendBreakThreshold: 286.62,
         peaks: [286.62, 284.79],
         troughs: [284.51, 283.64],
     });
-    t.deepEqual(trend.secondary[0], {
+    expect(trend.secondary[0]).toStrictEqual({
         value: TrendType.down,
         trendBreakThreshold: 286.38,
         peaks: [286.38, 284.79],
         troughs: [284.51, 283.64],
     });
 
-    testBars = filteredBars.slice(firstIndexForToday, firstIndexForToday + testBars.length + 1);
+    testBars = filteredBars.slice(
+        firstIndexForToday,
+        firstIndexForToday + testBars.length + 1
+    );
 
-    t.is(testBars.length, 4);
+    expect(testBars.length).toEqual(4);
 
     trend = getHeuristicTrend(lastBarYday, testBars);
 
-    t.deepEqual(trend.primary, {
+    expect(trend.primary).toStrictEqual({
         value: TrendType.down,
         trendBreakThreshold: 286.62,
         peaks: [286.62, 284.79, 285.12],
         troughs: [284.51, 283.64],
     });
 
-    testBars = filteredBars.slice(firstIndexForToday, firstIndexForToday + testBars.length + 9);
+    testBars = filteredBars.slice(
+        firstIndexForToday,
+        firstIndexForToday + testBars.length + 9
+    );
 
-    t.is(testBars.length, 13);
+    expect(testBars.length).toEqual(13);
 
     trend = getHeuristicTrend(lastBarYday, testBars);
 
-    t.deepEqual(trend.primary, {
+    expect(trend.primary).toStrictEqual({
         value: TrendType.down,
         trendBreakThreshold: 286.62,
         peaks: [286.62, 284.79, 285.12, 285.88, 286.48, 287.19],
@@ -323,9 +364,16 @@ test("trend on a gap up and reverse for AMT on 05/20", async (t) => {
 
     const closeYday = 1589916000000;
 
-    const filteredBars = bars["AMT"].filter((b) => isMarketOpen(b.t));
+    const calendar: Calendar[] = await getCalendar(
+        new Date(preMarketToday),
+        new Date(preMarketToday)
+    );
 
-    const closingBarsYday = filteredBars.filter((b) => b.t > closeYday && b.t < preMarketToday);
+    const filteredBars = bars["AMT"].filter((b) => isMarketOpen(calendar, b.t));
+
+    const closingBarsYday = filteredBars.filter(
+        (b) => b.t > closeYday && b.t < preMarketToday
+    );
 
     const lastBarYday = closingBarsYday[closingBarsYday.length - 1];
 
@@ -342,12 +390,14 @@ test("trend on a gap up and reverse for AMT on 05/20", async (t) => {
         return isTodayMarketBar;
     });
 
-    t.is(testBars.length, 10);
+    expect(testBars.length).toEqual(10);
 
     let trend = getHeuristicTrend(lastBarYday, testBars);
 
-    t.is(trend.primary.value, TrendType.up);
-    t.is(trend.secondary[trend.secondary.length - 1].value, TrendType.up);
+    expect(trend.primary.value).toEqual(TrendType.up);
+    expect(trend.secondary[trend.secondary.length - 1].value).toEqual(
+        TrendType.up
+    );
 });
 
 test("trend on a gap up and reverse for SPY on 05/20", async (t) => {
@@ -363,9 +413,16 @@ test("trend on a gap up and reverse for SPY on 05/20", async (t) => {
 
     const closeYday = 1589916000000;
 
-    const filteredBars = bars["SPY"].filter((b) => isMarketOpen(b.t));
+    const calendar: Calendar[] = await getCalendar(
+        new Date(preMarketToday),
+        new Date(preMarketToday)
+    );
 
-    const closingBarsYday = filteredBars.filter((b) => b.t > closeYday && b.t < preMarketToday);
+    const filteredBars = bars["SPY"].filter((b) => isMarketOpen(calendar, b.t));
+
+    const closingBarsYday = filteredBars.filter(
+        (b) => b.t > closeYday && b.t < preMarketToday
+    );
 
     const lastBarYday = closingBarsYday[closingBarsYday.length - 1];
 
@@ -382,12 +439,14 @@ test("trend on a gap up and reverse for SPY on 05/20", async (t) => {
         return isTodayMarketBar;
     });
 
-    t.is(testBars.length, 6);
+    expect(testBars.length).toEqual(6);
 
     let trend = getHeuristicTrend(lastBarYday, testBars);
 
-    t.is(trend.primary.value, TrendType.up);
-    t.is(trend.secondary[trend.secondary.length - 1].value, TrendType.up);
+    expect(trend.primary.value).toEqual(TrendType.up);
+    expect(trend.secondary[trend.secondary.length - 1].value).toEqual(
+        TrendType.up
+    );
 });
 
 test("trend on a gap up and reverse for SPY on 05/19", async (t) => {
@@ -403,9 +462,16 @@ test("trend on a gap up and reverse for SPY on 05/19", async (t) => {
 
     const closeYday = 1589829600000;
 
-    const filteredBars = bars["SPY"].filter((b) => isMarketOpen(b.t));
+    const calendar: Calendar[] = await getCalendar(
+        new Date(preMarketToday),
+        new Date(preMarketToday)
+    );
 
-    const closingBarsYday = filteredBars.filter((b) => b.t > closeYday && b.t < preMarketToday);
+    const filteredBars = bars["SPY"].filter((b) => isMarketOpen(calendar, b.t));
+
+    const closingBarsYday = filteredBars.filter(
+        (b) => b.t > closeYday && b.t < preMarketToday
+    );
 
     const lastBarYday = closingBarsYday[closingBarsYday.length - 1];
 
@@ -422,12 +488,16 @@ test("trend on a gap up and reverse for SPY on 05/19", async (t) => {
         return isTodayMarketBar;
     });
 
-    t.is(testBars.length, 7);
+    expect(testBars.length).toEqual(7);
 
     let trend = getHeuristicTrend(lastBarYday, testBars);
 
-    t.is(trend.primary.value, TrendType.down);
-    t.is(trend.secondary[trend.secondary.length - 1].trendBreakThreshold, 294.84);
-    t.is(trend.secondary[trend.secondary.length - 1].value, TrendType.up);
-    t.is(trend.secondary.length, 2);
+    expect(trend.primary.value).toEqual(TrendType.down);
+    expect(
+        trend.secondary[trend.secondary.length - 1].trendBreakThreshold
+    ).toEqual(294.84);
+    expect(trend.secondary[trend.secondary.length - 1].value).toEqual(
+        TrendType.up
+    );
+    expect(trend.secondary.length).toEqual(2);
 });

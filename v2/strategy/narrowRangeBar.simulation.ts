@@ -1,19 +1,27 @@
-import { AlpacaOrder } from "@neeschit/alpaca-trade-api";
-import { addBusinessDays } from "date-fns";
-import { SimulationStrategy } from "../simulation-helpers/simulation.strategy";
-import { getSafeOrbEntryPlan, isTimeForOrbEntry, NarrowRangeBarStrategy } from "./narrowRangeBar";
+import { AlpacaOrder, Calendar } from "@neeschit/alpaca-trade-api";
+import DateFns from "date-fns";
+import { SimulationStrategy } from "../simulation-helpers/simulation.strategy.js";
+import {
+    getSafeOrbEntryPlan,
+    isTimeForOrbEntry,
+    NarrowRangeBarStrategy,
+} from "./narrowRangeBar.js";
 import {
     cancelOpenOrdersForSymbol,
     getPersistedData,
-} from "../trade-management-api/trade-manager.handlers";
-import { createOrderSynchronized } from "../trade-management-helpers";
-import { PeriodType, DefaultDuration } from "../../src/data/data.model";
-import { IndicatorValue } from "../../src/indicator/adx";
-import { getAverageTrueRange } from "../../src/indicator/trueRange";
-import { LOGGER } from "../../src/instrumentation/log";
-import { getPolyonData } from "../../src/resources/polygon";
-import { batchInsertDailyBars, getSimpleData } from "../../src/resources/stockData";
-import { BrokerStrategy } from "../brokerage-helpers/brokerage.strategy";
+} from "../trade-management-api/trade-manager.handlers.js";
+import { createOrderSynchronized } from "../trade-management-helpers/order.js";
+import { PeriodType, DefaultDuration } from "../../src/data/data.model.js";
+import { IndicatorValue } from "../../src/indicator/adx.js";
+import { getAverageTrueRange } from "../../src/indicator/trueRange.js";
+import { LOGGER } from "../../src/instrumentation/log.js";
+import { getPolyonData } from "../../src/resources/polygon.js";
+import {
+    batchInsertDailyBars,
+    getSimpleData,
+} from "../../src/resources/stockData.js";
+import { BrokerStrategy } from "../brokerage-helpers/brokerage.strategy.js";
+const { addBusinessDays } = DateFns;
 
 export class NarrowRangeBarSimulation implements SimulationStrategy {
     private strategy?: NarrowRangeBarStrategy;
@@ -35,7 +43,10 @@ export class NarrowRangeBarSimulation implements SimulationStrategy {
             );
 
             try {
-                await batchInsertDailyBars(daysMinutes[this.symbol], this.symbol);
+                await batchInsertDailyBars(
+                    daysMinutes[this.symbol],
+                    this.symbol
+                );
             } catch (e) {
                 LOGGER.error(`Error inserting for ${this.symbol}`, e);
             }
@@ -60,7 +71,10 @@ export class NarrowRangeBarSimulation implements SimulationStrategy {
         });
     }
 
-    async rebalance(epoch: number): Promise<AlpacaOrder | void> {
+    async rebalance(
+        calendar: Calendar[],
+        epoch: number
+    ): Promise<AlpacaOrder | void> {
         if (!this.strategy) {
             await this.beforeMarketStarts(epoch);
         }
@@ -77,7 +91,11 @@ export class NarrowRangeBarSimulation implements SimulationStrategy {
             return;
         }
 
-        const { data, lastBar } = await getPersistedData(this.symbol, epoch);
+        const { data, lastBar } = await getPersistedData(
+            this.symbol,
+            calendar,
+            epoch
+        );
 
         const { atr } = getAverageTrueRange(data, false);
 
@@ -95,7 +113,9 @@ export class NarrowRangeBarSimulation implements SimulationStrategy {
         try {
             const order = await createOrderSynchronized(plan, this.broker);
         } catch (e) {
-            LOGGER.error(`could not place order for ${this.symbol} at ${epoch}`);
+            LOGGER.error(
+                `could not place order for ${this.symbol} at ${epoch}`
+            );
             throw e;
         }
     }

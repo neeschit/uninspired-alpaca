@@ -1,7 +1,6 @@
 import {
     checkIfTableExistsForSymbol,
     createStorageTables,
-    createMetadataTables,
     dropStorageTables,
     createDbIfNotExists,
     createNewMetadataTables,
@@ -16,8 +15,6 @@ async function run() {
     const newSymbols = [];
 
     await createDbIfNotExists();
-
-    await createMetadataTables();
 
     await createNewMetadataTables();
 

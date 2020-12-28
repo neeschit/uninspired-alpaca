@@ -1,16 +1,17 @@
-import test from "ava";
-import uptrend from "../fixtures/uptrend";
-import downtrend from "../fixtures/downtrend";
+import { readJSONSync } from "fs-extra";
 import { getAverageDirectionalIndex } from "./adx";
 
-test("getAdx - uptrend", t => {
+const downtrend = readJSONSync("./fixtures/downtrend.json") as any;
+const uptrend = readJSONSync("./fixtures/uptrend.json") as any;
+
+test("getAdx - uptrend", () => {
     const { adx, pdx, ndx } = getAverageDirectionalIndex(uptrend);
 
-    t.is(adx[adx.length - 1].value, 42.45438184588078);
+    expect(adx[adx.length - 1].value).toEqual(42.45438184588078);
 });
 
-test("getAdx - downtrend", t => {
+test("getAdx - downtrend", () => {
     const { adx, pdx, ndx } = getAverageDirectionalIndex(downtrend);
 
-    t.is(adx[adx.length - 1].value, 33.29778261226684);
+    expect(adx[adx.length - 1].value).toEqual(33.29778261226684);
 });

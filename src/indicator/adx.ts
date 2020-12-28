@@ -1,7 +1,7 @@
-import { getDirectionalMovementIndex, DEFAULT_DMI_PERIOD } from "./dmi";
-import { getExponentialAverage } from "./average";
-import { getAverageTrueRange } from "./trueRange";
-import { Bar } from "../data/data.model";
+import { getDirectionalMovementIndex, DEFAULT_DMI_PERIOD } from "./dmi.js";
+import { getExponentialAverage } from "./average.js";
+import { getAverageTrueRange } from "./trueRange.js";
+import { Bar } from "../data/data.model.js";
 
 export interface IndicatorValue<X> {
     value: X;
@@ -23,7 +23,10 @@ export const getAverageDirectionalIndex = (
             if (positiveMovement >= negativeMovement && positiveMovement > 0) {
                 pdx.push(positiveMovement);
                 ndx.push(0);
-            } else if (positiveMovement <= negativeMovement && negativeMovement > 0) {
+            } else if (
+                positiveMovement <= negativeMovement &&
+                negativeMovement > 0
+            ) {
                 pdx.push(0);
                 ndx.push(negativeMovement);
             } else {
@@ -52,10 +55,12 @@ export const getAverageDirectionalIndex = (
         return Math.abs((pVal - nVal) / (pVal + nVal === 0 ? 1 : pVal + nVal));
     });
 
-    const adx = getExponentialAverage(adxToBe, 27).map((v, index, adxArray) => ({
-        value: v * 100,
-        t: bars[bars.length - adxArray.length].t,
-    }));
+    const adx = getExponentialAverage(adxToBe, 27).map(
+        (v, index, adxArray) => ({
+            value: v * 100,
+            t: bars[bars.length - adxArray.length].t,
+        })
+    );
 
     return { adx, pdx: mappedPdx, ndx: mappedNdx, atr, tr };
 };

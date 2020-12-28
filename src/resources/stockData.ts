@@ -1,21 +1,19 @@
-import { getConnection } from "../connection/pg";
+import { getConnection } from "../connection/pg.js";
 import {
     TickBar,
     TradeUpdate,
     Bar,
     PeriodType,
     DefaultDuration,
-} from "../data/data.model";
-import { LOGGER } from "../instrumentation/log";
-import { getCreateOrdersTableSql } from "./order";
-import { getCreatePositionsTableSql } from "./position";
-import { set, addBusinessDays } from "date-fns";
-import { getPolyonData } from "./polygon";
-import { Client, Pool } from "pg";
-import {
-    getCreateTradePlanTableSql,
-    getCreateUnfilledOrdersTableSql,
-} from "../../v2/trade-management-helpers";
+} from "../data/data.model.js";
+import { LOGGER } from "../instrumentation/log.js";
+import DateFns from "date-fns";
+const { set, addBusinessDays } = DateFns;
+import { getPolyonData } from "./polygon.js";
+import PG from "pg";
+const { Client } = PG;
+import { getCreateTradePlanTableSql } from "../../v2/trade-management-helpers/position.js";
+import { getCreateUnfilledOrdersTableSql } from "../../v2/trade-management-helpers/order.js";
 
 export const createDbIfNotExists = async () => {
     const checkQuery = `select datname FROM pg_catalog.pg_database where lower(datname) = lower('stock_data');`;
@@ -212,19 +210,6 @@ export const dropStorageTables = async (symbols: string[]) => {
     }
 
     return results;
-};
-
-export const createMetadataTables = async () => {
-    const positionsExists = await checkIfTableExists("positions");
-    const ordersExists = await checkIfTableExists("orders");
-
-    if (!positionsExists) {
-        await getConnection().query(getCreatePositionsTableSql());
-    }
-
-    if (!ordersExists) {
-        await getConnection().query(getCreateOrdersTableSql());
-    }
 };
 
 export const createNewMetadataTables = async () => {

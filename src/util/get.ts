@@ -1,7 +1,7 @@
 import * as https from "https";
 import * as http from "http";
 import { stringify } from "querystring";
-import { LOGGER } from "../instrumentation/log";
+import { LOGGER } from "../instrumentation/log.js";
 
 const logError = ({
     url,
@@ -63,7 +63,9 @@ export const getHttps = (url: string) => {
 };
 
 export const getHttp = <
-    T extends NodeJS.Dict<string | number | boolean | string[] | number[] | boolean[] | null>
+    T extends NodeJS.Dict<
+        string | number | boolean | string[] | number[] | boolean[] | null
+    >
 >({
     hostname,
     path,
@@ -76,7 +78,9 @@ export const getHttp = <
     port?: string | number;
 }) => {
     const dataJSON = data && "?" + stringify(data);
-    const url = `http://${hostname}${port && ":" + port}${path}${dataJSON ? dataJSON : ""}`;
+    const url = `http://${hostname}${port && ":" + port}${path}${
+        dataJSON ? dataJSON : ""
+    }`;
     LOGGER.warn(url);
     return new Promise((resolve, reject) => {
         let count = 0;
@@ -94,7 +98,10 @@ export const getHttp = <
                 },
                 (response: any) => {
                     count++;
-                    if (response.statusCode < 200 || response.statusCode >= 300) {
+                    if (
+                        response.statusCode < 200 ||
+                        response.statusCode >= 300
+                    ) {
                         if (response.statusCode === 500) {
                             retry();
                             return;

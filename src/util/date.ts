@@ -1,5 +1,7 @@
-import { utcToZonedTime, zonedTimeToUtc, format } from "date-fns-tz";
-import { TimestampType, MarketTimezone } from "../data/data.model";
+import DateFnsTz from "date-fns-tz";
+import { TimestampType, MarketTimezone } from "../data/data.model.js";
+
+const { utcToZonedTime, zonedTimeToUtc, format } = DateFnsTz;
 
 export const convertToLocalTime = (
     date: TimestampType,
@@ -16,6 +18,6 @@ export const convertToLocalTime = (
 
 export const formatInEasternTimeForDisplay = (date: TimestampType) => {
     return format(date, "yyyy-MM-dd hh:mm:ss", {
-        timeZone: MarketTimezone
+        timeZone: MarketTimezone,
     });
 };

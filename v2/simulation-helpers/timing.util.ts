@@ -1,14 +1,22 @@
 import { Calendar } from "@neeschit/alpaca-trade-api";
-import { format, isSameDay } from "date-fns";
-import { zonedTimeToUtc } from "date-fns-tz";
-import { MarketTimezone } from "../../src/data/data.model";
+import DateFns from "date-fns";
+import DateFnsTz from "date-fns-tz";
+import { MarketTimezone } from "../../src/data/data.model.js";
 
-const dateFormat = "yyyy-MM-dd";
+const { format, isSameDay } = DateFns;
+const { zonedTimeToUtc } = DateFnsTz;
+
+export const DATE_FORMAT = "yyyy-MM-dd";
 const fifteenMinutes = 1000 * 60 * 15;
 
-const getDateAndCurrentCalendarObject = (calendar: Calendar[], currentTimeEpoch: number) => {
-    const currentDateString = format(currentTimeEpoch, dateFormat);
-    const currentCalendarObject = calendar.find((c) => c.date === currentDateString);
+const getDateAndCurrentCalendarObject = (
+    calendar: Calendar[],
+    currentTimeEpoch: number
+) => {
+    const currentDateString = format(currentTimeEpoch, DATE_FORMAT);
+    const currentCalendarObject = calendar.find(
+        (c) => c.date === currentDateString
+    );
 
     if (!currentCalendarObject) {
         throw new Error("no_calendar_found");
@@ -20,12 +28,15 @@ const getDateAndCurrentCalendarObject = (calendar: Calendar[], currentTimeEpoch:
     };
 };
 
-export const isMarketOpening = (calendar: Calendar[], currentTimeEpoch: number) => {
+export const isMarketOpening = (
+    calendar: Calendar[],
+    currentTimeEpoch: number
+) => {
     try {
-        const { currentCalendarObject, currentDateString } = getDateAndCurrentCalendarObject(
-            calendar,
-            currentTimeEpoch
-        );
+        const {
+            currentCalendarObject,
+            currentDateString,
+        } = getDateAndCurrentCalendarObject(calendar, currentTimeEpoch);
 
         const openTime = `${currentDateString}T${currentCalendarObject.open}:00.000`;
         const marketOpenToday = zonedTimeToUtc(openTime, MarketTimezone);
@@ -39,12 +50,15 @@ export const isMarketOpening = (calendar: Calendar[], currentTimeEpoch: number) 
     }
 };
 
-export const isMarketClosing = (calendar: Calendar[], currentTimeEpoch: number) => {
+export const isMarketClosing = (
+    calendar: Calendar[],
+    currentTimeEpoch: number
+) => {
     try {
-        const { currentCalendarObject, currentDateString } = getDateAndCurrentCalendarObject(
-            calendar,
-            currentTimeEpoch
-        );
+        const {
+            currentCalendarObject,
+            currentDateString,
+        } = getDateAndCurrentCalendarObject(calendar, currentTimeEpoch);
 
         const closeTime = `${currentDateString}T${currentCalendarObject.close}:00.000`;
         const marketCloseToday = zonedTimeToUtc(closeTime, MarketTimezone);
@@ -58,12 +72,15 @@ export const isMarketClosing = (calendar: Calendar[], currentTimeEpoch: number) 
     }
 };
 
-export const isAfterMarketClose = (calendar: Calendar[], currentTimeEpoch: number) => {
+export const isAfterMarketClose = (
+    calendar: Calendar[],
+    currentTimeEpoch: number
+) => {
     try {
-        const { currentCalendarObject, currentDateString } = getDateAndCurrentCalendarObject(
-            calendar,
-            currentTimeEpoch
-        );
+        const {
+            currentCalendarObject,
+            currentDateString,
+        } = getDateAndCurrentCalendarObject(calendar, currentTimeEpoch);
 
         const closeTime = `${currentDateString}T${currentCalendarObject.close}:00.000`;
         const marketCloseToday = zonedTimeToUtc(closeTime, MarketTimezone);
@@ -77,12 +94,15 @@ export const isAfterMarketClose = (calendar: Calendar[], currentTimeEpoch: numbe
     }
 };
 
-export const isBeforeMarketOpening = (calendar: Calendar[], currentTimeEpoch: number) => {
+export const isBeforeMarketOpening = (
+    calendar: Calendar[],
+    currentTimeEpoch: number
+) => {
     try {
-        const { currentCalendarObject, currentDateString } = getDateAndCurrentCalendarObject(
-            calendar,
-            currentTimeEpoch
-        );
+        const {
+            currentCalendarObject,
+            currentDateString,
+        } = getDateAndCurrentCalendarObject(calendar, currentTimeEpoch);
 
         const openTime = `${currentDateString}T${currentCalendarObject.open}:00.000`;
         const marketOpenToday = zonedTimeToUtc(openTime, MarketTimezone);
@@ -96,18 +116,27 @@ export const isBeforeMarketOpening = (calendar: Calendar[], currentTimeEpoch: nu
     }
 };
 
-export const isMarketOpen = (calendar: Calendar[], currentTimeEpoch: number) => {
+export const isMarketOpen = (
+    calendar: Calendar[],
+    currentTimeEpoch: number
+) => {
     try {
-        const { currentCalendarObject, currentDateString } = getDateAndCurrentCalendarObject(
-            calendar,
-            currentTimeEpoch
-        );
+        const {
+            currentCalendarObject,
+            currentDateString,
+        } = getDateAndCurrentCalendarObject(calendar, currentTimeEpoch);
 
         const marketOpenNYString = `${currentDateString} ${currentCalendarObject.open}:00.000`;
         const marketCloseNYString = `${currentDateString} ${currentCalendarObject.close}:00.000`;
 
-        const marketOpenToday = zonedTimeToUtc(marketOpenNYString, MarketTimezone);
-        const marketCloseToday = zonedTimeToUtc(marketCloseNYString, MarketTimezone);
+        const marketOpenToday = zonedTimeToUtc(
+            marketOpenNYString,
+            MarketTimezone
+        );
+        const marketCloseToday = zonedTimeToUtc(
+            marketCloseNYString,
+            MarketTimezone
+        );
 
         return (
             currentTimeEpoch >= marketOpenToday.getTime() &&
@@ -116,4 +145,16 @@ export const isMarketOpen = (calendar: Calendar[], currentTimeEpoch: number) => 
     } catch (e) {
         return false;
     }
+};
+
+export const getMarketOpenMillis = (calendar: Calendar[], epoch: number) => {
+    const todaysDate = format(epoch, DATE_FORMAT);
+
+    const calendarEntry = calendar.find((c) => c.date === todaysDate);
+
+    const dateString = todaysDate + `T${calendarEntry!.open}:00.000`;
+
+    const marketOpenToday = zonedTimeToUtc(dateString, MarketTimezone);
+
+    return marketOpenToday.getTime();
 };

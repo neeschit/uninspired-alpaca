@@ -1,4 +1,3 @@
-import test from "ava";
 import { assessRisk, getActualStop } from "./riskManagement";
 
 const volumeProfile = [
@@ -25,78 +24,78 @@ const volumeProfile = [
     { v: 478648, low: 165, high: 166 },
 ];
 
-test("risk management with low price override ", (t) => {
+test("risk management with low price override ", () => {
     const dailyAtr = 2;
 
     const intradayAtr = 0.2;
 
     const currentPrice = 65;
 
-    t.is(assessRisk(dailyAtr, intradayAtr, currentPrice), 0.3);
+    expect(assessRisk(dailyAtr, intradayAtr, currentPrice)).toEqual(0.3);
 });
 
-test("risk management with intraday override", (t) => {
+test("risk management with intraday override", () => {
     const dailyAtr = 2;
 
     const intradayAtr = 0.45;
 
     const currentPrice = 65;
 
-    t.is(assessRisk(dailyAtr, intradayAtr, currentPrice), 0.45);
+    expect(assessRisk(dailyAtr, intradayAtr, currentPrice)).toEqual(0.45);
 });
 
-test("risk management with override for mid price", (t) => {
+test("risk management with override for mid price", () => {
     const dailyAtr = 5.63;
 
     const intradayAtr = 0.57;
 
     const currentPrice = 143;
 
-    t.is(assessRisk(dailyAtr, intradayAtr, currentPrice), 0.7);
+    expect(assessRisk(dailyAtr, intradayAtr, currentPrice)).toEqual(0.7);
 });
 
-test("risk management with high price override", (t) => {
+test("risk management with high price override", () => {
     const dailyAtr = 8;
 
     const intradayAtr = 0.56;
 
     const currentPrice = 301;
 
-    t.is(assessRisk(dailyAtr, intradayAtr, currentPrice), 1);
+    expect(assessRisk(dailyAtr, intradayAtr, currentPrice)).toEqual(1);
 });
 
-test("get actual stop with rounding to lowest - short entry", (t) => {
+test("get actual stop with rounding to lowest - short entry", () => {
     let actualStop = getActualStop(143, 0.57, true, 8.63);
 
-    t.is(actualStop, 144.08);
+    expect(actualStop).toEqual(144.08);
 
     actualStop = getActualStop(143, 0.87, true, 5.63);
 
-    t.is(actualStop, 144.06);
+    expect(actualStop).toEqual(144.06);
 });
 
-test("get actual stop with rounding to lowest - long entry", (t) => {
+test("get actual stop with rounding to lowest - long entry", () => {
     let actualStop = getActualStop(143, 0.57, false, 5.63);
 
-    t.is(actualStop, 142.3);
+    expect(actualStop).toEqual(142.3);
 
     actualStop = getActualStop(143, 0.87, false, 5.63);
 
-    t.is(actualStop, 141.94);
+    expect(actualStop).toEqual(141.94);
 });
 
-test("risk management with super high price override", (t) => {
+test("risk management with super high price override", () => {
     const dailyAtr = 41;
 
     const intradayAtr = 2.56;
 
     const currentPrice = 765;
 
-    t.is(assessRisk(dailyAtr, intradayAtr, currentPrice), 5.13);
+    expect(assessRisk(dailyAtr, intradayAtr, currentPrice)).toEqual(5.13);
 });
 
-test("get actual stop for large price stock", (t) => {
+test("get actual stop for large price stock", () => {
     let actualStop = getActualStop(765, 2.56, false, 41);
 
-    t.is(actualStop, 761.5);
+    expect(actualStop).toEqual(761.5);
 });

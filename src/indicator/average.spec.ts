@@ -1,10 +1,9 @@
-import test from "ava";
 import { getSimpleAverage, getExponentialAverage } from "./average";
 
-test("sma", t => {
+test("sma", () => {
     const sma = getSimpleAverage(fixtures);
 
-    t.deepEqual(sma, [
+    expect(sma).toStrictEqual([
         208.98,
         205.865,
         204.49,
@@ -24,14 +23,14 @@ test("sma", t => {
         207.68499999999997,
         207.99527777777774,
         208.31921052631577,
-        208.74175
+        208.74175,
     ]);
 });
 
-test("ema - small", t => {
+test("ema - small", () => {
     const ema = getExponentialAverage(smallExponentialFixtures);
 
-    t.deepEqual(ema, [
+    expect(ema).toStrictEqual([
         219.76166666666666,
         219.90144444444442,
         220.84925185185182,
@@ -47,7 +46,7 @@ test("ema - small", t => {
         230.52290694094026,
         231.85718601548155,
         232.93889454675067,
-        234.29904194051724
+        234.29904194051724,
     ]);
 });
 
@@ -71,7 +70,7 @@ const fixtures = [
     213.27,
     213.27,
     214.15,
-    216.77
+    216.77,
 ];
 
 const smallExponentialFixtures = [
@@ -90,5 +89,5 @@ const smallExponentialFixtures = [
     236.28,
     240.53,
     239.97,
-    243.14
+    243.14,
 ];

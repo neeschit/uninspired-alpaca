@@ -1,7 +1,7 @@
-import { endPooledConnection } from "../../src/connection/pg";
-import { currentStreamingSymbols } from "../../src/data/filters";
-import { getConnectedDataWebsocket } from "../brokerage-helpers";
-import { onStockMinuteDataPosted } from "./orchestrator";
+import { endPooledConnection } from "../../src/connection/pg.js";
+import { currentStreamingSymbols } from "../../src/data/filters.js";
+import { getConnectedDataWebsocket } from "../brokerage-helpers/alpaca.js";
+import { onStockMinuteDataPosted } from "./orchestrator.js";
 
 export const subscribeToTickLevelUpdates = (
     symbols: string[],

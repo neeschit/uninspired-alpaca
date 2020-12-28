@@ -1,7 +1,6 @@
-import test from "ava";
 import { getTrueRange, getAverageTrueRange } from "./trueRange";
 
-test("true range - gap down", t => {
+test("true range - gap down", () => {
     const range = getTrueRange(
         [
             {
@@ -11,7 +10,7 @@ test("true range - gap down", t => {
                 l: 200.83,
                 c: 208.98,
                 v: 43076897,
-                n: 1
+                n: 1,
             },
             {
                 t: 1565755200,
@@ -20,16 +19,16 @@ test("true range - gap down", t => {
                 l: 202.5869,
                 c: 202.75,
                 v: 30918861,
-                n: 1
-            }
+                n: 1,
+            },
         ],
         false
     );
 
-    t.is(range.toFixed(2), "6.39");
+    expect(range.toFixed(2)).toEqual("6.39");
 });
 
-test("true range - gap up", t => {
+test("true range - gap up", () => {
     const range = getTrueRange(
         [
             {
@@ -39,7 +38,7 @@ test("true range - gap up", t => {
                 l: 199.67,
                 c: 201.74,
                 v: 24575334,
-                n: 1
+                n: 1,
             },
             {
                 t: 1565928000,
@@ -48,16 +47,16 @@ test("true range - gap up", t => {
                 l: 203.84,
                 c: 206.44,
                 v: 25086579,
-                n: 1
-            }
+                n: 1,
+            },
         ],
         false
     );
 
-    t.is(range.toFixed(2), "5.42");
+    expect(range.toFixed(2)).toEqual("5.42");
 });
 
-test("true range - previos close in range", t => {
+test("true range - previos close in range", () => {
     const range = getTrueRange(
         [
             {
@@ -67,7 +66,7 @@ test("true range - previos close in range", t => {
                 l: 199.67,
                 c: 204.74,
                 v: 24575334,
-                n: 1
+                n: 1,
             },
             {
                 t: 1565928000,
@@ -76,18 +75,18 @@ test("true range - previos close in range", t => {
                 l: 203.84,
                 c: 206.44,
                 v: 25086579,
-                n: 1
-            }
+                n: 1,
+            },
         ],
         false
     );
 
-    t.is(range.toFixed(2), "3.32");
+    expect(range.toFixed(2)).toEqual("3.32");
 });
 
-test("atr", t => {
+test("atr", () => {
     const { atr } = getAverageTrueRange(fixtures, false);
-    t.deepEqual(atr, [
+    expect(atr).toStrictEqual([
         { value: 5.828000000000003, t: fixtures[1].t },
         { value: 5.941600000000004, t: fixtures[2].t },
         { value: 5.694720000000004, t: fixtures[3].t },
@@ -102,7 +101,7 @@ test("atr", t => {
         { value: 4.038113681348788, t: fixtures[12].t },
         { value: 4.127698523835617, t: fixtures[13].t },
         { value: 3.9210987206575325, t: fixtures[14].t },
-        { value: 3.834285557903196, t: fixtures[15].t }
+        { value: 3.834285557903196, t: fixtures[15].t },
     ]);
 });
 
@@ -120,7 +119,7 @@ const fixtures = [
         h: 237.64,
         l: 232.3075,
         c: 236.22,
-        v: 75801862
+        v: 75801862,
     },
     {
         t: 1571025600,
@@ -128,7 +127,7 @@ const fixtures = [
         h: 238.1342,
         l: 234.6701,
         c: 235.89,
-        v: 43959865
+        v: 43959865,
     },
     { t: 1571112000, o: 236.39, h: 237.65, l: 234.88, c: 235.32, v: 37286507 },
     { t: 1571198400, o: 233.37, h: 235.24, l: 233.2, c: 234.39, v: 32693993 },
@@ -140,8 +139,8 @@ const fixtures = [
         h: 240.99,
         l: 238.32,
         c: 240.53,
-        v: 17427391
+        v: 17427391,
     },
     { t: 1571716800, o: 241.16, h: 242.2, l: 239.6218, c: 239.97, v: 19060536 },
-    { t: 1571803200, o: 242.1, h: 243.24, l: 241.22, c: 243.14, v: 17199153 }
+    { t: 1571803200, o: 242.1, h: 243.24, l: 241.22, c: 243.14, v: 17199153 },
 ];

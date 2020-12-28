@@ -1,4 +1,4 @@
-import { Bar } from "../data/data.model";
+import { Bar } from "../data/data.model.js";
 
 export interface VolumeProfileBar {
     low: number;
@@ -19,13 +19,13 @@ export const getVolumeProfile = (bars: Bar[]): VolumeProfileBar[] => {
             return {
                 min: Math.floor(min),
                 max: Math.ceil(max),
-                sumVolume: sumVolume + bar.v
+                sumVolume: sumVolume + bar.v,
             };
         },
         {
             min: 100000,
             max: 0,
-            sumVolume: 0
+            sumVolume: 0,
         }
     );
 
@@ -50,20 +50,30 @@ export const getVolumeProfile = (bars: Bar[]): VolumeProfileBar[] => {
     }
 
     return volumeProfile
-        .filter(profile => profile)
-        .reduce((mergedArray: VolumeProfileBar[], val: VolumeProfileBar, index, array) => {
-            const orig = array.filter((foundVal, foundIndex) => {
-                return val.low === foundVal.low && foundIndex < index;
-            });
+        .filter((profile) => profile)
+        .reduce(
+            (
+                mergedArray: VolumeProfileBar[],
+                val: VolumeProfileBar,
+                index,
+                array
+            ) => {
+                const orig = array.filter((foundVal, foundIndex) => {
+                    return val.low === foundVal.low && foundIndex < index;
+                });
 
-            if (!orig || !orig.length) {
-                mergedArray.push(val);
-            } else {
-                orig[0].v += val.v;
-            }
-            return mergedArray;
-        }, [])
-        .sort((p1: VolumeProfileBar, p2: VolumeProfileBar) => (p1.v > p2.v ? -1 : 1));
+                if (!orig || !orig.length) {
+                    mergedArray.push(val);
+                } else {
+                    orig[0].v += val.v;
+                }
+                return mergedArray;
+            },
+            []
+        )
+        .sort((p1: VolumeProfileBar, p2: VolumeProfileBar) =>
+            p1.v > p2.v ? -1 : 1
+        );
 };
 
 export const getNextResistance = (
@@ -72,13 +82,13 @@ export const getNextResistance = (
     entryPrice: number,
     volumeProfile = getVolumeProfile(bars)
 ) => {
-    const ranges = volumeProfile.filter(profile => {
+    const ranges = volumeProfile.filter((profile) => {
         if (isShort) {
             return profile.high <= entryPrice;
         }
         return profile.low >= entryPrice;
     });
-    return ranges.map(range => {
+    return ranges.map((range) => {
         return isShort ? range.high : range.low;
     });
 };

@@ -1,9 +1,10 @@
-import { addBusinessDays, parse } from "date-fns";
-import { getAverageTrueRange } from "../../src/indicator/trueRange";
-import { getPolyonData } from "../../src/resources/polygon";
-import { getSimpleData } from "../../src/resources/stockData";
-import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
+import DateFns from "date-fns";
+import { getAverageTrueRange } from "../../src/indicator/trueRange.js";
+import { getPolyonData } from "../../src/resources/polygon.js";
+import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar.js";
 import { DailyWatchlist } from "./screener.interfaces";
+
+const { addBusinessDays, parse } = DateFns;
 
 const cache: Record<string, DailyWatchlist[]> = {};
 
@@ -11,7 +12,10 @@ function notUndefined<T extends DailyWatchlist>(x: T | undefined): x is T {
     return x?.symbol !== undefined;
 }
 
-export const getWatchlistForDate = async (symbolUniverse: string[], date: string) => {
+export const getWatchlistForDate = async (
+    symbolUniverse: string[],
+    date: string
+) => {
     if (cache[date]) {
         return cache[date];
     }

@@ -1,7 +1,7 @@
 import { Calendar } from "@neeschit/alpaca-trade-api";
-import { getApiServer, Service } from "../../src/util/api";
-import { rebalanceForSymbol } from "./trade-manager.handlers";
-import { brokerImpl } from "../brokerage-helpers/alpaca";
+import { getApiServer, Service } from "../../src/util/api.js";
+import { rebalanceForSymbol } from "./trade-manager.handlers.js";
+import { brokerImpl } from "../brokerage-helpers/alpaca.js";
 
 const server = getApiServer(Service.manager);
 

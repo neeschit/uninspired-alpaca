@@ -1,6 +1,6 @@
 import fastify from "fastify";
-import { postHttp } from "./post";
-import { getHttp } from "./get";
+import { postHttp } from "./post.js";
+import { getHttp } from "./get.js";
 import { Server, IncomingMessage, ServerResponse } from "http";
 
 export enum Service {
@@ -27,7 +27,9 @@ export const messageService = (service: Service, path: string, data?: any) => {
 };
 
 export const getFromService = <
-    T extends NodeJS.Dict<string | number | boolean | string[] | number[] | boolean[] | null>
+    T extends NodeJS.Dict<
+        string | number | boolean | string[] | number[] | boolean[] | null
+    >
 >(
     service: Service,
     path: string,
