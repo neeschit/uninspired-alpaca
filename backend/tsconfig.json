@@ -12,6 +12,10 @@
         "esModuleInterop": true,
         "sourceMap": true
     },
-    "include": ["libs/**/*", "v2/**/*"],
+    "include": [
+        "libs/**/*.ts", 
+        "scripts/**/*.ts",
+        "services/**/*.ts"
+    ],
     "exclude": ["node_modules"]
 }

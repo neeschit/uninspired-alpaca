@@ -41,7 +41,6 @@ export const createOrderSynchronized = async (
     broker: BrokerStrategy
 ): Promise<AlpacaOrder> => {
     const openOrders = await broker.getOpenOrders();
-    console.log(openOrders);
 
     const openOrderForSymbol = openOrders.filter(
         (o) => o.symbol === plan.symbol

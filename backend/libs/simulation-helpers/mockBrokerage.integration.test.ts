@@ -169,9 +169,9 @@ test("ticking past a long entry price with stop triggered as well", async () => 
     expect(applePosition.entryTime).toEqual("2020-12-24T14:35:00.000Z");
     expect(applePosition.exitTime).toEqual("2020-12-24T14:36:00.000Z");
     expect(applePosition.side).toEqual(PositionDirection.long);
-    expect(applePosition.avg_entry_price).toBeGreaterThanOrEqual(132.01);
-    expect(applePosition.avg_entry_price).toBeLessThanOrEqual(132.05);
-    expect(applePosition.avg_exit_price).toBeLessThanOrEqual(131.79);
+    expect(applePosition.averageEntryPrice).toBeGreaterThanOrEqual(132.01);
+    expect(applePosition.averageEntryPrice).toBeLessThanOrEqual(132.05);
+    expect(applePosition.averageExitPrice).toBeLessThanOrEqual(131.79);
 
     const closingOrderId = applePosition.orderIds.close;
     const openingOrderId = applePosition.orderIds.open;

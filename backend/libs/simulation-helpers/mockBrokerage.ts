@@ -15,8 +15,11 @@ import { LOGGER } from "../core-utils/instrumentation/log";
 import { BrokerStrategy } from "../brokerage-helpers/brokerage.strategy";
 
 export interface ClosedMockPosition {
-    avg_exit_price: number;
-    avg_entry_price: number;
+    averageExitPrice: number;
+    averageEntryPrice: number;
+    plannedEntryPrice: number;
+    plannedExitPrice: number;
+    plannedTargetPrice: number;
     qty: number;
     side: PositionDirection;
     symbol: string;
@@ -57,12 +60,16 @@ export class MockBrokerage implements BrokerStrategy {
     private constructor() {}
 
     public reset() {
+        this.resetForSimulator();
+        this.closedOrders = [];
+        this.closedPositions = [];
+    }
+
+    public resetForSimulator() {
         this.orders = [];
         this.stopLegs = [];
         this.profitLegs = [];
         this.openPositions = [];
-        this.closedOrders = [];
-        this.closedPositions = [];
     }
 
     public async cancelAlpacaOrder(oid: string): Promise<any> {}
@@ -290,23 +297,6 @@ export class MockBrokerage implements BrokerStrategy {
                 closingOrder!.filled_qty = order.qty;
                 closingOrder!.filled_avg_price = strikePrice;
 
-                this.closedPositions.push({
-                    symbol: order.symbol,
-                    avg_entry_price: originalOrder!.filled_avg_price,
-                    avg_exit_price: closingOrder!.filled_avg_price,
-                    qty: originalOrder!.filled_qty,
-                    side:
-                        originalOrder!.side === TradeDirection.sell
-                            ? PositionDirection.short
-                            : PositionDirection.long,
-                    entryTime: originalOrder!.filled_at as string,
-                    exitTime: closingOrder!.filled_at as string,
-                    orderIds: {
-                        open: originalOrder!.id,
-                        close: closingOrder!.id,
-                    },
-                });
-
                 this.closedOrders.push({
                     ...order,
                     associatedOrderIds: {
@@ -320,23 +310,44 @@ export class MockBrokerage implements BrokerStrategy {
                     (o) => o.id === originalOrder!.associatedOrderIds.stopLoss
                 );
 
-                if (stopOrderIndex > -1) {
-                    const removedOrder = this.stopLegs.splice(
-                        stopOrderIndex,
-                        1
-                    );
-                }
+                const stopOrder =
+                    stopOrderIndex > -1
+                        ? this.stopLegs.splice(stopOrderIndex, 1)[0]
+                        : closingOrder;
 
                 const takeProfitOrderIndex = this.orders.findIndex(
                     (o) => o.id === originalOrder!.associatedOrderIds.takeProfit
                 );
 
-                if (takeProfitOrderIndex > -1) {
-                    const takeProfitOrder = this.orders.splice(
-                        takeProfitOrderIndex,
-                        1
-                    );
-                }
+                const takeProfitOrder =
+                    takeProfitOrderIndex > -1
+                        ? this.orders.splice(takeProfitOrderIndex, 1)[0]
+                        : closingOrder;
+
+                this.closedPositions.push({
+                    symbol: order.symbol,
+                    averageEntryPrice: originalOrder!.filled_avg_price,
+                    averageExitPrice: closingOrder!.filled_avg_price,
+                    plannedEntryPrice:
+                        originalOrder!.stop_price ||
+                        originalOrder!.limit_price!,
+                    plannedExitPrice:
+                        stopOrder?.stop_price || closingOrder!.stop_price!,
+                    plannedTargetPrice:
+                        takeProfitOrder?.limit_price ||
+                        closingOrder!.limit_price!,
+                    qty: originalOrder!.filled_qty,
+                    side:
+                        originalOrder!.side === TradeDirection.sell
+                            ? PositionDirection.short
+                            : PositionDirection.long,
+                    entryTime: originalOrder!.filled_at as string,
+                    exitTime: closingOrder!.filled_at as string,
+                    orderIds: {
+                        open: originalOrder!.id,
+                        close: closingOrder!.id,
+                    },
+                });
             }
         }
 

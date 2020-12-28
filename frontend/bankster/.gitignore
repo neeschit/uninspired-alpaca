@@ -1,12 +1,3 @@
-node_modules
-.env
-build
-*.log
-tf/credentials.json
-tf/**/terraform-provider-*
-data/cache
-coverage
-.DS_Store
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies

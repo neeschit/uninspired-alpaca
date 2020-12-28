@@ -1,4 +1,4 @@
-import { getCompaniesByMarketCap } from "../data/marketcap";
+import { getCompaniesByMarketCap } from "../libs/core-utils/data/marketcap";
 import { writeFileSync } from "fs";
 
 getCompaniesByMarketCap(50000000000).then((response) => {
