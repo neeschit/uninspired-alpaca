@@ -16,7 +16,8 @@ jobs:
               uses: actions/setup-node@v1
               with:
                   node-version: ${{ matrix.node-version }}
-            - name: npm install, build, and test
+            - name: npm install, build, and test server code
+              working-directory: ./backend
               run: |
                   curl --compressed -o- -L https://yarnpkg.com/install.sh | bash
                   yarn install
