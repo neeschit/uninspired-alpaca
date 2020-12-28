@@ -1,16 +1,15 @@
-import { currentIndices, getMegaCaps } from "../data/filters.js";
-import { DefaultDuration, PeriodType } from "../data/data.model.js";
-import DateFns from "date-fns";
-const { addDays, startOfDay, addBusinessDays, endOfDay } = DateFns;
-import { LOGGER } from "../instrumentation/log.js";
-import { getPolyonData } from "../resources/polygon.js";
+import { currentIndices, getMegaCaps } from "../data/filters";
+import { DefaultDuration, PeriodType } from "../data/data.model";
+import { addDays, startOfDay, addBusinessDays, endOfDay } from "date-fns";
+import { LOGGER } from "../instrumentation/log";
+import { getPolyonData } from "../resources/polygon";
 import {
     insertBar,
     batchInsertBars,
     batchInsertDailyBars,
-} from "../resources/stockData.js";
-import { isAfterMarketClose } from "../../v2/simulation-helpers/timing.util.js";
-import { getCalendar } from "../../v2/brokerage-helpers/alpaca.js";
+} from "../resources/stockData";
+import { isAfterMarketClose } from "../../v2/simulation-helpers/timing.util";
+import { getCalendar } from "../../v2/brokerage-helpers/alpaca";
 
 const companies: string[] = getMegaCaps();
 

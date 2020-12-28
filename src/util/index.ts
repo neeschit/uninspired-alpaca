@@ -1,9 +1,7 @@
 import { existsSync, readdirSync, writeFileSync, appendFileSync } from "fs";
 import FsExtra from "fs-extra";
 const { ensureDirSync } = FsExtra;
-import { DefaultDuration, PeriodType } from "../data/data.model.js";
-
-export * from "./get.js";
+import { DefaultDuration, PeriodType } from "../data/data.model";
 
 export function roundHalf(num: number) {
     return Math.round(num * 2) / 2;

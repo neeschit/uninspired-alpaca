@@ -3,7 +3,7 @@ import { rebalance } from "../trade-management-api/trade-manager.interfaces";
 import { Bar } from "../../src/data/data.model";
 import { onStockMinuteDataPosted } from "./orchestrator";
 
-jest.mock("../trade-management-api");
+jest.mock("../trade-management-api/trade-manager.interfaces");
 
 const mockEnterTrade = rebalance as jest.Mock;
 

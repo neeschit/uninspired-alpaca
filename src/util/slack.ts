@@ -1,6 +1,6 @@
 import { AlpacaOrder } from "@neeschit/alpaca-trade-api";
-import { TradePlan } from "../data/data.model.js";
-import { postHttps } from "./post.js";
+import { TradePlan } from "../data/data.model";
+import { postHttps } from "./post";
 
 const slackHookOptions = {
     hostname: "hooks.slack.com",

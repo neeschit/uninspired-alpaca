@@ -1,13 +1,12 @@
-import DateFns from "date-fns";
-const { addDays, startOfDay } = DateFns;
-import { getPolyonData, getSimplePolygonData } from "../resources/polygon.js";
+import { addDays, startOfDay } from "date-fns";
+import { getPolyonData, getSimplePolygonData } from "../resources/polygon";
 import {
     TimestampType,
     Bar,
     PeriodType,
     DefaultDuration,
-} from "../data/data.model.js";
-import { LOGGER } from "../instrumentation/log.js";
+} from "../data/data.model";
+import { LOGGER } from "../instrumentation/log";
 
 const date = new Date();
 

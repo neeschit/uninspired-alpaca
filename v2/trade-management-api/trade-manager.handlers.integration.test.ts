@@ -3,15 +3,13 @@ import {
     getPersistedData,
     rebalanceForSymbol,
 } from "./trade-manager.handlers";
-import { getWatchlistFromScreenerService } from "../screener-api/screener.interfaces.js";
-import { createOrderSynchronized } from "../trade-management-helpers/order.js";
-import { endPooledConnection } from "../../src/connection/pg.js";
-import { CachedCalendar } from "../orchestrator-service/orchestrator.js";
-import { getCalendar } from "../brokerage-helpers/alpaca.js";
+import { getWatchlistFromScreenerService } from "../screener-api/screener.interfaces";
+import { createOrderSynchronized } from "../trade-management-helpers/order";
+import { endPooledConnection } from "../../src/connection/pg";
+import { CachedCalendar } from "../orchestrator-service/orchestrator";
+import { getCalendar } from "../brokerage-helpers/alpaca";
 
-jest.mock("../screener-api");
-
-jest.mock("../trade-management-helpers");
+jest.mock("../trade-management-helpers/order");
 
 const mockBrokerage = {
     closePosition: jest.fn(),

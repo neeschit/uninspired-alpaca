@@ -1,6 +1,6 @@
 import fastify from "fastify";
-import { postHttp } from "./post.js";
-import { getHttp } from "./get.js";
+import { postHttp } from "./post";
+import { getHttp } from "./get";
 import { Server, IncomingMessage, ServerResponse } from "http";
 
 export enum Service {

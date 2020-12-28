@@ -21,7 +21,7 @@ jest.mock("../trade-management-api/trade-manager.handlers", () => {
         cancelOpenOrdersForSymbol: jest.fn(),
     };
 });
-jest.mock("../trade-management-helpers");
+jest.mock("../trade-management-helpers/order");
 
 const mockBrokerage = {
     closePosition: jest.fn(),

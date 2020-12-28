@@ -1,10 +1,7 @@
 import { Calendar } from "@neeschit/alpaca-trade-api";
-import DateFns from "date-fns";
-import DateFnsTz from "date-fns-tz";
-import { MarketTimezone } from "../../src/data/data.model.js";
-
-const { format, isSameDay } = DateFns;
-const { zonedTimeToUtc } = DateFnsTz;
+import { format, isSameDay } from "date-fns";
+import { zonedTimeToUtc } from "date-fns-tz";
+import { MarketTimezone } from "../../src/data/data.model";
 
 export const DATE_FORMAT = "yyyy-MM-dd";
 const fifteenMinutes = 1000 * 60 * 15;

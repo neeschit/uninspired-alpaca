@@ -1,10 +1,10 @@
 import { Calendar } from "@neeschit/alpaca-trade-api";
 
-import { getData } from "../../src/resources/stockData.js";
-import { getMarketOpenMillis } from "../simulation-helpers/timing.util.js";
-import { runStrategy } from "../simulation-helpers/simulator.js";
-import { NarrowRangeBarSimulation } from "../strategy/narrowRangeBar.simulation.js";
-import { BrokerStrategy } from "../brokerage-helpers/brokerage.strategy.js";
+import { getData } from "../../src/resources/stockData";
+import { getMarketOpenMillis } from "../simulation-helpers/timing.util";
+import { runStrategy } from "../simulation-helpers/simulator";
+import { NarrowRangeBarSimulation } from "../strategy/narrowRangeBar.simulation";
+import { BrokerStrategy } from "../brokerage-helpers/brokerage.strategy";
 
 const nrbStrategies: { [index: string]: NarrowRangeBarSimulation } = {};
 

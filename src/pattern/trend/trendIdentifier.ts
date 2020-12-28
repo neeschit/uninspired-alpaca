@@ -1,7 +1,7 @@
-import { getAverageDirectionalIndex } from "../../indicator/adx.js";
-import { Bar } from "../../data/data.model.js";
-import { LOGGER } from "../../instrumentation/log.js";
-import { getAverageTrueRange } from "../../indicator/trueRange.js";
+import { getAverageDirectionalIndex } from "../../indicator/adx";
+import { Bar } from "../../data/data.model";
+import { LOGGER } from "../../instrumentation/log";
+import { getAverageTrueRange } from "../../indicator/trueRange";
 
 export enum TrendType {
     up = "up",

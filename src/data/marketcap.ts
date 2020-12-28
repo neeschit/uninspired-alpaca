@@ -1,7 +1,7 @@
 import { Exchange } from "@neeschit/alpaca-trade-api";
-import { alpaca } from "../../v2/brokerage-helpers/alpaca.js";
-import { getStockFinancials, getTickerDetails } from "../resources/polygon.js";
-import { LOGGER } from "../instrumentation/log.js";
+import { alpaca } from "../../v2/brokerage-helpers/alpaca";
+import { getStockFinancials, getTickerDetails } from "../resources/polygon";
+import { LOGGER } from "../instrumentation/log";
 
 const allowedCountries = ["usa", "chn", "hkg", "can"];
 

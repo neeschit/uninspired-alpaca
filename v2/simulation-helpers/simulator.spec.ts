@@ -1,5 +1,4 @@
 import { Calendar } from "@neeschit/alpaca-trade-api";
-import { mock } from "sinon";
 import { getCalendar } from "../brokerage-helpers/alpaca";
 import { SimulationStrategy } from "./simulation.strategy";
 import { runStrategy, Simulator } from "./simulator";

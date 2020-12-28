@@ -6,7 +6,7 @@ import { getApiServer } from "../../src/util/api";
 
 jest.mock("../../src/util/api");
 jest.mock("./trade-manager.handlers");
-jest.mock("../brokerage-helpers");
+jest.mock("../brokerage-helpers/alpaca");
 
 import { rebalanceForSymbol } from "./trade-manager.handlers";
 

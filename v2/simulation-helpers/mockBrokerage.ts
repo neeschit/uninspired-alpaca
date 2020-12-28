@@ -8,13 +8,11 @@ import {
     PositionDirection,
 } from "@neeschit/alpaca-trade-api";
 import { v4 } from "uuid";
-import DateFns from "date-fns";
-import { getSimpleData } from "../../src/resources/stockData.js";
-import { Bar } from "../../src/data/data.model.js";
-import { LOGGER } from "../../src/instrumentation/log.js";
-import { BrokerStrategy } from "../brokerage-helpers/brokerage.strategy.js";
-
-const { fromUnixTime } = DateFns;
+import { fromUnixTime } from "date-fns";
+import { getSimpleData } from "../../src/resources/stockData";
+import { Bar } from "../../src/data/data.model";
+import { LOGGER } from "../../src/instrumentation/log";
+import { BrokerStrategy } from "../brokerage-helpers/brokerage.strategy";
 
 export interface ClosedMockPosition {
     avg_exit_price: number;

@@ -1,7 +1,7 @@
-import { getDirectionalMovementIndex, DEFAULT_DMI_PERIOD } from "./dmi.js";
-import { getExponentialAverage } from "./average.js";
-import { getAverageTrueRange } from "./trueRange.js";
-import { Bar } from "../data/data.model.js";
+import { getDirectionalMovementIndex, DEFAULT_DMI_PERIOD } from "./dmi";
+import { getExponentialAverage } from "./average";
+import { getAverageTrueRange } from "./trueRange";
+import { Bar } from "../data/data.model";
 
 export interface IndicatorValue<X> {
     value: X;

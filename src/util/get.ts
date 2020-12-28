@@ -1,7 +1,7 @@
 import * as https from "https";
 import * as http from "http";
 import { stringify } from "querystring";
-import { LOGGER } from "../instrumentation/log.js";
+import { LOGGER } from "../instrumentation/log";
 
 const logError = ({
     url,

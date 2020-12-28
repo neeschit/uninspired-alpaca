@@ -1,5 +1,5 @@
 import { Calendar } from "@neeschit/alpaca-trade-api";
-import { messageService, Service } from "../../src/util/api.js";
+import { messageService, Service } from "../../src/util/api";
 
 export const rebalance = async (
     symbol: string,

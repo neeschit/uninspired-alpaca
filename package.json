@@ -12,7 +12,6 @@
     "pg": "^8.0.0",
     "uuid": "^8.3.2"
   },
-  "type": "module",
   "author": "",
   "license": "ISC",
   "devDependencies": {

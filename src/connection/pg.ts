@@ -1,5 +1,4 @@
-import PG from "pg";
-const { Pool } = PG;
+import { Pool } from "pg";
 
 const pool = new Pool({
     database: "stock_data",

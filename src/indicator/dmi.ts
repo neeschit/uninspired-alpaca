@@ -1,4 +1,4 @@
-import { Bar } from "../data/data.model.js";
+import { Bar } from "../data/data.model";
 
 export const DEFAULT_DMI_PERIOD = 14;
 

@@ -1,10 +1,8 @@
-import DateFns from "date-fns";
-import { getAverageTrueRange } from "../../src/indicator/trueRange.js";
-import { getPolyonData } from "../../src/resources/polygon.js";
-import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar.js";
+import { addBusinessDays, parse } from "date-fns";
+import { getAverageTrueRange } from "../../src/indicator/trueRange";
+import { getPolyonData } from "../../src/resources/polygon";
+import { NarrowRangeBarStrategy } from "../strategy/narrowRangeBar";
 import { DailyWatchlist } from "./screener.interfaces";
-
-const { addBusinessDays, parse } = DateFns;
 
 const cache: Record<string, DailyWatchlist[]> = {};
 

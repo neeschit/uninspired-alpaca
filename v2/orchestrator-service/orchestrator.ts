@@ -1,11 +1,9 @@
 import { Calendar } from "@neeschit/alpaca-trade-api";
-import DateFns from "date-fns";
-import { PolygonTradeUpdate } from "../../src/resources/polygon.js";
-import { getCalendar } from "../brokerage-helpers/alpaca.js";
-import { rebalance } from "../trade-management-api/trade-manager.interfaces.js";
-import { insertBarData } from "../trade-management-helpers/stream.js";
-
-const { endOfDay, startOfDay } = DateFns;
+import { endOfDay, startOfDay } from "date-fns";
+import { PolygonTradeUpdate } from "../../src/resources/polygon";
+import { getCalendar } from "../brokerage-helpers/alpaca";
+import { rebalance } from "../trade-management-api/trade-manager.interfaces";
+import { insertBarData } from "../trade-management-helpers/stream";
 
 export class CachedCalendar {
     public static value: Calendar[];

@@ -1,4 +1,4 @@
-import { roundHalf, ceilHalf, floorHalf } from "../util/index.js";
+import { roundHalf, ceilHalf, floorHalf } from "../util/index";
 
 export const TRADING_RISK_UNIT_CONSTANT = 10;
 

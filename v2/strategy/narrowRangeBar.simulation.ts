@@ -1,27 +1,26 @@
 import { AlpacaOrder, Calendar } from "@neeschit/alpaca-trade-api";
-import DateFns from "date-fns";
-import { SimulationStrategy } from "../simulation-helpers/simulation.strategy.js";
+import { addBusinessDays } from "date-fns";
+import { SimulationStrategy } from "../simulation-helpers/simulation.strategy";
 import {
     getSafeOrbEntryPlan,
     isTimeForOrbEntry,
     NarrowRangeBarStrategy,
-} from "./narrowRangeBar.js";
+} from "./narrowRangeBar";
 import {
     cancelOpenOrdersForSymbol,
     getPersistedData,
-} from "../trade-management-api/trade-manager.handlers.js";
-import { createOrderSynchronized } from "../trade-management-helpers/order.js";
-import { PeriodType, DefaultDuration } from "../../src/data/data.model.js";
-import { IndicatorValue } from "../../src/indicator/adx.js";
-import { getAverageTrueRange } from "../../src/indicator/trueRange.js";
-import { LOGGER } from "../../src/instrumentation/log.js";
-import { getPolyonData } from "../../src/resources/polygon.js";
+} from "../trade-management-api/trade-manager.handlers";
+import { createOrderSynchronized } from "../trade-management-helpers/order";
+import { PeriodType, DefaultDuration } from "../../src/data/data.model";
+import { IndicatorValue } from "../../src/indicator/adx";
+import { getAverageTrueRange } from "../../src/indicator/trueRange";
+import { LOGGER } from "../../src/instrumentation/log";
+import { getPolyonData } from "../../src/resources/polygon";
 import {
     batchInsertDailyBars,
     getSimpleData,
-} from "../../src/resources/stockData.js";
-import { BrokerStrategy } from "../brokerage-helpers/brokerage.strategy.js";
-const { addBusinessDays } = DateFns;
+} from "../../src/resources/stockData";
+import { BrokerStrategy } from "../brokerage-helpers/brokerage.strategy";
 
 export class NarrowRangeBarSimulation implements SimulationStrategy {
     private strategy?: NarrowRangeBarStrategy;

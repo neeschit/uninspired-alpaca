@@ -1,9 +1,16 @@
 import { Calendar } from "@neeschit/alpaca-trade-api";
-import DateFns from "date-fns";
-import DateFnsTz from "date-fns-tz";
-import { MarketTimezone } from "../../src/data/data.model.js";
-import { getCalendar } from "../brokerage-helpers/alpaca.js";
-import { SimulationStrategy } from "./simulation.strategy.js";
+import {
+    addBusinessDays,
+    addMonths,
+    differenceInMonths,
+    format,
+    parseISO,
+    startOfDay,
+} from "date-fns";
+import { zonedTimeToUtc } from "date-fns-tz";
+import { MarketTimezone } from "../../src/data/data.model";
+import { getCalendar } from "../brokerage-helpers/alpaca";
+import { SimulationStrategy } from "./simulation.strategy";
 import {
     DATE_FORMAT,
     isAfterMarketClose,
@@ -11,18 +18,9 @@ import {
     isMarketClosing,
     isMarketOpen,
     isMarketOpening,
-} from "./timing.util.js";
-import { LOGGER } from "../../src/instrumentation/log.js";
-import { MockBrokerage } from "./mockBrokerage.js";
-const { zonedTimeToUtc } = DateFnsTz;
-const {
-    addBusinessDays,
-    addMonths,
-    differenceInMonths,
-    format,
-    parseISO,
-    startOfDay,
-} = DateFns;
+} from "./timing.util";
+import { LOGGER } from "../../src/instrumentation/log";
+import { MockBrokerage } from "./mockBrokerage";
 
 export type SimulationImpl = new (...args: any[]) => SimulationStrategy;
 

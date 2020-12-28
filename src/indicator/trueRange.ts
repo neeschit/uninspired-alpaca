@@ -1,5 +1,5 @@
-import { getExponentialAverage } from "./average.js";
-import { Bar } from "../data/data.model.js";
+import { getExponentialAverage } from "./average";
+import { Bar } from "../data/data.model";
 
 export const getTrueRange = (bars: Bar[], useSimpleDefinition = true) => {
     if (!bars || !bars.length) {

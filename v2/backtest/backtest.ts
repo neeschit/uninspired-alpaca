@@ -1,8 +1,8 @@
-import { currentStreamingSymbols } from "../../src/data/filters.js";
-import { LOGGER } from "../../src/instrumentation/log.js";
-import { NarrowRangeBarSimulation } from "../strategy/narrowRangeBar.simulation.js";
-import { Simulator } from "../simulation-helpers/simulator.js";
-import { MockBrokerage } from "../simulation-helpers/mockBrokerage.js";
+import { currentStreamingSymbols } from "../../src/data/filters";
+import { LOGGER } from "../../src/instrumentation/log";
+import { NarrowRangeBarSimulation } from "../strategy/narrowRangeBar.simulation";
+import { Simulator } from "../simulation-helpers/simulator";
+import { MockBrokerage } from "../simulation-helpers/mockBrokerage";
 
 const startDate = "2020-12-22 09:00:00.000";
 const endDate = "2020-12-22 16:30:00.000";

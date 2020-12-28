@@ -6,11 +6,11 @@ import {
     TradeDirection,
     TradeType,
 } from "@neeschit/alpaca-trade-api";
-import { getConnection } from "../../src/connection/pg.js";
-import { TimestampedRecord } from "../schema-helpers/model.js";
-import { ensureUpdateTriggerExists } from "../schema-helpers/updated_at.trigger.js";
-import { persistTradePlan, TradePlan, PersistedTradePlan } from "./position.js";
-import { BrokerStrategy } from "../brokerage-helpers/brokerage.strategy.js";
+import { getConnection } from "../../src/connection/pg";
+import { TimestampedRecord } from "../schema-helpers/model";
+import { ensureUpdateTriggerExists } from "../schema-helpers/updated_at.trigger";
+import { persistTradePlan, TradePlan, PersistedTradePlan } from "./position";
+import { BrokerStrategy } from "../brokerage-helpers/brokerage.strategy";
 
 export interface OrderUpdate extends AlpacaOrder {
     position_id: number;

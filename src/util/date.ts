@@ -1,5 +1,5 @@
 import DateFnsTz from "date-fns-tz";
-import { TimestampType, MarketTimezone } from "../data/data.model.js";
+import { TimestampType, MarketTimezone } from "../data/data.model";
 
 const { utcToZonedTime, zonedTimeToUtc, format } = DateFnsTz;
 
