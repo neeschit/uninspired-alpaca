@@ -35,6 +35,7 @@ module.exports = {
         ".d.ts",
         "build",
         "scripts",
+        "libs/core-utils",
     ],
 
     // Indicates which provider should be used to instrument code for coverage
@@ -51,7 +52,7 @@ module.exports = {
     // An object that configures minimum threshold enforcement for coverage results
     coverageThreshold: {
         global: {
-            branches: 90,
+            branches: 80,
         },
     },
 
