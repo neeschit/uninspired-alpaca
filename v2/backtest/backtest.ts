@@ -9,24 +9,7 @@ const endDate = "2020-12-22 16:30:00.000";
 
 const symbols = currentStreamingSymbols;
 
-jest.mock("../brokerage-helpers", () => {
-    const { MockBrokerage } = jest.requireActual(
-        "../simulation-helpers/mockBrokerage"
-    );
-    const mockBroker = MockBrokerage.getInstance();
-    const { getCalendar } = jest.requireActual("../brokerage-helpers");
-
-    return {
-        getCalendar,
-        cancelAlpacaOrder: mockBroker.cancelAlpacaOrder,
-        getOpenOrders: mockBroker.getOpenOrders,
-        getOpenPositions: mockBroker.getOpenPositions,
-        createBracketOrder: mockBroker.createBracketOrder,
-        closePosition: mockBroker.closePosition,
-    };
-});
-
-test("backtester for nrb", async () => {
+async function run() {
     const mockBroker = MockBrokerage.getInstance();
 
     const simulator = new Simulator();
@@ -35,7 +18,16 @@ test("backtester for nrb", async () => {
 
     try {
         await simulator.run(batches, NarrowRangeBarSimulation);
+        console.log(mockBroker.closedPositions);
     } catch (e) {
         LOGGER.error(e);
     }
-});
+}
+
+run()
+    .then(() => {
+        console.log("done");
+    })
+    .catch((e) => {
+        LOGGER.error(e);
+    });

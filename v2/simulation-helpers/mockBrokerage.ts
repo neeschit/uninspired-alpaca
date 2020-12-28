@@ -12,6 +12,7 @@ import { fromUnixTime } from "date-fns";
 import { getSimpleData } from "../../src/resources/stockData";
 import { Bar } from "../../src/data/data.model";
 import { LOGGER } from "../../src/instrumentation/log";
+import { BrokerStrategy } from "../brokerage-helpers/brokerage.strategy";
 
 export interface ClosedMockPosition {
     avg_exit_price: number;
@@ -43,7 +44,7 @@ export interface MockAlpacaOrder extends AlpacaOrder {
     };
 }
 
-export class MockBrokerage {
+export class MockBrokerage implements BrokerStrategy {
     public stopLegs: AlpacaOrder[] = [];
     public profitLegs: AlpacaOrder[] = [];
     public closedPositions: ClosedMockPosition[] = [];
@@ -130,7 +131,9 @@ export class MockBrokerage {
         return alpacaOrder;
     }
 
-    public async closePosition(symbol: string) {}
+    public async closePosition(symbol: string) {
+        return {};
+    }
 
     public async tick(epoch: number) {
         this.epoch = epoch;

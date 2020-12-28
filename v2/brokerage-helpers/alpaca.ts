@@ -1,6 +1,11 @@
-import Alpaca, { AlpacaOrder, AlpacaTradeConfig } from "@neeschit/alpaca-trade-api";
+import Alpaca, {
+    AlpacaOrder,
+    AlpacaTradeConfig,
+    AlpacaPosition,
+} from "@neeschit/alpaca-trade-api";
 import * as dotenv from "dotenv";
 import { LOGGER } from "../../src/instrumentation/log";
+import { Calendar } from "@neeschit/alpaca-trade-api";
 
 dotenv.config();
 
@@ -29,7 +34,9 @@ export const getOpenPositions = () => {
     return alpaca.getPositions();
 };
 
-export const createBracketOrder = (order: AlpacaTradeConfig): Promise<AlpacaOrder> => {
+export const createBracketOrder = (
+    order: AlpacaTradeConfig
+): Promise<AlpacaOrder> => {
     if (!order.qty || order.qty < 0) {
         throw new Error("quantity_required");
     }
@@ -65,4 +72,12 @@ export const closePosition = async (symbol: string) => {
     } catch (e) {
         LOGGER.error(e);
     }
+};
+
+export const brokerImpl = {
+    closePosition,
+    createBracketOrder,
+    getOpenPositions,
+    getOpenOrders,
+    cancelAlpacaOrder,
 };

@@ -69,15 +69,19 @@ export class Simulator {
         while (currentTime <= end) {
             for (const symbol of batch.symbols) {
                 if (!this.strategies[symbol]) {
-                    this.strategies[symbol] = new Strategy(symbol);
+                    this.strategies[symbol] = new Strategy(symbol, mockBroker);
                 }
 
-                await runStrategy(
-                    symbol,
-                    calendar,
-                    this.strategies[symbol],
-                    currentTime
-                );
+                try {
+                    await runStrategy(
+                        symbol,
+                        calendar,
+                        this.strategies[symbol],
+                        currentTime
+                    );
+                } catch (e) {
+                    LOGGER.error(`uncaught error when running strategy`, e);
+                }
             }
 
             // call hook for mock brokerage

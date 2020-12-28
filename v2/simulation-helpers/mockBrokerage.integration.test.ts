@@ -12,7 +12,7 @@ beforeEach(() => {
     instance.reset();
 });
 
-jest.setTimeout(600000);
+jest.setTimeout(10000);
 
 test("createBracketOrder without stop_loss shoud error", async () => {
     await expect(

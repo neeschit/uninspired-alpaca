@@ -1,6 +1,5 @@
 import { AlpacaOrder } from "@neeschit/alpaca-trade-api";
 import { addBusinessDays } from "date-fns";
-import { closePosition, getOpenPositions } from "../brokerage-helpers";
 import { SimulationStrategy } from "../simulation-helpers/simulation.strategy";
 import {
     getSafeOrbEntryPlan,
@@ -21,28 +20,34 @@ import {
     batchInsertDailyBars,
     getSimpleData,
 } from "../../src/resources/stockData";
+import { BrokerStrategy } from "../brokerage-helpers/brokerage.strategy";
 
 export class NarrowRangeBarSimulation implements SimulationStrategy {
     private strategy?: NarrowRangeBarStrategy;
     private tr?: IndicatorValue<number>[];
     private atr?: IndicatorValue<number>[];
 
-    constructor(private symbol: string) {}
+    constructor(private symbol: string, private broker: BrokerStrategy) {}
     async beforeMarketStarts(epoch = Date.now()): Promise<void> {
         const lastBusinessDay = addBusinessDays(epoch, -1);
 
-        const daysMinutes = await getPolyonData(
-            this.symbol,
-            lastBusinessDay,
-            lastBusinessDay,
-            PeriodType.day,
-            DefaultDuration.one
-        );
+        if (process.env.NODE_ENV !== "backtest") {
+            const daysMinutes = await getPolyonData(
+                this.symbol,
+                lastBusinessDay,
+                lastBusinessDay,
+                PeriodType.day,
+                DefaultDuration.one
+            );
 
-        try {
-            await batchInsertDailyBars(daysMinutes[this.symbol], this.symbol);
-        } catch (e) {
-            LOGGER.error(`Error inserting for ${this.symbol}`, e);
+            try {
+                await batchInsertDailyBars(
+                    daysMinutes[this.symbol],
+                    this.symbol
+                );
+            } catch (e) {
+                LOGGER.error(`Error inserting for ${this.symbol}`, e);
+            }
         }
 
         const data = await getSimpleData(
@@ -73,7 +78,7 @@ export class NarrowRangeBarSimulation implements SimulationStrategy {
             return;
         }
 
-        const positions = await getOpenPositions();
+        const positions = await this.broker.getOpenPositions();
 
         const hasOpenPosition = positions.some((p) => p.symbol === this.symbol);
 
@@ -96,10 +101,17 @@ export class NarrowRangeBarSimulation implements SimulationStrategy {
             dailyAtr: this.atr!.pop()!.value,
         });
 
-        const order = await createOrderSynchronized(plan);
+        try {
+            const order = await createOrderSynchronized(plan, this.broker);
+        } catch (e) {
+            LOGGER.error(
+                `could not place order for ${this.symbol} at ${epoch}`
+            );
+            throw e;
+        }
     }
     async afterEntryTimePassed(): Promise<void> {
-        const positions = await getOpenPositions();
+        const positions = await this.broker.getOpenPositions();
 
         const hasOpenPosition = positions.some((p) => p.symbol === this.symbol);
 
@@ -107,11 +119,11 @@ export class NarrowRangeBarSimulation implements SimulationStrategy {
             return;
         }
 
-        await cancelOpenOrdersForSymbol(this.symbol);
+        await cancelOpenOrdersForSymbol(this.symbol, this.broker);
     }
     async beforeMarketCloses(): Promise<void> {
-        await cancelOpenOrdersForSymbol(this.symbol);
-        await closePosition(this.symbol);
+        await cancelOpenOrdersForSymbol(this.symbol, this.broker);
+        await this.broker.closePosition(this.symbol);
     }
     async onMarketClose(): Promise<void> {}
 

@@ -14,18 +14,23 @@ import {
     persistPlanAndOrder,
 } from "./order";
 
-import { getOpenOrders } from "../brokerage-helpers";
 import { TradePlan, persistTradePlan, PersistedTradePlan } from "./position";
 import { getConnection } from "../../src/connection/pg";
-
-jest.mock("../brokerage-helpers");
 
 jest.mock("./position");
 
 jest.mock("../../src/connection/pg");
 
+const mockBrokerage = {
+    closePosition: jest.fn(),
+    createBracketOrder: jest.fn(),
+    getOpenPositions: jest.fn(),
+    getOpenOrders: jest.fn(),
+    cancelAlpacaOrder: jest.fn(),
+};
+
 const mockPersist = persistTradePlan as jest.Mock;
-const mockGetOpenOrders = getOpenOrders as jest.Mock;
+const mockGetOpenOrders = mockBrokerage.getOpenOrders as jest.Mock;
 const mockGetConnection = getConnection as jest.Mock;
 
 test("convert to bracket order", async () => {
@@ -147,9 +152,9 @@ test("createOrderSynchronized - mocked", async () => {
         { symbol: "TEST", side: TradeDirection.buy },
     ]);
 
-    await expect(createOrderSynchronized(plan)).rejects.toThrowError(
-        new Error("order_exists")
-    );
+    await expect(
+        createOrderSynchronized(plan, mockBrokerage)
+    ).rejects.toThrowError(new Error("order_exists"));
 });
 
 test("createOrderSynchronized - mocked with dupe order", async () => {
@@ -174,7 +179,9 @@ test("createOrderSynchronized - mocked with dupe order", async () => {
         )
     );
 
-    await expect(createOrderSynchronized(plan)).rejects.toThrow();
+    await expect(
+        createOrderSynchronized(plan, mockBrokerage)
+    ).rejects.toThrow();
 });
 
 test("getOrderById - no results", async () => {

@@ -7,26 +7,19 @@ import {
 } from "../strategy/narrowRangeBar";
 import { getData } from "../../src/resources/stockData";
 import { getMarketOpenMillis } from "../../src/util/market";
-import {
-    cancelAlpacaOrder,
-    getOpenOrders,
-    getOpenPositions,
-} from "../brokerage-helpers";
 import { createOrderSynchronized } from "../trade-management-helpers";
-import {
-    isBeforeMarketOpening,
-    isMarketClosing,
-    isMarketOpen,
-    isMarketOpening,
-    runStrategy,
-} from "../simulation-helpers";
+import { runStrategy } from "../simulation-helpers";
 import { Calendar } from "@neeschit/alpaca-trade-api";
 import { NarrowRangeBarSimulation } from "../strategy/narrowRangeBar.simulation";
-import { SimulationStrategy } from "../simulation-helpers/simulation.strategy";
+import { BrokerStrategy } from "../brokerage-helpers/brokerage.strategy";
 
 const nrbStrategies: { [index: string]: NarrowRangeBarSimulation } = {};
 
-export const lookForEntry = async (symbol: string, epoch = Date.now()) => {
+export const lookForEntry = async (
+    symbol: string,
+    broker: BrokerStrategy,
+    epoch = Date.now()
+) => {
     const watchlist = await getWatchlistFromScreenerService(
         format(new Date(), "MM-dd-yyyy")
     );
@@ -35,14 +28,14 @@ export const lookForEntry = async (symbol: string, epoch = Date.now()) => {
         return null;
     }
 
-    const positions = await getOpenPositions();
+    const positions = await broker.getOpenPositions();
 
     if (positions.some((p) => p.symbol === symbol)) {
         return null;
     }
 
     if (!isTimeForOrbEntry(epoch)) {
-        return cancelOpenOrdersForSymbol(symbol);
+        return cancelOpenOrdersForSymbol(symbol, broker);
     }
 
     const { data, lastBar } = await getPersistedData(symbol, epoch);
@@ -63,15 +56,18 @@ export const lookForEntry = async (symbol: string, epoch = Date.now()) => {
     return plan;
 };
 
-export const cancelOpenOrdersForSymbol = async (symbol: string) => {
-    const openOrders = await getOpenOrders();
+export const cancelOpenOrdersForSymbol = async (
+    symbol: string,
+    broker: BrokerStrategy
+) => {
+    const openOrders = await broker.getOpenOrders();
     const ordersForSymbol = openOrders.filter((o) => o.symbol === symbol);
 
     if (!ordersForSymbol.length) {
         return null;
     }
 
-    await cancelAlpacaOrder(ordersForSymbol[0].id);
+    await broker.cancelAlpacaOrder(ordersForSymbol[0].id);
 
     return null;
 };
@@ -79,12 +75,13 @@ export const cancelOpenOrdersForSymbol = async (symbol: string) => {
 export const rebalanceForSymbol = async (
     symbol: string,
     calendar: Calendar[],
+    broker: BrokerStrategy,
     epoch = Date.now()
 ) => {
     let sim = nrbStrategies[symbol];
 
     if (!sim) {
-        sim = new NarrowRangeBarSimulation(symbol);
+        sim = new NarrowRangeBarSimulation(symbol, broker);
 
         nrbStrategies[symbol] = sim;
     }
@@ -92,14 +89,18 @@ export const rebalanceForSymbol = async (
     return runStrategy(symbol, calendar, sim, epoch);
 };
 
-export const enterSymbol = async (symbol: string, epoch = Date.now()) => {
-    const plan = await lookForEntry(symbol, epoch);
+export const enterSymbol = async (
+    symbol: string,
+    broker: BrokerStrategy,
+    epoch = Date.now()
+) => {
+    const plan = await lookForEntry(symbol, broker, epoch);
 
     if (!plan) {
         return null;
     }
 
-    const order = await createOrderSynchronized(plan);
+    const order = await createOrderSynchronized(plan, broker);
 
     return order;
 };
