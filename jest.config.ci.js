@@ -3,7 +3,7 @@
 const baseConfig = require("./jest.config");
 
 module.exports = Object.assign(baseConfig, {
-    testMatch: ["**/v2/**/*.spec.ts"],
+    testMatch: ["**/*.spec.ts"],
     coverageThreshold: {
         global: {
             branches: 75,

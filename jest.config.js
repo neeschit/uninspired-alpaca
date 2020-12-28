@@ -18,7 +18,7 @@ module.exports = {
     collectCoverage: true,
 
     // An array of glob patterns indicating a set of files for which coverage information should be collected
-    collectCoverageFrom: ["./v2/**/*.ts"],
+    collectCoverageFrom: ["**/*.ts"],
 
     // The directory where Jest should output its coverage files
     coverageDirectory: "coverage",
@@ -28,7 +28,15 @@ module.exports = {
     //   "/node_modules/"
     // ],
 
-    coveragePathIgnorePatterns: ["index.ts", "./v2/backtest", ".strategy.ts"],
+    coveragePathIgnorePatterns: [
+        "index.ts",
+        "services/backtest",
+        ".strategy.ts",
+        ".d.ts",
+        "build",
+        "scripts",
+        "libs/core-utils",
+    ],
 
     // Indicates which provider should be used to instrument code for coverage
     coverageProvider: "v8",
@@ -44,7 +52,7 @@ module.exports = {
     // An object that configures minimum threshold enforcement for coverage results
     coverageThreshold: {
         global: {
-            branches: 100,
+            branches: 80,
         },
     },
 
@@ -149,7 +157,7 @@ module.exports = {
     //   "**/?(*.)+(spec|test).[tj]s?(x)"
     // ],
 
-    testMatch: ["**/v2/**/*.integration.test.ts", "**/v2/**/*.spec.ts"],
+    testMatch: ["**/*.integration.test.ts", "**/*.spec.ts"],
 
     // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
     // testPathIgnorePatterns: [
