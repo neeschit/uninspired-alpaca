@@ -11,6 +11,7 @@ import { Link, useLocation } from "react-router-dom";
 import AddIcon from "@material-ui/icons/Add";
 import BookIcon from "@material-ui/icons/Book";
 import BusinessIcon from "@material-ui/icons/Business";
+import HistoryIcon from "@material-ui/icons/History";
 import clsx from "clsx";
 import { AppContext } from "../appContext";
 
@@ -57,6 +58,11 @@ export const MenuList = () => {
                     },
                     { text: "Trades", path: "/trades", icon: <BookIcon /> },
                     { text: "Orders", path: "/orders", icon: <BusinessIcon /> },
+                    {
+                        text: "View Backtests",
+                        path: "/history",
+                        icon: <HistoryIcon />,
+                    },
                 ].map((item) => {
                     const isActiveRoute =
                         location.pathname.indexOf(item.path) !== -1;
