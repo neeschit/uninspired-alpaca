@@ -27,3 +27,10 @@ jobs:
                   CI: true
                   ALPACA_SECRET_KEY_ID: ${{ secrets.ALPACA_SECRET_KEY_ID }}
                   ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+            - name: Build bankster app
+              working-directory: ./frontend/bankster
+              run: |
+                  yarn install
+                  yarn build
+              env:
+                  CI: true

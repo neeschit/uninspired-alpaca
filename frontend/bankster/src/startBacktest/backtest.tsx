@@ -64,11 +64,7 @@ export const BacktestStart = () => {
                         variant="contained"
                         color="primary"
                         size="small"
-                        onClick={() => {
-                            fetch({
-                                url: "http://localhost:",
-                            });
-                        }}
+                        onClick={() => {}}
                     >
                         Run Test
                     </Button>
