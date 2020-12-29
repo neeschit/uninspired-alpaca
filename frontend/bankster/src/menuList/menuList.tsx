@@ -56,8 +56,6 @@ export const MenuList = () => {
                         path: "/backtest",
                         icon: <AddIcon />,
                     },
-                    { text: "Trades", path: "/trades", icon: <BookIcon /> },
-                    { text: "Orders", path: "/orders", icon: <BusinessIcon /> },
                     {
                         text: "View Backtests",
                         path: "/history",
@@ -73,8 +71,9 @@ export const MenuList = () => {
                                 styles.item,
                                 isActiveRoute && styles.selectedListItem
                             )}
+                            key={item.path}
                         >
-                            <ListItem button key={item.text}>
+                            <ListItem button>
                                 <ListItemIcon>{item.icon}</ListItemIcon>
                                 <ListItemText primary={item.text} />
                             </ListItem>

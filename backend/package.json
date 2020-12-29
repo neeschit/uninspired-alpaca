@@ -7,7 +7,8 @@
     "date-fns": "^2.9.0",
     "date-fns-tz": "^1.0.10",
     "dotenv": "^8.2.0",
-    "fastify": "^2.13.1",
+    "fastify": "^3.9.2",
+    "fastify-cors": "^5.1.0",
     "fs-extra": "^9.0.0",
     "pg": "^8.0.0",
     "uuid": "^8.3.2"

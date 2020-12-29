@@ -113,8 +113,6 @@ function App() {
                             path="/backtest"
                             component={BacktestStart}
                         ></Route>
-                        <Route path="/trades" component={TradesGrid}></Route>
-                        <Route path="/orders" component={OrdersGrid}></Route>
                         <Route path="/history"></Route>
                     </Switch>
                 </div>
