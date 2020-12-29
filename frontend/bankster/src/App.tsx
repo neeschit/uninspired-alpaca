@@ -17,8 +17,6 @@ import { AppContext } from "./appContext";
 import { MenuList } from "./menuList/menuList";
 import { BacktestStart } from "./startBacktest/backtest";
 import { BacktestModel, BacktestPosition } from "./startBacktest/backtestModel";
-import { TradesGrid } from "./tradeGrid/tradesGrid";
-import { OrdersGrid } from "./orderGrid/ordersGrid";
 
 const useStyles = makeStyles((theme) => ({
     root: {

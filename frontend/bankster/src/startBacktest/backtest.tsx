@@ -64,7 +64,7 @@ export const BacktestStart = () => {
                 <Grid item>
                     <KeyboardDatePicker
                         margin="normal"
-                        id="mui-pickers-date"
+                        id="mui-pickers-start-date"
                         label="Start Date"
                         value={selectedDates.startDate}
                         onChange={(date: Date | null) => {
@@ -81,7 +81,7 @@ export const BacktestStart = () => {
                 <Grid item>
                     <KeyboardDatePicker
                         margin="normal"
-                        id="mui-pickers-date"
+                        id="mui-pickers-end-date"
                         label="End Date"
                         value={selectedDates.endDate}
                         onChange={(date: Date | null) => {
