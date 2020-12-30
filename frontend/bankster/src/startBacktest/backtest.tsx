@@ -9,8 +9,8 @@ import {
 } from "@material-ui/core";
 import { DatePicker, LocalizationProvider } from "@material-ui/pickers";
 import DateFnsUtils from "@material-ui/pickers/adapter/date-fns";
-import { addBusinessDays, format, isBefore } from "date-fns";
-import { BacktestPosition } from "./backtestModel";
+import { addBusinessDays, format, isAfter } from "date-fns";
+import { BacktestResult } from "./backtestModel";
 import { AppContext } from "../appContext";
 import { TradesGrid } from "../tradeGrid/tradesGrid";
 
@@ -33,9 +33,9 @@ const useStyles = makeStyles((theme) => ({
 export const startBacktest = async (
     startDate: Date,
     endDate: Date
-): Promise<BacktestPosition[]> => {
+): Promise<BacktestResult[]> => {
     const response = await fetch(
-        `http://localhost:6971/backtest/${format(
+        `https://282294f65272.ngrok.io/backtest/${format(
             startDate,
             "yyyy-MM-dd"
         )}/${format(endDate, "yyyy-MM-dd")}`
@@ -56,9 +56,13 @@ export const BacktestStart = () => {
 
     const [isLoading, setLoading] = React.useState(false);
 
-    const [currentPositions, setPositions] = React.useState<BacktestPosition[]>(
-        []
-    );
+    const [results, setResults] = React.useState<BacktestResult[]>([]);
+
+    const [hasError, setHasError] = React.useState(false);
+
+    React.useEffect(() => {
+        setHasError(isAfter(selectedDates.startDate, selectedDates.endDate));
+    }, [selectedDates.startDate, selectedDates.endDate]);
 
     return (
         <LocalizationProvider dateAdapter={DateFnsUtils}>
@@ -75,7 +79,9 @@ export const BacktestStart = () => {
                         value={selectedDates.startDate}
                         disableHighlightToday={true}
                         maxDate={addBusinessDays(Date.now(), -1)}
-                        renderInput={(props) => <TextField {...props} />}
+                        renderInput={(props) => (
+                            <TextField {...props} error={hasError} />
+                        )}
                         onChange={(date: Date | null) => {
                             setSelectedDate({
                                 startDate: date || selectedDates.startDate,
@@ -91,22 +97,22 @@ export const BacktestStart = () => {
                         disableHighlightToday={true}
                         value={selectedDates.endDate}
                         onChange={(date: Date | null) => {
-                            if (
-                                date &&
-                                isBefore(selectedDates.startDate, date)
-                            ) {
+                            if (date) {
                                 setSelectedDate({
                                     startDate: selectedDates.startDate,
                                     endDate: date,
                                 });
                             }
                         }}
-                        renderInput={(props) => <TextField {...props} />}
+                        renderInput={(props) => (
+                            <TextField {...props} error={hasError} />
+                        )}
                     />
                 </Grid>
                 <Grid item>
                     <span className={classes.alignMiddle}>
                         <Button
+                            disabled={hasError}
                             variant="contained"
                             color="primary"
                             size="small"
@@ -116,14 +122,10 @@ export const BacktestStart = () => {
                                 startBacktest(
                                     selectedDates.startDate,
                                     selectedDates.endDate
-                                ).then((positions) => {
+                                ).then((results) => {
                                     setLoading(false);
-                                    setPositions(positions);
-                                    addToBacktestHistory(
-                                        selectedDates.startDate,
-                                        selectedDates.endDate,
-                                        positions
-                                    );
+                                    setResults(results);
+                                    addToBacktestHistory(results);
                                 });
                             }}
                         >
@@ -146,10 +148,12 @@ export const BacktestStart = () => {
                             />
                         )}
                     </Grid>
-                    {!isLoading && (
+                    {!isLoading && results.length && (
                         <Grid item>
                             <TradesGrid
-                                positions={currentPositions}
+                                positions={
+                                    results[0].positions[results[0].startDate]
+                                }
                             ></TradesGrid>
                         </Grid>
                     )}

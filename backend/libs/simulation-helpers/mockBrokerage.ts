@@ -64,6 +64,7 @@ export class MockBrokerage implements BrokerStrategy {
     public reset() {
         this.resetForSimulator();
         this.closedOrders = [];
+        this.canceledOrders = [];
         this.closedPositions = [];
     }
 
@@ -507,7 +508,7 @@ export const isOrderFillable = (
 ) => {
     let filled = false;
 
-    console.log({
+    /*    console.log({
         isCurrentPosition,
         isShort,
         bar,
@@ -515,7 +516,7 @@ export const isOrderFillable = (
         order: JSON.stringify(order),
         openPositions: JSON.stringify(openPositions),
     });
-
+ */
     if (!isCurrentPosition) {
         if (isShort && bar.o < strikePrice && bar.l < bar.o) {
             return false;

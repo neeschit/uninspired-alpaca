@@ -7,4 +7,5 @@ export interface SimulationStrategy {
     onMarketClose(epoch: number): Promise<void>;
     afterEntryTimePassed(epoch: number): Promise<void>;
     hasEntryTimePassed(epoch: number): boolean;
+    isInPlay(): boolean;
 }

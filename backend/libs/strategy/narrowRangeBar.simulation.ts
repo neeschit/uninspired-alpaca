@@ -27,6 +27,7 @@ export class NarrowRangeBarSimulation implements SimulationStrategy {
     private strategy?: NarrowRangeBarStrategy;
     private tr?: IndicatorValue<number>[];
     private atr?: IndicatorValue<number>[];
+    private isInPlayCurrently = false;
 
     constructor(private symbol: string, private broker: BrokerStrategy) {}
     async beforeMarketStarts(epoch = Date.now()): Promise<void> {
@@ -79,6 +80,10 @@ export class NarrowRangeBarSimulation implements SimulationStrategy {
         });
     }
 
+    isInPlay() {
+        return this.isInPlayCurrently;
+    }
+
     async rebalance(
         calendar: Calendar[],
         epoch: number
@@ -90,6 +95,8 @@ export class NarrowRangeBarSimulation implements SimulationStrategy {
         if (!this.strategy!.screenForNarrowRangeBars()) {
             return;
         }
+
+        this.isInPlayCurrently = true;
 
         const positions = await this.broker.getOpenPositions();
 

@@ -1,7 +1,10 @@
 import { currentStreamingSymbols } from "../../libs/core-utils/data/filters";
 import { LOGGER } from "../../libs/core-utils/instrumentation/log";
 import { NarrowRangeBarSimulation } from "../../libs/strategy/narrowRangeBar.simulation";
-import { Simulator } from "../../libs/simulation-helpers/simulator";
+import {
+    BacktestBatchResult,
+    Simulator,
+} from "../../libs/simulation-helpers/simulator";
 import {
     ClosedMockPosition,
     MockBrokerage,
@@ -18,22 +21,24 @@ async function run(startDate: string, endDate: string) {
     const actualStartDate = startDate + "T14:00:00.000Z";
     const actualEndDate = endDate + "T21:30:00.000Z";
 
-    const batches = Simulator.getBatches(actualStartDate, actualEndDate, [
-        "BMY",
-    ]);
+    const batches = Simulator.getBatches(
+        actualStartDate,
+        actualEndDate,
+        symbols,
+        100
+    );
 
-    let closedPositions: ClosedMockPosition[] = [];
+    let results: BacktestBatchResult[] = [];
 
     try {
-        await simulator.run(batches, NarrowRangeBarSimulation);
-        closedPositions = MockBrokerage.getInstance().closedPositions;
+        results = await simulator.run(batches, NarrowRangeBarSimulation);
     } catch (e) {
         LOGGER.error(e);
     } finally {
         MockBrokerage.getInstance().reset();
     }
 
-    return closedPositions;
+    return results;
 }
 
 const backtestServer = getApiServer(Service.backtest);
@@ -46,6 +51,8 @@ backtestServer.get(
 
         const results = await run(startDate, endDate);
 
-        return results;
+        return {
+            results,
+        };
     }
 );

@@ -11,101 +11,93 @@ afterAll(() => {
     jest.useRealTimers();
 });
 
-test("Backtester - single batch", () => {
-    const zonedStartDate = "2018-12-31T17:00:00.000Z";
-    const zonedEndDate = "2019-01-31T03:10:00.000Z";
+test("Backtester - simulate batching with batches being limited to single days", () => {
+    const zonedStartDate = "2021-01-04T16:00:00.000Z";
+    const zonedEndDate = "2021-01-07T23:00:00.000Z";
 
     const test = ["ECL", "AAPL", "HON"];
 
-    const result = Simulator.getBatches(zonedStartDate, zonedEndDate, test);
+    const result = Simulator.getBatches(
+        zonedStartDate,
+        zonedEndDate,
+        test,
+        1001
+    );
 
-    expect(result.length).toEqual(1);
+    expect(result.length).toEqual(4);
 
     expect(result[0]).toStrictEqual({
-        startDate: "2018-12-31T17:00:00.000Z",
-        endDate: "2019-01-31T03:10:00.000Z",
+        endDate: "2021-01-05T16:00:00.000Z",
+        startDate: "2021-01-04T16:00:00.000Z",
         symbols: test,
         batchId: 0,
     });
-});
-
-test("Backtester - simulate batching", () => {
-    const zonedStartDate = "2018-12-31T17:00:00.000Z";
-    const zonedEndDate = "2019-09-01T17:00:00.000Z";
-
-    const test = ["ECL", "AAPL", "HON"];
-
-    const result = Simulator.getBatches(zonedStartDate, zonedEndDate, test);
-
-    expect(result.length).toEqual(9);
-
-    expect(result[0]).toStrictEqual({
-        endDate: "2019-01-31T17:00:00.000Z",
-        startDate: "2018-12-31T17:00:00.000Z",
-        symbols: test,
-        batchId: 0,
-    });
-
     expect(result[1]).toStrictEqual({
-        endDate: "2019-02-28T17:00:00.000Z",
-        startDate: "2019-01-31T17:00:00.000Z",
+        endDate: "2021-01-06T16:00:00.000Z",
+        startDate: "2021-01-05T16:00:00.000Z",
         symbols: test,
         batchId: 1,
+    });
+    expect(result[2]).toStrictEqual({
+        endDate: "2021-01-07T16:00:00.000Z",
+        startDate: "2021-01-06T16:00:00.000Z",
+        symbols: test,
+        batchId: 2,
+    });
+    expect(result[3]).toStrictEqual({
+        endDate: "2021-01-07T23:00:00.000Z",
+        startDate: "2021-01-07T16:00:00.000Z",
+        symbols: test,
+        batchId: 3,
     });
 });
 
 test("Backtest - simulate batching with symbols needing batching as well", async () => {
-    const zonedStartDate = "2018-12-31T17:00:00.000Z";
-    const zonedEndDate = "2019-09-01T17:00:00.000Z";
+    const zonedStartDate = "2021-01-04T16:00:00.000Z";
+    const zonedEndDate = "2021-01-07T23:00:00.000Z";
 
     const test = ["ECL", "AAPL", "HON"];
 
     const result = Simulator.getBatches(zonedStartDate, zonedEndDate, test, 1);
 
-    expect(result.length).toStrictEqual(27);
-
-    const expectedZoneStartDateString = "2018-12-31T17:00:00.000Z";
-
-    const expectedFirstBatchEnd = "2019-01-31T17:00:00.000Z";
+    expect(result.length).toEqual(12);
 
     expect(result[0]).toStrictEqual({
-        startDate: expectedZoneStartDateString,
-        endDate: expectedFirstBatchEnd,
+        endDate: "2021-01-05T16:00:00.000Z",
+        startDate: "2021-01-04T16:00:00.000Z",
         symbols: ["ECL"],
         batchId: 0,
     });
     expect(result[1]).toStrictEqual({
-        startDate: expectedZoneStartDateString,
-        endDate: expectedFirstBatchEnd,
+        endDate: "2021-01-05T16:00:00.000Z",
+        startDate: "2021-01-04T16:00:00.000Z",
         symbols: ["AAPL"],
         batchId: 1,
     });
     expect(result[2]).toStrictEqual({
-        startDate: expectedZoneStartDateString,
-        endDate: expectedFirstBatchEnd,
+        endDate: "2021-01-05T16:00:00.000Z",
+        startDate: "2021-01-04T16:00:00.000Z",
         symbols: ["HON"],
         batchId: 2,
     });
 
-    const expectedSecondBatchEnd = "2019-02-28T17:00:00.000Z";
-
-    expect(result[3]).toStrictEqual({
-        startDate: expectedFirstBatchEnd,
-        endDate: expectedSecondBatchEnd,
+    expect(result[9]).toStrictEqual({
+        endDate: "2021-01-07T23:00:00.000Z",
+        startDate: "2021-01-07T16:00:00.000Z",
         symbols: ["ECL"],
-        batchId: 3,
+        batchId: 9,
     });
-    expect(result[4]).toStrictEqual({
-        startDate: expectedFirstBatchEnd,
-        endDate: expectedSecondBatchEnd,
+    expect(result[10]).toStrictEqual({
+        endDate: "2021-01-07T23:00:00.000Z",
+        startDate: "2021-01-07T16:00:00.000Z",
         symbols: ["AAPL"],
-        batchId: 4,
+        batchId: 10,
     });
-    expect(result[5]).toStrictEqual({
-        startDate: expectedFirstBatchEnd,
-        endDate: expectedSecondBatchEnd,
+    expect(result[11]).toStrictEqual({
+        endDate: "2021-01-07T23:00:00.000Z",
+        startDate: "2021-01-07T16:00:00.000Z",
         symbols: ["HON"],
-        batchId: 5,
+        batchId: 11,
     });
 });
 
@@ -123,6 +115,7 @@ class MockStrategy implements SimulationStrategy {
     onMarketClose = mockOnMarketClose;
     afterEntryTimePassed = mockAfterEntryPassed;
     hasEntryTimePassed = mockHasEntryTimePassed;
+    isInPlay = jest.fn();
 }
 
 test("Simulator should fake system time when executing batches", async () => {

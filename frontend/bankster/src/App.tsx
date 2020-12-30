@@ -19,7 +19,7 @@ import MenuIcon from "@material-ui/icons/Menu";
 import { AppContext } from "./appContext";
 import { MenuList } from "./menuList/menuList";
 import { BacktestStart } from "./startBacktest/backtest";
-import { BacktestModel, BacktestPosition } from "./startBacktest/backtestModel";
+import { BacktestResult } from "./startBacktest/backtestModel";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -35,7 +35,7 @@ const useStyles = makeStyles((theme) => ({
 
 export interface AppState {
     drawerOpen: boolean;
-    backtests: BacktestModel[];
+    backtests: BacktestResult[][];
 }
 
 function App() {
@@ -68,16 +68,8 @@ function App() {
                         });
                     },
                     history: appState.backtests,
-                    addToBacktestHistory: (
-                        startDate: Date,
-                        endDate: Date,
-                        positions: BacktestPosition[]
-                    ) => {
-                        appState.backtests.push({
-                            startDate,
-                            endDate,
-                            positions,
-                        });
+                    addToBacktestHistory: (results: BacktestResult[]) => {
+                        appState.backtests.push(results);
                     },
                 }}
             >
