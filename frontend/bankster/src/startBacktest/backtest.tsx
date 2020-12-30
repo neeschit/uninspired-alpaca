@@ -9,7 +9,7 @@ import {
 } from "@material-ui/core";
 import { DatePicker, LocalizationProvider } from "@material-ui/pickers";
 import DateFnsUtils from "@material-ui/pickers/adapter/date-fns";
-import { addBusinessDays, format } from "date-fns";
+import { addBusinessDays, format, isBefore } from "date-fns";
 import { BacktestPosition } from "./backtestModel";
 import { AppContext } from "../appContext";
 import { TradesGrid } from "../tradeGrid/tradesGrid";
@@ -73,7 +73,8 @@ export const BacktestStart = () => {
                     <DatePicker
                         label="Start Date"
                         value={selectedDates.startDate}
-                        disableFuture={true}
+                        disableHighlightToday={true}
+                        maxDate={addBusinessDays(Date.now(), -1)}
                         renderInput={(props) => <TextField {...props} />}
                         onChange={(date: Date | null) => {
                             setSelectedDate({
@@ -86,13 +87,19 @@ export const BacktestStart = () => {
                 <Grid item>
                     <DatePicker
                         label="End Date"
-                        disableFuture={true}
+                        maxDate={addBusinessDays(Date.now(), -1)}
+                        disableHighlightToday={true}
                         value={selectedDates.endDate}
                         onChange={(date: Date | null) => {
-                            setSelectedDate({
-                                startDate: selectedDates.startDate,
-                                endDate: date || selectedDates.endDate,
-                            });
+                            if (
+                                date &&
+                                isBefore(selectedDates.startDate, date)
+                            ) {
+                                setSelectedDate({
+                                    startDate: selectedDates.startDate,
+                                    endDate: date,
+                                });
+                            }
                         }}
                         renderInput={(props) => <TextField {...props} />}
                     />

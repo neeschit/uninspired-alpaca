@@ -5,7 +5,7 @@ import {
 } from "@neeschit/alpaca-trade-api";
 
 export interface BrokerStrategy {
-    closePosition(symbol: string): Promise<any>;
+    closePosition(symbol: string, epoch?: number): Promise<any>;
     createBracketOrder(order: AlpacaTradeConfig): Promise<AlpacaOrder>;
     getOpenPositions(): Promise<AlpacaPosition[]>;
     getOpenOrders(): Promise<AlpacaOrder[]>;

@@ -123,7 +123,7 @@ export class NarrowRangeBarSimulation implements SimulationStrategy {
         try {
             const order = await createOrderSynchronized(plan, this.broker);
         } catch (e) {
-            if (e.message !== "order_exists") {
+            if (e.message.indexOf("order_exists") === -1) {
                 LOGGER.error(
                     `could not place order for ${this.symbol} at ${epoch}`
                 );
@@ -142,9 +142,9 @@ export class NarrowRangeBarSimulation implements SimulationStrategy {
 
         await cancelOpenOrdersForSymbol(this.symbol, this.broker);
     }
-    async beforeMarketCloses(): Promise<void> {
+    async beforeMarketCloses(epoch: number): Promise<void> {
         await cancelOpenOrdersForSymbol(this.symbol, this.broker);
-        await this.broker.closePosition(this.symbol);
+        await this.broker.closePosition(this.symbol, epoch);
     }
     async onMarketClose(): Promise<void> {}
 

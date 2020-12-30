@@ -33,7 +33,7 @@ const useStyles = makeStyles((theme) => ({
         color: theme.palette.text.primary,
     },
     selectedListItem: {
-        backgroundColor: theme.palette.grey[200],
+        backgroundColor: theme.palette.primary.light,
     },
 }));
 

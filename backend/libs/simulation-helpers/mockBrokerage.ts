@@ -53,6 +53,7 @@ export class MockBrokerage implements BrokerStrategy {
     public profitLegs: AlpacaOrder[] = [];
     public closedPositions: ClosedMockPosition[] = [];
     public closedOrders: MockAlpacaOrder[] = [];
+    public canceledOrders: AlpacaOrder[] = [];
     private orders: MockAlpacaOrder[] = [];
     private openPositions: MockAlpacaPosition[] = [];
     private static instance: MockBrokerage;
@@ -73,7 +74,35 @@ export class MockBrokerage implements BrokerStrategy {
         this.openPositions = [];
     }
 
-    public async cancelAlpacaOrder(oid: string): Promise<any> {}
+    public async cancelAlpacaOrder(oid: string): Promise<any> {
+        const orderIndex = this.orders.findIndex((o) => o.id === oid);
+
+        if (orderIndex < 0) {
+            return {};
+        }
+
+        const order = this.orders.splice(orderIndex, 1)[0];
+
+        this.canceledOrders.push(order);
+
+        const stopOrderIndex = this.stopLegs.findIndex(
+            (o) => o.id === order.associatedOrderIds.stopLoss
+        );
+
+        if (stopOrderIndex > -1) {
+            const stopOrder = this.stopLegs.splice(stopOrderIndex, 1)[0];
+            this.canceledOrders.push(stopOrder);
+        }
+
+        const profitOrderIndex = this.profitLegs.findIndex(
+            (o) => o.id === order.associatedOrderIds.takeProfit
+        );
+
+        if (profitOrderIndex > -1) {
+            const takeProfitOrder = this.profitLegs.splice(stopOrderIndex, 1);
+            this.canceledOrders.push(takeProfitOrder[0]);
+        }
+    }
 
     public async getOpenOrders(): Promise<AlpacaOrder[]> {
         return this.orders;
@@ -91,6 +120,14 @@ export class MockBrokerage implements BrokerStrategy {
         }
         if (!order.take_profit) {
             throw new Error("take_profit_missing_for_bracket_order");
+        }
+
+        if (this.openPositions.some((p) => p.symbol === order.symbol)) {
+            throw new Error("position_exists");
+        }
+
+        if (this.orders.some((o) => o.symbol === order.symbol)) {
+            throw new Error("order_exists");
         }
 
         const inverseOrderType =
@@ -137,10 +174,6 @@ export class MockBrokerage implements BrokerStrategy {
         this.profitLegs.push(takeProfitOrder);
 
         return alpacaOrder;
-    }
-
-    public async closePosition(symbol: string) {
-        return {};
     }
 
     public async tick(epoch: number) {
@@ -359,6 +392,100 @@ export class MockBrokerage implements BrokerStrategy {
         }
 
         return filled;
+    }
+
+    public async closePosition(symbol: string, epoch?: number) {
+        if (!epoch) {
+            throw new Error("needs an epoch");
+        }
+        const positionIndex = this.openPositions.findIndex(
+            (p) => p.symbol === symbol
+        );
+
+        if (positionIndex < 0) {
+            return;
+        }
+
+        const position = this.openPositions.splice(positionIndex, 1)[0];
+
+        const minuteBar = await getSimpleData(
+            symbol,
+            epoch,
+            true,
+            epoch + 1000
+        );
+
+        if (!minuteBar.length) {
+            throw new Error("need_a_bar");
+        }
+
+        if (this.orders.some((o) => o.symbol === symbol)) {
+            throw new Error("has_open_order");
+        }
+
+        const originalOrder = this.closedOrders.find(
+            (o) => o.id === position.orderIds.original
+        );
+
+        if (!originalOrder) {
+            throw new Error("expected_an_opening_order");
+        }
+
+        const closingOrder: AlpacaOrder = getFakeNewOrder(
+            {
+                symbol,
+                type: TradeType.market,
+                side:
+                    originalOrder.side === TradeDirection.sell
+                        ? TradeDirection.buy
+                        : TradeDirection.sell,
+                qty: originalOrder.filled_qty,
+                time_in_force: originalOrder.time_in_force,
+            },
+            epoch
+        );
+
+        const filledAtTime = fromUnixTime(minuteBar[0].t / 1000).toISOString();
+        closingOrder.filled_at = filledAtTime;
+        closingOrder.filled_avg_price = minuteBar[0].c;
+
+        const stopOrder = this.canceledOrders.find(
+            (o) => o.id === position.orderIds.stopLoss
+        );
+        const takeProfitOrder = this.canceledOrders.find(
+            (o) => o.id === position.orderIds.takeProfit
+        );
+
+        if (!stopOrder) {
+            throw new Error("expected_stop_order");
+        }
+
+        if (!takeProfitOrder) {
+            throw new Error("expected_profit_order");
+        }
+
+        this.closedPositions.push({
+            symbol: originalOrder.symbol,
+            averageEntryPrice: originalOrder!.filled_avg_price,
+            averageExitPrice: closingOrder!.filled_avg_price,
+            plannedEntryPrice:
+                originalOrder!.stop_price || originalOrder!.limit_price!,
+            plannedExitPrice:
+                stopOrder?.stop_price || closingOrder!.stop_price!,
+            plannedTargetPrice:
+                takeProfitOrder?.limit_price || closingOrder!.limit_price!,
+            qty: originalOrder!.filled_qty,
+            side:
+                originalOrder!.side === TradeDirection.sell
+                    ? PositionDirection.short
+                    : PositionDirection.long,
+            entryTime: originalOrder!.filled_at as string,
+            exitTime: closingOrder!.filled_at as string,
+            orderIds: {
+                open: originalOrder!.id,
+                close: closingOrder!.id,
+            },
+        });
     }
 
     public static getInstance() {
