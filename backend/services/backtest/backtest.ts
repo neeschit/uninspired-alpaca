@@ -5,17 +5,11 @@ import {
     BacktestBatchResult,
     Simulator,
 } from "../../libs/simulation-helpers/simulator";
-import {
-    ClosedMockPosition,
-    MockBrokerage,
-} from "../../libs/simulation-helpers/mockBrokerage";
 import { getApiServer, Service } from "../../libs/core-utils/util/api";
 
 const symbols = currentStreamingSymbols;
 
 async function run(startDate: string, endDate: string) {
-    const mockBroker = MockBrokerage.getInstance();
-
     const simulator = new Simulator();
 
     const actualStartDate = startDate + "T14:00:00.000Z";
@@ -34,8 +28,6 @@ async function run(startDate: string, endDate: string) {
         results = await simulator.run(batches, NarrowRangeBarSimulation);
     } catch (e) {
         LOGGER.error(e);
-    } finally {
-        MockBrokerage.getInstance().reset();
     }
 
     return results;

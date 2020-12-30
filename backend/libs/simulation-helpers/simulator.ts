@@ -19,7 +19,11 @@ import {
     isMarketOpening,
 } from "./timing.util";
 import { LOGGER } from "../core-utils/instrumentation/log";
-import { MockAlpacaPosition, MockBrokerage } from "./mockBrokerage";
+import {
+    ClosedMockPosition,
+    MockAlpacaPosition,
+    MockBrokerage,
+} from "./mockBrokerage";
 
 export type SimulationImpl = new (...args: any[]) => SimulationStrategy;
 
@@ -31,10 +35,14 @@ export const mergeResults = (
         (r) => r.startDate === batchResult.startDate
     );
     if (resultToAddTo) {
-        resultToAddTo.positions[batchResult.startDate].concat(
+        resultToAddTo.positions[
+            batchResult.startDate
+        ] = resultToAddTo.positions[batchResult.startDate].concat(
             batchResult.positions[batchResult.startDate]
         );
-        resultToAddTo.watchlist[batchResult.startDate].concat(
+        resultToAddTo.watchlist[
+            batchResult.startDate
+        ] = resultToAddTo.watchlist[batchResult.startDate].concat(
             batchResult.watchlist[batchResult.startDate]
         );
     } else {
@@ -257,7 +265,7 @@ export interface BacktestWatchlist {
 }
 
 export interface BacktestPositions {
-    [index: string]: MockAlpacaPosition[];
+    [index: string]: ClosedMockPosition[];
 }
 
 export interface BacktestBatchResult {
