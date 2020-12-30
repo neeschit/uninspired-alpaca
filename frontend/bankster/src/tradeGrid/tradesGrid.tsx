@@ -1,13 +1,13 @@
 import React from "react";
-import { AppContext } from "../appContext";
+import { BacktestPosition } from "../startBacktest/backtestModel";
 
-export const TradesGrid = () => {
-    const { history } = React.useContext(AppContext);
-
-    const message =
-        !history || !history.length
-            ? "Run a backtest first"
-            : "Under construction";
-
-    return <div>{message}</div>;
+export const TradesGrid = ({
+    positions,
+}: {
+    positions: BacktestPosition[];
+}) => {
+    if (!positions.length) {
+        return null;
+    }
+    return <div style={{ width: "100%", height: 600 }}>{positions.length}</div>;
 };

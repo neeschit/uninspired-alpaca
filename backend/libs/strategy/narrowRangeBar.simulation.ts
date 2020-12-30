@@ -1,5 +1,5 @@
 import { AlpacaOrder, Calendar } from "@neeschit/alpaca-trade-api";
-import { addBusinessDays } from "date-fns";
+import { addBusinessDays, formatISO } from "date-fns";
 import { SimulationStrategy } from "../simulation-helpers/simulation.strategy";
 import {
     getSafeOrbEntryPlan,
@@ -64,6 +64,14 @@ export class NarrowRangeBarSimulation implements SimulationStrategy {
         this.tr = tr;
         this.atr = atr;
 
+        if (!this.atr || !this.atr.length) {
+            throw new Error(
+                `Should have found some atr for ${
+                    this.symbol
+                } on the next day after ${formatISO(lastBusinessDay)}`
+            );
+        }
+
         this.strategy = new NarrowRangeBarStrategy({
             symbol: this.symbol,
             bars: data,
@@ -109,16 +117,18 @@ export class NarrowRangeBarSimulation implements SimulationStrategy {
             symbol: this.symbol,
             lastPrice: lastBar.c,
             openingBar: data[0],
-            dailyAtr: this.atr!.pop()!.value,
+            dailyAtr: this.atr![this.atr!.length - 1].value,
         });
 
         try {
             const order = await createOrderSynchronized(plan, this.broker);
         } catch (e) {
-            LOGGER.error(
-                `could not place order for ${this.symbol} at ${epoch}`
-            );
-            throw e;
+            if (e.message !== "order_exists") {
+                LOGGER.error(
+                    `could not place order for ${this.symbol} at ${epoch}`
+                );
+                throw e;
+            }
         }
     }
     async afterEntryTimePassed(): Promise<void> {

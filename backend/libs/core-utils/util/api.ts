@@ -7,16 +7,8 @@ export enum Service {
     streamer = 6968,
     manager = 6969,
     screener = 6970,
-    data = 6971,
-    backtest = 6972,
+    backtest = 6971,
 }
-
-const serviceMap = {
-    [Service.streamer]: "streamer",
-    [Service.manager]: "manager",
-    [Service.screener]: "screener",
-    [Service.data]: "data",
-};
 
 export const messageService = (service: Service, path: string, data?: any) => {
     return postHttp({

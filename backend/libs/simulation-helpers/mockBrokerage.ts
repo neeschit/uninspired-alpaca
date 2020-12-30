@@ -8,11 +8,12 @@ import {
     PositionDirection,
 } from "@neeschit/alpaca-trade-api";
 import { v4 } from "uuid";
-import { fromUnixTime } from "date-fns";
+import { formatISO, fromUnixTime, min } from "date-fns";
 import { getSimpleData } from "../core-utils/resources/stockData";
 import { Bar } from "../core-utils/data/data.model";
 import { LOGGER } from "../core-utils/instrumentation/log";
 import { BrokerStrategy } from "../brokerage-helpers/brokerage.strategy";
+import { formatInEasternTimeForDisplay } from "../core-utils/util/date";
 
 export interface ClosedMockPosition {
     averageExitPrice: number;
@@ -155,6 +156,14 @@ export class MockBrokerage implements BrokerStrategy {
                     epoch + 1000
                 );
 
+                if (!minuteBar || !minuteBar.length) {
+                    throw new Error(
+                        `expected a bar at ${formatInEasternTimeForDisplay(
+                            epoch
+                        )}`
+                    );
+                }
+
                 const isCurrentPosition = this.openPositions.some(
                     (p) => p.symbol === order.symbol
                 );
@@ -170,16 +179,35 @@ export class MockBrokerage implements BrokerStrategy {
                         (o) => o.id === order.associatedOrderIds.stopLoss
                     );
 
-                    const stopOrder = this.stopLegs[stopOrderIndex];
+                    if (stopOrderIndex >= 0) {
+                        const stopOrder = this.stopLegs[stopOrderIndex];
 
-                    const orderFilled = this.checkIfOrderIsFillable(
-                        stopOrder!,
-                        minuteBar[0],
-                        isCurrentPosition
-                    );
+                        const orderFilled = this.checkIfOrderIsFillable(
+                            stopOrder!,
+                            minuteBar[0],
+                            isCurrentPosition
+                        );
+                    } else {
+                        const hasClosed = this.openPositions.every(
+                            (p) => p.symbol !== order.symbol
+                        );
+
+                        if (!hasClosed) {
+                            throw new Error(
+                                `Couldn't find a stop order when it was expected for ${JSON.stringify(
+                                    order
+                                )}`
+                            );
+                        }
+                    }
                 }
             } catch (e) {
-                LOGGER.error(e);
+                LOGGER.error(
+                    `Unexpected error at ${formatISO(
+                        epoch
+                    )} for order ${JSON.stringify(order)}`,
+                    e
+                );
             }
         });
 
@@ -203,35 +231,14 @@ export class MockBrokerage implements BrokerStrategy {
 
         const filledAtTime = fromUnixTime(minuteBar.t / 1000).toISOString();
 
-        let filled = false;
-
-        if (!isCurrentPosition) {
-            filled = isShort
-                ? minuteBar.l <= strikePrice
-                : minuteBar.h >= strikePrice;
-        } else {
-            const position = this.openPositions.find(
-                (p) => p.symbol === order.symbol
-            );
-
-            filled =
-                position!.side === PositionDirection.long &&
-                TradeType.limit === order.type
-                    ? minuteBar.h >= strikePrice
-                    : PositionDirection.long === position!.side &&
-                      TradeType.stop === order.type
-                    ? minuteBar.l <= strikePrice
-                    : filled;
-
-            filled =
-                position!.side === PositionDirection.short &&
-                TradeType.limit === order.type
-                    ? minuteBar.l <= strikePrice
-                    : PositionDirection.short === position!.side &&
-                      TradeType.stop === order.type
-                    ? minuteBar.h >= strikePrice
-                    : filled;
-        }
+        const filled = isOrderFillable(
+            isCurrentPosition,
+            isShort,
+            minuteBar,
+            order,
+            this.openPositions,
+            strikePrice
+        );
 
         if (filled) {
             if (!isCurrentPosition) {
@@ -362,6 +369,60 @@ export class MockBrokerage implements BrokerStrategy {
         return MockBrokerage.instance;
     }
 }
+
+export const isOrderFillable = (
+    isCurrentPosition: boolean,
+    isShort: boolean,
+    bar: Bar,
+    order: AlpacaOrder,
+    openPositions: AlpacaPosition[],
+    strikePrice: number
+) => {
+    let filled = false;
+
+    console.log({
+        isCurrentPosition,
+        isShort,
+        bar,
+        strikePrice,
+        order: JSON.stringify(order),
+        openPositions: JSON.stringify(openPositions),
+    });
+
+    if (!isCurrentPosition) {
+        if (isShort && bar.o < strikePrice && bar.l < bar.o) {
+            return false;
+        } else if (!isShort && bar.o > strikePrice && bar.h > bar.o) {
+            return false;
+        }
+
+        filled = isShort
+            ? bar.l < bar.o && bar.l <= strikePrice
+            : bar.h > bar.o && bar.h >= strikePrice;
+    } else {
+        const position = openPositions.find((p) => p.symbol === order.symbol);
+
+        filled =
+            position!.side === PositionDirection.long &&
+            TradeType.limit === order.type
+                ? bar.h >= strikePrice
+                : PositionDirection.long === position!.side &&
+                  TradeType.stop === order.type
+                ? bar.l <= strikePrice
+                : filled;
+
+        filled =
+            position!.side === PositionDirection.short &&
+            TradeType.limit === order.type
+                ? bar.l <= strikePrice
+                : PositionDirection.short === position!.side &&
+                  TradeType.stop === order.type
+                ? bar.h >= strikePrice
+                : filled;
+    }
+
+    return filled;
+};
 
 const getFakeNewOrder = (
     order: Pick<

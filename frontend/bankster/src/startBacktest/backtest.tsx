@@ -1,18 +1,22 @@
 import "date-fns";
 import React from "react";
-import { Grid, makeStyles, Button, CircularProgress } from "@material-ui/core";
 import {
-    MuiPickersUtilsProvider,
-    KeyboardDatePicker,
-} from "@material-ui/pickers";
-import DateFnsUtils from "@date-io/date-fns";
+    Grid,
+    makeStyles,
+    Button,
+    CircularProgress,
+    TextField,
+} from "@material-ui/core";
+import { DatePicker, LocalizationProvider } from "@material-ui/pickers";
+import DateFnsUtils from "@material-ui/pickers/adapter/date-fns";
 import { addBusinessDays, format } from "date-fns";
 import { BacktestPosition } from "./backtestModel";
 import { AppContext } from "../appContext";
+import { TradesGrid } from "../tradeGrid/tradesGrid";
 
 const useStyles = makeStyles((theme) => ({
     grid: {
-        margin: "0 auto",
+        marginTop: theme.spacing(2),
     },
     alignMiddle: {
         display: "flex",
@@ -31,7 +35,7 @@ export const startBacktest = async (
     endDate: Date
 ): Promise<BacktestPosition[]> => {
     const response = await fetch(
-        `http://localhost:6972/backtest/${format(
+        `http://localhost:6971/backtest/${format(
             startDate,
             "yyyy-MM-dd"
         )}/${format(endDate, "yyyy-MM-dd")}`
@@ -52,37 +56,37 @@ export const BacktestStart = () => {
 
     const [isLoading, setLoading] = React.useState(false);
 
+    const [currentPositions, setPositions] = React.useState<BacktestPosition[]>(
+        []
+    );
+
     return (
-        <MuiPickersUtilsProvider utils={DateFnsUtils}>
+        <LocalizationProvider dateAdapter={DateFnsUtils}>
             <Grid
                 container
                 className={classes.grid}
-                justify="space-around"
+                justifyContent="space-evenly"
                 alignItems="center"
                 spacing={1}
             >
                 <Grid item>
-                    <KeyboardDatePicker
-                        margin="normal"
-                        id="mui-pickers-start-date"
+                    <DatePicker
                         label="Start Date"
                         value={selectedDates.startDate}
+                        disableFuture={true}
+                        renderInput={(props) => <TextField {...props} />}
                         onChange={(date: Date | null) => {
                             setSelectedDate({
                                 startDate: date || selectedDates.startDate,
                                 endDate: selectedDates.endDate,
                             });
                         }}
-                        KeyboardButtonProps={{
-                            "aria-label": "change start date",
-                        }}
                     />
                 </Grid>
                 <Grid item>
-                    <KeyboardDatePicker
-                        margin="normal"
-                        id="mui-pickers-end-date"
+                    <DatePicker
                         label="End Date"
+                        disableFuture={true}
                         value={selectedDates.endDate}
                         onChange={(date: Date | null) => {
                             setSelectedDate({
@@ -90,9 +94,7 @@ export const BacktestStart = () => {
                                 endDate: date || selectedDates.endDate,
                             });
                         }}
-                        KeyboardButtonProps={{
-                            "aria-label": "change start date",
-                        }}
+                        renderInput={(props) => <TextField {...props} />}
                     />
                 </Grid>
                 <Grid item>
@@ -109,7 +111,7 @@ export const BacktestStart = () => {
                                     selectedDates.endDate
                                 ).then((positions) => {
                                     setLoading(false);
-                                    console.log(positions);
+                                    setPositions(positions);
                                     addToBacktestHistory(
                                         selectedDates.startDate,
                                         selectedDates.endDate,
@@ -126,7 +128,7 @@ export const BacktestStart = () => {
                     container
                     xs={12}
                     alignItems="center"
-                    justify="center"
+                    justifyContent="center"
                     className={classes.resultsContainer}
                 >
                     <Grid item>
@@ -137,8 +139,15 @@ export const BacktestStart = () => {
                             />
                         )}
                     </Grid>
+                    {!isLoading && (
+                        <Grid item>
+                            <TradesGrid
+                                positions={currentPositions}
+                            ></TradesGrid>
+                        </Grid>
+                    )}
                 </Grid>
             </Grid>
-        </MuiPickersUtilsProvider>
+        </LocalizationProvider>
     );
 };

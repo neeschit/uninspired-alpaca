@@ -9,8 +9,6 @@ import {
 } from "@material-ui/core";
 import { Link, useLocation } from "react-router-dom";
 import AddIcon from "@material-ui/icons/Add";
-import BookIcon from "@material-ui/icons/Book";
-import BusinessIcon from "@material-ui/icons/Business";
 import HistoryIcon from "@material-ui/icons/History";
 import clsx from "clsx";
 import { AppContext } from "../appContext";
