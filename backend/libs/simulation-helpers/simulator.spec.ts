@@ -124,7 +124,7 @@ class MockStrategy implements SimulationStrategy {
 }
 
 test("Simulator should fake system time when executing batches", async () => {
-    const zonedStartDate = "2020-01-01T00:00:00.000Z";
+    const zonedStartDate = "2020-01-02T00:00:00.000Z";
     const zonedEndDate = "2020-01-03T22:10:00.000Z";
 
     const test = ["AAPL", "BA"];

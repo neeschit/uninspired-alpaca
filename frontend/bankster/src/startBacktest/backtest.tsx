@@ -12,7 +12,7 @@ import DateFnsUtils from "@material-ui/pickers/adapter/date-fns";
 import { addBusinessDays, format, isAfter } from "date-fns";
 import { BacktestResult } from "./backtestModel";
 import { AppContext } from "../appContext";
-import { TradesGrid } from "../tradeGrid/tradesGrid";
+import { BacktestDetail } from "../backtestHistory/backtestDetail";
 
 const useStyles = makeStyles((theme) => ({
     grid: {
@@ -41,7 +41,9 @@ export const startBacktest = async (
         )}/${format(endDate, "yyyy-MM-dd")}`
     );
 
-    return response.json();
+    const json = await response.json();
+
+    return json.results;
 };
 
 export const BacktestStart = () => {
@@ -133,29 +135,34 @@ export const BacktestStart = () => {
                         </Button>
                     </span>
                 </Grid>
-                <Grid
-                    container
-                    xs={12}
-                    alignItems="center"
-                    justifyContent="center"
-                    className={classes.resultsContainer}
-                >
-                    <Grid item>
-                        {isLoading && (
+                {isLoading && (
+                    <Grid
+                        container
+                        alignItems="center"
+                        justifyContent="space-around"
+                        className={classes.resultsContainer}
+                    >
+                        (
+                        <Grid item>
+                            (
                             <CircularProgress
                                 size={240}
                                 className={classes.buttonProgress}
                             />
-                        )}
-                    </Grid>
-                    {!isLoading && results.length && (
-                        <Grid item>
-                            <TradesGrid
-                                positions={
-                                    results[0].positions[results[0].startDate]
-                                }
-                            ></TradesGrid>
+                            )
                         </Grid>
+                        )
+                    </Grid>
+                )}
+
+                <Grid
+                    container
+                    alignItems="center"
+                    justifyContent="space-around"
+                    className={classes.resultsContainer}
+                >
+                    {!isLoading && (
+                        <BacktestDetail batch={results}></BacktestDetail>
                     )}
                 </Grid>
             </Grid>
