@@ -35,7 +35,7 @@ export const startBacktest = async (
     endDate: Date
 ): Promise<BacktestResult[]> => {
     const response = await fetch(
-        `https://282294f65272.ngrok.io/backtest/${format(
+        `http://localhost:6971/backtest/${format(
             startDate,
             "yyyy-MM-dd"
         )}/${format(endDate, "yyyy-MM-dd")}`
@@ -138,6 +138,7 @@ export const BacktestStart = () => {
                 {isLoading && (
                     <Grid
                         container
+                        item
                         alignItems="center"
                         justifyContent="space-around"
                         className={classes.resultsContainer}
@@ -157,11 +158,11 @@ export const BacktestStart = () => {
 
                 <Grid
                     container
-                    alignItems="center"
-                    justifyContent="space-around"
+                    item
                     className={classes.resultsContainer}
+                    direction="column"
                 >
-                    {!isLoading && (
+                    {!isLoading && results.length && (
                         <BacktestDetail batch={results}></BacktestDetail>
                     )}
                 </Grid>

@@ -1,4 +1,4 @@
-export const enum PositionDirection {
+export enum PositionDirection {
     long = "long",
     short = "short",
 }

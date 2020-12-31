@@ -8,7 +8,7 @@ import {
     PositionDirection,
 } from "@neeschit/alpaca-trade-api";
 import { v4 } from "uuid";
-import { formatISO, fromUnixTime, min } from "date-fns";
+import { formatISO, fromUnixTime } from "date-fns";
 import { getSimpleData } from "../core-utils/resources/stockData";
 import { Bar } from "../core-utils/data/data.model";
 import { LOGGER } from "../core-utils/instrumentation/log";
