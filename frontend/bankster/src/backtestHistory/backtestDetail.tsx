@@ -130,7 +130,7 @@ export const BacktestDetail = ({ batch }: { batch: BacktestResult[] }) => {
     };
 
     return (
-        <Grid item>
+        <Grid container item>
             <Grid
                 container
                 item
@@ -155,7 +155,7 @@ export const BacktestDetail = ({ batch }: { batch: BacktestResult[] }) => {
                     ></CustomPaginationActionsTable>
                 </Grid>
             </Grid>
-            <Grid item>
+            <Grid item lg={12} md={12} sm={12} xs={12}>
                 <Candlestick
                     symbolToGraph={symbolToGraph}
                     selectedPosition={selectedPosition}

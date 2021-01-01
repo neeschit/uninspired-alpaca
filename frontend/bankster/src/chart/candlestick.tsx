@@ -78,7 +78,7 @@ export function Candlestick({
     selectedPosition: BacktestPosition | null;
     addPlannedPricelinesForPosition: boolean;
 }) {
-    const chartRef = React.useRef<IChartApi>();
+    const chartRef = React.useRef<any>();
     const chartObject = React.useRef<IChartApi>();
 
     const seriesRef = React.useRef<ISeriesApi<"Candlestick">>();
@@ -94,7 +94,7 @@ export function Candlestick({
 
     React.useEffect(() => {
         chartObject.current = createChart(chartRef.current as any, {
-            width: 1520,
+            width: chartRef.current?.offsetWidth,
             height: 600,
             layout: {
                 backgroundColor: "#10121a",
@@ -203,6 +203,31 @@ export function Candlestick({
         currentChartOptions.symbol,
         symbolToGraph,
     ]);
+    const [dimensions, setDimensions] = React.useState({
+        height: window.innerHeight,
+        width: window.innerWidth,
+    });
+    React.useEffect(() => {
+        function handleResize() {
+            setDimensions({
+                height: window.innerHeight,
+                width: window.innerWidth,
+            });
+        }
+
+        window.addEventListener("resize", handleResize);
+    }, []);
+
+    React.useEffect(() => {
+        if (chartRef.current) {
+            chartObject.current?.resize(
+                chartRef.current.offsetWidth,
+                600,
+                true
+            );
+            chartObject.current?.timeScale().fitContent();
+        }
+    }, [dimensions]);
 
     React.useEffect(() => {
         seriesRef.current?.setData(currentBars);
@@ -212,6 +237,7 @@ export function Candlestick({
 
     React.useEffect(() => {
         if (!selectedPosition || !currentBars) {
+            seriesRef.current?.setMarkers([]);
             return;
         }
 
@@ -355,7 +381,7 @@ export function Candlestick({
     }, [currentBars]);
 
     return (
-        <div ref={chartRef as any} style={{ margin: theme.spacing(3) }}>
+        <div ref={chartRef as any} style={{ margin: theme.spacing(1) }}>
             <div className={classes.legend}>{legendMessage}</div>
         </div>
     );
