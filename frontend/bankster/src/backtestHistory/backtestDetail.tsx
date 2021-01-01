@@ -44,6 +44,8 @@ export const BacktestDetail = ({ batch }: { batch: BacktestResult[] }) => {
     });
     const classes = useStyles();
 
+    const chartRef = React.useRef<any>();
+
     const mappedWatchlist = watchlist.map((symbol) => {
         const isInPositions = positions.some((p) => p.symbol === symbol);
         return {
@@ -101,6 +103,10 @@ export const BacktestDetail = ({ batch }: { batch: BacktestResult[] }) => {
         setPosition,
     ] = React.useState<BacktestPosition | null>(null);
 
+    React.useEffect(() => {
+        chartRef.current?.scrollIntoView();
+    }, [symbolToGraph]);
+
     const getPositionRow = (row: typeof mappedPositions[0]) => {
         return (
             <TableRow
@@ -155,7 +161,7 @@ export const BacktestDetail = ({ batch }: { batch: BacktestResult[] }) => {
                     ></CustomPaginationActionsTable>
                 </Grid>
             </Grid>
-            <Grid item lg={12} md={12} sm={12} xs={12}>
+            <Grid item lg={12} md={12} sm={12} xs={12} ref={chartRef}>
                 <Candlestick
                     symbolToGraph={symbolToGraph}
                     selectedPosition={selectedPosition}
