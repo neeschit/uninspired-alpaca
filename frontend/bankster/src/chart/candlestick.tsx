@@ -3,7 +3,9 @@ import {
     createChart,
     CrosshairMode,
     IChartApi,
+    IPriceLine,
     ISeriesApi,
+    LineStyle,
     SeriesMarker,
     SeriesMarkerPosition,
     SeriesMarkerShape,
@@ -67,14 +69,17 @@ const getDataForDate = async ({
 export function Candlestick({
     symbolToGraph,
     selectedPosition,
+    addPlannedPricelinesForPosition,
 }: {
     symbolToGraph: {
         symbol: string;
         entryTime: string;
     };
     selectedPosition: BacktestPosition | null;
+    addPlannedPricelinesForPosition: boolean;
 }) {
     const chartRef = React.useRef<IChartApi>();
+    const chartObject = React.useRef<IChartApi>();
 
     const seriesRef = React.useRef<ISeriesApi<"Candlestick">>();
     const volumeRef = React.useRef<ISeriesApi<"Histogram">>();
@@ -86,7 +91,7 @@ export function Candlestick({
     const [legendMessage, setLegendMessage] = React.useState("");
 
     React.useEffect(() => {
-        const chart = createChart(chartRef.current as any, {
+        chartObject.current = createChart(chartRef.current as any, {
             width: 1520,
             height: 600,
             layout: {
@@ -121,7 +126,7 @@ export function Candlestick({
                 },
             },
         });
-        volumeRef.current = chart.addHistogramSeries({
+        volumeRef.current = chartObject.current.addHistogramSeries({
             color: "#26a69a",
             priceFormat: {
                 type: "volume",
@@ -132,34 +137,18 @@ export function Candlestick({
                 bottom: 0,
             },
         });
-        seriesRef.current = chart.addCandlestickSeries({
+        seriesRef.current = chartObject.current.addCandlestickSeries({
             upColor: upColor,
             downColor: downColor,
             borderDownColor: "#6c262b",
             borderUpColor: "#194d4b",
             wickDownColor: downColor,
             wickUpColor: upColor,
-        });
-
-        chart.subscribeCrosshairMove((param) => {
-            if (!param.time) {
-                return;
-            }
-            const bar: any = param.seriesPrices.get(seriesRef.current!);
-
-            if (!bar) {
-                return;
-            }
-
-            setLegendMessage(
-                `O${bar.open.toFixed(2)} H${bar.high.toFixed(
-                    2
-                )} L${bar.low.toFixed(2)} C${bar.close.toFixed(2)}`
-            );
+            priceLineVisible: false,
         });
 
         return () => {
-            chart.remove();
+            chartObject.current?.remove();
         };
     }, [selectedPosition, symbolToGraph]);
 
@@ -223,6 +212,43 @@ export function Candlestick({
             seriesRef.current?.setMarkers([]);
             return;
         }
+
+        const pricelines: Array<IPriceLine | undefined> = [];
+
+        if (addPlannedPricelinesForPosition) {
+            const lineWidth = 2;
+            const plannedEntry = seriesRef.current?.createPriceLine({
+                price: selectedPosition.plannedEntryPrice,
+                color: "#be1238",
+                lineWidth: lineWidth,
+                lineStyle: LineStyle.SparseDotted,
+                axisLabelVisible: true,
+                title: "planned entry",
+            });
+
+            const plannedStop = seriesRef.current?.createPriceLine({
+                price: selectedPosition.plannedExitPrice,
+                color: "#be1238",
+                lineWidth: lineWidth,
+                lineStyle: LineStyle.SparseDotted,
+                axisLabelVisible: true,
+                title: "planned stop",
+            });
+
+            const plannedTarget = seriesRef.current?.createPriceLine({
+                price: selectedPosition.plannedTargetPrice,
+                color: "#be1238",
+                lineWidth: lineWidth,
+                lineStyle: LineStyle.SparseDotted,
+                axisLabelVisible: true,
+                title: "planned target",
+            });
+
+            pricelines.push(plannedEntry);
+            pricelines.push(plannedStop);
+            pricelines.push(plannedTarget);
+        }
+
         const entryTime = parseISO(selectedPosition.entryTime).getTime() / 1000;
 
         const entryBarIndex = currentBars.findIndex((b) => {
@@ -287,7 +313,44 @@ export function Candlestick({
         });
 
         seriesRef.current?.setMarkers(markers);
-    }, [currentBars, selectedPosition, symbolToGraph.symbol]);
+
+        return () => {
+            for (const line of pricelines) {
+                if (line) {
+                    seriesRef.current?.removePriceLine(line);
+                }
+            }
+        };
+    }, [
+        addPlannedPricelinesForPosition,
+        currentBars,
+        selectedPosition,
+        symbolToGraph.symbol,
+    ]);
+
+    React.useEffect(() => {
+        chartObject.current?.subscribeCrosshairMove((param) => {
+            if (!param.time) {
+                return;
+            }
+
+            const bar: Bar | undefined = currentBars.find(
+                (b) => b.time === param.time
+            );
+
+            if (!bar) {
+                return;
+            }
+
+            setLegendMessage(
+                `O${bar.open.toFixed(2)} H${bar.high.toFixed(
+                    2
+                )} L${bar.low.toFixed(2)} C${bar.close.toFixed(
+                    2
+                )} V${bar.volume.toLocaleString()}`
+            );
+        });
+    }, [currentBars]);
 
     return (
         <div ref={chartRef as any}>

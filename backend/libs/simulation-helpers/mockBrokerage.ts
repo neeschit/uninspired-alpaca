@@ -210,7 +210,9 @@ export class MockBrokerage implements BrokerStrategy {
 
                 if (isCurrentPosition && !isOrderFillable) {
                     const stopOrderIndex = this.stopLegs.findIndex(
-                        (o) => o.id === order.associatedOrderIds.stopLoss
+                        (o) =>
+                            o.id === order.associatedOrderIds.stopLoss &&
+                            o.symbol === order.symbol
                     );
 
                     if (stopOrderIndex >= 0) {
@@ -278,7 +280,9 @@ export class MockBrokerage implements BrokerStrategy {
             if (!isCurrentPosition) {
                 // fill order
 
-                let index = this.orders.findIndex((o) => o.id === order.id);
+                let index = this.orders.findIndex(
+                    (o) => o.id === order.id && o.symbol === order.symbol
+                );
 
                 if (index < 0) {
                     throw new Error("this cannot be");
@@ -292,8 +296,19 @@ export class MockBrokerage implements BrokerStrategy {
 
                 this.closedOrders.push(mockOrder);
                 const takeProfitOrderIndex = this.profitLegs.findIndex(
-                    (o) => o.symbol === order.symbol
+                    (o) =>
+                        o.id === mockOrder.associatedOrderIds.takeProfit &&
+                        o.symbol === order.symbol
                 );
+
+                if (takeProfitOrderIndex < 0) {
+                    throw new Error(
+                        `expected a take profit order for ${JSON.stringify(
+                            order
+                        )}`
+                    );
+                }
+
                 const takeProfitOrder = this.profitLegs.splice(
                     takeProfitOrderIndex,
                     1
@@ -450,43 +465,47 @@ export class MockBrokerage implements BrokerStrategy {
         closingOrder.filled_at = filledAtTime;
         closingOrder.filled_avg_price = minuteBar[0].c;
 
-        const stopOrder = this.canceledOrders.find(
-            (o) => o.id === position.orderIds.stopLoss
-        );
-        const takeProfitOrder = this.canceledOrders.find(
-            (o) => o.id === position.orderIds.takeProfit
-        );
+        try {
+            const stopOrder = this.canceledOrders.find(
+                (o) => o.id === position.orderIds.stopLoss
+            );
+            const takeProfitOrder = this.canceledOrders.find(
+                (o) => o.id === position.orderIds.takeProfit
+            );
 
-        if (!stopOrder) {
-            throw new Error("expected_stop_order");
+            if (!stopOrder) {
+                throw new Error("expected_stop_order");
+            }
+
+            if (!takeProfitOrder) {
+                throw new Error("expected_profit_order");
+            }
+
+            this.closedPositions.push({
+                symbol: originalOrder.symbol,
+                averageEntryPrice: originalOrder!.filled_avg_price,
+                averageExitPrice: closingOrder!.filled_avg_price,
+                plannedEntryPrice:
+                    originalOrder!.stop_price || originalOrder!.limit_price!,
+                plannedExitPrice:
+                    stopOrder?.stop_price || closingOrder!.stop_price!,
+                plannedTargetPrice:
+                    takeProfitOrder?.limit_price || closingOrder!.limit_price!,
+                qty: originalOrder!.filled_qty,
+                side:
+                    originalOrder!.side === TradeDirection.sell
+                        ? PositionDirection.short
+                        : PositionDirection.long,
+                entryTime: originalOrder!.filled_at as string,
+                exitTime: closingOrder!.filled_at as string,
+                orderIds: {
+                    open: originalOrder!.id,
+                    close: closingOrder!.id,
+                },
+            });
+        } catch (e) {
+            console.log();
         }
-
-        if (!takeProfitOrder) {
-            throw new Error("expected_profit_order");
-        }
-
-        this.closedPositions.push({
-            symbol: originalOrder.symbol,
-            averageEntryPrice: originalOrder!.filled_avg_price,
-            averageExitPrice: closingOrder!.filled_avg_price,
-            plannedEntryPrice:
-                originalOrder!.stop_price || originalOrder!.limit_price!,
-            plannedExitPrice:
-                stopOrder?.stop_price || closingOrder!.stop_price!,
-            plannedTargetPrice:
-                takeProfitOrder?.limit_price || closingOrder!.limit_price!,
-            qty: originalOrder!.filled_qty,
-            side:
-                originalOrder!.side === TradeDirection.sell
-                    ? PositionDirection.short
-                    : PositionDirection.long,
-            entryTime: originalOrder!.filled_at as string,
-            exitTime: closingOrder!.filled_at as string,
-            orderIds: {
-                open: originalOrder!.id,
-                close: closingOrder!.id,
-            },
-        });
     }
 
     public static getInstance() {

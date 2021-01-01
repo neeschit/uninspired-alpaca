@@ -159,6 +159,7 @@ export const BacktestDetail = ({ batch }: { batch: BacktestResult[] }) => {
                 <Candlestick
                     symbolToGraph={symbolToGraph}
                     selectedPosition={selectedPosition}
+                    addPlannedPricelinesForPosition={true}
                 />
             </Grid>
         </Grid>
