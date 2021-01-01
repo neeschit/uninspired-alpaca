@@ -6,6 +6,10 @@ import {
     Simulator,
 } from "../../libs/simulation-helpers/simulator";
 import { getApiServer, Service } from "../../libs/core-utils/util/api";
+import { getData } from "../../libs/core-utils/resources/stockData";
+import { endOfDay } from "date-fns";
+import { getCalendar } from "../../libs/brokerage-helpers/alpaca";
+import { isMarketOpen } from "../../libs/simulation-helpers/timing.util";
 
 const symbols = currentStreamingSymbols;
 
@@ -46,5 +50,53 @@ backtestServer.get(
         return {
             results,
         };
+    }
+);
+
+export interface ChartingBar {
+    time: any;
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+    volume: number;
+}
+
+backtestServer.post(
+    "/fetchBars",
+    async (request: { body: any }): Promise<ChartingBar[]> => {
+        const {
+            symbol,
+            fromEpoch,
+            duration,
+        }: {
+            symbol: string;
+            fromEpoch: number;
+            duration: string;
+        } = request.body;
+
+        const endEpoch = endOfDay(fromEpoch).getTime();
+
+        const data = await getData(symbol, fromEpoch, duration, endEpoch);
+
+        const calendar = await getCalendar(
+            new Date(fromEpoch),
+            new Date(endEpoch)
+        );
+
+        const mappedData = data
+            .filter((d) => isMarketOpen(calendar, d.t))
+            .map((d) => {
+                return {
+                    time: d.t / 1000,
+                    open: d.o,
+                    close: d.c,
+                    low: d.l,
+                    high: d.h,
+                    volume: d.v,
+                };
+            });
+
+        return mappedData;
     }
 );

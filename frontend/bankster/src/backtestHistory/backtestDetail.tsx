@@ -2,6 +2,7 @@ import { TableCell, TableRow } from "@material-ui/core";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import React from "react";
 import {
+    BacktestPosition,
     BacktestResult,
     PositionDirection,
 } from "../startBacktest/backtestModel";
@@ -9,21 +10,38 @@ import CustomPaginationActionsTable from "../table/table";
 import CheckCircleIcon from "@material-ui/icons/CheckCircle";
 import CancelIcon from "@material-ui/icons/Cancel";
 import clsx from "clsx";
+import { Candlestick } from "../chart/candlestick";
+import { formatISO, parse } from "date-fns";
 
 const useStyles = makeStyles((theme) => ({
-    selectedRow: {
+    selectedWatchlistRow: {
         backgroundColor: theme.palette.grey[600],
+    },
+    legend: {
+        position: "relative",
+        left: "12px",
+        top: "12px",
+        zIndex: 100,
+        fontSize: "12px",
+        lineHeight: "18px",
+        fontWeight: 300,
+        color: "#FFFFFF",
     },
 }));
 
 export const BacktestDetail = ({ batch }: { batch: BacktestResult[] }) => {
     const date = batch[0].startDate;
+
     const theme = useTheme();
 
     const watchlist = batch[0].watchlist[date];
     const positions = batch[0].positions[date];
 
-    const [symbolToGraph, setSymbolToGraph] = React.useState("");
+    const [symbolToGraph, setSymbolToGraph] = React.useState({
+        symbol: "",
+        entryTime: "",
+        type: "",
+    });
     const classes = useStyles();
 
     const mappedWatchlist = watchlist.map((symbol) => {
@@ -40,10 +58,19 @@ export const BacktestDetail = ({ batch }: { batch: BacktestResult[] }) => {
             <TableRow
                 key={row.id}
                 onClick={() => {
-                    setSymbolToGraph(row.id);
+                    setSymbolToGraph({
+                        symbol: row.id,
+                        entryTime: formatISO(
+                            parse(date, "yyyy-MM-dd", new Date(date))
+                        ),
+                        type: "watchlist",
+                    });
+                    setPosition(null);
                 }}
                 className={clsx(
-                    symbolToGraph === row.id && classes.selectedRow
+                    symbolToGraph.symbol === row.id &&
+                        symbolToGraph.type === "watchlist" &&
+                        classes.selectedWatchlistRow
                 )}
                 style={{ cursor: "pointer" }}
             >
@@ -69,21 +96,34 @@ export const BacktestDetail = ({ batch }: { batch: BacktestResult[] }) => {
         };
     });
 
+    const [
+        selectedPosition,
+        setPosition,
+    ] = React.useState<BacktestPosition | null>(null);
+
     const getPositionRow = (row: typeof mappedPositions[0]) => {
         return (
             <TableRow
                 key={row.symbol + row.entryTime}
                 onClick={() => {
-                    setSymbolToGraph(row.symbol + row.entryTime);
+                    setSymbolToGraph({
+                        symbol: row.symbol,
+                        entryTime: row.entryTime,
+                        type: "position",
+                    });
+                    setPosition(row);
                 }}
                 className={clsx(
-                    symbolToGraph === row.symbol + row.entryTime &&
-                        classes.selectedRow
+                    symbolToGraph.symbol === row.symbol &&
+                        symbolToGraph.type === "position" &&
+                        symbolToGraph.entryTime === row.entryTime &&
+                        classes.selectedWatchlistRow
                 )}
                 style={{ cursor: "pointer" }}
             >
                 <TableCell>{row.symbol}</TableCell>
                 <TableCell>{row.side}</TableCell>
+                <TableCell>{row.qty}</TableCell>
                 <TableCell>{row.totalPnl}</TableCell>
             </TableRow>
         );
@@ -115,7 +155,10 @@ export const BacktestDetail = ({ batch }: { batch: BacktestResult[] }) => {
                 </div>
             </div>
             <div>
-                <div>Hello</div>
+                <Candlestick
+                    symbolToGraph={symbolToGraph}
+                    selectedPosition={selectedPosition}
+                />
             </div>
         </div>
     );

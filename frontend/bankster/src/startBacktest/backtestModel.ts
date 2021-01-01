@@ -34,3 +34,12 @@ export interface BacktestResult {
     startDate: string;
     endDate: string;
 }
+
+export interface Bar {
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+    time: any;
+    volume: number;
+}
