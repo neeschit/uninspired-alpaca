@@ -21,12 +21,12 @@ const useStyles = makeStyles((theme) => ({
     legend: {
         position: "relative",
         left: "12px",
-        top: "12px",
+        top: "20px",
         zIndex: 100,
-        fontSize: "12px",
+        fontSize: "16px",
         lineHeight: "18px",
-        fontWeight: 300,
-        color: "#FFFFFF",
+        fontWeight: 600,
+        color: "yellow",
     },
 }));
 
@@ -83,6 +83,8 @@ export function Candlestick({
     const upColor = "#29a67c";
     const downColor = "#e83b3e";
 
+    const [legendMessage, setLegendMessage] = React.useState("");
+
     React.useEffect(() => {
         const chart = createChart(chartRef.current as any, {
             width: 1520,
@@ -137,6 +139,23 @@ export function Candlestick({
             borderUpColor: "#194d4b",
             wickDownColor: downColor,
             wickUpColor: upColor,
+        });
+
+        chart.subscribeCrosshairMove((param) => {
+            if (!param.time) {
+                return;
+            }
+            const bar: any = param.seriesPrices.get(seriesRef.current!);
+
+            if (!bar) {
+                return;
+            }
+
+            setLegendMessage(
+                `O${bar.open.toFixed(2)} H${bar.high.toFixed(
+                    2
+                )} L${bar.low.toFixed(2)} C${bar.close.toFixed(2)}`
+            );
         });
 
         return () => {
@@ -272,7 +291,7 @@ export function Candlestick({
 
     return (
         <div ref={chartRef as any}>
-            <div className={classes.legend}></div>
+            <div className={classes.legend}>{legendMessage}</div>
         </div>
     );
 }
