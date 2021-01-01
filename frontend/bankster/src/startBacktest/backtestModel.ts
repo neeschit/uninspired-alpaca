@@ -1,6 +1,4 @@
-import React from "react";
-
-export const enum PositionDirection {
+export enum PositionDirection {
     long = "long",
     short = "short",
 }
@@ -22,8 +20,26 @@ export interface BacktestPosition {
     };
 }
 
-export interface BacktestModel {
-    positions: BacktestPosition[];
-    startDate: Date;
-    endDate: Date;
+export interface BacktestWatchlist {
+    [index: string]: string[];
+}
+
+export interface BacktestPositions {
+    [index: string]: BacktestPosition[];
+}
+
+export interface BacktestResult {
+    watchlist: BacktestWatchlist;
+    positions: BacktestPositions;
+    startDate: string;
+    endDate: string;
+}
+
+export interface Bar {
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+    time: any;
+    volume: number;
 }

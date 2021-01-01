@@ -18,7 +18,7 @@ export const getWatchlistForDate = async (
         return cache[date];
     }
 
-    const formattedDate = parse(date, "MM-dd-yyyy", new Date());
+    const formattedDate = parse(date, "yyyy-MM-dd", new Date());
 
     const filteredSymbols = symbolUniverse.map(async (symbol) => {
         const result = await getPolyonData(

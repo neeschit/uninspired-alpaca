@@ -34,8 +34,8 @@
         {
             "type": "node",
             "request": "attach",
-            "name": "Debug data",
-            "port": 9699,
+            "name": "Debug backtest",
+            "port": 9695,
             "skipFiles": ["<node_internals>/**"]
         },
         {

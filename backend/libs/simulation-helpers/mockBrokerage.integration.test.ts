@@ -1,9 +1,10 @@
-import { MockBrokerage } from "./mockBrokerage";
+import { isOrderFillable, MockBrokerage } from "./mockBrokerage";
 import {
     TradeDirection,
     TradeType,
     TimeInForce,
     PositionDirection,
+    OrderStatus,
 } from "@neeschit/alpaca-trade-api";
 
 const instance = MockBrokerage.getInstance();
@@ -303,4 +304,107 @@ test("multiple open orders at the same time", async () => {
     expect(instance.profitLegs.length).toEqual(0);
     expect(instance.closedPositions.length).toEqual(2);
     expect(instance.closedOrders.length).toEqual(4);
+});
+
+test("order filling test", () => {
+    const params = {
+        isCurrentPosition: false,
+        isShort: false,
+        minuteBar: {
+            v: 2403,
+            c: 143.1078,
+            o: 143.2,
+            h: 143.225,
+            l: 143.1078,
+            t: 1608739560000,
+        },
+        order: {
+            id: "1df4d3fa-9a3f-4e4b-8a8c-2ad33c013e2f",
+            client_order_id: "1609296412610.9492",
+            created_at: "2020-12-23T16:02:00.000Z",
+            updated_at: "2020-12-23T16:02:00.000Z",
+            submitted_at: "2020-12-23T16:02:00.000Z",
+            filled_at: "2020-12-23T16:05:00.000Z",
+            expired_at: "2020-12-23T16:02:00.000Z",
+            canceled_at: "2020-12-23T16:02:00.000Z",
+            failed_at: "2020-12-23T16:02:00.000Z",
+            asset_id: "",
+            symbol: "VMW",
+            asset_class: "",
+            qty: 15,
+            filled_qty: 15,
+            type: TradeType.limit,
+            side: TradeDirection.buy,
+            time_in_force: TimeInForce.day,
+            limit_price: 142.09322310442667,
+            stop_price: undefined,
+            filled_avg_price: 142.09322310442667,
+            status: OrderStatus.new,
+            extended_hours: false,
+            associatedOrderIds: {
+                takeProfit: "71ad4988-a0ce-4c82-96b8-c7f96a62d5c0",
+                stopLoss: "8c99f8f8-273d-421c-9fb9-25b4682fa7a9",
+            },
+        },
+        openPositions: [
+            {
+                id: "ef4c7b9a-d0e1-4fb1-944a-c83711243dc9",
+                side: PositionDirection.long,
+                symbol: "SPY",
+                qty: "4",
+                asset_class: "",
+                asset_id: "",
+                avg_entry_price: "368.793326327572",
+                market_value: "",
+                cost_basis: "",
+                unrealized_intraday_pl: "",
+                lastday_price: "",
+                current_price: "368.98",
+                exchange: "",
+                unrealized_intraday_plpc: "",
+                unrealized_pl: "",
+                unrealized_plpc: "",
+                change_today: "",
+                orderIds: {
+                    stopLoss: "",
+                    takeProfit: "",
+                },
+            },
+            {
+                id: "a317c46b-b5e0-478f-b137-87964ca99f6a",
+                side: PositionDirection.long,
+                symbol: "XOM",
+                qty: "29",
+                asset_class: "",
+                asset_id: "",
+                avg_entry_price: "41.83089216131687",
+                market_value: "",
+                cost_basis: "",
+                unrealized_intraday_pl: "",
+                lastday_price: "",
+                current_price: "42.09",
+                exchange: "",
+                unrealized_intraday_plpc: "",
+                unrealized_pl: "",
+                unrealized_plpc: "",
+                change_today: "",
+                orderIds: {
+                    stopLoss: "",
+                    takeProfit: "",
+                },
+            },
+        ],
+        strikePrice: 142.09322310442667,
+    };
+
+    expect(
+        isOrderFillable(
+            params.isCurrentPosition,
+            params.isShort,
+            params.minuteBar,
+            params.order,
+            params.openPositions,
+            params.strikePrice
+        )
+    ).toEqual(false);
 });

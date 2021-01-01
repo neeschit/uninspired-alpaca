@@ -30,7 +30,7 @@ const mockGetOpenPositions = mockBrokerage.getOpenPositions as jest.Mock;
 const mockCreateOrder = createOrderSynchronized as jest.Mock;
 
 test("narrow range bar strategy simulation - if insertion fails", async () => {
-    const nrb = new NarrowRangeBarSimulation("TEST", mockBrokerage);
+    const nrb = new NarrowRangeBarSimulation("AAPL", mockBrokerage);
 
     mockBackInsertDailyBars.mockReset();
 
@@ -42,11 +42,11 @@ test("narrow range bar strategy simulation - if insertion fails", async () => {
 });
 
 test("narrow range bar strategy simulation - after entry time has passed with open position", async () => {
-    const nrb = new NarrowRangeBarSimulation("TEST", mockBrokerage);
+    const nrb = new NarrowRangeBarSimulation("AAPL", mockBrokerage);
 
     mockGetOpenPositions.mockReset();
     mockCancelOpenOrders.mockReset();
-    mockGetOpenPositions.mockReturnValueOnce([{ symbol: "TEST" }]);
+    mockGetOpenPositions.mockReturnValueOnce([{ symbol: "AAPL" }]);
 
     await nrb.afterEntryTimePassed();
 
@@ -54,14 +54,14 @@ test("narrow range bar strategy simulation - after entry time has passed with op
 });
 
 test("narrow range bar strategy simulation - after entry time has passed", async () => {
-    const nrb = new NarrowRangeBarSimulation("TEST", mockBrokerage);
+    const nrb = new NarrowRangeBarSimulation("AAPL", mockBrokerage);
 
     mockGetOpenPositions.mockReset();
-    mockGetOpenPositions.mockReturnValueOnce([{ symbol: "TEST1" }]);
+    mockGetOpenPositions.mockReturnValueOnce([{ symbol: "VZ" }]);
 
     await nrb.afterEntryTimePassed();
 
-    expect(mockCancelOpenOrders).toHaveBeenCalledWith("TEST", mockBrokerage);
+    expect(mockCancelOpenOrders).toHaveBeenCalledWith("AAPL", mockBrokerage);
 });
 
 test("nrb simulation - rebalance", async () => {

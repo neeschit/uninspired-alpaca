@@ -9,8 +9,6 @@ import {
 } from "@material-ui/core";
 import { Link, useLocation } from "react-router-dom";
 import AddIcon from "@material-ui/icons/Add";
-import BookIcon from "@material-ui/icons/Book";
-import BusinessIcon from "@material-ui/icons/Business";
 import HistoryIcon from "@material-ui/icons/History";
 import clsx from "clsx";
 import { AppContext } from "../appContext";
@@ -35,7 +33,7 @@ const useStyles = makeStyles((theme) => ({
         color: theme.palette.text.primary,
     },
     selectedListItem: {
-        backgroundColor: theme.palette.grey[200],
+        backgroundColor: theme.palette.primary.light,
     },
 }));
 
@@ -56,8 +54,6 @@ export const MenuList = () => {
                         path: "/backtest",
                         icon: <AddIcon />,
                     },
-                    { text: "Trades", path: "/trades", icon: <BookIcon /> },
-                    { text: "Orders", path: "/orders", icon: <BusinessIcon /> },
                     {
                         text: "View Backtests",
                         path: "/history",
@@ -73,8 +69,9 @@ export const MenuList = () => {
                                 styles.item,
                                 isActiveRoute && styles.selectedListItem
                             )}
+                            key={item.path}
                         >
-                            <ListItem button key={item.text}>
+                            <ListItem button>
                                 <ListItemIcon>{item.icon}</ListItemIcon>
                                 <ListItemText primary={item.text} />
                             </ListItem>

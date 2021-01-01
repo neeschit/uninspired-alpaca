@@ -4,7 +4,7 @@ import { getWatchlistForDate } from "./screener.handlers";
 
 test("getWatchListForDate", async () => {
     jest.setTimeout(10000);
-    const date = "10-23-2020";
+    const date = "2020-10-23";
 
     const watchList = await getWatchlistForDate(currentTradingSymbols, date);
 

@@ -1,8 +1,7 @@
 import { Calendar } from "@neeschit/alpaca-trade-api";
 import {
     addBusinessDays,
-    addMonths,
-    differenceInMonths,
+    differenceInDays,
     format,
     parseISO,
     startOfDay,
@@ -20,23 +19,55 @@ import {
     isMarketOpening,
 } from "./timing.util";
 import { LOGGER } from "../core-utils/instrumentation/log";
-import { MockBrokerage } from "./mockBrokerage";
+import {
+    ClosedMockPosition,
+    MockAlpacaPosition,
+    MockBrokerage,
+} from "./mockBrokerage";
 
 export type SimulationImpl = new (...args: any[]) => SimulationStrategy;
+
+export const mergeResults = (
+    results: BacktestBatchResult[],
+    batchResult: BacktestBatchResult
+) => {
+    const resultToAddTo = results.find(
+        (r) => r.startDate === batchResult.startDate
+    );
+    if (resultToAddTo) {
+        resultToAddTo.positions[
+            batchResult.startDate
+        ] = resultToAddTo.positions[batchResult.startDate].concat(
+            batchResult.positions[batchResult.startDate]
+        );
+        resultToAddTo.watchlist[
+            batchResult.startDate
+        ] = resultToAddTo.watchlist[batchResult.startDate].concat(
+            batchResult.watchlist[batchResult.startDate]
+        );
+    } else {
+        results.push(batchResult);
+    }
+};
 
 export class Simulator {
     private readonly updateInterval = 60000;
 
     private strategies: { [index: string]: SimulationStrategy } = {};
 
-    async run(batches: BacktestBatch[], strategy: SimulationImpl) {
+    async run(
+        batches: BacktestBatch[],
+        strategy: SimulationImpl
+    ): Promise<BacktestBatchResult[]> {
         const results: BacktestBatchResult[] = [];
         for await (const batchResult of this.syncToAsyncIterable(
             batches,
             strategy
         )) {
-            results.push(batchResult);
+            mergeResults(results, batchResult);
         }
+
+        return results;
     }
 
     private async *syncToAsyncIterable(
@@ -62,6 +93,9 @@ export class Simulator {
 
         const start = parseISO(batch.startDate).getTime();
         const end = parseISO(batch.endDate).getTime();
+
+        const watchlist: BacktestWatchlist = {};
+        const positions: BacktestPositions = {};
 
         let currentTime =
             Simulator.getMarketOpenTimeForDay(start, calendar) -
@@ -96,15 +130,33 @@ export class Simulator {
                     calendar
                 );
             } else if (isAfterMarketClose(calendar, currentTime)) {
+                const date = format(currentTime, DATE_FORMAT);
+
+                const todaysWatchlist = Object.keys(this.strategies).filter(
+                    (symbol) => {
+                        return this.strategies[symbol].isInPlay();
+                    }
+                );
+
+                watchlist[date] = todaysWatchlist;
+                positions[date] = JSON.parse(
+                    JSON.stringify(mockBroker.closedPositions)
+                );
+
                 currentTime = startOfDay(
                     addBusinessDays(currentTime, 1)
                 ).getTime();
-                mockBroker.resetForSimulator();
+                mockBroker.reset();
                 this.strategies = {};
             }
         }
 
-        return {};
+        return {
+            startDate: format(start, DATE_FORMAT),
+            endDate: format(end, DATE_FORMAT),
+            watchlist,
+            positions,
+        };
     }
 
     static getMarketOpenTimeForDay(
@@ -153,9 +205,9 @@ export class Simulator {
         const startDate = parseISO(startDateStr);
         const endDate = parseISO(endDateStr);
 
-        const months = differenceInMonths(startDate, endDate);
+        const difference = differenceInDays(startDate, endDate);
 
-        if (Math.abs(months) <= 1 && symbols.length < batchSize) {
+        if (Math.abs(difference) <= 1 && symbols.length < batchSize) {
             return [
                 {
                     startDate: startDate.toISOString(),
@@ -172,7 +224,7 @@ export class Simulator {
         const durations = [];
 
         while (batchStartDate.getTime() < endDate.getTime()) {
-            let batchedEndDate = addMonths(batchStartDate, 1);
+            let batchedEndDate = addBusinessDays(batchStartDate, 1);
 
             if (batchedEndDate.getTime() > endDate.getTime()) {
                 batchedEndDate = endDate;
@@ -208,10 +260,19 @@ export interface BacktestBatch {
     batchId: number;
 }
 
+export interface BacktestWatchlist {
+    [index: string]: string[];
+}
+
+export interface BacktestPositions {
+    [index: string]: ClosedMockPosition[];
+}
+
 export interface BacktestBatchResult {
-    [index: string]: {
-        trades: string[];
-    };
+    watchlist: BacktestWatchlist;
+    positions: BacktestPositions;
+    startDate: string;
+    endDate: string;
 }
 
 export const runStrategy = async (

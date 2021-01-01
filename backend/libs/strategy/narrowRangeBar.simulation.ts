@@ -1,5 +1,5 @@
 import { AlpacaOrder, Calendar } from "@neeschit/alpaca-trade-api";
-import { addBusinessDays } from "date-fns";
+import { addBusinessDays, formatISO } from "date-fns";
 import { SimulationStrategy } from "../simulation-helpers/simulation.strategy";
 import {
     getSafeOrbEntryPlan,
@@ -27,6 +27,7 @@ export class NarrowRangeBarSimulation implements SimulationStrategy {
     private strategy?: NarrowRangeBarStrategy;
     private tr?: IndicatorValue<number>[];
     private atr?: IndicatorValue<number>[];
+    private isInPlayCurrently = false;
 
     constructor(private symbol: string, private broker: BrokerStrategy) {}
     async beforeMarketStarts(epoch = Date.now()): Promise<void> {
@@ -64,11 +65,23 @@ export class NarrowRangeBarSimulation implements SimulationStrategy {
         this.tr = tr;
         this.atr = atr;
 
+        if (!this.atr || !this.atr.length) {
+            throw new Error(
+                `Should have found some atr for ${
+                    this.symbol
+                } on the next day after ${formatISO(lastBusinessDay)}`
+            );
+        }
+
         this.strategy = new NarrowRangeBarStrategy({
             symbol: this.symbol,
             bars: data,
             tr,
         });
+    }
+
+    isInPlay() {
+        return this.isInPlayCurrently;
     }
 
     async rebalance(
@@ -82,6 +95,8 @@ export class NarrowRangeBarSimulation implements SimulationStrategy {
         if (!this.strategy!.screenForNarrowRangeBars()) {
             return;
         }
+
+        this.isInPlayCurrently = true;
 
         const positions = await this.broker.getOpenPositions();
 
@@ -109,16 +124,18 @@ export class NarrowRangeBarSimulation implements SimulationStrategy {
             symbol: this.symbol,
             lastPrice: lastBar.c,
             openingBar: data[0],
-            dailyAtr: this.atr!.pop()!.value,
+            dailyAtr: this.atr![this.atr!.length - 1].value,
         });
 
         try {
             const order = await createOrderSynchronized(plan, this.broker);
         } catch (e) {
-            LOGGER.error(
-                `could not place order for ${this.symbol} at ${epoch}`
-            );
-            throw e;
+            if (e.message.indexOf("order_exists") === -1) {
+                LOGGER.error(
+                    `could not place order for ${this.symbol} at ${epoch}`
+                );
+                throw e;
+            }
         }
     }
     async afterEntryTimePassed(): Promise<void> {
@@ -132,9 +149,9 @@ export class NarrowRangeBarSimulation implements SimulationStrategy {
 
         await cancelOpenOrdersForSymbol(this.symbol, this.broker);
     }
-    async beforeMarketCloses(): Promise<void> {
+    async beforeMarketCloses(epoch: number): Promise<void> {
         await cancelOpenOrdersForSymbol(this.symbol, this.broker);
-        await this.broker.closePosition(this.symbol);
+        await this.broker.closePosition(this.symbol, epoch);
     }
     async onMarketClose(): Promise<void> {}
 
