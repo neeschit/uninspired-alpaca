@@ -85,7 +85,7 @@ export function Candlestick({
 
     React.useEffect(() => {
         const chart = createChart(chartRef.current as any, {
-            width: 800,
+            width: 1520,
             height: 600,
             layout: {
                 backgroundColor: "#10121a",

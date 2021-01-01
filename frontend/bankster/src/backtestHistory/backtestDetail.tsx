@@ -1,4 +1,4 @@
-import { TableCell, TableRow } from "@material-ui/core";
+import { TableCell, TableRow, Grid } from "@material-ui/core";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import React from "react";
 import {
@@ -130,36 +130,37 @@ export const BacktestDetail = ({ batch }: { batch: BacktestResult[] }) => {
     };
 
     return (
-        <div
-            style={{
-                display: "flex",
-                justifyContent: "space-around",
-            }}
-        >
-            <div>
-                <div>
+        <Grid item>
+            <Grid
+                container
+                item
+                justifyContent="center"
+                style={{ marginBottom: theme.spacing(2) }}
+                spacing={4}
+            >
+                <Grid item>
                     Watchlist
                     <CustomPaginationActionsTable
                         rows={mappedWatchlist}
                         getRowElementForCurrentRow={getWatchlistRow}
                         showPagination={false}
                     ></CustomPaginationActionsTable>
-                </div>
-                <div style={{ marginTop: theme.spacing(2) }}>
+                </Grid>
+                <Grid item>
                     Trades Taken
                     <CustomPaginationActionsTable
                         rows={mappedPositions}
                         getRowElementForCurrentRow={getPositionRow}
                         showPagination={true}
                     ></CustomPaginationActionsTable>
-                </div>
-            </div>
-            <div>
+                </Grid>
+            </Grid>
+            <Grid item>
                 <Candlestick
                     symbolToGraph={symbolToGraph}
                     selectedPosition={selectedPosition}
                 />
-            </div>
-        </div>
+            </Grid>
+        </Grid>
     );
 };
