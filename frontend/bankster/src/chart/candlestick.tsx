@@ -11,7 +11,7 @@ import {
     SeriesMarkerShape,
     UTCTimestamp,
 } from "lightweight-charts";
-import { makeStyles } from "@material-ui/core";
+import { makeStyles, useTheme } from "@material-ui/core/styles";
 import {
     BacktestPosition,
     Bar,
@@ -90,6 +90,8 @@ export function Candlestick({
 
     const [legendMessage, setLegendMessage] = React.useState("");
 
+    const theme = useTheme();
+
     React.useEffect(() => {
         chartObject.current = createChart(chartRef.current as any, {
             width: 1520,
@@ -150,7 +152,7 @@ export function Candlestick({
         return () => {
             chartObject.current?.remove();
         };
-    }, [selectedPosition, symbolToGraph]);
+    }, [symbolToGraph]);
 
     const [currentBars, setCurrentBars] = React.useState<Bar[]>([]);
     const [currentVolume, setCurrentVolume] = React.useState<
@@ -313,14 +315,6 @@ export function Candlestick({
         });
 
         seriesRef.current?.setMarkers(markers);
-
-        return () => {
-            for (const line of pricelines) {
-                if (line) {
-                    seriesRef.current?.removePriceLine(line);
-                }
-            }
-        };
     }, [
         addPlannedPricelinesForPosition,
         currentBars,
@@ -353,7 +347,7 @@ export function Candlestick({
     }, [currentBars]);
 
     return (
-        <div ref={chartRef as any}>
+        <div ref={chartRef as any} style={{ margin: theme.spacing(3) }}>
             <div className={classes.legend}>{legendMessage}</div>
         </div>
     );
