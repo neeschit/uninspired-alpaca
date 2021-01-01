@@ -100,7 +100,7 @@ export class MockBrokerage implements BrokerStrategy {
         );
 
         if (profitOrderIndex > -1) {
-            const takeProfitOrder = this.profitLegs.splice(stopOrderIndex, 1);
+            const takeProfitOrder = this.profitLegs.splice(profitOrderIndex, 1);
             this.canceledOrders.push(takeProfitOrder[0]);
         }
     }
@@ -191,11 +191,7 @@ export class MockBrokerage implements BrokerStrategy {
                 );
 
                 if (!minuteBar || !minuteBar.length) {
-                    throw new Error(
-                        `expected a bar at ${formatInEasternTimeForDisplay(
-                            epoch
-                        )}`
-                    );
+                    return null;
                 }
 
                 const isCurrentPosition = this.openPositions.some(
@@ -502,7 +498,7 @@ export class MockBrokerage implements BrokerStrategy {
                 },
             });
         } catch (e) {
-            console.log();
+            LOGGER.error(e);
         }
     }
 
@@ -525,15 +521,6 @@ export const isOrderFillable = (
 ) => {
     let filled = false;
 
-    /*    console.log({
-        isCurrentPosition,
-        isShort,
-        bar,
-        strikePrice,
-        order: JSON.stringify(order),
-        openPositions: JSON.stringify(openPositions),
-    });
- */
     if (!isCurrentPosition) {
         if (isShort && bar.o < strikePrice && bar.l < bar.o) {
             return false;

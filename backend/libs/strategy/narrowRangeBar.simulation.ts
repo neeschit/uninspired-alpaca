@@ -130,9 +130,12 @@ export class NarrowRangeBarSimulation implements SimulationStrategy {
         try {
             const order = await createOrderSynchronized(plan, this.broker);
         } catch (e) {
-            if (e.message.indexOf("order_exists") === -1) {
+            if (
+                e.message.indexOf("order_exists") === -1 &&
+                e.message.indexOf("order_placed_recently_for_symbol") === -1
+            ) {
                 LOGGER.error(
-                    `could not place order for ${this.symbol} at ${epoch}`
+                    `could not place order ${e.message} for ${this.symbol} at ${epoch}`
                 );
                 throw e;
             }
