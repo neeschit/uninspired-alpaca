@@ -152,7 +152,7 @@ export function Candlestick({
         return () => {
             chartObject.current?.remove();
         };
-    }, [symbolToGraph]);
+    }, []);
 
     const [currentBars, setCurrentBars] = React.useState<Bar[]>([]);
     const [currentVolume, setCurrentVolume] = React.useState<
@@ -211,7 +211,6 @@ export function Candlestick({
 
     React.useEffect(() => {
         if (!selectedPosition || !currentBars) {
-            seriesRef.current?.setMarkers([]);
             return;
         }
 
@@ -315,6 +314,14 @@ export function Candlestick({
         });
 
         seriesRef.current?.setMarkers(markers);
+        return () => {
+            seriesRef.current?.setMarkers([]);
+            for (const line of pricelines) {
+                if (line) {
+                    seriesRef.current?.removePriceLine(line);
+                }
+            }
+        };
     }, [
         addPlannedPricelinesForPosition,
         currentBars,

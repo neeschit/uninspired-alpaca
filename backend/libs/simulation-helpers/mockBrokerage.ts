@@ -278,8 +278,6 @@ export class MockBrokerage implements BrokerStrategy {
 
         if (filled) {
             if (!isCurrentPosition) {
-                // fill order
-
                 let index = this.orders.findIndex(
                     (o) => o.id === order.id && o.symbol === order.symbol
                 );
