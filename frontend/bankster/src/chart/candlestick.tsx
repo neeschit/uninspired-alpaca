@@ -207,6 +207,7 @@ export function Candlestick({
     React.useEffect(() => {
         seriesRef.current?.setData(currentBars);
         volumeRef.current?.setData(currentVolume);
+        chartObject.current?.timeScale().fitContent();
     }, [currentBars, currentVolume]);
 
     React.useEffect(() => {
