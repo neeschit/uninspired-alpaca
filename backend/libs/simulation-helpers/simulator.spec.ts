@@ -8,14 +8,6 @@ import {
     Simulator,
 } from "./simulator";
 
-beforeAll(() => {
-    jest.useFakeTimers("modern");
-});
-
-afterAll(() => {
-    jest.useRealTimers();
-});
-
 test("Backtester - simulate batching with batches being limited to single days", () => {
     const zonedStartDate = "2021-01-04T16:00:00.000Z";
     const zonedEndDate = "2021-01-07T23:00:00.000Z";
