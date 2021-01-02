@@ -9,12 +9,7 @@ import {
     ThemeProvider,
     CssBaseline,
 } from "@material-ui/core";
-import {
-    BrowserRouter as Router,
-    Switch,
-    Route,
-    Redirect,
-} from "react-router-dom";
+import { BrowserRouter as Router, Switch, Route, Redirect } from "react-router-dom";
 import MenuIcon from "@material-ui/icons/Menu";
 import { AppContext, BacktestHistory } from "./appContext";
 import { MenuList } from "./menuList/menuList";
@@ -75,9 +70,7 @@ function App() {
                         results: BacktestResult
                     ) => {
                         const existingTest = appState.backtests.some(
-                            (b) =>
-                                b.startDate === startDate &&
-                                b.endDate === endDate
+                            (b) => b.startDate === startDate && b.endDate === endDate
                         );
 
                         if (!existingTest) {
@@ -128,17 +121,11 @@ function App() {
                                 exact
                                 path="/"
                                 render={() => {
-                                    return <Redirect to="/backtest"></Redirect>;
+                                    return <Redirect to="/history"></Redirect>;
                                 }}
                             ></Route>
-                            <Route
-                                path="/backtest"
-                                component={BacktestStart}
-                            ></Route>
-                            <Route
-                                path="/history"
-                                component={BacktestsList}
-                            ></Route>
+                            <Route path="/backtest" component={BacktestStart}></Route>
+                            <Route path="/history" component={BacktestsList}></Route>
                         </Switch>
                     </div>
                 </Router>
