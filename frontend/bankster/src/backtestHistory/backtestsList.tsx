@@ -37,7 +37,7 @@ export const getCachedBacktests = async (): Promise<BacktestResult[]> => {
 export const BacktestsList = () => {
     const { history, addToBacktestHistory } = React.useContext(AppContext);
 
-    const [isLoading, setLoading] = React.useState(false);
+    const [isLoading, setLoading] = React.useState(!!history.length || false);
 
     const [
         currentBacktest,
@@ -49,6 +49,10 @@ export const BacktestsList = () => {
     const classes = useStyles();
 
     React.useEffect(() => {
+        if (history.length !== 0) {
+            return;
+        }
+
         setLoading(true);
         getCachedBacktests().then((results) => {
             for (const result of results) {
@@ -63,7 +67,7 @@ export const BacktestsList = () => {
             setSelectedIndex(0);
             setLoading(false);
         });
-    }, [addToBacktestHistory]);
+    }, [addToBacktestHistory]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const getRowElementForCurrentRow = (
         row: BacktestHistory,
