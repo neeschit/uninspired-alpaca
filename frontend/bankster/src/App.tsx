@@ -72,7 +72,7 @@ function App() {
                     addToBacktestHistory: (
                         startDate: string,
                         endDate: string,
-                        results: BacktestResult[]
+                        results: BacktestResult
                     ) => {
                         appState.backtests.push({
                             startDate,

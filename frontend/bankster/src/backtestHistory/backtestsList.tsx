@@ -20,9 +20,10 @@ const useStyles = makeStyles((theme) => ({
 export const BacktestsList = () => {
     const { history } = React.useContext(AppContext);
 
-    const [currentBacktest, setSelectedBacktest] = React.useState<
-        BacktestResult[] | null
-    >(null);
+    const [
+        currentBacktest,
+        setSelectedBacktest,
+    ] = React.useState<BacktestResult | null>(null);
 
     const [selectedIndex, setSelectedIndex] = React.useState(-1);
 

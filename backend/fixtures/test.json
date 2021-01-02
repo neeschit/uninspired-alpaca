@@ -1,0 +1,4159 @@
+[
+    {
+        "startDate": "2020-12-01",
+        "endDate": "2020-12-02",
+        "watchlist": {
+            "2020-12-01": [
+                "FOX",
+                "T"
+            ]
+        },
+        "positions": {
+            "2020-12-01": [
+                {
+                    "symbol": "T",
+                    "averageEntryPrice": 28.89312145198354,
+                    "averageExitPrice": 28.84,
+                    "totalPnl": -1.6998864634732627,
+                    "plannedEntryPrice": 28.89312145198354,
+                    "plannedExitPrice": 28.581795544493826,
+                    "plannedTargetPrice": 29.481795544493828,
+                    "qty": 32,
+                    "side": "long",
+                    "entryTime": "2020-12-01T16:46:00.000Z",
+                    "exitTime": "2020-12-01T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "f0accfaf-0754-42b9-aee1-e0629be669d0",
+                        "close": "c40b3fb7-8f7b-4a04-8b59-4292a6bfd72e"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "startDate": "2020-12-02",
+        "endDate": "2020-12-03",
+        "watchlist": {
+            "2020-12-02": [
+                "BABA",
+                "JD",
+                "VMW"
+            ]
+        },
+        "positions": {
+            "2020-12-02": [
+                {
+                    "symbol": "JD",
+                    "averageEntryPrice": 83.69210821421827,
+                    "averageExitPrice": 84.24994392985283,
+                    "plannedEntryPrice": 83.69210821421827,
+                    "plannedExitPrice": 84.24994392985283,
+                    "plannedTargetPrice": 82.57643678294913,
+                    "qty": 17,
+                    "side": "short",
+                    "entryTime": "2020-12-02T15:46:00.000Z",
+                    "exitTime": "2020-12-02T16:20:00.000Z",
+                    "orderIds": {
+                        "open": "a95b25ad-bfee-443c-9eb7-c86534cd7b04",
+                        "close": "1f260b3d-c01d-48c1-b522-e113b9477ade"
+                    },
+                    "totalPnl": -9.483207165787647
+                },
+                {
+                    "symbol": "BABA",
+                    "averageEntryPrice": 262.2306167614815,
+                    "averageExitPrice": 261.36,
+                    "totalPnl": -6.094317330370302,
+                    "plannedEntryPrice": 262.2306167614815,
+                    "plannedExitPrice": 260.9506167614815,
+                    "plannedTargetPrice": 264.79061676148143,
+                    "qty": 7,
+                    "side": "long",
+                    "entryTime": "2020-12-02T15:10:00.000Z",
+                    "exitTime": "2020-12-02T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "5b560935-629e-4e4a-b132-9402cf901f12",
+                        "close": "145a065e-9c39-45d0-a595-db82096a098a"
+                    }
+                },
+                {
+                    "symbol": "VMW",
+                    "averageEntryPrice": 141.76981489514066,
+                    "averageExitPrice": 141.55,
+                    "totalPnl": -2.4179638465470816,
+                    "plannedEntryPrice": 141.76981489514066,
+                    "plannedExitPrice": 140.9735169923275,
+                    "plannedTargetPrice": 143.362410700767,
+                    "qty": 11,
+                    "side": "long",
+                    "entryTime": "2020-12-02T15:34:00.000Z",
+                    "exitTime": "2020-12-02T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "203653d0-a45d-440c-8e3a-cccdbeb83346",
+                        "close": "d16617cf-7309-40b3-a3a7-16951c6e491a"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "startDate": "2020-12-03",
+        "endDate": "2020-12-04",
+        "watchlist": {
+            "2020-12-03": [
+                "BABA",
+                "DHR",
+                "KO",
+                "MMM",
+                "TJX",
+                "USB",
+                "VMW"
+            ]
+        },
+        "positions": {
+            "2020-12-03": [
+                {
+                    "symbol": "DHR",
+                    "averageEntryPrice": 225.4988363377778,
+                    "averageExitPrice": 224.43706362666668,
+                    "plannedEntryPrice": 225.4988363377778,
+                    "plannedExitPrice": 224.43706362666668,
+                    "plannedTargetPrice": 227.43706362666668,
+                    "qty": 9,
+                    "side": "long",
+                    "entryTime": "2020-12-03T15:08:00.000Z",
+                    "exitTime": "2020-12-03T16:03:00.000Z",
+                    "orderIds": {
+                        "open": "59977699-428c-4c81-af73-352abea4da10",
+                        "close": "242ae4ed-abef-41ae-954c-7d44c4eef171"
+                    },
+                    "totalPnl": -9.555954399999933
+                },
+                {
+                    "symbol": "VMW",
+                    "averageEntryPrice": 142.1668436377284,
+                    "averageExitPrice": 141.47,
+                    "plannedEntryPrice": 142.1668436377284,
+                    "plannedExitPrice": 141.47,
+                    "plannedTargetPrice": 143.40707409244445,
+                    "qty": 14,
+                    "side": "long",
+                    "entryTime": "2020-12-03T15:03:00.000Z",
+                    "exitTime": "2020-12-03T17:08:00.000Z",
+                    "orderIds": {
+                        "open": "9ff81fef-e9af-4a7c-8c39-efcc76c70e2e",
+                        "close": "a146aa09-ff38-4778-8bf5-7a347e31e29e"
+                    },
+                    "totalPnl": -9.75581092819749
+                },
+                {
+                    "symbol": "DHR",
+                    "averageEntryPrice": 224.56420227309397,
+                    "averageExitPrice": 222.56420227309397,
+                    "plannedEntryPrice": 224.56420227309397,
+                    "plannedExitPrice": 225.56420227309397,
+                    "plannedTargetPrice": 222.56420227309397,
+                    "qty": 10,
+                    "side": "short",
+                    "entryTime": "2020-12-03T16:07:00.000Z",
+                    "exitTime": "2020-12-03T20:40:00.000Z",
+                    "orderIds": {
+                        "open": "2ac0a599-d060-4b65-b0e1-6ccb39f8633a",
+                        "close": "63db6db4-80de-479e-b3d7-e4de5cebd7bb"
+                    },
+                    "totalPnl": 20
+                },
+                {
+                    "symbol": "MMM",
+                    "averageEntryPrice": 172.52970364493828,
+                    "averageExitPrice": 171.47,
+                    "plannedEntryPrice": 172.52970364493828,
+                    "plannedExitPrice": 171.47,
+                    "plannedTargetPrice": 174.64911093481484,
+                    "qty": 9,
+                    "side": "long",
+                    "entryTime": "2020-12-03T15:02:00.000Z",
+                    "exitTime": "2020-12-03T20:42:00.000Z",
+                    "orderIds": {
+                        "open": "b96f9d05-de0c-49dc-af81-eb0a120f4edd",
+                        "close": "4b30cb06-b32a-40cd-a3dc-e5038aa895cd"
+                    },
+                    "totalPnl": -9.537332804444532
+                },
+                {
+                    "symbol": "TJX",
+                    "averageEntryPrice": 65.40366526393416,
+                    "averageExitPrice": 65.44,
+                    "totalPnl": 0.7266947213167896,
+                    "plannedEntryPrice": 65.40366526393416,
+                    "plannedExitPrice": 64.92700999446913,
+                    "plannedTargetPrice": 66.24697843298767,
+                    "qty": 20,
+                    "side": "long",
+                    "entryTime": "2020-12-03T15:12:00.000Z",
+                    "exitTime": "2020-12-03T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "bba716df-fd87-48bd-b301-9ffc2fbdc1e3",
+                        "close": "717f225e-89d8-4c92-9a56-174afae4efde"
+                    }
+                },
+                {
+                    "symbol": "USB",
+                    "averageEntryPrice": 44.79776919335711,
+                    "averageExitPrice": 44.865,
+                    "totalPnl": 2.0841550059295813,
+                    "plannedEntryPrice": 44.79776919335711,
+                    "plannedExitPrice": 44.497769193357115,
+                    "plannedTargetPrice": 45.39776919335711,
+                    "qty": 31,
+                    "side": "long",
+                    "entryTime": "2020-12-03T15:33:00.000Z",
+                    "exitTime": "2020-12-03T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "04951d3d-5048-4198-9289-a6b5f6d75448",
+                        "close": "743f4b90-2762-4948-82ef-536ba2f88447"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "startDate": "2020-12-04",
+        "endDate": "2020-12-07",
+        "watchlist": {
+            "2020-12-04": [
+                "AAPL",
+                "C",
+                "CRM",
+                "IBM",
+                "MMM",
+                "MS",
+                "TJX",
+                "UNH",
+                "VMW",
+                "XOM"
+            ]
+        },
+        "positions": {
+            "2020-12-04": [
+                {
+                    "symbol": "CRM",
+                    "averageEntryPrice": 222.2958427654321,
+                    "averageExitPrice": 223.6158427654321,
+                    "plannedEntryPrice": 222.2958427654321,
+                    "plannedExitPrice": 223.6158427654321,
+                    "plannedTargetPrice": 219.6558427654321,
+                    "qty": 8,
+                    "side": "short",
+                    "entryTime": "2020-12-04T15:08:00.000Z",
+                    "exitTime": "2020-12-04T15:18:00.000Z",
+                    "orderIds": {
+                        "open": "efae3f6a-42d7-47d7-8032-cd50f1c5c26b",
+                        "close": "2e338eec-04a5-4b9c-88c6-5d6b839378ad"
+                    },
+                    "totalPnl": -10.559999999999945
+                },
+                {
+                    "symbol": "TJX",
+                    "averageEntryPrice": 65.9698252676214,
+                    "averageExitPrice": 66.2698252676214,
+                    "plannedEntryPrice": 65.9698252676214,
+                    "plannedExitPrice": 66.2698252676214,
+                    "plannedTargetPrice": 65.36982526762141,
+                    "qty": 32,
+                    "side": "short",
+                    "entryTime": "2020-12-04T15:12:00.000Z",
+                    "exitTime": "2020-12-04T15:35:00.000Z",
+                    "orderIds": {
+                        "open": "37a72ac4-822b-49dc-8fc7-9d5b60051392",
+                        "close": "61f2fe87-1ff9-4698-b349-2bfef90afc2e"
+                    },
+                    "totalPnl": -9.599999999999909
+                },
+                {
+                    "symbol": "CRM",
+                    "averageEntryPrice": 222.04657527574943,
+                    "averageExitPrice": 223.61,
+                    "plannedEntryPrice": 222.04657527574943,
+                    "plannedExitPrice": 223.61,
+                    "plannedTargetPrice": 218.91972582724827,
+                    "qty": 7,
+                    "side": "short",
+                    "entryTime": "2020-12-04T15:29:00.000Z",
+                    "exitTime": "2020-12-04T15:42:00.000Z",
+                    "orderIds": {
+                        "open": "975ba78d-1b3b-409a-af87-4671532a482f",
+                        "close": "4c19c4e0-0020-47f9-b1b2-f70081a568d8"
+                    },
+                    "totalPnl": -10.943973069754065
+                },
+                {
+                    "symbol": "UNH",
+                    "averageEntryPrice": 348.06699068148146,
+                    "averageExitPrice": 351.3809720444443,
+                    "plannedEntryPrice": 348.06699068148146,
+                    "plannedExitPrice": 346.41,
+                    "plannedTargetPrice": 351.3809720444443,
+                    "qty": 5,
+                    "side": "long",
+                    "entryTime": "2020-12-04T15:18:00.000Z",
+                    "exitTime": "2020-12-04T16:00:00.000Z",
+                    "orderIds": {
+                        "open": "ba82d07b-f37b-49a2-b897-d5db8447ff8d",
+                        "close": "d42b7331-ae20-40cf-ab35-5156c639fbf9"
+                    },
+                    "totalPnl": 16.569906814814317
+                },
+                {
+                    "symbol": "AAPL",
+                    "averageEntryPrice": 121.69121427950617,
+                    "averageExitPrice": 122.26692868938271,
+                    "plannedEntryPrice": 121.69121427950617,
+                    "plannedExitPrice": 122.26692868938271,
+                    "plannedTargetPrice": 120.53978545975309,
+                    "qty": 17,
+                    "side": "short",
+                    "entryTime": "2020-12-04T15:25:00.000Z",
+                    "exitTime": "2020-12-04T16:24:00.000Z",
+                    "orderIds": {
+                        "open": "9325ddc2-2556-4d3f-b2cf-a9e564727318",
+                        "close": "a8eb8f1f-2c6d-45c5-8e93-c5176707585c"
+                    },
+                    "totalPnl": -9.78714496790117
+                },
+                {
+                    "symbol": "CRM",
+                    "averageEntryPrice": 222.31387657994082,
+                    "averageExitPrice": 223.63387657994082,
+                    "plannedEntryPrice": 222.31387657994082,
+                    "plannedExitPrice": 223.63387657994082,
+                    "plannedTargetPrice": 219.67387657994084,
+                    "qty": 8,
+                    "side": "short",
+                    "entryTime": "2020-12-04T16:16:00.000Z",
+                    "exitTime": "2020-12-04T16:31:00.000Z",
+                    "orderIds": {
+                        "open": "9ac4b91d-3d0c-49c2-9272-fbacb174ec38",
+                        "close": "df4f58cd-7ba7-4d36-978b-c428991c29b0"
+                    },
+                    "totalPnl": -10.559999999999945
+                },
+                {
+                    "symbol": "C",
+                    "averageEntryPrice": 57.98809858502058,
+                    "averageExitPrice": 58.564286969382714,
+                    "plannedEntryPrice": 57.98809858502058,
+                    "plannedExitPrice": 57.66428696938272,
+                    "plannedTargetPrice": 58.564286969382714,
+                    "qty": 30,
+                    "side": "long",
+                    "entryTime": "2020-12-04T15:24:00.000Z",
+                    "exitTime": "2020-12-04T17:45:00.000Z",
+                    "orderIds": {
+                        "open": "c8178a7a-0f76-493f-b3f6-d4897b05cdf1",
+                        "close": "e8c62cbb-7280-4621-a8ee-99c3b4f218b8"
+                    },
+                    "totalPnl": 17.285651530864
+                },
+                {
+                    "symbol": "VMW",
+                    "averageEntryPrice": 140.67954752263375,
+                    "averageExitPrice": 140.14233032098767,
+                    "plannedEntryPrice": 140.67954752263375,
+                    "plannedExitPrice": 140.14233032098767,
+                    "plannedTargetPrice": 141.64233032098767,
+                    "qty": 18,
+                    "side": "long",
+                    "entryTime": "2020-12-04T16:46:00.000Z",
+                    "exitTime": "2020-12-04T18:28:00.000Z",
+                    "orderIds": {
+                        "open": "84b0bdbc-dc52-4540-bbc3-9ec38056be3b",
+                        "close": "63f4965f-48e2-4cda-a677-9cac00deae55"
+                    },
+                    "totalPnl": -9.669909629629558
+                },
+                {
+                    "symbol": "MS",
+                    "averageEntryPrice": 64.84324599506172,
+                    "averageExitPrice": 64.48,
+                    "plannedEntryPrice": 64.84324599506172,
+                    "plannedExitPrice": 64.48,
+                    "plannedTargetPrice": 65.56973798518516,
+                    "qty": 25,
+                    "side": "long",
+                    "entryTime": "2020-12-04T15:24:00.000Z",
+                    "exitTime": "2020-12-04T19:00:00.000Z",
+                    "orderIds": {
+                        "open": "d946e707-6e3d-4de9-8e37-d415bbab37fd",
+                        "close": "f9323cc1-bb62-4130-9a4b-6d74a274aa69"
+                    },
+                    "totalPnl": -9.081149876542938
+                },
+                {
+                    "symbol": "MMM",
+                    "averageEntryPrice": 172.411468706941,
+                    "averageExitPrice": 172.0849,
+                    "totalPnl": -2.9391183624690314,
+                    "plannedEntryPrice": 172.411468706941,
+                    "plannedExitPrice": 171.411468706941,
+                    "plannedTargetPrice": 174.411468706941,
+                    "qty": 9,
+                    "side": "long",
+                    "entryTime": "2020-12-04T15:18:00.000Z",
+                    "exitTime": "2020-12-04T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "984614d2-fe14-417d-a7d0-fb7cbf312ff6",
+                        "close": "2c4bd466-78a2-40ff-9d82-6de83c7b73e4"
+                    }
+                },
+                {
+                    "symbol": "TJX",
+                    "averageEntryPrice": 66.29950022769917,
+                    "averageExitPrice": 66.58,
+                    "totalPnl": 8.695492941325682,
+                    "plannedEntryPrice": 66.29950022769917,
+                    "plannedExitPrice": 65.99950022769917,
+                    "plannedTargetPrice": 66.89950022769916,
+                    "qty": 31,
+                    "side": "long",
+                    "entryTime": "2020-12-04T15:37:00.000Z",
+                    "exitTime": "2020-12-04T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "06b9f04e-f7ec-48ce-b035-d3a73309e661",
+                        "close": "1a2e179e-6545-48dc-9803-758452bdad01"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "startDate": "2020-12-07",
+        "endDate": "2020-12-08",
+        "watchlist": {
+            "2020-12-07": [
+                "AAPL",
+                "AMZN",
+                "COST",
+                "DE",
+                "DIS",
+                "JNJ",
+                "MMM",
+                "TSLA",
+                "UNH",
+                "VMW"
+            ]
+        },
+        "positions": {
+            "2020-12-07": [
+                {
+                    "symbol": "DE",
+                    "averageEntryPrice": 253.39040207762847,
+                    "averageExitPrice": 252.39040207762847,
+                    "plannedEntryPrice": 253.39040207762847,
+                    "plannedExitPrice": 252.39040207762847,
+                    "plannedTargetPrice": 255.39040207762847,
+                    "qty": 9,
+                    "side": "long",
+                    "entryTime": "2020-12-07T15:29:00.000Z",
+                    "exitTime": "2020-12-07T16:13:00.000Z",
+                    "orderIds": {
+                        "open": "349db3c8-d472-40b5-afa3-e75ade34cc61",
+                        "close": "2cd59626-1656-4d78-aa6f-9dd7107824b1"
+                    },
+                    "totalPnl": -9
+                },
+                {
+                    "symbol": "DIS",
+                    "averageEntryPrice": 152.7148000632099,
+                    "averageExitPrice": 153.76805002370372,
+                    "plannedEntryPrice": 152.7148000632099,
+                    "plannedExitPrice": 153.76805002370372,
+                    "plannedTargetPrice": 150.76805002370372,
+                    "qty": 10,
+                    "side": "short",
+                    "entryTime": "2020-12-07T15:13:00.000Z",
+                    "exitTime": "2020-12-07T16:21:00.000Z",
+                    "orderIds": {
+                        "open": "71866e30-a7cc-4648-85b4-42463697ce69",
+                        "close": "fa478600-0213-4bec-a795-ac25f01b15bf"
+                    },
+                    "totalPnl": -10.532499604938153
+                },
+                {
+                    "symbol": "JNJ",
+                    "averageEntryPrice": 149.29595397175308,
+                    "averageExitPrice": 149.79595397175308,
+                    "plannedEntryPrice": 149.29595397175308,
+                    "plannedExitPrice": 149.79595397175308,
+                    "plannedTargetPrice": 148.29595397175308,
+                    "qty": 19,
+                    "side": "short",
+                    "entryTime": "2020-12-07T15:02:00.000Z",
+                    "exitTime": "2020-12-07T17:42:00.000Z",
+                    "orderIds": {
+                        "open": "4490d2ac-8a8a-48d6-bc91-feefcda73557",
+                        "close": "e5339090-15e5-4903-88de-031f29d795ec"
+                    },
+                    "totalPnl": -9.5
+                },
+                {
+                    "symbol": "MMM",
+                    "averageEntryPrice": 171.4712247802469,
+                    "averageExitPrice": 169.3536743407407,
+                    "plannedEntryPrice": 171.4712247802469,
+                    "plannedExitPrice": 172.53,
+                    "plannedTargetPrice": 169.3536743407407,
+                    "qty": 10,
+                    "side": "short",
+                    "entryTime": "2020-12-07T15:02:00.000Z",
+                    "exitTime": "2020-12-07T18:42:00.000Z",
+                    "orderIds": {
+                        "open": "07fffff0-a57b-4ce3-bb2d-7f89d929b9e1",
+                        "close": "ffda44f7-3f9a-4fce-8cfe-6d97c3c91f61"
+                    },
+                    "totalPnl": 21.175504395062035
+                },
+                {
+                    "symbol": "AMZN",
+                    "averageEntryPrice": 3164.8122332624857,
+                    "averageExitPrice": 3151.42,
+                    "totalPnl": 0,
+                    "plannedEntryPrice": 3164.8122332624857,
+                    "plannedExitPrice": 3144.42,
+                    "plannedTargetPrice": 3201.0784499202964,
+                    "qty": 0,
+                    "side": "long",
+                    "entryTime": "2020-12-07T15:04:00.000Z",
+                    "exitTime": "2020-12-07T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "56cf8db1-ac26-443e-bea9-708c820b8c2f",
+                        "close": "0acec646-7aee-4e40-9406-94cd6fbc1d08"
+                    }
+                },
+                {
+                    "symbol": "COST",
+                    "averageEntryPrice": 373.95748469593474,
+                    "averageExitPrice": 372.83,
+                    "totalPnl": 5.637423479673771,
+                    "plannedEntryPrice": 373.95748469593474,
+                    "plannedExitPrice": 376.06,
+                    "plannedTargetPrice": 369.7524540878042,
+                    "qty": 5,
+                    "side": "short",
+                    "entryTime": "2020-12-07T16:01:00.000Z",
+                    "exitTime": "2020-12-07T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "557d0dfe-b30d-49ec-9c61-f86a4031059b",
+                        "close": "92e2b331-0098-4c92-a034-80fcecd190ea"
+                    }
+                },
+                {
+                    "symbol": "DE",
+                    "averageEntryPrice": 252.1713891253873,
+                    "averageExitPrice": 251.99,
+                    "totalPnl": 1.8138912538728391,
+                    "plannedEntryPrice": 252.1713891253873,
+                    "plannedExitPrice": 253.1713891253873,
+                    "plannedTargetPrice": 250.1713891253873,
+                    "qty": 10,
+                    "side": "short",
+                    "entryTime": "2020-12-07T16:17:00.000Z",
+                    "exitTime": "2020-12-07T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "2b3a5153-f036-44d4-941a-56fdee44ea32",
+                        "close": "03b4ed4e-645f-451c-9377-8946502c267b"
+                    }
+                },
+                {
+                    "symbol": "DIS",
+                    "averageEntryPrice": 153.57057148113734,
+                    "averageExitPrice": 153.3571,
+                    "totalPnl": -1.9212433302359955,
+                    "plannedEntryPrice": 153.57057148113734,
+                    "plannedExitPrice": 152.46,
+                    "plannedTargetPrice": 155.71564291627948,
+                    "qty": 9,
+                    "side": "long",
+                    "entryTime": "2020-12-07T16:26:00.000Z",
+                    "exitTime": "2020-12-07T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "3576ac52-f340-4ef6-a4e8-6be6be3394e3",
+                        "close": "4ed7bbcf-d9fd-473f-8fcb-7ddcf4e62cb1"
+                    }
+                },
+                {
+                    "symbol": "UNH",
+                    "averageEntryPrice": 347.4745905675062,
+                    "averageExitPrice": 347.04,
+                    "totalPnl": 3.0421339725432404,
+                    "plannedEntryPrice": 347.4745905675062,
+                    "plannedExitPrice": 349.08,
+                    "plannedTargetPrice": 344.59266438844446,
+                    "qty": 7,
+                    "side": "short",
+                    "entryTime": "2020-12-07T15:46:00.000Z",
+                    "exitTime": "2020-12-07T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "5a7e102d-404a-484e-873b-07c33c870cbc",
+                        "close": "370867b2-4567-438b-8d72-979b2f326cf4"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "startDate": "2020-12-08",
+        "endDate": "2020-12-09",
+        "watchlist": {
+            "2020-12-08": [
+                "AMD",
+                "AMZN",
+                "CRM",
+                "DE",
+                "DIS",
+                "FOX",
+                "QCOM",
+                "SCHW",
+                "TXN",
+                "UNH"
+            ]
+        },
+        "positions": {
+            "2020-12-08": [
+                {
+                    "symbol": "AMZN",
+                    "averageEntryPrice": 3143.448051101235,
+                    "averageExitPrice": 3125.298432488889,
+                    "plannedEntryPrice": 3143.448051101235,
+                    "plannedExitPrice": 3153.57,
+                    "plannedTargetPrice": 3125.298432488889,
+                    "qty": 1,
+                    "side": "short",
+                    "entryTime": "2020-12-08T15:09:00.000Z",
+                    "exitTime": "2020-12-08T15:22:00.000Z",
+                    "orderIds": {
+                        "open": "b8072242-4e1c-432b-9a21-b344274f86a8",
+                        "close": "2b4abd26-478b-42d0-a9ae-8a4e45255a5f"
+                    },
+                    "totalPnl": 18.149618612345876
+                },
+                {
+                    "symbol": "QCOM",
+                    "averageEntryPrice": 157.26541256790125,
+                    "averageExitPrice": 158.26541256790125,
+                    "plannedEntryPrice": 157.26541256790125,
+                    "plannedExitPrice": 158.26541256790125,
+                    "plannedTargetPrice": 155.26541256790125,
+                    "qty": 10,
+                    "side": "short",
+                    "entryTime": "2020-12-08T15:02:00.000Z",
+                    "exitTime": "2020-12-08T18:04:00.000Z",
+                    "orderIds": {
+                        "open": "4354befa-5e9d-4a18-b917-6df146d73677",
+                        "close": "f45718b3-dc19-4592-86db-dc055d42e3d7"
+                    },
+                    "totalPnl": -10
+                },
+                {
+                    "symbol": "FOX",
+                    "averageEntryPrice": 29.244555430452674,
+                    "averageExitPrice": 28.92920828641975,
+                    "plannedEntryPrice": 29.244555430452674,
+                    "plannedExitPrice": 28.92920828641975,
+                    "plannedTargetPrice": 29.829208286419753,
+                    "qty": 31,
+                    "side": "long",
+                    "entryTime": "2020-12-08T15:09:00.000Z",
+                    "exitTime": "2020-12-08T18:18:00.000Z",
+                    "orderIds": {
+                        "open": "85dc6be9-9145-4b29-af23-f424b23adf2f",
+                        "close": "92cc0afa-b5fe-409b-9165-e68ef86fa382"
+                    },
+                    "totalPnl": -9.775761465020626
+                },
+                {
+                    "symbol": "UNH",
+                    "averageEntryPrice": 346.27345426172843,
+                    "averageExitPrice": 348.69263604444444,
+                    "plannedEntryPrice": 346.27345426172843,
+                    "plannedExitPrice": 344.92,
+                    "plannedTargetPrice": 348.69263604444444,
+                    "qty": 7,
+                    "side": "long",
+                    "entryTime": "2020-12-08T15:05:00.000Z",
+                    "exitTime": "2020-12-08T19:08:00.000Z",
+                    "orderIds": {
+                        "open": "d5621773-8e4d-4910-957a-8c0c87a6837c",
+                        "close": "f9a4e9c1-b8eb-4455-99ec-870db361243f"
+                    },
+                    "totalPnl": 16.934272479012066
+                },
+                {
+                    "symbol": "DE",
+                    "averageEntryPrice": 253.34309898271604,
+                    "averageExitPrice": 252.2724121185185,
+                    "plannedEntryPrice": 253.34309898271604,
+                    "plannedExitPrice": 252.2724121185185,
+                    "plannedTargetPrice": 255.2724121185185,
+                    "qty": 9,
+                    "side": "long",
+                    "entryTime": "2020-12-08T15:34:00.000Z",
+                    "exitTime": "2020-12-08T19:48:00.000Z",
+                    "orderIds": {
+                        "open": "bb9684aa-a99c-4443-9285-af329d8daff6",
+                        "close": "d9b073e4-6669-4bfb-839d-b051950d05ff"
+                    },
+                    "totalPnl": -9.636181777777864
+                },
+                {
+                    "symbol": "CRM",
+                    "averageEntryPrice": 227.806579712,
+                    "averageExitPrice": 227.57,
+                    "totalPnl": 1.419478272000049,
+                    "plannedEntryPrice": 227.806579712,
+                    "plannedExitPrice": 229.59,
+                    "plannedTargetPrice": 224.60240217600003,
+                    "qty": 6,
+                    "side": "short",
+                    "entryTime": "2020-12-08T16:27:00.000Z",
+                    "exitTime": "2020-12-08T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "45e5fb3f-de29-420b-ac64-bd461b8a42ad",
+                        "close": "f725e7cf-706a-4a43-9143-96c799daeea1"
+                    }
+                },
+                {
+                    "symbol": "DIS",
+                    "averageEntryPrice": 153.41702036003292,
+                    "averageExitPrice": 153.67,
+                    "totalPnl": 2.2768167597035927,
+                    "plannedEntryPrice": 153.41702036003292,
+                    "plannedExitPrice": 152.34757013501235,
+                    "plannedTargetPrice": 155.34757013501235,
+                    "qty": 9,
+                    "side": "long",
+                    "entryTime": "2020-12-08T15:01:00.000Z",
+                    "exitTime": "2020-12-08T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "b0ae6fe4-c5df-4c1a-8e71-e0c3286e9865",
+                        "close": "f68d9ee3-0a9d-45c8-91bf-ce68fa0c6e58"
+                    }
+                },
+                {
+                    "symbol": "SCHW",
+                    "averageEntryPrice": 50.6344434436214,
+                    "averageExitPrice": 50.54,
+                    "totalPnl": -2.927746752263431,
+                    "plannedEntryPrice": 50.6344434436214,
+                    "plannedExitPrice": 50.31916629135803,
+                    "plannedTargetPrice": 51.21916629135802,
+                    "qty": 31,
+                    "side": "long",
+                    "entryTime": "2020-12-08T15:05:00.000Z",
+                    "exitTime": "2020-12-08T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "bab47dd5-ffc2-4d5e-88ee-a783b0ead1b8",
+                        "close": "29ac3de8-c52f-49ef-8692-c26cbc393577"
+                    }
+                },
+                {
+                    "symbol": "TXN",
+                    "averageEntryPrice": 166.32028453098704,
+                    "averageExitPrice": 167,
+                    "totalPnl": 6.117439221116655,
+                    "plannedEntryPrice": 166.32028453098704,
+                    "plannedExitPrice": 165.32028453098704,
+                    "plannedTargetPrice": 168.32028453098704,
+                    "qty": 9,
+                    "side": "long",
+                    "entryTime": "2020-12-08T16:00:00.000Z",
+                    "exitTime": "2020-12-08T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "78e0773d-7ce1-4834-a9c0-92c7ea86a592",
+                        "close": "c9051d1e-bbaa-4b38-9ada-8628603fff71"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "startDate": "2020-12-09",
+        "endDate": "2020-12-10",
+        "watchlist": {
+            "2020-12-09": [
+                "BABA",
+                "CRM",
+                "DE",
+                "FOX",
+                "UNH"
+            ]
+        },
+        "positions": {
+            "2020-12-09": [
+                {
+                    "symbol": "DE",
+                    "averageEntryPrice": 252.21416133333332,
+                    "averageExitPrice": 253.21416133333332,
+                    "plannedEntryPrice": 252.21416133333332,
+                    "plannedExitPrice": 253.21416133333332,
+                    "plannedTargetPrice": 250.21416133333332,
+                    "qty": 10,
+                    "side": "short",
+                    "entryTime": "2020-12-09T15:02:00.000Z",
+                    "exitTime": "2020-12-09T17:04:00.000Z",
+                    "orderIds": {
+                        "open": "6dbcd2fc-84b9-47c2-aecb-4a692c968dbb",
+                        "close": "4197e8de-be62-46d5-b970-ed15a7eddf77"
+                    },
+                    "totalPnl": -10
+                },
+                {
+                    "symbol": "BABA",
+                    "averageEntryPrice": 266.02759728724277,
+                    "averageExitPrice": 264.097848982716,
+                    "plannedEntryPrice": 266.02759728724277,
+                    "plannedExitPrice": 267.097848982716,
+                    "plannedTargetPrice": 264.097848982716,
+                    "qty": 10,
+                    "side": "short",
+                    "entryTime": "2020-12-09T15:19:00.000Z",
+                    "exitTime": "2020-12-09T17:47:00.000Z",
+                    "orderIds": {
+                        "open": "ea8721e8-e9cc-413b-a219-36569b37f99f",
+                        "close": "7cb9cafa-8ecc-4b83-a0c4-e3756d6effe5"
+                    },
+                    "totalPnl": 19.29748304526754
+                },
+                {
+                    "symbol": "FOX",
+                    "averageEntryPrice": 29.150373465020575,
+                    "averageExitPrice": 28.837640049382713,
+                    "plannedEntryPrice": 29.150373465020575,
+                    "plannedExitPrice": 28.837640049382713,
+                    "plannedTargetPrice": 29.737640049382716,
+                    "qty": 31,
+                    "side": "long",
+                    "entryTime": "2020-12-09T15:04:00.000Z",
+                    "exitTime": "2020-12-09T18:05:00.000Z",
+                    "orderIds": {
+                        "open": "261bad61-2dcc-4931-9aed-67930afe6378",
+                        "close": "b0bb2c74-86d6-44a2-9b81-b7e8677b2c9c"
+                    },
+                    "totalPnl": -9.69473588477371
+                }
+            ]
+        }
+    },
+    {
+        "startDate": "2020-12-10",
+        "endDate": "2020-12-11",
+        "watchlist": {
+            "2020-12-10": [
+                "FOX",
+                "MCD"
+            ]
+        },
+        "positions": {
+            "2020-12-10": [
+                {
+                    "symbol": "FOX",
+                    "averageEntryPrice": 28.636609896296296,
+                    "averageExitPrice": 28.735,
+                    "totalPnl": 3.1484833185185153,
+                    "plannedEntryPrice": 28.636609896296296,
+                    "plannedExitPrice": 28.336609896296295,
+                    "plannedTargetPrice": 29.236609896296297,
+                    "qty": 32,
+                    "side": "long",
+                    "entryTime": "2020-12-10T15:04:00.000Z",
+                    "exitTime": "2020-12-10T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "12939deb-37b3-4d3b-a003-71e003af7dda",
+                        "close": "0cb10ee0-0c6f-4b90-9194-24fdb03a0e48"
+                    }
+                },
+                {
+                    "symbol": "MCD",
+                    "averageEntryPrice": 207.60843899325167,
+                    "averageExitPrice": 208.04,
+                    "totalPnl": -4.315610067483249,
+                    "plannedEntryPrice": 207.60843899325167,
+                    "plannedExitPrice": 208.60843899325167,
+                    "plannedTargetPrice": 205.60843899325167,
+                    "qty": 10,
+                    "side": "short",
+                    "entryTime": "2020-12-10T15:30:00.000Z",
+                    "exitTime": "2020-12-10T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "20e0917c-b460-44ae-9b45-15bca4690075",
+                        "close": "b19d49ba-c75f-4ae1-8840-62e123f6f4ae"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "startDate": "2020-12-11",
+        "endDate": "2020-12-14",
+        "watchlist": {
+            "2020-12-11": [
+                "BSX",
+                "CRM",
+                "MCD",
+                "NVDA",
+                "VRTX"
+            ]
+        },
+        "positions": {
+            "2020-12-11": [
+                {
+                    "symbol": "NVDA",
+                    "averageEntryPrice": 514.5002590168364,
+                    "averageExitPrice": 518.5002590168364,
+                    "plannedEntryPrice": 514.5002590168364,
+                    "plannedExitPrice": 518.5002590168364,
+                    "plannedTargetPrice": 506.50025901683637,
+                    "qty": 3,
+                    "side": "short",
+                    "entryTime": "2020-12-11T16:45:00.000Z",
+                    "exitTime": "2020-12-11T18:41:00.000Z",
+                    "orderIds": {
+                        "open": "a98630af-b247-41a3-b34d-6caa1a256e29",
+                        "close": "dabdcfd5-2892-4412-afbb-7c939d344e12"
+                    },
+                    "totalPnl": -12
+                },
+                {
+                    "symbol": "VRTX",
+                    "averageEntryPrice": 222.89245180279684,
+                    "averageExitPrice": 224.06,
+                    "plannedEntryPrice": 222.89245180279684,
+                    "plannedExitPrice": 224.06,
+                    "plannedTargetPrice": 220.55735540839052,
+                    "qty": 9,
+                    "side": "short",
+                    "entryTime": "2020-12-11T15:57:00.000Z",
+                    "exitTime": "2020-12-11T20:02:00.000Z",
+                    "orderIds": {
+                        "open": "dc7e1a25-ec7d-4cc0-83e1-084244e66c56",
+                        "close": "af70e800-9360-43bf-a7f3-b82ed1425e73"
+                    },
+                    "totalPnl": -10.507933774828444
+                },
+                {
+                    "symbol": "BSX",
+                    "averageEntryPrice": 33.71448509094579,
+                    "averageExitPrice": 33.52,
+                    "totalPnl": 6.418008001211064,
+                    "plannedEntryPrice": 33.71448509094579,
+                    "plannedExitPrice": 34.01448509094579,
+                    "plannedTargetPrice": 33.1144850909458,
+                    "qty": 33,
+                    "side": "short",
+                    "entryTime": "2020-12-11T15:36:00.000Z",
+                    "exitTime": "2020-12-11T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "71cab630-8af4-4c0d-b668-489740c4a609",
+                        "close": "1f3deae5-327f-4f53-aea3-963ad66b4a77"
+                    }
+                },
+                {
+                    "symbol": "CRM",
+                    "averageEntryPrice": 220.8306854475795,
+                    "averageExitPrice": 221.65,
+                    "totalPnl": -6.554516419364063,
+                    "plannedEntryPrice": 220.8306854475795,
+                    "plannedExitPrice": 222.08,
+                    "plannedTargetPrice": 218.33205634273847,
+                    "qty": 8,
+                    "side": "short",
+                    "entryTime": "2020-12-11T15:52:00.000Z",
+                    "exitTime": "2020-12-11T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "3d47f09c-fb8c-476d-b3c8-edf26f9fab8f",
+                        "close": "c1f86082-d682-4797-92e6-4a0d9d77d0d7"
+                    }
+                },
+                {
+                    "symbol": "MCD",
+                    "averageEntryPrice": 207.18878988641978,
+                    "averageExitPrice": 207.42,
+                    "totalPnl": -2.3121011358020382,
+                    "plannedEntryPrice": 207.18878988641978,
+                    "plannedExitPrice": 208.25829620740743,
+                    "plannedTargetPrice": 205.25829620740743,
+                    "qty": 10,
+                    "side": "short",
+                    "entryTime": "2020-12-11T15:24:00.000Z",
+                    "exitTime": "2020-12-11T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "ddb321f5-b58d-4b7d-a53e-ccd247a2fd1c",
+                        "close": "22b23432-d4f8-4c13-8dcf-c72ed4a0172a"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "startDate": "2020-12-14",
+        "endDate": "2020-12-15",
+        "watchlist": {
+            "2020-12-14": [
+                "FISV",
+                "LLY",
+                "NVDA",
+                "VRTX"
+            ]
+        },
+        "positions": {
+            "2020-12-14": [
+                {
+                    "symbol": "FISV",
+                    "averageEntryPrice": 115.68718924444445,
+                    "averageExitPrice": 114.94340435555557,
+                    "plannedEntryPrice": 115.68718924444445,
+                    "plannedExitPrice": 114.94340435555557,
+                    "plannedTargetPrice": 117.17475902222222,
+                    "qty": 12,
+                    "side": "long",
+                    "entryTime": "2020-12-14T15:02:00.000Z",
+                    "exitTime": "2020-12-14T15:27:00.000Z",
+                    "orderIds": {
+                        "open": "29c3715d-05df-4b03-a404-401baf7da53a",
+                        "close": "c31f89b8-e4b8-46c3-acb3-521e67f74970"
+                    },
+                    "totalPnl": -8.925418666666587
+                },
+                {
+                    "symbol": "LLY",
+                    "averageEntryPrice": 161.72939112427983,
+                    "averageExitPrice": 160.68289667160494,
+                    "plannedEntryPrice": 161.72939112427983,
+                    "plannedExitPrice": 160.68289667160494,
+                    "plannedTargetPrice": 163.68289667160494,
+                    "qty": 9,
+                    "side": "long",
+                    "entryTime": "2020-12-14T15:09:00.000Z",
+                    "exitTime": "2020-12-14T16:26:00.000Z",
+                    "orderIds": {
+                        "open": "a16faeaa-beac-41db-be53-e0097f3c5274",
+                        "close": "ef6231e0-76a7-469a-b4a8-1f0e5fd0b0b7"
+                    },
+                    "totalPnl": -9.41845007407403
+                },
+                {
+                    "symbol": "FISV",
+                    "averageEntryPrice": 114.5358441766003,
+                    "averageExitPrice": 113.73,
+                    "totalPnl": 16.116883532006057,
+                    "plannedEntryPrice": 114.5358441766003,
+                    "plannedExitPrice": 115.0358441766003,
+                    "plannedTargetPrice": 113.5358441766003,
+                    "qty": 20,
+                    "side": "short",
+                    "entryTime": "2020-12-14T16:31:00.000Z",
+                    "exitTime": "2020-12-14T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "42f5d96a-eefc-4474-a417-6a2f162c8895",
+                        "close": "8fe1f766-8541-4992-a49f-59eec5a0e575"
+                    }
+                },
+                {
+                    "symbol": "LLY",
+                    "averageEntryPrice": 160.40355863191743,
+                    "averageExitPrice": 158.335,
+                    "totalPnl": 18.617027687256837,
+                    "plannedEntryPrice": 160.40355863191743,
+                    "plannedExitPrice": 161.54,
+                    "plannedTargetPrice": 158.13067589575232,
+                    "qty": 9,
+                    "side": "short",
+                    "entryTime": "2020-12-14T16:27:00.000Z",
+                    "exitTime": "2020-12-14T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "411ce924-b99f-4940-84f8-ff476bb753ee",
+                        "close": "d7988217-3653-4e54-8c5a-9947209cee63"
+                    }
+                },
+                {
+                    "symbol": "NVDA",
+                    "averageEntryPrice": 527.8416369988478,
+                    "averageExitPrice": 531.77,
+                    "totalPnl": 7.856726002304413,
+                    "plannedEntryPrice": 527.8416369988478,
+                    "plannedExitPrice": 523.37,
+                    "plannedTargetPrice": 535.9380916237037,
+                    "qty": 2,
+                    "side": "long",
+                    "entryTime": "2020-12-14T16:00:00.000Z",
+                    "exitTime": "2020-12-14T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "02d33810-7bc5-49b7-b294-e4577449ab85",
+                        "close": "8a6080ae-3eda-4f72-8187-2175521be725"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "startDate": "2020-12-15",
+        "endDate": "2020-12-16",
+        "watchlist": {
+            "2020-12-15": [
+                "AAPL",
+                "SBUX"
+            ]
+        },
+        "positions": {
+            "2020-12-15": [
+                {
+                    "symbol": "SBUX",
+                    "averageEntryPrice": 103.8573091277094,
+                    "averageExitPrice": 104.3573091277094,
+                    "plannedEntryPrice": 103.8573091277094,
+                    "plannedExitPrice": 104.3573091277094,
+                    "plannedTargetPrice": 102.8573091277094,
+                    "qty": 20,
+                    "side": "short",
+                    "entryTime": "2020-12-15T16:06:00.000Z",
+                    "exitTime": "2020-12-15T17:19:00.000Z",
+                    "orderIds": {
+                        "open": "b7e8357a-cd1b-4bd6-a5fd-0a1b5fa7f668",
+                        "close": "1f9028a6-11ad-420c-a312-1c3852f200e9"
+                    },
+                    "totalPnl": -10
+                },
+                {
+                    "symbol": "AAPL",
+                    "averageEntryPrice": 125.37919511769547,
+                    "averageExitPrice": 127.2378124345679,
+                    "plannedEntryPrice": 125.37919511769547,
+                    "plannedExitPrice": 124.32867228641975,
+                    "plannedTargetPrice": 127.2378124345679,
+                    "qty": 9,
+                    "side": "long",
+                    "entryTime": "2020-12-15T16:07:00.000Z",
+                    "exitTime": "2020-12-15T19:24:00.000Z",
+                    "orderIds": {
+                        "open": "f381b049-5fa7-41e0-a1b4-a0334c4b5825",
+                        "close": "de9a54a2-66cd-48cb-a6cf-e494ab3d9279"
+                    },
+                    "totalPnl": 16.727555851851832
+                }
+            ]
+        }
+    },
+    {
+        "startDate": "2020-12-16",
+        "endDate": "2020-12-17",
+        "watchlist": {
+            "2020-12-16": [
+                "FISV",
+                "INTC",
+                "JNJ",
+                "MRK",
+                "PFE",
+                "SBUX"
+            ]
+        },
+        "positions": {
+            "2020-12-16": [
+                {
+                    "symbol": "SBUX",
+                    "averageEntryPrice": 104.44946035289986,
+                    "averageExitPrice": 103.94946035289986,
+                    "plannedEntryPrice": 104.44946035289986,
+                    "plannedExitPrice": 103.94946035289986,
+                    "plannedTargetPrice": 105.44946035289986,
+                    "qty": 19,
+                    "side": "long",
+                    "entryTime": "2020-12-16T15:18:00.000Z",
+                    "exitTime": "2020-12-16T15:45:00.000Z",
+                    "orderIds": {
+                        "open": "3fdfcc90-8f3c-4de6-b26f-dd2913759ae9",
+                        "close": "3fec5232-e470-4a44-a6f3-a5262d9e99c6"
+                    },
+                    "totalPnl": -9.5
+                },
+                {
+                    "symbol": "SBUX",
+                    "averageEntryPrice": 103.98640060082882,
+                    "averageExitPrice": 102.91920180248646,
+                    "plannedEntryPrice": 103.98640060082882,
+                    "plannedExitPrice": 104.52,
+                    "plannedTargetPrice": 102.91920180248646,
+                    "qty": 18,
+                    "side": "short",
+                    "entryTime": "2020-12-16T15:54:00.000Z",
+                    "exitTime": "2020-12-16T19:01:00.000Z",
+                    "orderIds": {
+                        "open": "b394845b-a1bb-4353-815c-3811a5602661",
+                        "close": "f2452478-9559-407c-9b5c-1433e42e0d09"
+                    },
+                    "totalPnl": 19.20957837016249
+                },
+                {
+                    "symbol": "FISV",
+                    "averageEntryPrice": 114.98865706772015,
+                    "averageExitPrice": 114.52,
+                    "totalPnl": -8.435827218962856,
+                    "plannedEntryPrice": 114.98865706772015,
+                    "plannedExitPrice": 114.45824640039505,
+                    "plannedTargetPrice": 115.95824640039505,
+                    "qty": 18,
+                    "side": "long",
+                    "entryTime": "2020-12-16T15:30:00.000Z",
+                    "exitTime": "2020-12-16T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "2ac04297-167e-4445-90e3-7adcaf4f630a",
+                        "close": "89e94809-f672-46a3-b73b-c8ec5e1b6f44"
+                    }
+                },
+                {
+                    "symbol": "INTC",
+                    "averageEntryPrice": 50.948150123456784,
+                    "averageExitPrice": 51.335,
+                    "totalPnl": 11.99234617283971,
+                    "plannedEntryPrice": 50.948150123456784,
+                    "plannedExitPrice": 50.64815012345679,
+                    "plannedTargetPrice": 51.54815012345678,
+                    "qty": 31,
+                    "side": "long",
+                    "entryTime": "2020-12-16T15:01:00.000Z",
+                    "exitTime": "2020-12-16T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "d3605392-d8de-4191-a09d-0721bd0ff2cf",
+                        "close": "39ae44a1-238e-4ad8-a6ff-e7037a7e3234"
+                    }
+                },
+                {
+                    "symbol": "JNJ",
+                    "averageEntryPrice": 150.5372584321909,
+                    "averageExitPrice": 150.12,
+                    "totalPnl": -3.755325889718023,
+                    "plannedEntryPrice": 150.5372584321909,
+                    "plannedExitPrice": 149.48,
+                    "plannedTargetPrice": 152.6517752965727,
+                    "qty": 9,
+                    "side": "long",
+                    "entryTime": "2020-12-16T15:50:00.000Z",
+                    "exitTime": "2020-12-16T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "b1abd105-52ea-40df-a418-070f4f63138b",
+                        "close": "942cdfd0-3581-4676-94a1-eddb01020e53"
+                    }
+                },
+                {
+                    "symbol": "MRK",
+                    "averageEntryPrice": 80.19797118683128,
+                    "averageExitPrice": 80.02,
+                    "totalPnl": 3.5594237366257175,
+                    "plannedEntryPrice": 80.19797118683128,
+                    "plannedExitPrice": 80.71798919506173,
+                    "plannedTargetPrice": 79.21798919506173,
+                    "qty": 20,
+                    "side": "short",
+                    "entryTime": "2020-12-16T15:19:00.000Z",
+                    "exitTime": "2020-12-16T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "0330dd69-d829-4627-97d7-97cb7184c309",
+                        "close": "09ede428-bef1-48b4-9167-1be9dc9bfca4"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "startDate": "2020-12-17",
+        "endDate": "2020-12-18",
+        "watchlist": {
+            "2020-12-17": [
+                "AAPL",
+                "AMD",
+                "AXP",
+                "C",
+                "DE",
+                "DIS",
+                "FB",
+                "FISV",
+                "JNJ",
+                "MRK",
+                "MS",
+                "PFE",
+                "QCOM",
+                "T",
+                "UNP",
+                "USB"
+            ]
+        },
+        "positions": {
+            "2020-12-17": [
+                {
+                    "symbol": "AXP",
+                    "averageEntryPrice": 118.67049655644445,
+                    "averageExitPrice": 119.17049655644445,
+                    "plannedEntryPrice": 118.67049655644445,
+                    "plannedExitPrice": 119.17049655644445,
+                    "plannedTargetPrice": 117.67049655644445,
+                    "qty": 19,
+                    "side": "short",
+                    "entryTime": "2020-12-17T15:04:00.000Z",
+                    "exitTime": "2020-12-17T15:27:00.000Z",
+                    "orderIds": {
+                        "open": "3f98f14c-8963-4b64-aff5-f276d0b896dd",
+                        "close": "58beaf22-2e6c-42dc-8d30-5cfe2917852b"
+                    },
+                    "totalPnl": -9.5
+                },
+                {
+                    "symbol": "AAPL",
+                    "averageEntryPrice": 128.48851132839508,
+                    "averageExitPrice": 129.11828476049385,
+                    "plannedEntryPrice": 128.48851132839508,
+                    "plannedExitPrice": 129.11828476049385,
+                    "plannedTargetPrice": 127.22896446419753,
+                    "qty": 15,
+                    "side": "short",
+                    "entryTime": "2020-12-17T15:03:00.000Z",
+                    "exitTime": "2020-12-17T15:40:00.000Z",
+                    "orderIds": {
+                        "open": "38014f02-dfc3-4800-9702-e8cae20eb888",
+                        "close": "3273c59a-4374-4bbd-8f97-a88f77fd7d9f"
+                    },
+                    "totalPnl": -9.446601481481594
+                },
+                {
+                    "symbol": "AXP",
+                    "averageEntryPrice": 119.58598449550792,
+                    "averageExitPrice": 118.97,
+                    "plannedEntryPrice": 119.58598449550792,
+                    "plannedExitPrice": 118.97,
+                    "plannedTargetPrice": 120.81795348652375,
+                    "qty": 15,
+                    "side": "long",
+                    "entryTime": "2020-12-17T16:19:00.000Z",
+                    "exitTime": "2020-12-17T16:53:00.000Z",
+                    "orderIds": {
+                        "open": "8a94ed7a-fe22-4114-9941-c62ebecba475",
+                        "close": "bf2198af-afdb-4fbb-bc76-ae062f48f612"
+                    },
+                    "totalPnl": -9.239767432618748
+                },
+                {
+                    "symbol": "FISV",
+                    "averageEntryPrice": 113.86021967539095,
+                    "averageExitPrice": 114.3850823782716,
+                    "plannedEntryPrice": 113.86021967539095,
+                    "plannedExitPrice": 114.3850823782716,
+                    "plannedTargetPrice": 112.8850823782716,
+                    "qty": 20,
+                    "side": "short",
+                    "entryTime": "2020-12-17T15:05:00.000Z",
+                    "exitTime": "2020-12-17T17:23:00.000Z",
+                    "orderIds": {
+                        "open": "6ae3e9d2-97e4-43b2-8203-5aba4e296a19",
+                        "close": "7fecbc57-b19f-4f23-a459-6b4704eee462"
+                    },
+                    "totalPnl": -10.497254057613077
+                },
+                {
+                    "symbol": "FB",
+                    "averageEntryPrice": 276.9536069443534,
+                    "averageExitPrice": 274.7008208330602,
+                    "plannedEntryPrice": 276.9536069443534,
+                    "plannedExitPrice": 278.08,
+                    "plannedTargetPrice": 274.7008208330602,
+                    "qty": 9,
+                    "side": "short",
+                    "entryTime": "2020-12-17T15:58:00.000Z",
+                    "exitTime": "2020-12-17T19:50:00.000Z",
+                    "orderIds": {
+                        "open": "cc372976-03e3-47bb-9da5-4759338fb83a",
+                        "close": "7347021d-8046-4393-8ae1-819e918f9ca4"
+                    },
+                    "totalPnl": 20.275075001638584
+                },
+                {
+                    "symbol": "AAPL",
+                    "averageEntryPrice": 128.47396299043956,
+                    "averageExitPrice": 128.635,
+                    "totalPnl": -2.898666172087758,
+                    "plannedEntryPrice": 128.47396299043956,
+                    "plannedExitPrice": 129.03,
+                    "plannedTargetPrice": 127.36188897131868,
+                    "qty": 18,
+                    "side": "short",
+                    "entryTime": "2020-12-17T16:37:00.000Z",
+                    "exitTime": "2020-12-17T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "e02faf38-2af1-43d5-ae63-722d6ba00b2c",
+                        "close": "30a4d6f4-0abf-4f88-84a7-dee67759b593"
+                    }
+                },
+                {
+                    "symbol": "AMD",
+                    "averageEntryPrice": 96.72701361830453,
+                    "averageExitPrice": 96.52,
+                    "totalPnl": 3.519231511176997,
+                    "plannedEntryPrice": 96.72701361830453,
+                    "plannedExitPrice": 97.32002796958025,
+                    "plannedTargetPrice": 95.67783438143209,
+                    "qty": 17,
+                    "side": "short",
+                    "entryTime": "2020-12-17T15:01:00.000Z",
+                    "exitTime": "2020-12-17T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "a584137f-f094-4dfd-90e7-ee95e3fbf2fe",
+                        "close": "40882fc8-9ddb-4038-aa01-d568acf99516"
+                    }
+                },
+                {
+                    "symbol": "DIS",
+                    "averageEntryPrice": 173.44574525366252,
+                    "averageExitPrice": 173.28,
+                    "totalPnl": 1.6574525366252146,
+                    "plannedEntryPrice": 173.44574525366252,
+                    "plannedExitPrice": 174.52340447012344,
+                    "plannedTargetPrice": 171.52340447012344,
+                    "qty": 10,
+                    "side": "short",
+                    "entryTime": "2020-12-17T15:03:00.000Z",
+                    "exitTime": "2020-12-17T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "bced30a1-3794-474a-9138-0d5b41bcfed7",
+                        "close": "369fb0e7-8995-4f44-bfe0-cfd785e351ec"
+                    }
+                },
+                {
+                    "symbol": "MRK",
+                    "averageEntryPrice": 80.0612429037037,
+                    "averageExitPrice": 80.0601,
+                    "totalPnl": 0.02285807407389484,
+                    "plannedEntryPrice": 80.0612429037037,
+                    "plannedExitPrice": 80.58546608888888,
+                    "plannedTargetPrice": 79.08546608888888,
+                    "qty": 20,
+                    "side": "short",
+                    "entryTime": "2020-12-17T15:10:00.000Z",
+                    "exitTime": "2020-12-17T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "447f6a80-36ab-43c2-9210-61b2ed03e527",
+                        "close": "30b5b7b2-d15f-4711-91e7-9c2837cce751"
+                    }
+                },
+                {
+                    "symbol": "MS",
+                    "averageEntryPrice": 64.50874612411522,
+                    "averageExitPrice": 64.54,
+                    "totalPnl": 0.96887015242838,
+                    "plannedEntryPrice": 64.50874612411522,
+                    "plannedExitPrice": 64.20874612411522,
+                    "plannedTargetPrice": 65.10874612411521,
+                    "qty": 31,
+                    "side": "long",
+                    "entryTime": "2020-12-17T15:11:00.000Z",
+                    "exitTime": "2020-12-17T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "e8d57aa3-4833-4429-8e13-5d42af963c2f",
+                        "close": "351056b1-4a5d-41d6-a2f5-66170a818c08"
+                    }
+                },
+                {
+                    "symbol": "QCOM",
+                    "averageEntryPrice": 149.2957757274074,
+                    "averageExitPrice": 149.81,
+                    "totalPnl": -7.199139816296395,
+                    "plannedEntryPrice": 149.2957757274074,
+                    "plannedExitPrice": 150.00026117925924,
+                    "plannedTargetPrice": 147.88680482370373,
+                    "qty": 14,
+                    "side": "short",
+                    "entryTime": "2020-12-17T15:05:00.000Z",
+                    "exitTime": "2020-12-17T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "6731d6b8-b105-421b-b76f-355f08b28c9d",
+                        "close": "1f65d31c-33fe-4e2f-9cbd-a6b2855f711b"
+                    }
+                },
+                {
+                    "symbol": "T",
+                    "averageEntryPrice": 29.776736095341565,
+                    "averageExitPrice": 29.6177,
+                    "totalPnl": 5.248191146271683,
+                    "plannedEntryPrice": 29.776736095341565,
+                    "plannedExitPrice": 30.08815103575309,
+                    "plannedTargetPrice": 29.188151035753087,
+                    "qty": 33,
+                    "side": "short",
+                    "entryTime": "2020-12-17T15:11:00.000Z",
+                    "exitTime": "2020-12-17T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "29657e20-3ed8-405f-a271-582708f8aadc",
+                        "close": "68d2cfa2-201f-4b28-a1b3-8d839ecf0bdf"
+                    }
+                },
+                {
+                    "symbol": "USB",
+                    "averageEntryPrice": 45.11639785349794,
+                    "averageExitPrice": 45.26,
+                    "totalPnl": -4.595268688065744,
+                    "plannedEntryPrice": 45.11639785349794,
+                    "plannedExitPrice": 45.43114919506173,
+                    "plannedTargetPrice": 44.53114919506174,
+                    "qty": 32,
+                    "side": "short",
+                    "entryTime": "2020-12-17T16:38:00.000Z",
+                    "exitTime": "2020-12-17T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "3d830e29-f35d-4caa-820c-0dc6e300fcf0",
+                        "close": "9c2489c5-fac9-44b2-b81b-c79943a9c6fe"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "startDate": "2020-12-18",
+        "endDate": "2020-12-21",
+        "watchlist": {
+            "2020-12-18": [
+                "AAPL",
+                "AMD",
+                "AXP",
+                "BMY",
+                "BSX",
+                "C",
+                "DE",
+                "DIS",
+                "DUK",
+                "GM",
+                "LOW",
+                "MRK",
+                "MS",
+                "PFE",
+                "QCOM",
+                "SBUX",
+                "SCHW",
+                "TMUS",
+                "XOM"
+            ]
+        },
+        "positions": {
+            "2020-12-18": [
+                {
+                    "symbol": "SCHW",
+                    "averageEntryPrice": 51.566438465843625,
+                    "averageExitPrice": 51.881164424691356,
+                    "plannedEntryPrice": 51.566438465843625,
+                    "plannedExitPrice": 51.881164424691356,
+                    "plannedTargetPrice": 50.981164424691364,
+                    "qty": 32,
+                    "side": "short",
+                    "entryTime": "2020-12-18T15:03:00.000Z",
+                    "exitTime": "2020-12-18T15:37:00.000Z",
+                    "orderIds": {
+                        "open": "b7c5cf30-872c-494d-b284-3c780dec7e62",
+                        "close": "707950a7-b005-448b-990a-b5c3c668edb4"
+                    },
+                    "totalPnl": -10.071230683127396
+                },
+                {
+                    "symbol": "QCOM",
+                    "averageEntryPrice": 149.22334016790126,
+                    "averageExitPrice": 148.12135508148154,
+                    "plannedEntryPrice": 149.22334016790126,
+                    "plannedExitPrice": 149.8462013037037,
+                    "plannedTargetPrice": 148.12135508148154,
+                    "qty": 17,
+                    "side": "short",
+                    "entryTime": "2020-12-18T15:22:00.000Z",
+                    "exitTime": "2020-12-18T15:54:00.000Z",
+                    "orderIds": {
+                        "open": "8a1f0dec-0f8f-4994-8b66-6c3c6d55c984",
+                        "close": "97f6d3cf-d452-4dc1-957f-5e1974c22250"
+                    },
+                    "totalPnl": 18.733746469135184
+                },
+                {
+                    "symbol": "AMD",
+                    "averageEntryPrice": 96.40841148312757,
+                    "averageExitPrice": 97.03,
+                    "plannedEntryPrice": 96.40841148312757,
+                    "plannedExitPrice": 97.03,
+                    "plannedTargetPrice": 95.26196291851849,
+                    "qty": 17,
+                    "side": "short",
+                    "entryTime": "2020-12-18T15:34:00.000Z",
+                    "exitTime": "2020-12-18T16:01:00.000Z",
+                    "orderIds": {
+                        "open": "9c4043a5-4cae-45eb-b8d5-c7e01814ae82",
+                        "close": "7a8caa96-ec46-490e-a079-122021188482"
+                    },
+                    "totalPnl": -10.567004786831404
+                },
+                {
+                    "symbol": "C",
+                    "averageEntryPrice": 59.81104374083951,
+                    "averageExitPrice": 59.211043740839514,
+                    "plannedEntryPrice": 59.81104374083951,
+                    "plannedExitPrice": 60.111043740839506,
+                    "plannedTargetPrice": 59.211043740839514,
+                    "qty": 32,
+                    "side": "short",
+                    "entryTime": "2020-12-18T15:01:00.000Z",
+                    "exitTime": "2020-12-18T16:13:00.000Z",
+                    "orderIds": {
+                        "open": "24a583c2-ed7a-45de-a16b-79b7503d1b78",
+                        "close": "edbcbcee-3ec2-4141-9278-a454f3746314"
+                    },
+                    "totalPnl": 19.199999999999818
+                },
+                {
+                    "symbol": "DE",
+                    "averageEntryPrice": 266.9204532463437,
+                    "averageExitPrice": 265.9204532463437,
+                    "plannedEntryPrice": 266.9204532463437,
+                    "plannedExitPrice": 265.9204532463437,
+                    "plannedTargetPrice": 268.9204532463437,
+                    "qty": 9,
+                    "side": "long",
+                    "entryTime": "2020-12-18T16:01:00.000Z",
+                    "exitTime": "2020-12-18T16:13:00.000Z",
+                    "orderIds": {
+                        "open": "6a6ec23c-9148-406d-8642-5f0ec5639edf",
+                        "close": "58934198-69ea-4247-b5cd-4bf8f9042c7f"
+                    },
+                    "totalPnl": -9
+                },
+                {
+                    "symbol": "SBUX",
+                    "averageEntryPrice": 103.70124885596708,
+                    "averageExitPrice": 103.18171832098766,
+                    "plannedEntryPrice": 103.70124885596708,
+                    "plannedExitPrice": 103.18171832098766,
+                    "plannedTargetPrice": 104.68171832098766,
+                    "qty": 19,
+                    "side": "long",
+                    "entryTime": "2020-12-18T15:07:00.000Z",
+                    "exitTime": "2020-12-18T16:15:00.000Z",
+                    "orderIds": {
+                        "open": "6d9fc6eb-47b1-491b-87a9-dc0dbe6f33e2",
+                        "close": "819e0b52-8017-4cb8-8a4d-4a9039ebba89"
+                    },
+                    "totalPnl": -9.871080164609054
+                },
+                {
+                    "symbol": "MRK",
+                    "averageEntryPrice": 79.36681319012345,
+                    "averageExitPrice": 78.76681319012346,
+                    "plannedEntryPrice": 79.36681319012345,
+                    "plannedExitPrice": 79.66681319012345,
+                    "plannedTargetPrice": 78.76681319012346,
+                    "qty": 32,
+                    "side": "short",
+                    "entryTime": "2020-12-18T15:04:00.000Z",
+                    "exitTime": "2020-12-18T18:21:00.000Z",
+                    "orderIds": {
+                        "open": "13dbaa7c-c823-4298-b768-3028255e07f4",
+                        "close": "5237b5ba-c1fd-4438-b7f4-ba512ae987de"
+                    },
+                    "totalPnl": 19.199999999999818
+                },
+                {
+                    "symbol": "BSX",
+                    "averageEntryPrice": 35.84534411930757,
+                    "averageExitPrice": 35.54534411930757,
+                    "plannedEntryPrice": 35.84534411930757,
+                    "plannedExitPrice": 35.54534411930757,
+                    "plannedTargetPrice": 36.44534411930756,
+                    "qty": 32,
+                    "side": "long",
+                    "entryTime": "2020-12-18T15:56:00.000Z",
+                    "exitTime": "2020-12-18T19:02:00.000Z",
+                    "orderIds": {
+                        "open": "4dc18b46-3e7b-4031-997c-272db73b83bb",
+                        "close": "9704c8b2-2217-4735-989a-ffeb51c0f93b"
+                    },
+                    "totalPnl": -9.599999999999909
+                },
+                {
+                    "symbol": "AAPL",
+                    "averageEntryPrice": 127.57667668042798,
+                    "averageExitPrice": 126.52265396158026,
+                    "plannedEntryPrice": 127.57667668042798,
+                    "plannedExitPrice": 128.1724286519506,
+                    "plannedTargetPrice": 126.52265396158026,
+                    "qty": 17,
+                    "side": "short",
+                    "entryTime": "2020-12-18T15:12:00.000Z",
+                    "exitTime": "2020-12-18T19:13:00.000Z",
+                    "orderIds": {
+                        "open": "b338eb59-b20f-4294-82d1-cc31a59a37c6",
+                        "close": "7462d0ad-6a69-45d5-bf48-3de76bd4cbc4"
+                    },
+                    "totalPnl": 17.91838622041122
+                },
+                {
+                    "symbol": "TMUS",
+                    "averageEntryPrice": 130.1579516892181,
+                    "averageExitPrice": 130.6842318834568,
+                    "plannedEntryPrice": 130.1579516892181,
+                    "plannedExitPrice": 130.6842318834568,
+                    "plannedTargetPrice": 129.1842318834568,
+                    "qty": 20,
+                    "side": "short",
+                    "entryTime": "2020-12-18T15:03:00.000Z",
+                    "exitTime": "2020-12-18T19:30:00.000Z",
+                    "orderIds": {
+                        "open": "b3cfd15a-f29d-4fc1-ab63-f6e6287c015c",
+                        "close": "7d20ed33-6b1d-4370-8f65-0457ec6b1ffe"
+                    },
+                    "totalPnl": -10.525603884773886
+                },
+                {
+                    "symbol": "DIS",
+                    "averageEntryPrice": 173.92439689945195,
+                    "averageExitPrice": 172.92439689945195,
+                    "plannedEntryPrice": 173.92439689945195,
+                    "plannedExitPrice": 172.92439689945195,
+                    "plannedTargetPrice": 175.92439689945195,
+                    "qty": 9,
+                    "side": "long",
+                    "entryTime": "2020-12-18T15:14:00.000Z",
+                    "exitTime": "2020-12-18T20:22:00.000Z",
+                    "orderIds": {
+                        "open": "8dcc1392-60a6-4955-a9f0-6fa54d0e71bc",
+                        "close": "1c185359-6b1e-4041-9334-8e113c5abcbd"
+                    },
+                    "totalPnl": -9
+                },
+                {
+                    "symbol": "AXP",
+                    "averageEntryPrice": 118.4072234403292,
+                    "averageExitPrice": 117.26062637037035,
+                    "plannedEntryPrice": 118.4072234403292,
+                    "plannedExitPrice": 119.03,
+                    "plannedTargetPrice": 117.26062637037035,
+                    "qty": 17,
+                    "side": "short",
+                    "entryTime": "2020-12-18T15:06:00.000Z",
+                    "exitTime": "2020-12-18T20:24:00.000Z",
+                    "orderIds": {
+                        "open": "204956a3-d360-4ee3-8498-c5471c2ad4bf",
+                        "close": "1b65ae49-5c7c-4783-a963-670296dae132"
+                    },
+                    "totalPnl": 19.492150189300588
+                },
+                {
+                    "symbol": "BMY",
+                    "averageEntryPrice": 62.7098780271145,
+                    "averageExitPrice": 63.095,
+                    "totalPnl": 11.9387811594505,
+                    "plannedEntryPrice": 62.7098780271145,
+                    "plannedExitPrice": 62.4098780271145,
+                    "plannedTargetPrice": 63.30987802711449,
+                    "qty": 31,
+                    "side": "long",
+                    "entryTime": "2020-12-18T15:36:00.000Z",
+                    "exitTime": "2020-12-18T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "6fac5e3b-5181-412c-981e-76430cb7a80e",
+                        "close": "d55ec7cb-452e-401f-9f56-7c13213bf585"
+                    }
+                },
+                {
+                    "symbol": "DUK",
+                    "averageEntryPrice": 91.1811156728889,
+                    "averageExitPrice": 90.455,
+                    "totalPnl": 13.796197784889003,
+                    "plannedEntryPrice": 91.1811156728889,
+                    "plannedExitPrice": 91.6811156728889,
+                    "plannedTargetPrice": 90.1811156728889,
+                    "qty": 19,
+                    "side": "short",
+                    "entryTime": "2020-12-18T15:04:00.000Z",
+                    "exitTime": "2020-12-18T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "564b6fec-637c-447e-8241-08a80494df83",
+                        "close": "72280618-81f9-45ae-80f4-c789da07a3d7"
+                    }
+                },
+                {
+                    "symbol": "LOW",
+                    "averageEntryPrice": 163.1079896987654,
+                    "averageExitPrice": 163.69,
+                    "totalPnl": -5.820103012345896,
+                    "plannedEntryPrice": 163.1079896987654,
+                    "plannedExitPrice": 164.1079896987654,
+                    "plannedTargetPrice": 161.1079896987654,
+                    "qty": 10,
+                    "side": "short",
+                    "entryTime": "2020-12-18T15:26:00.000Z",
+                    "exitTime": "2020-12-18T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "eafff112-717f-43fb-b36f-c83e32ddaffa",
+                        "close": "59a632aa-bc51-4789-b6b4-1e357318ba2c"
+                    }
+                },
+                {
+                    "symbol": "PFE",
+                    "averageEntryPrice": 37.682087050271605,
+                    "averageExitPrice": 37.64,
+                    "totalPnl": 1.262611508148126,
+                    "plannedEntryPrice": 37.682087050271605,
+                    "plannedExitPrice": 38.01,
+                    "plannedTargetPrice": 37.02626115081482,
+                    "qty": 30,
+                    "side": "short",
+                    "entryTime": "2020-12-18T15:16:00.000Z",
+                    "exitTime": "2020-12-18T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "363f1493-fd63-4088-82e4-de398cf1858a",
+                        "close": "d7c2b45d-ec8e-40e3-bdd3-0c54fcf37985"
+                    }
+                },
+                {
+                    "symbol": "SBUX",
+                    "averageEntryPrice": 103.20113761938353,
+                    "averageExitPrice": 103.385,
+                    "totalPnl": -3.677247612329495,
+                    "plannedEntryPrice": 103.20113761938353,
+                    "plannedExitPrice": 103.70113761938353,
+                    "plannedTargetPrice": 102.20113761938353,
+                    "qty": 20,
+                    "side": "short",
+                    "entryTime": "2020-12-18T16:20:00.000Z",
+                    "exitTime": "2020-12-18T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "cc3c2e6a-069c-4673-a2ec-6bd543d3a65e",
+                        "close": "a9d88728-7bc6-4ee6-8aba-e6e5ae6124a4"
+                    }
+                },
+                {
+                    "symbol": "SCHW",
+                    "averageEntryPrice": 51.57238241364186,
+                    "averageExitPrice": 51.765,
+                    "totalPnl": -6.163762763460454,
+                    "plannedEntryPrice": 51.57238241364186,
+                    "plannedExitPrice": 51.87238241364186,
+                    "plannedTargetPrice": 50.97238241364187,
+                    "qty": 32,
+                    "side": "short",
+                    "entryTime": "2020-12-18T16:05:00.000Z",
+                    "exitTime": "2020-12-18T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "6ea4fa6e-43ed-4477-b828-377cb23dd1c9",
+                        "close": "274fb8ed-ffa9-447d-b714-71a8112dc5c5"
+                    }
+                },
+                {
+                    "symbol": "XOM",
+                    "averageEntryPrice": 43.16221204938272,
+                    "averageExitPrice": 42.466636148148154,
+                    "plannedEntryPrice": 43.16221204938272,
+                    "plannedExitPrice": 43.51,
+                    "plannedTargetPrice": 42.466636148148154,
+                    "qty": 28,
+                    "side": "short",
+                    "entryTime": "2020-12-18T15:27:00.000Z",
+                    "exitTime": "2020-12-18T20:31:00.000Z",
+                    "orderIds": {
+                        "open": "3a93b225-27db-4f3c-b2ca-1c600cdb1f22",
+                        "close": "e672c882-953a-4e69-8268-e1ddf595741a"
+                    },
+                    "totalPnl": 19.476125234567746
+                }
+            ]
+        }
+    },
+    {
+        "startDate": "2020-12-21",
+        "endDate": "2020-12-22",
+        "watchlist": {
+            "2020-12-21": [
+                "BMY",
+                "DIS",
+                "PFE",
+                "SBUX",
+                "SCHW"
+            ]
+        },
+        "positions": {
+            "2020-12-21": [
+                {
+                    "symbol": "DIS",
+                    "averageEntryPrice": 168.86329291703703,
+                    "averageExitPrice": 170.05,
+                    "plannedEntryPrice": 168.86329291703703,
+                    "plannedExitPrice": 170.05,
+                    "plannedTargetPrice": 166.48987875111106,
+                    "qty": 8,
+                    "side": "short",
+                    "entryTime": "2020-12-21T15:08:00.000Z",
+                    "exitTime": "2020-12-21T15:56:00.000Z",
+                    "orderIds": {
+                        "open": "b6a40de7-5dde-4e24-9242-2ca79da9cfca",
+                        "close": "4b887878-3b72-4ac0-af97-fd1e9b3b797c"
+                    },
+                    "totalPnl": -9.49365666370386
+                },
+                {
+                    "symbol": "SBUX",
+                    "averageEntryPrice": 100.98533042172839,
+                    "averageExitPrice": 101.52,
+                    "plannedEntryPrice": 100.98533042172839,
+                    "plannedExitPrice": 101.52,
+                    "plannedTargetPrice": 99.91599126518518,
+                    "qty": 18,
+                    "side": "short",
+                    "entryTime": "2020-12-21T15:02:00.000Z",
+                    "exitTime": "2020-12-21T16:28:00.000Z",
+                    "orderIds": {
+                        "open": "38cf368a-964a-4842-9847-1b71f9c0b78a",
+                        "close": "d277a2d2-d582-43bc-881b-402acacd66e0"
+                    },
+                    "totalPnl": -9.624052408888872
+                },
+                {
+                    "symbol": "SCHW",
+                    "averageEntryPrice": 51.42712264691358,
+                    "averageExitPrice": 51.72712264691358,
+                    "plannedEntryPrice": 51.42712264691358,
+                    "plannedExitPrice": 51.72712264691358,
+                    "plannedTargetPrice": 50.82712264691359,
+                    "qty": 32,
+                    "side": "short",
+                    "entryTime": "2020-12-21T15:04:00.000Z",
+                    "exitTime": "2020-12-21T18:01:00.000Z",
+                    "orderIds": {
+                        "open": "c33fd561-f965-46e1-9633-b951c33b102d",
+                        "close": "21a615f8-625f-46b1-bf44-2085cc6b3140"
+                    },
+                    "totalPnl": -9.599999999999909
+                },
+                {
+                    "symbol": "SBUX",
+                    "averageEntryPrice": 101.66734461453332,
+                    "averageExitPrice": 102.66734461453332,
+                    "plannedEntryPrice": 101.66734461453332,
+                    "plannedExitPrice": 101.16734461453332,
+                    "plannedTargetPrice": 102.66734461453332,
+                    "qty": 19,
+                    "side": "long",
+                    "entryTime": "2020-12-21T16:37:00.000Z",
+                    "exitTime": "2020-12-21T18:13:00.000Z",
+                    "orderIds": {
+                        "open": "f6784dcb-07cc-4274-a455-54bd77cbdbab",
+                        "close": "4b0556b8-56a0-4dd2-bf00-54318af2db74"
+                    },
+                    "totalPnl": 19
+                },
+                {
+                    "symbol": "PFE",
+                    "averageEntryPrice": 36.99713965537448,
+                    "averageExitPrice": 37.31142737076543,
+                    "plannedEntryPrice": 36.99713965537448,
+                    "plannedExitPrice": 37.31142737076543,
+                    "plannedTargetPrice": 36.41142737076544,
+                    "qty": 32,
+                    "side": "short",
+                    "entryTime": "2020-12-21T15:02:00.000Z",
+                    "exitTime": "2020-12-21T20:39:00.000Z",
+                    "orderIds": {
+                        "open": "ceb145e7-f1cd-407f-9362-ec55bc7791f6",
+                        "close": "cdf7e910-7d47-449d-a76b-8ecf661e5163"
+                    },
+                    "totalPnl": -10.057206892510294
+                },
+                {
+                    "symbol": "BMY",
+                    "averageEntryPrice": 61.866918426337456,
+                    "averageExitPrice": 61.835,
+                    "totalPnl": 1.0213896427985674,
+                    "plannedEntryPrice": 61.866918426337456,
+                    "plannedExitPrice": 62.181344409876544,
+                    "plannedTargetPrice": 61.28134440987655,
+                    "qty": 32,
+                    "side": "short",
+                    "entryTime": "2020-12-21T15:16:00.000Z",
+                    "exitTime": "2020-12-21T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "ec4a3031-26e8-4c12-bcb7-c738db116ef9",
+                        "close": "a486b9b1-f527-4362-a24c-b10db2eb9fc0"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "startDate": "2020-12-22",
+        "endDate": "2020-12-23",
+        "watchlist": {
+            "2020-12-22": [
+                "QCOM"
+            ]
+        },
+        "positions": {
+            "2020-12-22": [
+                {
+                    "symbol": "QCOM",
+                    "averageEntryPrice": 145.913521981893,
+                    "averageExitPrice": 146.57553087901235,
+                    "plannedEntryPrice": 145.913521981893,
+                    "plannedExitPrice": 146.57553087901235,
+                    "plannedTargetPrice": 144.74227547160498,
+                    "qty": 16,
+                    "side": "short",
+                    "entryTime": "2020-12-22T15:04:00.000Z",
+                    "exitTime": "2020-12-22T15:18:00.000Z",
+                    "orderIds": {
+                        "open": "75350e21-0746-43a3-abfb-60a9dfc4c979",
+                        "close": "53bbfbe8-1e84-4159-8f41-690f40677a6e"
+                    },
+                    "totalPnl": -10.592142353909367
+                },
+                {
+                    "symbol": "QCOM",
+                    "averageEntryPrice": 145.9137978512095,
+                    "averageExitPrice": 145.89,
+                    "totalPnl": 0.3569677681426242,
+                    "plannedEntryPrice": 145.9137978512095,
+                    "plannedExitPrice": 146.55,
+                    "plannedTargetPrice": 144.64139355362846,
+                    "qty": 15,
+                    "side": "short",
+                    "entryTime": "2020-12-22T15:30:00.000Z",
+                    "exitTime": "2020-12-22T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "ef29a60a-e1dc-46a4-8807-b62205ad2f1a",
+                        "close": "f9f77bfa-9816-4734-80f9-74fe286ed1da"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "startDate": "2020-12-23",
+        "endDate": "2020-12-24",
+        "watchlist": {
+            "2020-12-23": [
+                "BMY",
+                "CHL",
+                "DIS",
+                "DUK",
+                "INTC",
+                "LLY",
+                "MA",
+                "MCD",
+                "NKE",
+                "PLD",
+                "SCHW",
+                "SO",
+                "TXN",
+                "UNP",
+                "VMW",
+                "XOM",
+                "SPY"
+            ]
+        },
+        "positions": {
+            "2020-12-23": [
+                {
+                    "symbol": "VMW",
+                    "averageEntryPrice": 142.0060885580247,
+                    "averageExitPrice": 143.0660885580247,
+                    "plannedEntryPrice": 142.0060885580247,
+                    "plannedExitPrice": 141.47608855802468,
+                    "plannedTargetPrice": 143.0660885580247,
+                    "qty": 17,
+                    "side": "long",
+                    "entryTime": "2020-12-23T15:05:00.000Z",
+                    "exitTime": "2020-12-23T15:59:00.000Z",
+                    "orderIds": {
+                        "open": "53c64d0c-d75e-4686-8764-7cb01a098c04",
+                        "close": "35c14a34-d3d4-4591-b57a-af2399028322"
+                    },
+                    "totalPnl": 18.02000000000004
+                },
+                {
+                    "symbol": "UNP",
+                    "averageEntryPrice": 201.62223869135804,
+                    "averageExitPrice": 202.62223869135804,
+                    "plannedEntryPrice": 201.62223869135804,
+                    "plannedExitPrice": 202.62223869135804,
+                    "plannedTargetPrice": 199.62223869135804,
+                    "qty": 10,
+                    "side": "short",
+                    "entryTime": "2020-12-23T15:22:00.000Z",
+                    "exitTime": "2020-12-23T16:15:00.000Z",
+                    "orderIds": {
+                        "open": "2614ef8c-4e4b-494b-80f6-5292c8c8e44b",
+                        "close": "0c85a77c-3772-4ed8-b186-22b14c558e32"
+                    },
+                    "totalPnl": -10
+                },
+                {
+                    "symbol": "BMY",
+                    "averageEntryPrice": 61.48870322111941,
+                    "averageExitPrice": 61.18870322111941,
+                    "plannedEntryPrice": 61.48870322111941,
+                    "plannedExitPrice": 61.18870322111941,
+                    "plannedTargetPrice": 62.0887032211194,
+                    "qty": 31,
+                    "side": "long",
+                    "entryTime": "2020-12-23T15:19:00.000Z",
+                    "exitTime": "2020-12-23T16:22:00.000Z",
+                    "orderIds": {
+                        "open": "eee67b6b-7a51-4c21-ac69-18fd6a2a3527",
+                        "close": "74f708f5-782d-442a-b475-91b5a284d165"
+                    },
+                    "totalPnl": -9.299999999999912
+                },
+                {
+                    "symbol": "SO",
+                    "averageEntryPrice": 60.19734108049383,
+                    "averageExitPrice": 59.89734108049383,
+                    "plannedEntryPrice": 60.19734108049383,
+                    "plannedExitPrice": 59.89734108049383,
+                    "plannedTargetPrice": 60.79734108049382,
+                    "qty": 32,
+                    "side": "long",
+                    "entryTime": "2020-12-23T15:01:00.000Z",
+                    "exitTime": "2020-12-23T16:35:00.000Z",
+                    "orderIds": {
+                        "open": "179d6916-ccc1-41d6-b4c8-f11a7ed01530",
+                        "close": "9f560297-016d-45e7-af53-f05811b4f7d0"
+                    },
+                    "totalPnl": -9.599999999999909
+                },
+                {
+                    "symbol": "DIS",
+                    "averageEntryPrice": 174.0400075026173,
+                    "averageExitPrice": 172.95,
+                    "plannedEntryPrice": 174.0400075026173,
+                    "plannedExitPrice": 172.95,
+                    "plannedTargetPrice": 176.22002250785192,
+                    "qty": 8,
+                    "side": "long",
+                    "entryTime": "2020-12-23T15:01:00.000Z",
+                    "exitTime": "2020-12-23T17:32:00.000Z",
+                    "orderIds": {
+                        "open": "143f8bf0-242a-4e4d-a0ba-a219791f2935",
+                        "close": "48c10628-558e-48fd-884a-12db1893fb27"
+                    },
+                    "totalPnl": -8.72006002093849
+                },
+                {
+                    "symbol": "PLD",
+                    "averageEntryPrice": 97.98074485925926,
+                    "averageExitPrice": 96.90223457777779,
+                    "plannedEntryPrice": 97.98074485925926,
+                    "plannedExitPrice": 98.52,
+                    "plannedTargetPrice": 96.90223457777779,
+                    "qty": 18,
+                    "side": "short",
+                    "entryTime": "2020-12-23T15:08:00.000Z",
+                    "exitTime": "2020-12-23T19:26:00.000Z",
+                    "orderIds": {
+                        "open": "24363a90-4085-4ff4-95a1-c9f3fc9f5adc",
+                        "close": "d7463056-2f2b-4036-bb4d-937255bb90b5"
+                    },
+                    "totalPnl": 19.413185066666472
+                },
+                {
+                    "symbol": "SCHW",
+                    "averageEntryPrice": 52.44384816460906,
+                    "averageExitPrice": 52.1289430617284,
+                    "plannedEntryPrice": 52.44384816460906,
+                    "plannedExitPrice": 52.1289430617284,
+                    "plannedTargetPrice": 53.02894306172839,
+                    "qty": 31,
+                    "side": "long",
+                    "entryTime": "2020-12-23T15:04:00.000Z",
+                    "exitTime": "2020-12-23T19:55:00.000Z",
+                    "orderIds": {
+                        "open": "3065a6c8-9b99-42a2-8b84-9883c14ea357",
+                        "close": "48a3ca6b-e8ef-4862-a0a8-43187534164d"
+                    },
+                    "totalPnl": -9.762058189300404
+                },
+                {
+                    "symbol": "BMY",
+                    "averageEntryPrice": 61.19422821633887,
+                    "averageExitPrice": 61.179,
+                    "totalPnl": 0.502531139182679,
+                    "plannedEntryPrice": 61.19422821633887,
+                    "plannedExitPrice": 61.500960581127075,
+                    "plannedTargetPrice": 60.60096058112708,
+                    "qty": 33,
+                    "side": "short",
+                    "entryTime": "2020-12-23T16:25:00.000Z",
+                    "exitTime": "2020-12-23T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "030f8b8a-f1ce-446f-b873-cd9c70ad41fd",
+                        "close": "69b89c1e-4c8d-4343-a841-edc9f7a2923e"
+                    }
+                },
+                {
+                    "symbol": "CHL",
+                    "averageEntryPrice": 28.156530072098764,
+                    "averageExitPrice": 28.22,
+                    "totalPnl": -2.094507620740739,
+                    "plannedEntryPrice": 28.156530072098764,
+                    "plannedExitPrice": 28.456530072098765,
+                    "plannedTargetPrice": 27.556530072098763,
+                    "qty": 33,
+                    "side": "short",
+                    "entryTime": "2020-12-23T15:57:00.000Z",
+                    "exitTime": "2020-12-23T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "e918661d-e7a0-487e-b6e2-653d738a16a6",
+                        "close": "81930f06-1498-41bb-9300-1990743e045e"
+                    }
+                },
+                {
+                    "symbol": "LLY",
+                    "averageEntryPrice": 166.6082772031605,
+                    "averageExitPrice": 166.06,
+                    "totalPnl": 5.482772031604952,
+                    "plannedEntryPrice": 166.6082772031605,
+                    "plannedExitPrice": 167.6082772031605,
+                    "plannedTargetPrice": 164.6082772031605,
+                    "qty": 10,
+                    "side": "short",
+                    "entryTime": "2020-12-23T15:15:00.000Z",
+                    "exitTime": "2020-12-23T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "a4a91c5e-b81b-49eb-ace8-12e5834f4979",
+                        "close": "54000f93-ba05-477d-8b78-46271b5d336e"
+                    }
+                },
+                {
+                    "symbol": "MCD",
+                    "averageEntryPrice": 212.5406743012346,
+                    "averageExitPrice": 212.525,
+                    "totalPnl": -0.1253944098766624,
+                    "plannedEntryPrice": 212.5406743012346,
+                    "plannedExitPrice": 211.46,
+                    "plannedTargetPrice": 214.70202290370375,
+                    "qty": 8,
+                    "side": "long",
+                    "entryTime": "2020-12-23T15:03:00.000Z",
+                    "exitTime": "2020-12-23T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "7f27cd42-279d-4287-a99b-a5da2ee1d2f3",
+                        "close": "f2c4795c-6a89-4fe5-8b16-c9e06690ed32"
+                    }
+                },
+                {
+                    "symbol": "NKE",
+                    "averageEntryPrice": 142.36495548312755,
+                    "averageExitPrice": 142.1984,
+                    "totalPnl": 2.498332246913293,
+                    "plannedEntryPrice": 142.36495548312755,
+                    "plannedExitPrice": 143.05594218271602,
+                    "plannedTargetPrice": 141.14244055308643,
+                    "qty": 15,
+                    "side": "short",
+                    "entryTime": "2020-12-23T16:11:00.000Z",
+                    "exitTime": "2020-12-23T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "e3ad275f-27b4-42d9-9932-1af1c75e4b3e",
+                        "close": "6ba5156c-b360-493f-a342-b1b2697ee8cf"
+                    }
+                },
+                {
+                    "symbol": "TXN",
+                    "averageEntryPrice": 162.1285235220192,
+                    "averageExitPrice": 162.085,
+                    "totalPnl": 0.43523522019199845,
+                    "plannedEntryPrice": 162.1285235220192,
+                    "plannedExitPrice": 163.1285235220192,
+                    "plannedTargetPrice": 160.1285235220192,
+                    "qty": 10,
+                    "side": "short",
+                    "entryTime": "2020-12-23T15:24:00.000Z",
+                    "exitTime": "2020-12-23T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "83b7564c-a7c2-4705-b4b9-1d724626a0c8",
+                        "close": "6a7b3a74-cc9c-4c22-948d-fcbb9bc35ee5"
+                    }
+                },
+                {
+                    "symbol": "SPY",
+                    "averageEntryPrice": 368.793326327572,
+                    "averageExitPrice": 369.09,
+                    "totalPnl": 1.186694689711885,
+                    "plannedEntryPrice": 368.793326327572,
+                    "plannedExitPrice": 366.7474973728395,
+                    "plannedTargetPrice": 372.7474973728395,
+                    "qty": 4,
+                    "side": "long",
+                    "entryTime": "2020-12-23T15:13:00.000Z",
+                    "exitTime": "2020-12-23T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "cbdecbab-2fd7-4134-a3b7-57d418edd438",
+                        "close": "9053a0c0-aca7-4988-ab86-53435e773c1b"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "startDate": "2020-12-24",
+        "endDate": "2020-12-25",
+        "watchlist": {
+            "2020-12-24": [
+                "AAPL",
+                "ABBV",
+                "AMZN",
+                "BMY",
+                "CHL",
+                "DE",
+                "FIS",
+                "FISV",
+                "JNJ",
+                "LLY",
+                "MCD",
+                "NKE",
+                "PM",
+                "SBUX",
+                "SYK",
+                "V",
+                "SPY"
+            ]
+        },
+        "positions": {
+            "2020-12-24": [
+                {
+                    "symbol": "ABBV",
+                    "averageEntryPrice": 103.32041747160494,
+                    "averageExitPrice": 102.82041747160494,
+                    "plannedEntryPrice": 103.32041747160494,
+                    "plannedExitPrice": 102.82041747160494,
+                    "plannedTargetPrice": 104.32041747160494,
+                    "qty": 19,
+                    "side": "long",
+                    "entryTime": "2020-12-24T15:02:00.000Z",
+                    "exitTime": "2020-12-24T15:47:00.000Z",
+                    "orderIds": {
+                        "open": "6bdee499-6e26-47fa-9a0c-c279e96f01ab",
+                        "close": "2ebdd98d-3b6e-4ce1-9099-5ce5bea9526a"
+                    },
+                    "totalPnl": -9.5
+                },
+                {
+                    "symbol": "DE",
+                    "averageEntryPrice": 267.61212067358025,
+                    "averageExitPrice": 268.61212067358025,
+                    "plannedEntryPrice": 267.61212067358025,
+                    "plannedExitPrice": 268.61212067358025,
+                    "plannedTargetPrice": 265.61212067358025,
+                    "qty": 10,
+                    "side": "short",
+                    "entryTime": "2020-12-24T15:05:00.000Z",
+                    "exitTime": "2020-12-24T15:58:00.000Z",
+                    "orderIds": {
+                        "open": "ec68eac3-4c8e-4302-b833-a6c00a1b8780",
+                        "close": "136849d8-49fc-4c15-b889-1c76b4e86c83"
+                    },
+                    "totalPnl": -10
+                },
+                {
+                    "symbol": "ABBV",
+                    "averageEntryPrice": 103.01348277270581,
+                    "averageExitPrice": 103.01,
+                    "totalPnl": 0.06965545411617313,
+                    "plannedEntryPrice": 103.01348277270581,
+                    "plannedExitPrice": 103.52693103976468,
+                    "plannedTargetPrice": 102.02693103976468,
+                    "qty": 20,
+                    "side": "short",
+                    "entryTime": "2020-12-24T16:03:00.000Z",
+                    "exitTime": "2020-12-24T17:45:00.000Z",
+                    "orderIds": {
+                        "open": "470e9151-a64b-490b-8ccd-0af21248ecaf",
+                        "close": "2fd94f23-d08a-4f63-9871-dbe7231441a3"
+                    }
+                },
+                {
+                    "symbol": "AMZN",
+                    "averageEntryPrice": 3184.748204507654,
+                    "averageExitPrice": 3172.09,
+                    "totalPnl": 12.658204507653863,
+                    "plannedEntryPrice": 3184.748204507654,
+                    "plannedExitPrice": 3195.55,
+                    "plannedTargetPrice": 3165.4917300711104,
+                    "qty": 1,
+                    "side": "short",
+                    "entryTime": "2020-12-24T15:04:00.000Z",
+                    "exitTime": "2020-12-24T17:45:00.000Z",
+                    "orderIds": {
+                        "open": "159f02f1-1380-4997-9397-eb0fd8654a56",
+                        "close": "62da67bb-212e-4e74-ac87-acec1d508b35"
+                    }
+                },
+                {
+                    "symbol": "BMY",
+                    "averageEntryPrice": 61.002057213234565,
+                    "averageExitPrice": 61.19,
+                    "totalPnl": -6.014169176493851,
+                    "plannedEntryPrice": 61.002057213234565,
+                    "plannedExitPrice": 61.30205721323456,
+                    "plannedTargetPrice": 60.40205721323457,
+                    "qty": 32,
+                    "side": "short",
+                    "entryTime": "2020-12-24T15:25:00.000Z",
+                    "exitTime": "2020-12-24T17:45:00.000Z",
+                    "orderIds": {
+                        "open": "d9d3e114-1672-4f9f-9133-5bd9f908a14e",
+                        "close": "f0df1d4e-e180-41e1-aff1-40368d6a5bd9"
+                    }
+                },
+                {
+                    "symbol": "CHL",
+                    "averageEntryPrice": 28.564158029234566,
+                    "averageExitPrice": 28.575,
+                    "totalPnl": 0.34694306449387113,
+                    "plannedEntryPrice": 28.564158029234566,
+                    "plannedExitPrice": 28.264158029234565,
+                    "plannedTargetPrice": 29.164158029234567,
+                    "qty": 32,
+                    "side": "long",
+                    "entryTime": "2020-12-24T15:05:00.000Z",
+                    "exitTime": "2020-12-24T17:45:00.000Z",
+                    "orderIds": {
+                        "open": "9ffc2375-9e11-416d-8073-360e505e85a1",
+                        "close": "cccc5810-3b59-4a58-9a4f-01a788e27435"
+                    }
+                },
+                {
+                    "symbol": "DE",
+                    "averageEntryPrice": 267.91290247956437,
+                    "averageExitPrice": 268.96,
+                    "totalPnl": -9.423877683920523,
+                    "plannedEntryPrice": 267.91290247956437,
+                    "plannedExitPrice": 269.05,
+                    "plannedTargetPrice": 265.6387074386931,
+                    "qty": 9,
+                    "side": "short",
+                    "entryTime": "2020-12-24T16:37:00.000Z",
+                    "exitTime": "2020-12-24T17:45:00.000Z",
+                    "orderIds": {
+                        "open": "a9220357-6241-4923-b2c1-7a0ff7731951",
+                        "close": "70a4f535-b379-4cf2-b7da-29fd831e1fe2"
+                    }
+                },
+                {
+                    "symbol": "JNJ",
+                    "averageEntryPrice": 152.43742049869957,
+                    "averageExitPrice": 152.61,
+                    "totalPnl": 1.5532155117040247,
+                    "plannedEntryPrice": 152.43742049869957,
+                    "plannedExitPrice": 151.41403268701234,
+                    "plannedTargetPrice": 154.41403268701234,
+                    "qty": 9,
+                    "side": "long",
+                    "entryTime": "2020-12-24T16:07:00.000Z",
+                    "exitTime": "2020-12-24T17:45:00.000Z",
+                    "orderIds": {
+                        "open": "6378cc6f-06ae-45b9-9b2a-730f99312ed8",
+                        "close": "9009bdd0-ccaf-4e06-9d51-820217ac5637"
+                    }
+                },
+                {
+                    "symbol": "LLY",
+                    "averageEntryPrice": 166.82292439176956,
+                    "averageExitPrice": 166.91,
+                    "totalPnl": 0.7836804740739183,
+                    "plannedEntryPrice": 166.82292439176956,
+                    "plannedExitPrice": 165.7898466469136,
+                    "plannedTargetPrice": 168.7898466469136,
+                    "qty": 9,
+                    "side": "long",
+                    "entryTime": "2020-12-24T15:51:00.000Z",
+                    "exitTime": "2020-12-24T17:45:00.000Z",
+                    "orderIds": {
+                        "open": "d2962442-0562-4419-8bbb-c0a7a71ab4d3",
+                        "close": "0c2fae8d-7084-4260-957c-12a05e45cbbf"
+                    }
+                },
+                {
+                    "symbol": "MCD",
+                    "averageEntryPrice": 212.1037301037037,
+                    "averageExitPrice": 211.64,
+                    "totalPnl": 4.637301037037105,
+                    "plannedEntryPrice": 212.1037301037037,
+                    "plannedExitPrice": 213.1037301037037,
+                    "plannedTargetPrice": 210.1037301037037,
+                    "qty": 10,
+                    "side": "short",
+                    "entryTime": "2020-12-24T15:04:00.000Z",
+                    "exitTime": "2020-12-24T17:45:00.000Z",
+                    "orderIds": {
+                        "open": "9bbf11c3-e03c-4ee5-97cd-3cdada9ebd21",
+                        "close": "5c16834e-fe42-4a67-b04a-0a8fd05a3314"
+                    }
+                },
+                {
+                    "symbol": "NKE",
+                    "averageEntryPrice": 141.87822000724282,
+                    "averageExitPrice": 141.55,
+                    "totalPnl": -5.907960130370498,
+                    "plannedEntryPrice": 141.87822000724282,
+                    "plannedExitPrice": 141.34808250271607,
+                    "plannedTargetPrice": 142.84808250271607,
+                    "qty": 18,
+                    "side": "long",
+                    "entryTime": "2020-12-24T15:13:00.000Z",
+                    "exitTime": "2020-12-24T17:45:00.000Z",
+                    "orderIds": {
+                        "open": "79e1d92e-7da6-42eb-a7a1-4299c4074b1f",
+                        "close": "11973940-94f2-4d4d-8fd3-2607da9813d8"
+                    }
+                },
+                {
+                    "symbol": "PM",
+                    "averageEntryPrice": 82.44646087143565,
+                    "averageExitPrice": 82.5,
+                    "totalPnl": 1.0172434427227017,
+                    "plannedEntryPrice": 82.44646087143565,
+                    "plannedExitPrice": 81.94646087143565,
+                    "plannedTargetPrice": 83.44646087143565,
+                    "qty": 19,
+                    "side": "long",
+                    "entryTime": "2020-12-24T16:08:00.000Z",
+                    "exitTime": "2020-12-24T17:45:00.000Z",
+                    "orderIds": {
+                        "open": "30fb742e-3c0f-4291-a9a4-c4f267ead038",
+                        "close": "82391ae4-9e3f-4f89-840f-e72e56b3913e"
+                    }
+                },
+                {
+                    "symbol": "SYK",
+                    "averageEntryPrice": 237.20059382952593,
+                    "averageExitPrice": 237.555,
+                    "totalPnl": 3.1896555342667057,
+                    "plannedEntryPrice": 237.20059382952593,
+                    "plannedExitPrice": 236.20059382952593,
+                    "plannedTargetPrice": 239.20059382952593,
+                    "qty": 9,
+                    "side": "long",
+                    "entryTime": "2020-12-24T15:52:00.000Z",
+                    "exitTime": "2020-12-24T17:45:00.000Z",
+                    "orderIds": {
+                        "open": "3d6fe76c-3dbe-4c94-a066-d84190ce4054",
+                        "close": "5ac4433d-ce56-46bf-bc28-fcd76971dd18"
+                    }
+                },
+                {
+                    "symbol": "SPY",
+                    "averageEntryPrice": 368.575890844642,
+                    "averageExitPrice": 368.43,
+                    "totalPnl": -0.5835633785679875,
+                    "plannedEntryPrice": 368.575890844642,
+                    "plannedExitPrice": 366.45,
+                    "plannedTargetPrice": 372.82767253392603,
+                    "qty": 4,
+                    "side": "long",
+                    "entryTime": "2020-12-24T15:20:00.000Z",
+                    "exitTime": "2020-12-24T17:45:00.000Z",
+                    "orderIds": {
+                        "open": "2ab8f2b7-a425-42b3-8d87-a9cb40986224",
+                        "close": "c4bb28c0-578b-499d-a448-02eec2c7f270"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "startDate": "2020-12-28",
+        "endDate": "2020-12-29",
+        "watchlist": {
+            "2020-12-28": [
+                "ABBV",
+                "AMD",
+                "AMGN",
+                "AMZN",
+                "ANTM",
+                "BMY",
+                "BSX",
+                "CAT",
+                "CI",
+                "CSCO",
+                "CVX",
+                "DE",
+                "EL",
+                "ENB",
+                "GILD",
+                "HD",
+                "HON",
+                "IBM",
+                "INTC",
+                "JNJ",
+                "KO",
+                "LOW",
+                "MCD",
+                "MS",
+                "NKE",
+                "PEP",
+                "PLD",
+                "PM",
+                "SBUX",
+                "SO",
+                "SYK",
+                "TXN",
+                "VMW",
+                "XOM",
+                "SPY"
+            ]
+        },
+        "positions": {
+            "2020-12-28": [
+                {
+                    "symbol": "GILD",
+                    "averageEntryPrice": 56.89092690699588,
+                    "averageExitPrice": 57.20284759012345,
+                    "plannedEntryPrice": 56.89092690699588,
+                    "plannedExitPrice": 57.20284759012345,
+                    "plannedTargetPrice": 56.302847590123456,
+                    "qty": 33,
+                    "side": "short",
+                    "entryTime": "2020-12-28T15:01:00.000Z",
+                    "exitTime": "2020-12-28T15:06:00.000Z",
+                    "orderIds": {
+                        "open": "4e103f4e-78ae-4a61-9083-1d8c2c8f4b0b",
+                        "close": "1b091601-b5ab-428b-a8fc-ddf66beb4b2a"
+                    },
+                    "totalPnl": -10.29338254320973
+                },
+                {
+                    "symbol": "AMGN",
+                    "averageEntryPrice": 224.20170486900415,
+                    "averageExitPrice": 226.14545182587656,
+                    "plannedEntryPrice": 224.20170486900415,
+                    "plannedExitPrice": 223.14545182587656,
+                    "plannedTargetPrice": 226.14545182587656,
+                    "qty": 9,
+                    "side": "long",
+                    "entryTime": "2020-12-28T15:01:00.000Z",
+                    "exitTime": "2020-12-28T15:17:00.000Z",
+                    "orderIds": {
+                        "open": "0d4d78ba-3bd5-4ad1-9740-b79ad2b33282",
+                        "close": "b7fbff8f-e0ab-474b-9e52-c130fd6c95f6"
+                    },
+                    "totalPnl": 17.49372261185175
+                },
+                {
+                    "symbol": "BMY",
+                    "averageEntryPrice": 61.33825070617284,
+                    "averageExitPrice": 61.65184401481481,
+                    "plannedEntryPrice": 61.33825070617284,
+                    "plannedExitPrice": 61.65184401481481,
+                    "plannedTargetPrice": 60.75184401481482,
+                    "qty": 32,
+                    "side": "short",
+                    "entryTime": "2020-12-28T15:06:00.000Z",
+                    "exitTime": "2020-12-28T15:17:00.000Z",
+                    "orderIds": {
+                        "open": "0a319429-ecfc-49c4-8110-de93bfc63641",
+                        "close": "7f2578bc-6ae0-4928-9f5c-b761d663bedb"
+                    },
+                    "totalPnl": -10.034985876543033
+                },
+                {
+                    "symbol": "AMD",
+                    "averageEntryPrice": 92.16531294320987,
+                    "averageExitPrice": 91.12583067160492,
+                    "plannedEntryPrice": 92.16531294320987,
+                    "plannedExitPrice": 92.68505407901235,
+                    "plannedTargetPrice": 91.12583067160492,
+                    "qty": 18,
+                    "side": "short",
+                    "entryTime": "2020-12-28T15:01:00.000Z",
+                    "exitTime": "2020-12-28T15:18:00.000Z",
+                    "orderIds": {
+                        "open": "bdb80ea5-5ce1-4355-885e-4bf24809451e",
+                        "close": "ffdd39a8-935e-4fa4-a465-bde24051705a"
+                    },
+                    "totalPnl": 18.710680888889158
+                },
+                {
+                    "symbol": "MCD",
+                    "averageEntryPrice": 212.6936857152263,
+                    "averageExitPrice": 213.73513214320985,
+                    "plannedEntryPrice": 212.6936857152263,
+                    "plannedExitPrice": 213.73513214320985,
+                    "plannedTargetPrice": 210.73513214320985,
+                    "qty": 10,
+                    "side": "short",
+                    "entryTime": "2020-12-28T15:10:00.000Z",
+                    "exitTime": "2020-12-28T15:21:00.000Z",
+                    "orderIds": {
+                        "open": "86ddaab1-31b6-475f-bb3a-e9ebb8fdaf27",
+                        "close": "dd426dfe-b424-4acf-8953-fb07966e34ba"
+                    },
+                    "totalPnl": -10.414464279835443
+                },
+                {
+                    "symbol": "EL",
+                    "averageEntryPrice": 264.6508993921975,
+                    "averageExitPrice": 263.45,
+                    "plannedEntryPrice": 264.6508993921975,
+                    "plannedExitPrice": 263.45,
+                    "plannedTargetPrice": 267.05269817659257,
+                    "qty": 7,
+                    "side": "long",
+                    "entryTime": "2020-12-28T15:15:00.000Z",
+                    "exitTime": "2020-12-28T15:21:00.000Z",
+                    "orderIds": {
+                        "open": "aad6c03c-9532-42b9-83d3-bcae5b38a4ab",
+                        "close": "312caf65-70e7-441d-8962-72f6c1a40729"
+                    },
+                    "totalPnl": -8.406295745382693
+                },
+                {
+                    "symbol": "HD",
+                    "averageEntryPrice": 270.72504060345676,
+                    "averageExitPrice": 271.72504060345676,
+                    "plannedEntryPrice": 270.72504060345676,
+                    "plannedExitPrice": 271.72504060345676,
+                    "plannedTargetPrice": 268.72504060345676,
+                    "qty": 10,
+                    "side": "short",
+                    "entryTime": "2020-12-28T15:03:00.000Z",
+                    "exitTime": "2020-12-28T15:34:00.000Z",
+                    "orderIds": {
+                        "open": "2aef8a14-ba25-4218-91e1-d742308ee637",
+                        "close": "b5b7fb33-28cf-4858-b2d2-238946cff5c7"
+                    },
+                    "totalPnl": -10
+                },
+                {
+                    "symbol": "AMZN",
+                    "averageEntryPrice": 3180.805039555753,
+                    "averageExitPrice": 3190,
+                    "plannedEntryPrice": 3180.805039555753,
+                    "plannedExitPrice": 3190,
+                    "plannedTargetPrice": 3162.415118667259,
+                    "qty": 2,
+                    "side": "short",
+                    "entryTime": "2020-12-28T15:06:00.000Z",
+                    "exitTime": "2020-12-28T15:35:00.000Z",
+                    "orderIds": {
+                        "open": "f9f2edac-2789-4d7c-a11e-737d7b810ee2",
+                        "close": "7227a785-add8-4bb2-8240-2696a1223afe"
+                    },
+                    "totalPnl": -18.38992088849409
+                },
+                {
+                    "symbol": "MS",
+                    "averageEntryPrice": 68.83959869135802,
+                    "averageExitPrice": 68.48,
+                    "plannedEntryPrice": 68.83959869135802,
+                    "plannedExitPrice": 68.48,
+                    "plannedTargetPrice": 69.55879607407405,
+                    "qty": 26,
+                    "side": "long",
+                    "entryTime": "2020-12-28T15:02:00.000Z",
+                    "exitTime": "2020-12-28T15:36:00.000Z",
+                    "orderIds": {
+                        "open": "a579abbb-e891-4140-87b4-336835a9bdb5",
+                        "close": "0d9dac5d-c785-4beb-a374-13b4d2cb1d64"
+                    },
+                    "totalPnl": -9.349565975308423
+                },
+                {
+                    "symbol": "ENB",
+                    "averageEntryPrice": 32.403846250074075,
+                    "averageExitPrice": 32.10384625007408,
+                    "plannedEntryPrice": 32.403846250074075,
+                    "plannedExitPrice": 32.10384625007408,
+                    "plannedTargetPrice": 33.00384625007407,
+                    "qty": 32,
+                    "side": "long",
+                    "entryTime": "2020-12-28T15:13:00.000Z",
+                    "exitTime": "2020-12-28T15:42:00.000Z",
+                    "orderIds": {
+                        "open": "39a81283-e4c8-403a-9e23-c44dc5446a0f",
+                        "close": "9ec9fbfc-0021-40d5-bd9c-aff35c2ea1fe"
+                    },
+                    "totalPnl": -9.599999999999909
+                },
+                {
+                    "symbol": "CVX",
+                    "averageEntryPrice": 85.86512092237037,
+                    "averageExitPrice": 85.36512092237037,
+                    "plannedEntryPrice": 85.86512092237037,
+                    "plannedExitPrice": 85.36512092237037,
+                    "plannedTargetPrice": 86.86512092237037,
+                    "qty": 19,
+                    "side": "long",
+                    "entryTime": "2020-12-28T15:01:00.000Z",
+                    "exitTime": "2020-12-28T15:49:00.000Z",
+                    "orderIds": {
+                        "open": "0b132311-bff4-4015-934c-665168879ab7",
+                        "close": "62cff232-5d83-4614-b01b-dcc7a0f8bb85"
+                    },
+                    "totalPnl": -9.5
+                },
+                {
+                    "symbol": "SBUX",
+                    "averageEntryPrice": 102.94379051279013,
+                    "averageExitPrice": 103.94379051279013,
+                    "plannedEntryPrice": 102.94379051279013,
+                    "plannedExitPrice": 102.44379051279013,
+                    "plannedTargetPrice": 103.94379051279013,
+                    "qty": 19,
+                    "side": "long",
+                    "entryTime": "2020-12-28T15:08:00.000Z",
+                    "exitTime": "2020-12-28T15:50:00.000Z",
+                    "orderIds": {
+                        "open": "297ec748-803e-4163-a3b0-0029047efd87",
+                        "close": "48270c45-ec8c-482e-98f4-7b3069a88c80"
+                    },
+                    "totalPnl": 19
+                },
+                {
+                    "symbol": "AMZN",
+                    "averageEntryPrice": 3196.912397468779,
+                    "averageExitPrice": 3211.7371924063373,
+                    "plannedEntryPrice": 3196.912397468779,
+                    "plannedExitPrice": 3189.5,
+                    "plannedTargetPrice": 3211.7371924063373,
+                    "qty": 1,
+                    "side": "long",
+                    "entryTime": "2020-12-28T15:40:00.000Z",
+                    "exitTime": "2020-12-28T15:52:00.000Z",
+                    "orderIds": {
+                        "open": "800f0ff3-841d-48c0-b0b9-f80627e1e004",
+                        "close": "68bcd68f-523d-49de-9867-cacfe8e14a1c"
+                    },
+                    "totalPnl": 14.824794937558181
+                },
+                {
+                    "symbol": "LOW",
+                    "averageEntryPrice": 162.59600664395063,
+                    "averageExitPrice": 163.59600664395063,
+                    "plannedEntryPrice": 162.59600664395063,
+                    "plannedExitPrice": 163.59600664395063,
+                    "plannedTargetPrice": 160.59600664395063,
+                    "qty": 10,
+                    "side": "short",
+                    "entryTime": "2020-12-28T15:08:00.000Z",
+                    "exitTime": "2020-12-28T15:56:00.000Z",
+                    "orderIds": {
+                        "open": "6bda6f33-6c32-4a30-935d-04fc39a7da9a",
+                        "close": "6949bdc7-7efe-47c3-b1d9-6d1dd27ecbb1"
+                    },
+                    "totalPnl": -10
+                },
+                {
+                    "symbol": "BMY",
+                    "averageEntryPrice": 61.61006099709776,
+                    "averageExitPrice": 61.29752287391167,
+                    "plannedEntryPrice": 61.61006099709776,
+                    "plannedExitPrice": 61.29752287391167,
+                    "plannedTargetPrice": 62.19752287391166,
+                    "qty": 31,
+                    "side": "long",
+                    "entryTime": "2020-12-28T15:24:00.000Z",
+                    "exitTime": "2020-12-28T16:00:00.000Z",
+                    "orderIds": {
+                        "open": "8bc49034-662e-48ed-a8fe-ed305caa0d2d",
+                        "close": "6b92bf07-cc7e-48e7-abd3-e25b9579f743"
+                    },
+                    "totalPnl": -9.68868181876892
+                },
+                {
+                    "symbol": "PM",
+                    "averageEntryPrice": 83.1011795344856,
+                    "averageExitPrice": 82.6011795344856,
+                    "plannedEntryPrice": 83.1011795344856,
+                    "plannedExitPrice": 82.6011795344856,
+                    "plannedTargetPrice": 84.1011795344856,
+                    "qty": 19,
+                    "side": "long",
+                    "entryTime": "2020-12-28T15:06:00.000Z",
+                    "exitTime": "2020-12-28T16:05:00.000Z",
+                    "orderIds": {
+                        "open": "53fd3e02-5169-47ab-88a2-899eab80e96f",
+                        "close": "48f9eb3e-2083-4765-bf9d-1cf67f799fbe"
+                    },
+                    "totalPnl": -9.5
+                },
+                {
+                    "symbol": "CAT",
+                    "averageEntryPrice": 180.93037294577778,
+                    "averageExitPrice": 179.93037294577778,
+                    "plannedEntryPrice": 180.93037294577778,
+                    "plannedExitPrice": 179.93037294577778,
+                    "plannedTargetPrice": 182.93037294577778,
+                    "qty": 9,
+                    "side": "long",
+                    "entryTime": "2020-12-28T15:12:00.000Z",
+                    "exitTime": "2020-12-28T16:07:00.000Z",
+                    "orderIds": {
+                        "open": "517a2258-bff4-4220-875f-89cf089bb656",
+                        "close": "511e11b4-f298-4d20-afd6-8a3f8ca2c985"
+                    },
+                    "totalPnl": -9
+                },
+                {
+                    "symbol": "HON",
+                    "averageEntryPrice": 211.1617942876587,
+                    "averageExitPrice": 210.1617942876587,
+                    "plannedEntryPrice": 211.1617942876587,
+                    "plannedExitPrice": 210.1617942876587,
+                    "plannedTargetPrice": 213.1617942876587,
+                    "qty": 9,
+                    "side": "long",
+                    "entryTime": "2020-12-28T15:32:00.000Z",
+                    "exitTime": "2020-12-28T16:14:00.000Z",
+                    "orderIds": {
+                        "open": "1d53ab4c-b904-4775-acfb-78e629a55207",
+                        "close": "ef230b37-a67b-45cd-b077-c575a8f08b32"
+                    },
+                    "totalPnl": -9
+                },
+                {
+                    "symbol": "GILD",
+                    "averageEntryPrice": 57.21761875522633,
+                    "averageExitPrice": 56.917618755226336,
+                    "plannedEntryPrice": 57.21761875522633,
+                    "plannedExitPrice": 56.917618755226336,
+                    "plannedTargetPrice": 57.81761875522633,
+                    "qty": 31,
+                    "side": "long",
+                    "entryTime": "2020-12-28T15:11:00.000Z",
+                    "exitTime": "2020-12-28T16:30:00.000Z",
+                    "orderIds": {
+                        "open": "567bc924-13fa-437c-a9a7-caf5fce2d9fa",
+                        "close": "11228ab6-3406-4e4b-ab72-3e28e64a7588"
+                    },
+                    "totalPnl": -9.299999999999912
+                },
+                {
+                    "symbol": "NKE",
+                    "averageEntryPrice": 141.55910442469138,
+                    "averageExitPrice": 142.05910442469138,
+                    "plannedEntryPrice": 141.55910442469138,
+                    "plannedExitPrice": 142.05910442469138,
+                    "plannedTargetPrice": 140.55910442469138,
+                    "qty": 19,
+                    "side": "short",
+                    "entryTime": "2020-12-28T15:02:00.000Z",
+                    "exitTime": "2020-12-28T16:32:00.000Z",
+                    "orderIds": {
+                        "open": "a59494ad-5018-45b1-8eaf-454bbaf488e0",
+                        "close": "075ecc90-dd08-46d6-93aa-d350279a2f1d"
+                    },
+                    "totalPnl": -9.5
+                },
+                {
+                    "symbol": "MS",
+                    "averageEntryPrice": 68.26117048678859,
+                    "averageExitPrice": 68.56117048678858,
+                    "plannedEntryPrice": 68.26117048678859,
+                    "plannedExitPrice": 68.56117048678858,
+                    "plannedTargetPrice": 67.66117048678859,
+                    "qty": 32,
+                    "side": "short",
+                    "entryTime": "2020-12-28T15:49:00.000Z",
+                    "exitTime": "2020-12-28T16:36:00.000Z",
+                    "orderIds": {
+                        "open": "cf48f6db-15f4-4d6f-ab81-b0b0e2e197f5",
+                        "close": "adffaa69-078a-42ad-b846-e44e99a5db9e"
+                    },
+                    "totalPnl": -9.599999999999909
+                },
+                {
+                    "symbol": "PLD",
+                    "averageEntryPrice": 97.7292411292181,
+                    "averageExitPrice": 98.26865292345678,
+                    "plannedEntryPrice": 97.7292411292181,
+                    "plannedExitPrice": 98.26865292345678,
+                    "plannedTargetPrice": 96.76865292345678,
+                    "qty": 19,
+                    "side": "short",
+                    "entryTime": "2020-12-28T15:21:00.000Z",
+                    "exitTime": "2020-12-28T17:02:00.000Z",
+                    "orderIds": {
+                        "open": "9a9d5e04-f0fd-452a-bf24-f68f454a49ec",
+                        "close": "2a95273c-f61f-4fd3-87ca-cde714a5dcb4"
+                    },
+                    "totalPnl": -10.24882409053508
+                },
+                {
+                    "symbol": "LOW",
+                    "averageEntryPrice": 163.52137273380245,
+                    "averageExitPrice": 162.49157727517593,
+                    "plannedEntryPrice": 163.52137273380245,
+                    "plannedExitPrice": 162.49157727517593,
+                    "plannedTargetPrice": 165.49157727517593,
+                    "qty": 9,
+                    "side": "long",
+                    "entryTime": "2020-12-28T16:04:00.000Z",
+                    "exitTime": "2020-12-28T17:03:00.000Z",
+                    "orderIds": {
+                        "open": "4ec56c20-cfde-4b89-a6ba-fb23fbd9d592",
+                        "close": "7d9bbaa2-08bf-45e7-a729-5d4c531df8dd"
+                    },
+                    "totalPnl": -9.268159127638711
+                },
+                {
+                    "symbol": "INTC",
+                    "averageEntryPrice": 47.34441033481482,
+                    "averageExitPrice": 47.04441033481482,
+                    "plannedEntryPrice": 47.34441033481482,
+                    "plannedExitPrice": 47.04441033481482,
+                    "plannedTargetPrice": 47.94441033481481,
+                    "qty": 31,
+                    "side": "long",
+                    "entryTime": "2020-12-28T15:09:00.000Z",
+                    "exitTime": "2020-12-28T17:28:00.000Z",
+                    "orderIds": {
+                        "open": "7ee9fd17-7157-4e90-893d-52c9d6d41fde",
+                        "close": "70d9deea-7644-431f-a300-7ec77cf922d5"
+                    },
+                    "totalPnl": -9.299999999999912
+                },
+                {
+                    "symbol": "CI",
+                    "averageEntryPrice": 201.43502669958846,
+                    "averageExitPrice": 203.38188501234566,
+                    "plannedEntryPrice": 201.43502669958846,
+                    "plannedExitPrice": 200.38188501234566,
+                    "plannedTargetPrice": 203.38188501234566,
+                    "qty": 9,
+                    "side": "long",
+                    "entryTime": "2020-12-28T16:35:00.000Z",
+                    "exitTime": "2020-12-28T17:30:00.000Z",
+                    "orderIds": {
+                        "open": "9020bd84-c0e2-4ab2-9d73-820c5e8ed011",
+                        "close": "1b74bfc1-e593-4344-9e1d-682d62a472e5"
+                    },
+                    "totalPnl": 17.521724814814803
+                },
+                {
+                    "symbol": "EL",
+                    "averageEntryPrice": 262.85205572265573,
+                    "averageExitPrice": 264.05,
+                    "plannedEntryPrice": 262.85205572265573,
+                    "plannedExitPrice": 264.05,
+                    "plannedTargetPrice": 260.4561671679672,
+                    "qty": 8,
+                    "side": "short",
+                    "entryTime": "2020-12-28T15:45:00.000Z",
+                    "exitTime": "2020-12-28T17:44:00.000Z",
+                    "orderIds": {
+                        "open": "d9c22221-0876-4a9e-9d56-679641640778",
+                        "close": "7799657a-12e8-45ff-bf80-53d81209db5c"
+                    },
+                    "totalPnl": -9.583554218754216
+                },
+                {
+                    "symbol": "AMD",
+                    "averageEntryPrice": 92.12617797430684,
+                    "averageExitPrice": 92.66687924036506,
+                    "plannedEntryPrice": 92.12617797430684,
+                    "plannedExitPrice": 92.66687924036506,
+                    "plannedTargetPrice": 91.16687924036506,
+                    "qty": 19,
+                    "side": "short",
+                    "entryTime": "2020-12-28T16:00:00.000Z",
+                    "exitTime": "2020-12-28T17:48:00.000Z",
+                    "orderIds": {
+                        "open": "ff11a1ba-82b3-4e71-9e00-c0b4bd093b92",
+                        "close": "bc7f0599-be8a-406a-9755-58d718f94557"
+                    },
+                    "totalPnl": -10.273324055106201
+                },
+                {
+                    "symbol": "VMW",
+                    "averageEntryPrice": 142.3382633909796,
+                    "averageExitPrice": 141.3382633909796,
+                    "plannedEntryPrice": 142.3382633909796,
+                    "plannedExitPrice": 142.8382633909796,
+                    "plannedTargetPrice": 141.3382633909796,
+                    "qty": 19,
+                    "side": "short",
+                    "entryTime": "2020-12-28T16:13:00.000Z",
+                    "exitTime": "2020-12-28T17:56:00.000Z",
+                    "orderIds": {
+                        "open": "8f9acaee-cf8b-4a39-9cbf-481e3a1db881",
+                        "close": "32bdf545-e82b-404d-9fc5-0403ffc3b821"
+                    },
+                    "totalPnl": 19
+                },
+                {
+                    "symbol": "SYK",
+                    "averageEntryPrice": 239.36290063012345,
+                    "averageExitPrice": 238.30488802765433,
+                    "plannedEntryPrice": 239.36290063012345,
+                    "plannedExitPrice": 238.30488802765433,
+                    "plannedTargetPrice": 241.4789258350617,
+                    "qty": 8,
+                    "side": "long",
+                    "entryTime": "2020-12-28T15:08:00.000Z",
+                    "exitTime": "2020-12-28T17:56:00.000Z",
+                    "orderIds": {
+                        "open": "a96c51fd-d88f-4cb5-901b-015d4bb8f928",
+                        "close": "38a48c90-1a89-4279-af69-0104b49946b4"
+                    },
+                    "totalPnl": -8.464100819752957
+                },
+                {
+                    "symbol": "DE",
+                    "averageEntryPrice": 270.7679313704033,
+                    "averageExitPrice": 268.43819481995064,
+                    "plannedEntryPrice": 270.7679313704033,
+                    "plannedExitPrice": 272.0847389858765,
+                    "plannedTargetPrice": 268.43819481995064,
+                    "qty": 8,
+                    "side": "short",
+                    "entryTime": "2020-12-28T15:33:00.000Z",
+                    "exitTime": "2020-12-28T18:24:00.000Z",
+                    "orderIds": {
+                        "open": "e3639a0f-9f4f-403e-b8bc-763c0f3ef3fc",
+                        "close": "e67e7309-fe23-48d3-bed8-24b03b6b8523"
+                    },
+                    "totalPnl": 18.63789240362121
+                },
+                {
+                    "symbol": "PEP",
+                    "averageEntryPrice": 146.3523998419753,
+                    "averageExitPrice": 145.8523998419753,
+                    "plannedEntryPrice": 146.3523998419753,
+                    "plannedExitPrice": 145.8523998419753,
+                    "plannedTargetPrice": 147.3523998419753,
+                    "qty": 18,
+                    "side": "long",
+                    "entryTime": "2020-12-28T16:15:00.000Z",
+                    "exitTime": "2020-12-28T18:33:00.000Z",
+                    "orderIds": {
+                        "open": "d26a2775-9890-45c9-9738-2a99f29e1a7c",
+                        "close": "9a2bbcdc-fae0-43d3-837a-6ebf2ace47a0"
+                    },
+                    "totalPnl": -9
+                },
+                {
+                    "symbol": "IBM",
+                    "averageEntryPrice": 125.2854664691358,
+                    "averageExitPrice": 124.75704992592593,
+                    "plannedEntryPrice": 125.2854664691358,
+                    "plannedExitPrice": 124.75704992592593,
+                    "plannedTargetPrice": 126.25704992592593,
+                    "qty": 18,
+                    "side": "long",
+                    "entryTime": "2020-12-28T16:27:00.000Z",
+                    "exitTime": "2020-12-28T19:02:00.000Z",
+                    "orderIds": {
+                        "open": "ed10e142-50a3-46e1-a28b-3a9d7ba403fc",
+                        "close": "842a6c14-c372-40a2-8673-d3b777bc19b7"
+                    },
+                    "totalPnl": -9.511497777777691
+                },
+                {
+                    "symbol": "SO",
+                    "averageEntryPrice": 60.12864866004773,
+                    "averageExitPrice": 59.82864866004773,
+                    "plannedEntryPrice": 60.12864866004773,
+                    "plannedExitPrice": 59.82864866004773,
+                    "plannedTargetPrice": 60.728648660047725,
+                    "qty": 32,
+                    "side": "long",
+                    "entryTime": "2020-12-28T16:46:00.000Z",
+                    "exitTime": "2020-12-28T20:13:00.000Z",
+                    "orderIds": {
+                        "open": "16f54e0b-104f-4902-b924-2fcb2403283a",
+                        "close": "954cd0e9-5998-4f02-8989-dfa24507c200"
+                    },
+                    "totalPnl": -9.599999999999909
+                },
+                {
+                    "symbol": "ABBV",
+                    "averageEntryPrice": 103.28769909253967,
+                    "averageExitPrice": 103.34,
+                    "totalPnl": -1.0460181492067022,
+                    "plannedEntryPrice": 103.28769909253967,
+                    "plannedExitPrice": 103.78769909253967,
+                    "plannedTargetPrice": 102.28769909253967,
+                    "qty": 20,
+                    "side": "short",
+                    "entryTime": "2020-12-28T15:51:00.000Z",
+                    "exitTime": "2020-12-28T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "acefeef5-0e8e-41ae-9e97-a78acaa0664b",
+                        "close": "55b7c769-891e-4a27-b5bc-6407a858e44a"
+                    }
+                },
+                {
+                    "symbol": "BSX",
+                    "averageEntryPrice": 34.86738371303155,
+                    "averageExitPrice": 34.881,
+                    "totalPnl": 0.43572118299039175,
+                    "plannedEntryPrice": 34.86738371303155,
+                    "plannedExitPrice": 34.56738371303155,
+                    "plannedTargetPrice": 35.467383713031545,
+                    "qty": 32,
+                    "side": "long",
+                    "entryTime": "2020-12-28T15:12:00.000Z",
+                    "exitTime": "2020-12-28T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "047742f8-2d03-46fa-9c02-f47ed499c80b",
+                        "close": "fa8beed2-5fac-49b3-be98-62a81e855b55"
+                    }
+                },
+                {
+                    "symbol": "CSCO",
+                    "averageEntryPrice": 44.934695731358026,
+                    "averageExitPrice": 44.935,
+                    "totalPnl": 0.009736596543234555,
+                    "plannedEntryPrice": 44.934695731358026,
+                    "plannedExitPrice": 44.63469573135803,
+                    "plannedTargetPrice": 45.53469573135802,
+                    "qty": 32,
+                    "side": "long",
+                    "entryTime": "2020-12-28T15:04:00.000Z",
+                    "exitTime": "2020-12-28T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "f0dba7cc-3aab-4f55-8fd5-45018578c6a5",
+                        "close": "4e4e9ca9-d153-46e5-8d3f-cb9b0c2522a4"
+                    }
+                },
+                {
+                    "symbol": "CVX",
+                    "averageEntryPrice": 85.33460263101591,
+                    "averageExitPrice": 84.88,
+                    "totalPnl": 9.092052620318327,
+                    "plannedEntryPrice": 85.33460263101591,
+                    "plannedExitPrice": 85.83460263101591,
+                    "plannedTargetPrice": 84.33460263101591,
+                    "qty": 20,
+                    "side": "short",
+                    "entryTime": "2020-12-28T15:51:00.000Z",
+                    "exitTime": "2020-12-28T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "56515c00-02b5-442d-940a-b88444f02e5e",
+                        "close": "cbc09a1b-6b4e-4d93-bfb4-ae2cdefbd01b"
+                    }
+                },
+                {
+                    "symbol": "GILD",
+                    "averageEntryPrice": 56.8952273725995,
+                    "averageExitPrice": 56.785,
+                    "totalPnl": 3.6375032957836098,
+                    "plannedEntryPrice": 56.8952273725995,
+                    "plannedExitPrice": 57.20446026472481,
+                    "plannedTargetPrice": 56.30446026472482,
+                    "qty": 33,
+                    "side": "short",
+                    "entryTime": "2020-12-28T16:38:00.000Z",
+                    "exitTime": "2020-12-28T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "ac444825-febc-44a2-a43d-727bc5727a97",
+                        "close": "9c78bf19-fed6-48f1-b13a-95899c21eb7d"
+                    }
+                },
+                {
+                    "symbol": "JNJ",
+                    "averageEntryPrice": 153.61862076175393,
+                    "averageExitPrice": 153.16,
+                    "totalPnl": -4.12758685578541,
+                    "plannedEntryPrice": 153.61862076175393,
+                    "plannedExitPrice": 152.61862076175393,
+                    "plannedTargetPrice": 155.61862076175393,
+                    "qty": 9,
+                    "side": "long",
+                    "entryTime": "2020-12-28T15:18:00.000Z",
+                    "exitTime": "2020-12-28T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "2d9a1266-e217-4099-8443-55aa71c236fe",
+                        "close": "8390b966-7a63-4291-9def-89c922496831"
+                    }
+                },
+                {
+                    "symbol": "PM",
+                    "averageEntryPrice": 82.59326285780584,
+                    "averageExitPrice": 82.4726,
+                    "totalPnl": 2.4132571561167993,
+                    "plannedEntryPrice": 82.59326285780584,
+                    "plannedExitPrice": 83.09326285780584,
+                    "plannedTargetPrice": 81.59326285780584,
+                    "qty": 20,
+                    "side": "short",
+                    "entryTime": "2020-12-28T16:16:00.000Z",
+                    "exitTime": "2020-12-28T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "087e1695-34b6-409c-a7d8-67b39e7f223d",
+                        "close": "a03b9783-9732-4dee-a83e-8f0dd32c1bff"
+                    }
+                },
+                {
+                    "symbol": "TXN",
+                    "averageEntryPrice": 162.08549818765434,
+                    "averageExitPrice": 161.24,
+                    "totalPnl": 8.454981876543286,
+                    "plannedEntryPrice": 162.08549818765434,
+                    "plannedExitPrice": 163.08549818765434,
+                    "plannedTargetPrice": 160.08549818765434,
+                    "qty": 10,
+                    "side": "short",
+                    "entryTime": "2020-12-28T16:40:00.000Z",
+                    "exitTime": "2020-12-28T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "168b274c-9dca-4984-97a8-699b66dbc6e2",
+                        "close": "6c67b407-9b57-498d-93ee-3f55aa144168"
+                    }
+                },
+                {
+                    "symbol": "XOM",
+                    "averageEntryPrice": 41.642496190629984,
+                    "averageExitPrice": 41.94249619062998,
+                    "plannedEntryPrice": 41.642496190629984,
+                    "plannedExitPrice": 41.94249619062998,
+                    "plannedTargetPrice": 41.04249619062999,
+                    "qty": 32,
+                    "side": "short",
+                    "entryTime": "2020-12-28T16:03:00.000Z",
+                    "exitTime": "2020-12-28T17:44:00.000Z",
+                    "orderIds": {
+                        "open": "546cdafa-7c9f-4392-b252-8126b6bdf2b3",
+                        "close": "547123f4-fce5-48e1-93d4-25c077466d17"
+                    },
+                    "totalPnl": -9.599999999999909
+                },
+                {
+                    "symbol": "SPY",
+                    "averageEntryPrice": 371.8455899625569,
+                    "averageExitPrice": 372.3,
+                    "totalPnl": 1.8176401497723873,
+                    "plannedEntryPrice": 371.8455899625569,
+                    "plannedExitPrice": 369.8455899625569,
+                    "plannedTargetPrice": 375.8455899625569,
+                    "qty": 4,
+                    "side": "long",
+                    "entryTime": "2020-12-28T15:22:00.000Z",
+                    "exitTime": "2020-12-28T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "c7bb61f2-bf76-4cd6-bf9b-5b2fb9584fb3",
+                        "close": "13e10cbe-fa92-48ec-ab28-5e790e9820b8"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "startDate": "2020-12-29",
+        "endDate": "2020-12-30",
+        "watchlist": {
+            "2020-12-29": [
+                "BSX",
+                "FIS",
+                "FISV",
+                "GM",
+                "HON",
+                "JNJ",
+                "MS",
+                "PLD",
+                "TSLA"
+            ]
+        },
+        "positions": {
+            "2020-12-29": [
+                {
+                    "symbol": "FIS",
+                    "averageEntryPrice": 142.02652329876543,
+                    "averageExitPrice": 141.46,
+                    "plannedEntryPrice": 142.02652329876543,
+                    "plannedExitPrice": 141.46,
+                    "plannedTargetPrice": 143.15956989629626,
+                    "qty": 16,
+                    "side": "long",
+                    "entryTime": "2020-12-29T15:01:00.000Z",
+                    "exitTime": "2020-12-29T15:35:00.000Z",
+                    "orderIds": {
+                        "open": "2db13507-a178-4a07-9631-b11e983e99c8",
+                        "close": "1bd8d3da-3178-4806-82c2-77b141475bc5"
+                    },
+                    "totalPnl": -9.064372780246686
+                },
+                {
+                    "symbol": "TSLA",
+                    "averageEntryPrice": 657.189096554344,
+                    "averageExitPrice": 663.37,
+                    "plannedEntryPrice": 657.189096554344,
+                    "plannedExitPrice": 663.37,
+                    "plannedTargetPrice": 644.827289663032,
+                    "qty": 2,
+                    "side": "short",
+                    "entryTime": "2020-12-29T15:11:00.000Z",
+                    "exitTime": "2020-12-29T15:39:00.000Z",
+                    "orderIds": {
+                        "open": "86514b7e-c04f-4d56-9587-4003da5d4cd6",
+                        "close": "0ee03f8f-8f02-4be3-b81d-2259b09f97eb"
+                    },
+                    "totalPnl": -12.361806891311971
+                },
+                {
+                    "symbol": "TSLA",
+                    "averageEntryPrice": 664.966270042954,
+                    "averageExitPrice": 659.63,
+                    "plannedEntryPrice": 664.966270042954,
+                    "plannedExitPrice": 659.63,
+                    "plannedTargetPrice": 675.6388101288619,
+                    "qty": 1,
+                    "side": "long",
+                    "entryTime": "2020-12-29T15:58:00.000Z",
+                    "exitTime": "2020-12-29T16:24:00.000Z",
+                    "orderIds": {
+                        "open": "7a6f1cdd-de13-4ae6-af70-b21c740cbb2d",
+                        "close": "eb20d6d5-e376-4d64-a757-e9fd470d583a"
+                    },
+                    "totalPnl": -5.33627004295397
+                },
+                {
+                    "symbol": "FIS",
+                    "averageEntryPrice": 141.1056617362701,
+                    "averageExitPrice": 141.6056617362701,
+                    "plannedEntryPrice": 141.1056617362701,
+                    "plannedExitPrice": 141.6056617362701,
+                    "plannedTargetPrice": 140.1056617362701,
+                    "qty": 20,
+                    "side": "short",
+                    "entryTime": "2020-12-29T15:45:00.000Z",
+                    "exitTime": "2020-12-29T17:02:00.000Z",
+                    "orderIds": {
+                        "open": "0e43beca-09af-4579-b8f6-8555aa6c4b81",
+                        "close": "5048ce40-5166-4776-8584-45929e873a2b"
+                    },
+                    "totalPnl": -10
+                },
+                {
+                    "symbol": "FISV",
+                    "averageEntryPrice": 113.1632423757037,
+                    "averageExitPrice": 112.09293740385186,
+                    "plannedEntryPrice": 113.1632423757037,
+                    "plannedExitPrice": 113.69839486162962,
+                    "plannedTargetPrice": 112.09293740385186,
+                    "qty": 18,
+                    "side": "short",
+                    "entryTime": "2020-12-29T15:13:00.000Z",
+                    "exitTime": "2020-12-29T17:39:00.000Z",
+                    "orderIds": {
+                        "open": "8a82e8c4-741f-4f30-ba17-067764cd20b6",
+                        "close": "48089f3a-2572-4d73-9c9e-78ddf3e6079e"
+                    },
+                    "totalPnl": 19.26548949333312
+                },
+                {
+                    "symbol": "GM",
+                    "averageEntryPrice": 41.77767600987654,
+                    "averageExitPrice": 41.64,
+                    "totalPnl": 4.40563231604915,
+                    "plannedEntryPrice": 41.77767600987654,
+                    "plannedExitPrice": 42.091628503703696,
+                    "plannedTargetPrice": 41.191628503703704,
+                    "qty": 32,
+                    "side": "short",
+                    "entryTime": "2020-12-29T15:01:00.000Z",
+                    "exitTime": "2020-12-29T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "4d141ebb-06b8-4143-aa36-3cd8b7f0463d",
+                        "close": "5fc74c4d-c078-4bd0-b4d5-a303ba7b58dd"
+                    }
+                },
+                {
+                    "symbol": "JNJ",
+                    "averageEntryPrice": 154.37426296335803,
+                    "averageExitPrice": 154.51,
+                    "totalPnl": 1.2216333297776032,
+                    "plannedEntryPrice": 154.37426296335803,
+                    "plannedExitPrice": 153.37426296335803,
+                    "plannedTargetPrice": 156.37426296335803,
+                    "qty": 9,
+                    "side": "long",
+                    "entryTime": "2020-12-29T15:01:00.000Z",
+                    "exitTime": "2020-12-29T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "a0b5e158-3021-4244-a1f5-223fef2a622b",
+                        "close": "2a993165-6ae1-4e8c-9cc0-a5828187a02a"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "startDate": "2020-12-30",
+        "endDate": "2020-12-31",
+        "watchlist": {
+            "2020-12-30": [
+                "ABT",
+                "AXP",
+                "BAC",
+                "C",
+                "GM",
+                "GS",
+                "JPM",
+                "KO",
+                "LLY",
+                "MA",
+                "TSLA",
+                "V",
+                "WFC"
+            ]
+        },
+        "positions": {
+            "2020-12-30": [
+                {
+                    "symbol": "GS",
+                    "averageEntryPrice": 258.3654555127572,
+                    "averageExitPrice": 259.56,
+                    "plannedEntryPrice": 258.3654555127572,
+                    "plannedExitPrice": 259.56,
+                    "plannedTargetPrice": 256.1348874518518,
+                    "qty": 9,
+                    "side": "short",
+                    "entryTime": "2020-12-30T15:02:00.000Z",
+                    "exitTime": "2020-12-30T15:27:00.000Z",
+                    "orderIds": {
+                        "open": "ffc0ef27-8018-4c41-8d56-c85ddf61fe7a",
+                        "close": "1eb26b64-ceda-4189-b008-8b7dce73e3df"
+                    },
+                    "totalPnl": -10.750900385185275
+                },
+                {
+                    "symbol": "JPM",
+                    "averageEntryPrice": 124.99192188115227,
+                    "averageExitPrice": 125.52,
+                    "plannedEntryPrice": 124.99192188115227,
+                    "plannedExitPrice": 125.52,
+                    "plannedTargetPrice": 123.9357656434568,
+                    "qty": 18,
+                    "side": "short",
+                    "entryTime": "2020-12-30T15:10:00.000Z",
+                    "exitTime": "2020-12-30T15:33:00.000Z",
+                    "orderIds": {
+                        "open": "7d175751-3f4f-4f5d-a8b1-f126a0c09883",
+                        "close": "4a0f1b53-22de-4506-8938-922b70eea1ff"
+                    },
+                    "totalPnl": -9.50540613925915
+                },
+                {
+                    "symbol": "C",
+                    "averageEntryPrice": 60.79424522376954,
+                    "averageExitPrice": 61.11346695891358,
+                    "plannedEntryPrice": 60.79424522376954,
+                    "plannedExitPrice": 61.11346695891358,
+                    "plannedTargetPrice": 60.213466958913585,
+                    "qty": 32,
+                    "side": "short",
+                    "entryTime": "2020-12-30T15:06:00.000Z",
+                    "exitTime": "2020-12-30T15:42:00.000Z",
+                    "orderIds": {
+                        "open": "326048f5-3b8e-44c7-9947-9f9af5dcc277",
+                        "close": "21b6060a-ba0d-43ff-8a6e-7a27b956e58d"
+                    },
+                    "totalPnl": -10.215095524609069
+                },
+                {
+                    "symbol": "JPM",
+                    "averageEntryPrice": 125.7345876387573,
+                    "averageExitPrice": 125.2345876387573,
+                    "plannedEntryPrice": 125.7345876387573,
+                    "plannedExitPrice": 125.2345876387573,
+                    "plannedTargetPrice": 126.7345876387573,
+                    "qty": 19,
+                    "side": "long",
+                    "entryTime": "2020-12-30T15:42:00.000Z",
+                    "exitTime": "2020-12-30T16:52:00.000Z",
+                    "orderIds": {
+                        "open": "173d144b-d6c1-4976-b5b5-90f006185e79",
+                        "close": "87ff217e-dcfd-4dd7-876a-2a2b00508200"
+                    },
+                    "totalPnl": -9.5
+                },
+                {
+                    "symbol": "TSLA",
+                    "averageEntryPrice": 675.2815007035207,
+                    "averageExitPrice": 684.4845021105622,
+                    "plannedEntryPrice": 675.2815007035207,
+                    "plannedExitPrice": 670.68,
+                    "plannedTargetPrice": 684.4845021105622,
+                    "qty": 2,
+                    "side": "long",
+                    "entryTime": "2020-12-30T15:12:00.000Z",
+                    "exitTime": "2020-12-30T17:11:00.000Z",
+                    "orderIds": {
+                        "open": "e8274f42-702b-4894-bb52-b068e9fab885",
+                        "close": "6fd9705f-0d43-431e-88a4-96ff58505fea"
+                    },
+                    "totalPnl": 18.406002814082967
+                },
+                {
+                    "symbol": "ABT",
+                    "averageEntryPrice": 108.5707504706364,
+                    "averageExitPrice": 108.44,
+                    "totalPnl": 2.615009412728,
+                    "plannedEntryPrice": 108.5707504706364,
+                    "plannedExitPrice": 109.0707504706364,
+                    "plannedTargetPrice": 107.5707504706364,
+                    "qty": 20,
+                    "side": "short",
+                    "entryTime": "2020-12-30T15:40:00.000Z",
+                    "exitTime": "2020-12-30T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "aca88f5e-f0be-4657-bd4d-208b7d150d01",
+                        "close": "3b9e0945-6d42-43ad-abd9-213b82947204"
+                    }
+                },
+                {
+                    "symbol": "BAC",
+                    "averageEntryPrice": 29.995773460082304,
+                    "averageExitPrice": 30.005,
+                    "totalPnl": -0.3044758172839188,
+                    "plannedEntryPrice": 29.995773460082304,
+                    "plannedExitPrice": 30.295773460082305,
+                    "plannedTargetPrice": 29.395773460082303,
+                    "qty": 33,
+                    "side": "short",
+                    "entryTime": "2020-12-30T15:11:00.000Z",
+                    "exitTime": "2020-12-30T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "290f6c2b-2f40-430f-97fa-860f14848a4f",
+                        "close": "5620e1dc-8cb0-4199-b257-ab98b0a15891"
+                    }
+                },
+                {
+                    "symbol": "C",
+                    "averageEntryPrice": 60.81980938281126,
+                    "averageExitPrice": 60.965,
+                    "totalPnl": -4.791290367228612,
+                    "plannedEntryPrice": 60.81980938281126,
+                    "plannedExitPrice": 61.119809382811255,
+                    "plannedTargetPrice": 60.21980938281126,
+                    "qty": 33,
+                    "side": "short",
+                    "entryTime": "2020-12-30T16:40:00.000Z",
+                    "exitTime": "2020-12-30T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "52287537-6885-4cb8-b19f-0306b2cb9779",
+                        "close": "1e1bc936-9f9d-4c13-8e88-5d5841f6282d"
+                    }
+                },
+                {
+                    "symbol": "GM",
+                    "averageEntryPrice": 41.8910290962963,
+                    "averageExitPrice": 41.9114,
+                    "totalPnl": 0.6314980148147029,
+                    "plannedEntryPrice": 41.8910290962963,
+                    "plannedExitPrice": 41.571635911111116,
+                    "plannedTargetPrice": 42.47163591111111,
+                    "qty": 31,
+                    "side": "long",
+                    "entryTime": "2020-12-30T15:21:00.000Z",
+                    "exitTime": "2020-12-30T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "b4763534-cffa-4185-be3a-55e26ba30d5e",
+                        "close": "93863a7e-3a64-4911-908c-c9ac7295a585"
+                    }
+                },
+                {
+                    "symbol": "GS",
+                    "averageEntryPrice": 259.6304922352108,
+                    "averageExitPrice": 259.43,
+                    "totalPnl": -1.6039378816863064,
+                    "plannedEntryPrice": 259.6304922352108,
+                    "plannedExitPrice": 258.44,
+                    "plannedTargetPrice": 262.0114767056324,
+                    "qty": 8,
+                    "side": "long",
+                    "entryTime": "2020-12-30T15:30:00.000Z",
+                    "exitTime": "2020-12-30T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "8df92b81-99e9-41d5-a775-e52e3bd01284",
+                        "close": "0ee449c6-1552-4770-a1a0-d33f82a197e3"
+                    }
+                },
+                {
+                    "symbol": "KO",
+                    "averageEntryPrice": 54.338422711111114,
+                    "averageExitPrice": 54.4699,
+                    "totalPnl": 4.207273244444423,
+                    "plannedEntryPrice": 54.338422711111114,
+                    "plannedExitPrice": 54.03842271111112,
+                    "plannedTargetPrice": 54.93842271111111,
+                    "qty": 32,
+                    "side": "long",
+                    "entryTime": "2020-12-30T15:01:00.000Z",
+                    "exitTime": "2020-12-30T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "4495fc64-2146-4882-b9e6-209894a56346",
+                        "close": "21852bd2-31ce-4d6b-a766-5e7cfda15814"
+                    }
+                },
+                {
+                    "symbol": "LLY",
+                    "averageEntryPrice": 167.7029876016461,
+                    "averageExitPrice": 167,
+                    "totalPnl": -6.326888414814903,
+                    "plannedEntryPrice": 167.7029876016461,
+                    "plannedExitPrice": 166.6698703506173,
+                    "plannedTargetPrice": 169.6698703506173,
+                    "qty": 9,
+                    "side": "long",
+                    "entryTime": "2020-12-30T15:23:00.000Z",
+                    "exitTime": "2020-12-30T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "1f06329c-a9ef-4221-b620-41f2441bb255",
+                        "close": "47cd999f-4a20-4ee4-8798-472b7766f848"
+                    }
+                },
+                {
+                    "symbol": "WFC",
+                    "averageEntryPrice": 29.897202992592593,
+                    "averageExitPrice": 29.795,
+                    "totalPnl": -3.2704957629629234,
+                    "plannedEntryPrice": 29.897202992592593,
+                    "plannedExitPrice": 29.597202992592592,
+                    "plannedTargetPrice": 30.497202992592594,
+                    "qty": 32,
+                    "side": "long",
+                    "entryTime": "2020-12-30T15:01:00.000Z",
+                    "exitTime": "2020-12-30T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "1803710f-ca58-4308-89e8-c92de2efae9b",
+                        "close": "69039043-d598-46d7-bd0d-0b97e80f88c9"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "startDate": "2020-12-31",
+        "endDate": "2020-12-31",
+        "watchlist": {
+            "2020-12-31": [
+                "ABT",
+                "AMGN",
+                "BAC",
+                "BSX",
+                "C",
+                "CI",
+                "EL",
+                "GM",
+                "GS",
+                "HD",
+                "IBM",
+                "JPM",
+                "KO",
+                "LLY",
+                "MCD",
+                "MO",
+                "MS",
+                "NOW",
+                "PEP",
+                "TMUS",
+                "WFC",
+                "ZTS",
+                "SPY"
+            ]
+        },
+        "positions": {
+            "2020-12-31": [
+                {
+                    "symbol": "ABT",
+                    "averageEntryPrice": 108.5263678271605,
+                    "averageExitPrice": 107.98,
+                    "plannedEntryPrice": 108.5263678271605,
+                    "plannedExitPrice": 107.98,
+                    "plannedTargetPrice": 109.61910348148149,
+                    "qty": 17,
+                    "side": "long",
+                    "entryTime": "2020-12-31T15:06:00.000Z",
+                    "exitTime": "2020-12-31T15:45:00.000Z",
+                    "orderIds": {
+                        "open": "7fe4a658-198a-439a-9b96-d558ff11d26f",
+                        "close": "0b547860-0f9e-4e34-94cb-8d5c6266bfd6"
+                    },
+                    "totalPnl": -9.288253061728412
+                },
+                {
+                    "symbol": "LLY",
+                    "averageEntryPrice": 167.41708489942386,
+                    "averageExitPrice": 166.41708489942386,
+                    "plannedEntryPrice": 167.41708489942386,
+                    "plannedExitPrice": 166.41708489942386,
+                    "plannedTargetPrice": 169.41708489942386,
+                    "qty": 9,
+                    "side": "long",
+                    "entryTime": "2020-12-31T15:22:00.000Z",
+                    "exitTime": "2020-12-31T15:53:00.000Z",
+                    "orderIds": {
+                        "open": "60e3455a-81b9-45bc-a996-54cdb95368f8",
+                        "close": "efb06615-0135-4872-8b01-433d0724a9ea"
+                    },
+                    "totalPnl": -9
+                },
+                {
+                    "symbol": "PEP",
+                    "averageEntryPrice": 147.495601491358,
+                    "averageExitPrice": 146.995601491358,
+                    "plannedEntryPrice": 147.495601491358,
+                    "plannedExitPrice": 146.995601491358,
+                    "plannedTargetPrice": 148.495601491358,
+                    "qty": 19,
+                    "side": "long",
+                    "entryTime": "2020-12-31T15:11:00.000Z",
+                    "exitTime": "2020-12-31T15:55:00.000Z",
+                    "orderIds": {
+                        "open": "1ac7f2b7-3d17-4602-b799-5716d830d7cf",
+                        "close": "c71a1538-25cf-4376-b0df-13a3a4a50476"
+                    },
+                    "totalPnl": -9.5
+                },
+                {
+                    "symbol": "C",
+                    "averageEntryPrice": 60.78896448395062,
+                    "averageExitPrice": 61.388964483950616,
+                    "plannedEntryPrice": 60.78896448395062,
+                    "plannedExitPrice": 60.488964483950625,
+                    "plannedTargetPrice": 61.388964483950616,
+                    "qty": 31,
+                    "side": "long",
+                    "entryTime": "2020-12-31T15:03:00.000Z",
+                    "exitTime": "2020-12-31T16:04:00.000Z",
+                    "orderIds": {
+                        "open": "ff7ec37b-cb70-4fe1-8346-72c883ad9b45",
+                        "close": "139cec84-8a90-4b2f-9a73-d33339dea459"
+                    },
+                    "totalPnl": 18.599999999999824
+                },
+                {
+                    "symbol": "AMGN",
+                    "averageEntryPrice": 226.63389316595888,
+                    "averageExitPrice": 227.7002724372346,
+                    "plannedEntryPrice": 226.63389316595888,
+                    "plannedExitPrice": 227.7002724372346,
+                    "plannedTargetPrice": 224.7002724372346,
+                    "qty": 10,
+                    "side": "short",
+                    "entryTime": "2020-12-31T15:04:00.000Z",
+                    "exitTime": "2020-12-31T17:52:00.000Z",
+                    "orderIds": {
+                        "open": "c2ee793e-dbe5-49bd-bbf9-4cb9164a3870",
+                        "close": "aa50e313-7137-4c2c-94f0-e2c1cfa04988"
+                    },
+                    "totalPnl": -10.663792712757072
+                },
+                {
+                    "symbol": "MCD",
+                    "averageEntryPrice": 211.49308696493827,
+                    "averageExitPrice": 213.43390761185185,
+                    "plannedEntryPrice": 211.49308696493827,
+                    "plannedExitPrice": 210.43390761185185,
+                    "plannedTargetPrice": 213.43390761185185,
+                    "qty": 9,
+                    "side": "long",
+                    "entryTime": "2020-12-31T15:12:00.000Z",
+                    "exitTime": "2020-12-31T19:13:00.000Z",
+                    "orderIds": {
+                        "open": "8aaa06c1-7665-4bb1-a04f-4659762e7662",
+                        "close": "45ae7931-065b-464d-9a83-b60eeb692f87"
+                    },
+                    "totalPnl": 17.467385822222212
+                },
+                {
+                    "symbol": "JPM",
+                    "averageEntryPrice": 125.43216949155556,
+                    "averageExitPrice": 126.43216949155556,
+                    "plannedEntryPrice": 125.43216949155556,
+                    "plannedExitPrice": 124.93216949155556,
+                    "plannedTargetPrice": 126.43216949155556,
+                    "qty": 19,
+                    "side": "long",
+                    "entryTime": "2020-12-31T15:28:00.000Z",
+                    "exitTime": "2020-12-31T19:15:00.000Z",
+                    "orderIds": {
+                        "open": "83a98494-404b-4e46-a7d8-9df7f71b4a61",
+                        "close": "d9d9b938-c30c-4da9-a1c6-9c3dcff60028"
+                    },
+                    "totalPnl": 19
+                },
+                {
+                    "symbol": "HD",
+                    "averageEntryPrice": 264.227540301581,
+                    "averageExitPrice": 265.227540301581,
+                    "plannedEntryPrice": 264.227540301581,
+                    "plannedExitPrice": 265.227540301581,
+                    "plannedTargetPrice": 262.227540301581,
+                    "qty": 10,
+                    "side": "short",
+                    "entryTime": "2020-12-31T15:41:00.000Z",
+                    "exitTime": "2020-12-31T19:15:00.000Z",
+                    "orderIds": {
+                        "open": "3526dfd0-33c6-4e9c-b2e5-e43e61878450",
+                        "close": "5f1d4215-bbca-4669-83b4-8b960bed8d74"
+                    },
+                    "totalPnl": -10
+                },
+                {
+                    "symbol": "CI",
+                    "averageEntryPrice": 205.00067706666667,
+                    "averageExitPrice": 207.10203120000003,
+                    "plannedEntryPrice": 205.00067706666667,
+                    "plannedExitPrice": 203.95,
+                    "plannedTargetPrice": 207.10203120000003,
+                    "qty": 8,
+                    "side": "long",
+                    "entryTime": "2020-12-31T15:14:00.000Z",
+                    "exitTime": "2020-12-31T19:33:00.000Z",
+                    "orderIds": {
+                        "open": "8d13a2c8-e002-498d-bfb2-493aaad8c0a2",
+                        "close": "1b0f331b-48ef-4b97-ac6f-d7ea03839d54"
+                    },
+                    "totalPnl": 16.810833066666873
+                },
+                {
+                    "symbol": "PEP",
+                    "averageEntryPrice": 147.0188899377043,
+                    "averageExitPrice": 147.5188899377043,
+                    "plannedEntryPrice": 147.0188899377043,
+                    "plannedExitPrice": 147.5188899377043,
+                    "plannedTargetPrice": 146.0188899377043,
+                    "qty": 20,
+                    "side": "short",
+                    "entryTime": "2020-12-31T16:02:00.000Z",
+                    "exitTime": "2020-12-31T19:34:00.000Z",
+                    "orderIds": {
+                        "open": "ef71840b-74a9-4f24-abfd-e8e0b1625da0",
+                        "close": "956c7076-aafa-42ec-bbd5-9d49cdcd8fc1"
+                    },
+                    "totalPnl": -10
+                },
+                {
+                    "symbol": "LLY",
+                    "averageEntryPrice": 166.86276009952869,
+                    "averageExitPrice": 168.04,
+                    "plannedEntryPrice": 166.86276009952869,
+                    "plannedExitPrice": 168.04,
+                    "plannedTargetPrice": 164.58354261196973,
+                    "qty": 9,
+                    "side": "short",
+                    "entryTime": "2020-12-31T16:21:00.000Z",
+                    "exitTime": "2020-12-31T20:13:00.000Z",
+                    "orderIds": {
+                        "open": "066f2d10-f619-422e-a409-2f7bbc7921ab",
+                        "close": "63536d21-8986-4ec3-a867-ab7d982937ff"
+                    },
+                    "totalPnl": -10.595159104241759
+                },
+                {
+                    "symbol": "MO",
+                    "averageEntryPrice": 40.49440913060004,
+                    "averageExitPrice": 40.79440913060004,
+                    "plannedEntryPrice": 40.49440913060004,
+                    "plannedExitPrice": 40.79440913060004,
+                    "plannedTargetPrice": 39.894409130600046,
+                    "qty": 33,
+                    "side": "short",
+                    "entryTime": "2020-12-31T15:27:00.000Z",
+                    "exitTime": "2020-12-31T20:16:00.000Z",
+                    "orderIds": {
+                        "open": "0c191b4c-1222-4847-932b-b58b045554e9",
+                        "close": "336e3d72-9df8-4f3e-ac4b-a9585416e176"
+                    },
+                    "totalPnl": -9.899999999999906
+                },
+                {
+                    "symbol": "IBM",
+                    "averageEntryPrice": 124.59907810561755,
+                    "averageExitPrice": 125.59907810561755,
+                    "plannedEntryPrice": 124.59907810561755,
+                    "plannedExitPrice": 124.09907810561755,
+                    "plannedTargetPrice": 125.59907810561755,
+                    "qty": 18,
+                    "side": "long",
+                    "entryTime": "2020-12-31T15:25:00.000Z",
+                    "exitTime": "2020-12-31T20:19:00.000Z",
+                    "orderIds": {
+                        "open": "5298ce8a-558c-4254-9b39-b989d38411df",
+                        "close": "d8599111-3b71-44d2-9b40-e10eb6f98d70"
+                    },
+                    "totalPnl": 18
+                },
+                {
+                    "symbol": "GM",
+                    "averageEntryPrice": 41.347374969942386,
+                    "averageExitPrice": 41.66776561372839,
+                    "plannedEntryPrice": 41.347374969942386,
+                    "plannedExitPrice": 41.66776561372839,
+                    "plannedTargetPrice": 40.7677656137284,
+                    "qty": 32,
+                    "side": "short",
+                    "entryTime": "2020-12-31T15:02:00.000Z",
+                    "exitTime": "2020-12-31T20:36:00.000Z",
+                    "orderIds": {
+                        "open": "2d86a6a6-875c-4595-afea-ff4680efbeae",
+                        "close": "da5dd729-f1c3-4a94-bf11-638c0ff062e1"
+                    },
+                    "totalPnl": -10.252500601152178
+                },
+                {
+                    "symbol": "BAC",
+                    "averageEntryPrice": 30.03263227291209,
+                    "averageExitPrice": 30.245,
+                    "totalPnl": 6.795767266813186,
+                    "plannedEntryPrice": 30.03263227291209,
+                    "plannedExitPrice": 29.732632272912088,
+                    "plannedTargetPrice": 30.63263227291209,
+                    "qty": 32,
+                    "side": "long",
+                    "entryTime": "2020-12-31T15:32:00.000Z",
+                    "exitTime": "2020-12-31T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "c3a5f274-a2bb-4a81-af90-b8e09932e094",
+                        "close": "24085ffd-8ad9-4ea9-9c34-cab06cff7430"
+                    }
+                },
+                {
+                    "symbol": "BSX",
+                    "averageEntryPrice": 35.65659293030453,
+                    "averageExitPrice": 35.85,
+                    "totalPnl": 6.189026230255195,
+                    "plannedEntryPrice": 35.65659293030453,
+                    "plannedExitPrice": 35.35659293030453,
+                    "plannedTargetPrice": 36.25659293030452,
+                    "qty": 32,
+                    "side": "long",
+                    "entryTime": "2020-12-31T15:20:00.000Z",
+                    "exitTime": "2020-12-31T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "8b019a1f-7b15-42a1-88dd-f5885f807ad2",
+                        "close": "572f5999-fce1-453f-b91d-695dd649f2d5"
+                    }
+                },
+                {
+                    "symbol": "KO",
+                    "averageEntryPrice": 54.534769702123455,
+                    "averageExitPrice": 54.7155,
+                    "totalPnl": 5.783369532049392,
+                    "plannedEntryPrice": 54.534769702123455,
+                    "plannedExitPrice": 54.23476970212346,
+                    "plannedTargetPrice": 55.13476970212345,
+                    "qty": 32,
+                    "side": "long",
+                    "entryTime": "2020-12-31T15:01:00.000Z",
+                    "exitTime": "2020-12-31T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "a8e2400d-1ca1-4a29-ac0e-42c355917833",
+                        "close": "fbb01194-3255-48ca-898c-201162d9eb65"
+                    }
+                },
+                {
+                    "symbol": "MS",
+                    "averageEntryPrice": 68.00916092306173,
+                    "averageExitPrice": 68.475,
+                    "totalPnl": 14.441011385086256,
+                    "plannedEntryPrice": 68.00916092306173,
+                    "plannedExitPrice": 67.70916092306173,
+                    "plannedTargetPrice": 68.60916092306172,
+                    "qty": 31,
+                    "side": "long",
+                    "entryTime": "2020-12-31T15:34:00.000Z",
+                    "exitTime": "2020-12-31T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "132299f4-76b2-4fc9-afbf-578ebb917259",
+                        "close": "521272d0-8d9c-4e2c-a22a-326566c19ea6"
+                    }
+                },
+                {
+                    "symbol": "NOW",
+                    "averageEntryPrice": 546.7099152079012,
+                    "averageExitPrice": 548.9,
+                    "totalPnl": -6.570254376296361,
+                    "plannedEntryPrice": 546.7099152079012,
+                    "plannedExitPrice": 551.15,
+                    "plannedTargetPrice": 538.3924046088889,
+                    "qty": 3,
+                    "side": "short",
+                    "entryTime": "2020-12-31T15:02:00.000Z",
+                    "exitTime": "2020-12-31T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "7bc7f5ae-2fe6-4a83-90d6-7c77266ab54d",
+                        "close": "547b1064-7477-4a6d-ab73-fb51c7f64a3d"
+                    }
+                },
+                {
+                    "symbol": "TMUS",
+                    "averageEntryPrice": 133.7219746820741,
+                    "averageExitPrice": 134.51,
+                    "totalPnl": 14.9724810405921,
+                    "plannedEntryPrice": 133.7219746820741,
+                    "plannedExitPrice": 133.2219746820741,
+                    "plannedTargetPrice": 134.7219746820741,
+                    "qty": 19,
+                    "side": "long",
+                    "entryTime": "2020-12-31T15:38:00.000Z",
+                    "exitTime": "2020-12-31T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "d6b0a55a-6797-465d-ad8a-d4cb2bfd6d29",
+                        "close": "a4c2011b-5c85-41e1-a19e-22a78a97e1f1"
+                    }
+                },
+                {
+                    "symbol": "ZTS",
+                    "averageEntryPrice": 164.00213848019752,
+                    "averageExitPrice": 165.05705193007407,
+                    "plannedEntryPrice": 164.00213848019752,
+                    "plannedExitPrice": 165.05705193007407,
+                    "plannedTargetPrice": 162.05705193007407,
+                    "qty": 10,
+                    "side": "short",
+                    "entryTime": "2020-12-31T15:07:00.000Z",
+                    "exitTime": "2020-12-31T20:36:00.000Z",
+                    "orderIds": {
+                        "open": "a6648b2e-8c62-4946-921f-63ad7ffe7658",
+                        "close": "eaec246c-8806-42ba-ad8a-e4513658f3f8"
+                    },
+                    "totalPnl": -10.549134498765511
+                },
+                {
+                    "symbol": "WFC",
+                    "averageEntryPrice": 29.812601626074073,
+                    "averageExitPrice": 30.145,
+                    "totalPnl": 9.971951217777786,
+                    "plannedEntryPrice": 29.812601626074073,
+                    "plannedExitPrice": 29.49,
+                    "plannedTargetPrice": 30.457804878222223,
+                    "qty": 30,
+                    "side": "long",
+                    "entryTime": "2020-12-31T15:01:00.000Z",
+                    "exitTime": "2020-12-31T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "116f07b0-4488-42ad-95ef-0f577f7358f5",
+                        "close": "717e5023-0ca4-474d-bad1-bd394a6d46f9"
+                    }
+                },
+                {
+                    "symbol": "SPY",
+                    "averageEntryPrice": 371.8617217362963,
+                    "averageExitPrice": 373.335,
+                    "totalPnl": 5.893113054814648,
+                    "plannedEntryPrice": 371.8617217362963,
+                    "plannedExitPrice": 369.8617217362963,
+                    "plannedTargetPrice": 375.8617217362963,
+                    "qty": 4,
+                    "side": "long",
+                    "entryTime": "2020-12-31T15:01:00.000Z",
+                    "exitTime": "2020-12-31T20:45:00.000Z",
+                    "orderIds": {
+                        "open": "e4febb89-d49d-45af-9b53-341f1e847c6b",
+                        "close": "5e161371-5171-4b87-a1dc-cec1369570d4"
+                    }
+                }
+            ]
+        }
+    }
+]

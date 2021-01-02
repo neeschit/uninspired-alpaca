@@ -26,15 +26,19 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-export const BacktestDetail = ({ batch }: { batch: BacktestResult[] }) => {
+export const BacktestDetail = ({ batch }: { batch: BacktestResult }) => {
     const [currentIndex, setCurrentIndex] = React.useState(0);
 
     const theme = useTheme();
 
     const watchlist =
-        batch[currentIndex].watchlist[batch[currentIndex].startDate] || [];
+        batch.results[currentIndex].watchlist[
+            batch.results[currentIndex].startDate
+        ] || [];
     const positions =
-        batch[currentIndex].positions[batch[currentIndex].startDate] || [];
+        batch.results[currentIndex].positions[
+            batch.results[currentIndex].startDate
+        ] || [];
 
     const [symbolToGraph, setSymbolToGraph] = React.useState({
         symbol: "",
@@ -63,9 +67,9 @@ export const BacktestDetail = ({ batch }: { batch: BacktestResult[] }) => {
                         symbol: row.id,
                         entryTime: formatISO(
                             parse(
-                                batch[currentIndex].startDate,
+                                batch.results[currentIndex].startDate,
                                 "yyyy-MM-dd",
-                                new Date(batch[currentIndex].startDate)
+                                new Date(batch.results[currentIndex].startDate)
                             )
                         ),
                         type: "watchlist",
@@ -127,7 +131,7 @@ export const BacktestDetail = ({ batch }: { batch: BacktestResult[] }) => {
     return (
         <Grid container item justifyContent="center">
             <Grid item style={{ marginBottom: theme.spacing(2) }}>
-                {batch.length > 1 ? (
+                {batch.results.length > 1 ? (
                     <>
                         <IconButton
                             onClick={() => {
@@ -145,13 +149,14 @@ export const BacktestDetail = ({ batch }: { batch: BacktestResult[] }) => {
                                 marginRight: theme.spacing(1),
                             }}
                         >
-                            Results date: {batch[currentIndex].startDate}
+                            Results date:{" "}
+                            {batch.results[currentIndex].startDate}
                         </Typography>
                         <IconButton
                             onClick={() => {
                                 setCurrentIndex(currentIndex + 1);
                             }}
-                            disabled={currentIndex === batch.length - 1}
+                            disabled={currentIndex === batch.results.length - 1}
                         >
                             <ChevronRightIcon />
                         </IconButton>
@@ -159,6 +164,18 @@ export const BacktestDetail = ({ batch }: { batch: BacktestResult[] }) => {
                 ) : (
                     ""
                 )}
+            </Grid>
+            <Grid item>
+                <Typography
+                    component="p"
+                    style={{
+                        display: "inline-block",
+                        marginLeft: theme.spacing(1),
+                        marginRight: theme.spacing(1),
+                    }}
+                >
+                    Overall profit: {Math.round(batch.totalPnl)}
+                </Typography>
             </Grid>
             <Grid
                 container

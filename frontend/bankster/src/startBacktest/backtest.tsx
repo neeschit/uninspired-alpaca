@@ -33,7 +33,7 @@ const useStyles = makeStyles((theme) => ({
 export const startBacktest = async (
     startDate: Date,
     endDate: Date
-): Promise<BacktestResult[]> => {
+): Promise<BacktestResult> => {
     const response = await fetch(
         `http://localhost:6971/backtest/${format(
             startDate,
@@ -43,7 +43,7 @@ export const startBacktest = async (
 
     const json = await response.json();
 
-    return json.results;
+    return json;
 };
 
 export const BacktestStart = () => {
@@ -58,7 +58,7 @@ export const BacktestStart = () => {
 
     const [isLoading, setLoading] = React.useState(false);
 
-    const [results, setResults] = React.useState<BacktestResult[]>([]);
+    const [results, setResults] = React.useState<BacktestResult | null>();
 
     const [hasError, setHasError] = React.useState(false);
 
@@ -173,7 +173,7 @@ export const BacktestStart = () => {
                         className={classes.resultsContainer}
                         direction="column"
                     >
-                        {(results.length && (
+                        {(results && results.results.length && (
                             <BacktestDetail batch={results}></BacktestDetail>
                         )) ||
                             ""}

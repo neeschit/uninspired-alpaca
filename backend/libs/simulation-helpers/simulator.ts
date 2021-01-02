@@ -20,6 +20,7 @@ import {
 } from "./timing.util";
 import { LOGGER } from "../core-utils/instrumentation/log";
 import { ClosedMockPosition, MockBrokerage } from "./mockBrokerage";
+import { getPerformance } from "./perfomance";
 
 export type SimulationImpl = new (...args: any[]) => SimulationStrategy;
 
@@ -46,6 +47,11 @@ export const mergeResults = (
     }
 };
 
+export interface SimulationResult {
+    totalPnl: number;
+    results: BacktestBatchResult[];
+}
+
 export class Simulator {
     private readonly updateInterval = 60000;
 
@@ -54,7 +60,7 @@ export class Simulator {
     async run(
         batches: BacktestBatch[],
         strategy: SimulationImpl
-    ): Promise<BacktestBatchResult[]> {
+    ): Promise<SimulationResult> {
         const results: BacktestBatchResult[] = [];
         for await (const batchResult of this.syncToAsyncIterable(
             batches,
@@ -63,9 +69,16 @@ export class Simulator {
             mergeResults(results, batchResult);
         }
 
-        return results.filter((r) => {
+        const filteredResults = results.filter((r) => {
             return r.positions[r.startDate];
         });
+
+        const totalPnl = getPerformance(filteredResults);
+
+        return {
+            totalPnl,
+            results: filteredResults,
+        };
     }
 
     private async *syncToAsyncIterable(

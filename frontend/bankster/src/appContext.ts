@@ -4,7 +4,7 @@ import { BacktestResult } from "./startBacktest/backtestModel";
 export interface BacktestHistory {
     startDate: string;
     endDate: string;
-    results: BacktestResult[];
+    results: BacktestResult;
 }
 
 export const AppContext = React.createContext<{
@@ -14,7 +14,7 @@ export const AppContext = React.createContext<{
     addToBacktestHistory: (
         startDate: string,
         endDate: string,
-        results: BacktestResult[]
+        results: BacktestResult
     ) => void;
 }>({
     drawerOpen: false,
@@ -23,6 +23,6 @@ export const AppContext = React.createContext<{
     addToBacktestHistory: (
         startDate: string,
         endDate: string,
-        positions: BacktestResult[]
+        positions: BacktestResult
     ) => {},
 });

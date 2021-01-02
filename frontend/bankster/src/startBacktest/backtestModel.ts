@@ -30,10 +30,13 @@ export interface BacktestPositions {
 }
 
 export interface BacktestResult {
-    watchlist: BacktestWatchlist;
-    positions: BacktestPositions;
-    startDate: string;
-    endDate: string;
+    results: {
+        watchlist: BacktestWatchlist;
+        positions: BacktestPositions;
+        startDate: string;
+        endDate: string;
+    }[];
+    totalPnl: number;
 }
 
 export interface Bar {
