@@ -31,16 +31,16 @@ export const mergeResults = (
         (r) => r.startDate === batchResult.startDate
     );
     if (resultToAddTo) {
-        resultToAddTo.positions[
-            batchResult.startDate
-        ] = resultToAddTo.positions[batchResult.startDate].concat(
-            batchResult.positions[batchResult.startDate]
-        );
-        resultToAddTo.watchlist[
-            batchResult.startDate
-        ] = resultToAddTo.watchlist[batchResult.startDate].concat(
-            batchResult.watchlist[batchResult.startDate]
-        );
+        resultToAddTo.positions[batchResult.startDate] =
+            resultToAddTo.positions[batchResult.startDate] &&
+            resultToAddTo.positions[batchResult.startDate].concat(
+                batchResult.positions[batchResult.startDate]
+            );
+        resultToAddTo.watchlist[batchResult.startDate] =
+            resultToAddTo.watchlist[batchResult.startDate] &&
+            resultToAddTo.watchlist[batchResult.startDate].concat(
+                batchResult.watchlist[batchResult.startDate]
+            );
     } else {
         results.push(batchResult);
     }
@@ -63,7 +63,9 @@ export class Simulator {
             mergeResults(results, batchResult);
         }
 
-        return results;
+        return results.filter((r) => {
+            return r.positions[r.startDate];
+        });
     }
 
     private async *syncToAsyncIterable(
@@ -144,6 +146,8 @@ export class Simulator {
                 ).getTime();
                 mockBroker.reset();
                 this.strategies = {};
+            } else {
+                currentTime += addBusinessDays(currentTime, 1).getTime();
             }
         }
 

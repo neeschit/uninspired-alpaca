@@ -32,9 +32,9 @@ export const BacktestDetail = ({ batch }: { batch: BacktestResult[] }) => {
     const theme = useTheme();
 
     const watchlist =
-        batch[currentIndex].watchlist[batch[currentIndex].startDate];
+        batch[currentIndex].watchlist[batch[currentIndex].startDate] || [];
     const positions =
-        batch[currentIndex].positions[batch[currentIndex].startDate];
+        batch[currentIndex].positions[batch[currentIndex].startDate] || [];
 
     const [symbolToGraph, setSymbolToGraph] = React.useState({
         symbol: "",
