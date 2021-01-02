@@ -19,11 +19,8 @@ import {
     isMarketOpening,
 } from "./timing.util";
 import { LOGGER } from "../core-utils/instrumentation/log";
-import {
-    ClosedMockPosition,
-    MockAlpacaPosition,
-    MockBrokerage,
-} from "./mockBrokerage";
+import { ClosedMockPosition, MockBrokerage } from "./mockBrokerage";
+import { getPerformance } from "./perfomance";
 
 export type SimulationImpl = new (...args: any[]) => SimulationStrategy;
 
@@ -35,20 +32,26 @@ export const mergeResults = (
         (r) => r.startDate === batchResult.startDate
     );
     if (resultToAddTo) {
-        resultToAddTo.positions[
-            batchResult.startDate
-        ] = resultToAddTo.positions[batchResult.startDate].concat(
-            batchResult.positions[batchResult.startDate]
-        );
-        resultToAddTo.watchlist[
-            batchResult.startDate
-        ] = resultToAddTo.watchlist[batchResult.startDate].concat(
-            batchResult.watchlist[batchResult.startDate]
-        );
+        resultToAddTo.positions[batchResult.startDate] =
+            resultToAddTo.positions[batchResult.startDate] &&
+            resultToAddTo.positions[batchResult.startDate].concat(
+                batchResult.positions[batchResult.startDate]
+            );
+        resultToAddTo.watchlist[batchResult.startDate] =
+            resultToAddTo.watchlist[batchResult.startDate] &&
+            resultToAddTo.watchlist[batchResult.startDate].concat(
+                batchResult.watchlist[batchResult.startDate]
+            );
     } else {
         results.push(batchResult);
     }
 };
+
+export interface SimulationResult {
+    totalPnl: number;
+    maxLeverage: number;
+    results: BacktestBatchResult[];
+}
 
 export class Simulator {
     private readonly updateInterval = 60000;
@@ -58,7 +61,7 @@ export class Simulator {
     async run(
         batches: BacktestBatch[],
         strategy: SimulationImpl
-    ): Promise<BacktestBatchResult[]> {
+    ): Promise<SimulationResult> {
         const results: BacktestBatchResult[] = [];
         for await (const batchResult of this.syncToAsyncIterable(
             batches,
@@ -67,7 +70,22 @@ export class Simulator {
             mergeResults(results, batchResult);
         }
 
-        return results;
+        const filteredResults = results.filter((r) => {
+            return r.positions[r.startDate];
+        });
+
+        const totalPnl = getPerformance(filteredResults);
+
+        const maxLeverage = filteredResults.reduce((leverage, result) => {
+            leverage = Math.max(leverage, result.maxLeverage);
+            return leverage;
+        }, 0);
+
+        return {
+            totalPnl,
+            results: filteredResults,
+            maxLeverage,
+        };
     }
 
     private async *syncToAsyncIterable(
@@ -96,6 +114,8 @@ export class Simulator {
 
         const watchlist: BacktestWatchlist = {};
         const positions: BacktestPositions = {};
+
+        let maxLeverage = 0;
 
         let currentTime =
             Simulator.getMarketOpenTimeForDay(start, calendar) -
@@ -146,8 +166,11 @@ export class Simulator {
                 currentTime = startOfDay(
                     addBusinessDays(currentTime, 1)
                 ).getTime();
+                maxLeverage = mockBroker.maxLeverage;
                 mockBroker.reset();
                 this.strategies = {};
+            } else {
+                currentTime += addBusinessDays(currentTime, 1).getTime();
             }
         }
 
@@ -156,6 +179,7 @@ export class Simulator {
             endDate: format(end, DATE_FORMAT),
             watchlist,
             positions,
+            maxLeverage,
         };
     }
 
@@ -273,6 +297,7 @@ export interface BacktestBatchResult {
     positions: BacktestPositions;
     startDate: string;
     endDate: string;
+    maxLeverage: number;
 }
 
 export const runStrategy = async (

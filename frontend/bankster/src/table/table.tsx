@@ -126,7 +126,7 @@ export default function CustomPaginationActionsTable({
     showPagination,
 }: {
     rows: any[];
-    getRowElementForCurrentRow: (row: any) => React.ReactElement;
+    getRowElementForCurrentRow: (row: any, index: number) => React.ReactElement;
     showPagination: boolean;
 }) {
     const classes = useStyles2();

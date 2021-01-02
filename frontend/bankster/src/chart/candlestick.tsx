@@ -233,6 +233,9 @@ export function Candlestick({
         seriesRef.current?.setData(currentBars);
         volumeRef.current?.setData(currentVolume);
         chartObject.current?.timeScale().fitContent();
+        chartObject.current?.priceScale().applyOptions({
+            autoScale: true,
+        });
     }, [currentBars, currentVolume]);
 
     React.useEffect(() => {

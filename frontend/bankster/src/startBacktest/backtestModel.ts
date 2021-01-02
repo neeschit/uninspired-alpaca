@@ -9,6 +9,7 @@ export interface BacktestPosition {
     plannedEntryPrice: number;
     plannedExitPrice: number;
     plannedTargetPrice: number;
+    totalPnl: number;
     qty: number;
     side: PositionDirection;
     symbol: string;
@@ -29,10 +30,14 @@ export interface BacktestPositions {
 }
 
 export interface BacktestResult {
-    watchlist: BacktestWatchlist;
-    positions: BacktestPositions;
-    startDate: string;
-    endDate: string;
+    results: {
+        watchlist: BacktestWatchlist;
+        positions: BacktestPositions;
+        startDate: string;
+        endDate: string;
+    }[];
+    totalPnl: number;
+    maxLeverage: number;
 }
 
 export interface Bar {

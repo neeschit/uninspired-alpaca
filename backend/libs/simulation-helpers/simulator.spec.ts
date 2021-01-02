@@ -295,6 +295,7 @@ test("mergeResults", () => {
         {
             startDate: "2020-12-23",
             endDate: "2020-12-23",
+            maxLeverage: 1,
             watchlist: {
                 "2020-12-23": [
                     "BMY",
@@ -331,7 +332,9 @@ test("mergeResults", () => {
                             open: "d5c94b5b-691f-4d19-9bab-8bd851d058c3",
                             close: "9270dcdb-71b3-45c6-bc9a-10f2bd74ffdd",
                         },
+                        totalPnl: 100,
                     },
+
                     {
                         symbol: "UNP",
                         averageEntryPrice: 201.62223869135804,
@@ -347,7 +350,9 @@ test("mergeResults", () => {
                             open: "e1ce33f2-adc3-47fa-bb37-7facebd8d3bc",
                             close: "22e29ff1-6781-4154-a0ba-2927e057dbd6",
                         },
+                        totalPnl: 100,
                     },
+
                     {
                         symbol: "VMW",
                         averageEntryPrice: 142.0060885580247,
@@ -363,7 +368,9 @@ test("mergeResults", () => {
                             open: "4a1a2801-adc4-4124-adc8-7387d25c62a0",
                             close: "c86c88ae-c88a-4279-b3e4-95ee8cd6398c",
                         },
+                        totalPnl: 100,
                     },
+
                     {
                         symbol: "BMY",
                         averageEntryPrice: 61.204805789671546,
@@ -379,7 +386,9 @@ test("mergeResults", () => {
                             open: "3226acdc-9a49-4c34-ac61-3f272977fbf2",
                             close: "9328e5ca-2999-4c7a-a160-24a30e89edae",
                         },
+                        totalPnl: 100,
                     },
+
                     {
                         symbol: "SO",
                         averageEntryPrice: 60.19734108049383,
@@ -395,7 +404,9 @@ test("mergeResults", () => {
                             open: "9c96749b-c4c4-4040-bbde-046e326d65c2",
                             close: "a6a63044-2f90-4d5c-88c3-71a81ab5c46c",
                         },
+                        totalPnl: 100,
                     },
+
                     {
                         symbol: "DIS",
                         averageEntryPrice: 174.0400075026173,
@@ -411,7 +422,9 @@ test("mergeResults", () => {
                             open: "d1dbc635-bafb-433b-9e0b-be790bd9a6ba",
                             close: "6539e3e9-4ed7-42d8-a9b7-062e5e26abd4",
                         },
+                        totalPnl: 100,
                     },
+
                     {
                         symbol: "PLD",
                         averageEntryPrice: 97.98074485925926,
@@ -427,7 +440,9 @@ test("mergeResults", () => {
                             open: "437e231c-8219-4c23-8e4a-db824a36fbe0",
                             close: "25236b46-cdf7-4b6e-8b39-c0d721f9b1d1",
                         },
+                        totalPnl: 100,
                     },
+
                     {
                         symbol: "SCHW",
                         averageEntryPrice: 52.44384816460906,
@@ -443,6 +458,7 @@ test("mergeResults", () => {
                             open: "b722a525-d468-4d8b-a59e-cc587b8d328f",
                             close: "85be60e6-4c76-4d9c-a5ad-e1ab39255242",
                         },
+                        totalPnl: 100,
                     },
                 ],
             },
@@ -453,6 +469,7 @@ test("mergeResults", () => {
         startDate: "2020-12-23",
         endDate: "2020-12-23",
         watchlist: { "2020-12-23": ["XOM", "SPY"] },
+        maxLeverage: 1,
         positions: {
             "2020-12-23": [
                 {
@@ -470,6 +487,7 @@ test("mergeResults", () => {
                         open: "a8afe9a4-d374-4c43-ad9a-bc65906871b3",
                         close: "a102cb06-c07a-4ada-8ed4-f9cbcb20c2b7",
                     },
+                    totalPnl: 100,
                 },
             ],
         },

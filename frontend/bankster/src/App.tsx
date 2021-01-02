@@ -16,10 +16,11 @@ import {
     Redirect,
 } from "react-router-dom";
 import MenuIcon from "@material-ui/icons/Menu";
-import { AppContext } from "./appContext";
+import { AppContext, BacktestHistory } from "./appContext";
 import { MenuList } from "./menuList/menuList";
 import { BacktestStart } from "./startBacktest/backtest";
 import { BacktestResult } from "./startBacktest/backtestModel";
+import { BacktestsList } from "./backtestHistory/backtestsList";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -35,7 +36,7 @@ const useStyles = makeStyles((theme) => ({
 
 export interface AppState {
     drawerOpen: boolean;
-    backtests: BacktestResult[][];
+    backtests: BacktestHistory[];
 }
 
 function App() {
@@ -68,8 +69,16 @@ function App() {
                         });
                     },
                     history: appState.backtests,
-                    addToBacktestHistory: (results: BacktestResult[]) => {
-                        appState.backtests.push(results);
+                    addToBacktestHistory: (
+                        startDate: string,
+                        endDate: string,
+                        results: BacktestResult
+                    ) => {
+                        appState.backtests.push({
+                            startDate,
+                            endDate,
+                            results,
+                        });
                     },
                 }}
             >
@@ -118,7 +127,10 @@ function App() {
                                 path="/backtest"
                                 component={BacktestStart}
                             ></Route>
-                            <Route path="/history"></Route>
+                            <Route
+                                path="/history"
+                                component={BacktestsList}
+                            ></Route>
                         </Switch>
                     </div>
                 </Router>

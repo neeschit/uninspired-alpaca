@@ -26,15 +26,15 @@ async function run(startDate: string, endDate: string) {
         100
     );
 
-    let results: BacktestBatchResult[] = [];
-
     try {
-        results = await simulator.run(batches, NarrowRangeBarSimulation);
+        return await simulator.run(batches, NarrowRangeBarSimulation);
     } catch (e) {
         LOGGER.error(e);
+        return {
+            totalPnl: 0,
+            results: [],
+        };
     }
-
-    return results;
 }
 
 const backtestServer = getApiServer(Service.backtest);
@@ -47,9 +47,7 @@ backtestServer.get(
 
         const results = await run(startDate, endDate);
 
-        return {
-            results,
-        };
+        return results;
     }
 );
 
