@@ -17,8 +17,16 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
+export const getCachedBacktests = async (): Promise<BacktestResult[]> => {
+    const response = await fetch(`http://localhost:6971/cached`);
+
+    const json = await response.json();
+
+    return json;
+};
+
 export const BacktestsList = () => {
-    const { history } = React.useContext(AppContext);
+    const { history, addToBacktestHistory } = React.useContext(AppContext);
 
     const [
         currentBacktest,
@@ -28,6 +36,21 @@ export const BacktestsList = () => {
     const [selectedIndex, setSelectedIndex] = React.useState(-1);
 
     const classes = useStyles();
+
+    React.useEffect(() => {
+        getCachedBacktests().then((results) => {
+            for (const result of results) {
+                addToBacktestHistory(
+                    result.results[0].startDate,
+                    result.results[result.results.length - 1].endDate,
+                    result
+                );
+            }
+
+            setSelectedBacktest(results[0]);
+            setSelectedIndex(0);
+        });
+    }, [addToBacktestHistory]);
 
     const getRowElementForCurrentRow = (
         row: BacktestHistory,

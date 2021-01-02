@@ -74,11 +74,19 @@ function App() {
                         endDate: string,
                         results: BacktestResult
                     ) => {
-                        appState.backtests.push({
-                            startDate,
-                            endDate,
-                            results,
-                        });
+                        const existingTest = appState.backtests.some(
+                            (b) =>
+                                b.startDate === startDate &&
+                                b.endDate === endDate
+                        );
+
+                        if (!existingTest) {
+                            appState.backtests.push({
+                                startDate,
+                                endDate,
+                                results,
+                            });
+                        }
                     },
                 }}
             >

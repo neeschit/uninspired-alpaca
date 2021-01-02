@@ -96,10 +96,6 @@ export const BacktestDetail = ({ batch }: { batch: BacktestResult }) => {
         setPosition,
     ] = React.useState<BacktestPosition | null>(null);
 
-    React.useEffect(() => {
-        chartRef.current?.scrollIntoView();
-    }, [symbolToGraph]);
-
     const getPositionRow = (row: BacktestPosition) => {
         return (
             <TableRow
@@ -123,7 +119,9 @@ export const BacktestDetail = ({ batch }: { batch: BacktestResult }) => {
                 <TableCell>{row.symbol}</TableCell>
                 <TableCell>{row.side}</TableCell>
                 <TableCell>{row.qty}</TableCell>
-                <TableCell>{row.totalPnl}</TableCell>
+                <TableCell>{row.totalPnl.toFixed(2)}</TableCell>
+                <TableCell>{row.entryTime}</TableCell>
+                <TableCell>{row.exitTime}</TableCell>
             </TableRow>
         );
     };
