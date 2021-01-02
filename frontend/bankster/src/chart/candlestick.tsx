@@ -275,8 +275,6 @@ export function Candlestick({
             pricelines.push(plannedEntry);
             pricelines.push(plannedStop);
             pricelines.push(plannedTarget);
-
-            console.log(pricelines);
         }
 
         const entryTime = parseISO(selectedPosition.entryTime).getTime() / 1000;
@@ -347,7 +345,6 @@ export function Candlestick({
             seriesRef.current?.setMarkers([]);
             for (const line of pricelines) {
                 if (line) {
-                    console.log("removing line");
                     seriesRef.current?.removePriceLine(line);
                 }
             }
