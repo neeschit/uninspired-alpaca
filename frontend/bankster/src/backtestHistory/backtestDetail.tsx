@@ -32,11 +32,11 @@ export const BacktestDetail = ({ batch }: { batch: BacktestResult }) => {
     const theme = useTheme();
 
     const watchlist =
-        batch.results[currentIndex].watchlist[
+        batch.results[currentIndex]?.watchlist[
             batch.results[currentIndex].startDate
         ] || [];
     const positions =
-        batch.results[currentIndex].positions[
+        batch.results[currentIndex]?.positions[
             batch.results[currentIndex].startDate
         ] || [];
 
@@ -125,6 +125,10 @@ export const BacktestDetail = ({ batch }: { batch: BacktestResult }) => {
             </TableRow>
         );
     };
+
+    if (!watchlist.length && !positions.length) {
+        return <Grid item>Nothing to see here</Grid>;
+    }
 
     return (
         <Grid container item justifyContent="center">

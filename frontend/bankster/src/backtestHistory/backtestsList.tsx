@@ -56,11 +56,13 @@ export const BacktestsList = () => {
         setLoading(true);
         getCachedBacktests().then((results) => {
             for (const result of results) {
-                addToBacktestHistory(
-                    result.results[0].startDate,
-                    result.results[result.results.length - 1].endDate,
-                    result
-                );
+                if (result.results && result.results.length) {
+                    addToBacktestHistory(
+                        result.results[0].startDate,
+                        result.results[result.results.length - 1].endDate,
+                        result
+                    );
+                }
             }
 
             setSelectedBacktest(results[0]);
