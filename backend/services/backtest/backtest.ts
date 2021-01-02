@@ -54,8 +54,6 @@ backtestServer.get("/cached", async () => {
             files.map((f) => readJSON("./backtests/" + f))
         );
 
-        console.log(files);
-
         return jsonFiles;
     } catch (e) {
         LOGGER.error(e);
