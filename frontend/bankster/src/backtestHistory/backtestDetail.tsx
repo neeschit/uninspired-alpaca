@@ -96,10 +96,6 @@ export const BacktestDetail = ({ batch }: { batch: BacktestResult }) => {
         setPosition,
     ] = React.useState<BacktestPosition | null>(null);
 
-    React.useEffect(() => {
-        chartRef.current?.scrollIntoView();
-    }, [symbolToGraph]);
-
     const getPositionRow = (row: BacktestPosition) => {
         return (
             <TableRow
@@ -123,71 +119,100 @@ export const BacktestDetail = ({ batch }: { batch: BacktestResult }) => {
                 <TableCell>{row.symbol}</TableCell>
                 <TableCell>{row.side}</TableCell>
                 <TableCell>{row.qty}</TableCell>
-                <TableCell>{row.totalPnl}</TableCell>
+                <TableCell>{row.totalPnl.toFixed(2)}</TableCell>
+                <TableCell>{row.entryTime}</TableCell>
+                <TableCell>{row.exitTime}</TableCell>
             </TableRow>
         );
     };
 
     return (
         <Grid container item justifyContent="center">
-            <Grid item style={{ marginBottom: theme.spacing(2) }}>
-                {batch.results.length > 1 ? (
-                    <>
-                        <IconButton
-                            onClick={() => {
-                                setCurrentIndex(currentIndex - 1);
-                            }}
-                            disabled={currentIndex === 0}
-                        >
-                            <ChevronLeftIcon />
-                        </IconButton>
-                        <Typography
-                            component="p"
-                            style={{
-                                display: "inline-block",
-                                marginLeft: theme.spacing(1),
-                                marginRight: theme.spacing(1),
-                            }}
-                        >
-                            Results date:{" "}
-                            {batch.results[currentIndex].startDate}
-                        </Typography>
-                        <IconButton
-                            onClick={() => {
-                                setCurrentIndex(currentIndex + 1);
-                            }}
-                            disabled={currentIndex === batch.results.length - 1}
-                        >
-                            <ChevronRightIcon />
-                        </IconButton>
-                    </>
-                ) : (
-                    ""
-                )}
-            </Grid>
-            <Grid item>
-                <Typography
-                    component="p"
-                    style={{
-                        display: "inline-block",
-                        marginLeft: theme.spacing(1),
-                        marginRight: theme.spacing(1),
-                    }}
-                >
-                    Overall profit: {Math.round(batch.totalPnl)}
-                </Typography>
-            </Grid>
-            <Grid item>
-                <Typography
-                    component="p"
-                    style={{
-                        display: "inline-block",
-                        marginLeft: theme.spacing(1),
-                        marginRight: theme.spacing(1),
-                    }}
-                >
-                    Max equity needed: {Math.round(batch.maxLeverage)}
-                </Typography>
+            <Grid
+                container
+                item
+                style={{ marginBottom: theme.spacing(2) }}
+                justifyContent="space-around"
+                alignItems="baseline"
+                spacing={1}
+            >
+                <Grid item>
+                    {batch.results.length > 1 ? (
+                        <>
+                            <IconButton
+                                onClick={() => {
+                                    setCurrentIndex(currentIndex - 1);
+                                }}
+                                disabled={currentIndex === 0}
+                            >
+                                <ChevronLeftIcon />
+                            </IconButton>
+                            <Typography
+                                component="p"
+                                style={{
+                                    display: "inline-block",
+                                }}
+                            >
+                                Results date:{" "}
+                                {batch.results[currentIndex].startDate}
+                            </Typography>
+                            <IconButton
+                                onClick={() => {
+                                    setCurrentIndex(currentIndex + 1);
+                                }}
+                                disabled={
+                                    currentIndex === batch.results.length - 1
+                                }
+                            >
+                                <ChevronRightIcon />
+                            </IconButton>
+                        </>
+                    ) : (
+                        ""
+                    )}
+                </Grid>
+                <Grid item>
+                    <Typography
+                        component="p"
+                        style={{
+                            display: "inline-block",
+                        }}
+                    >
+                        Overall profit: {Math.round(batch.totalPnl)}
+                    </Typography>
+                </Grid>
+                <Grid item>
+                    <Typography
+                        component="p"
+                        style={{
+                            display: "inline-block",
+                            marginLeft: theme.spacing(1),
+                            marginRight: theme.spacing(1),
+                        }}
+                    >
+                        Max equity needed: {Math.round(batch.maxLeverage)}
+                    </Typography>
+                </Grid>
+                <Grid item>
+                    <Typography
+                        component="p"
+                        style={{
+                            display: "inline-block",
+                        }}
+                    >
+                        Risk per trade: $10
+                    </Typography>
+                </Grid>
+                <Grid item>
+                    <Typography
+                        component="p"
+                        style={{
+                            display: "inline-block",
+                        }}
+                    >
+                        Profit ratio is 1:2
+                    </Typography>
+                </Grid>
             </Grid>
             <Grid
                 container

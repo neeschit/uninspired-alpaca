@@ -52,7 +52,7 @@ export const BacktestStart = () => {
         endDate: addBusinessDays(new Date(), -1),
     });
 
-    const { addToBacktestHistory } = React.useContext(AppContext);
+    const { history, addToBacktestHistory } = React.useContext(AppContext);
 
     const classes = useStyles();
 
@@ -120,6 +120,26 @@ export const BacktestStart = () => {
                             size="small"
                             onClick={() => {
                                 setLoading(true);
+
+                                const existingTest = history.find(
+                                    (b) =>
+                                        b.startDate ===
+                                            format(
+                                                selectedDates.startDate,
+                                                "yyyy-MM-dd"
+                                            ) &&
+                                        b.endDate ===
+                                            format(
+                                                selectedDates.endDate,
+                                                "yyyy-MM-dd"
+                                            )
+                                );
+
+                                if (existingTest) {
+                                    setResults(existingTest.results);
+                                    setLoading(false);
+                                    return;
+                                }
 
                                 startBacktest(
                                     selectedDates.startDate,

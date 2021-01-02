@@ -236,11 +236,19 @@ export function Candlestick({
         chartObject.current?.priceScale().applyOptions({
             autoScale: true,
         });
+        if (currentBars.length) {
+            chartRef.current?.scrollIntoView();
+        }
     }, [currentBars, currentVolume]);
 
     React.useEffect(() => {
+        const options = seriesRef.current?.options();
         if (!selectedPosition || !currentBars) {
             seriesRef.current?.setMarkers([]);
+            seriesRef.current?.applyOptions({
+                ...options,
+                priceLineVisible: false,
+            });
             return;
         }
 

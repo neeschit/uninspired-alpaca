@@ -1,15 +1,20 @@
 import { currentStreamingSymbols } from "../../libs/core-utils/data/filters";
 import { LOGGER } from "../../libs/core-utils/instrumentation/log";
 import { NarrowRangeBarSimulation } from "../../libs/strategy/narrowRangeBar.simulation";
-import {
-    BacktestBatchResult,
-    Simulator,
-} from "../../libs/simulation-helpers/simulator";
+import { Simulator } from "../../libs/simulation-helpers/simulator";
 import { getApiServer, Service } from "../../libs/core-utils/util/api";
 import { getData } from "../../libs/core-utils/resources/stockData";
 import { endOfDay } from "date-fns";
 import { getCalendar } from "../../libs/brokerage-helpers/alpaca";
 import { isMarketOpen } from "../../libs/simulation-helpers/timing.util";
+import {
+    ensureDir,
+    readJson,
+    readdir,
+    readJSON,
+    writeJson,
+    ensureFile,
+} from "fs-extra";
 
 const symbols = currentStreamingSymbols;
 
@@ -39,6 +44,23 @@ async function run(startDate: string, endDate: string) {
 
 const backtestServer = getApiServer(Service.backtest);
 
+backtestServer.get("/cached", async () => {
+    try {
+        await ensureDir("./backtests");
+
+        const files = await readdir("./backtests");
+
+        const jsonFiles = await Promise.all(
+            files.map((f) => readJSON("./backtests/" + f))
+        );
+
+        return jsonFiles;
+    } catch (e) {
+        LOGGER.error(e);
+        return [];
+    }
+});
+
 backtestServer.get(
     "/backtest/:startDate/:endDate",
     async (request: { params: any }) => {
@@ -46,6 +68,17 @@ backtestServer.get(
         const endDate = request.params.endDate;
 
         const results = await run(startDate, endDate);
+
+        try {
+            await ensureFile(`./backtests/${startDate}-${endDate}.json`);
+
+            await writeJson(
+                `./backtests/${startDate}-${endDate}.json`,
+                results
+            );
+        } catch (e) {
+            LOGGER.error(e);
+        }
 
         return results;
     }
