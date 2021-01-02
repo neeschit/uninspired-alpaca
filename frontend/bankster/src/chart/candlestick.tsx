@@ -242,8 +242,13 @@ export function Candlestick({
     }, [currentBars, currentVolume]);
 
     React.useEffect(() => {
+        const options = seriesRef.current?.options();
         if (!selectedPosition || !currentBars) {
             seriesRef.current?.setMarkers([]);
+            seriesRef.current?.applyOptions({
+                ...options,
+                priceLineVisible: false,
+            });
             return;
         }
 
