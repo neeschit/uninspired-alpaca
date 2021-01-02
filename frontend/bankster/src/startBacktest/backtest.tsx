@@ -10,7 +10,7 @@ import {
 import { DatePicker, LocalizationProvider } from "@material-ui/pickers";
 import DateFnsUtils from "@material-ui/pickers/adapter/date-fns";
 import { addBusinessDays, format, isAfter } from "date-fns";
-import { BacktestResult } from "./backtestModel";
+import { BacktestResult, backtestBaseUrl } from "./backtestModel";
 import { AppContext } from "../appContext";
 import { BacktestDetail } from "../backtestHistory/backtestDetail";
 
@@ -35,7 +35,7 @@ export const startBacktest = async (
     endDate: Date
 ): Promise<BacktestResult> => {
     const response = await fetch(
-        `http://localhost:6971/backtest/${format(
+        `${backtestBaseUrl}/backtest/${format(
             startDate,
             "yyyy-MM-dd"
         )}/${format(endDate, "yyyy-MM-dd")}`
@@ -90,6 +90,7 @@ export const BacktestStart = () => {
                                 endDate: selectedDates.endDate,
                             });
                         }}
+                        minDate={new Date("01-01-2017")}
                     />
                 </Grid>
                 <Grid item>
@@ -109,6 +110,7 @@ export const BacktestStart = () => {
                         renderInput={(props) => (
                             <TextField {...props} error={hasError} />
                         )}
+                        minDate={new Date("01-01-2017")}
                     />
                 </Grid>
                 <Grid item>
