@@ -1,16 +1,10 @@
 import "date-fns";
 import React from "react";
-import {
-    Grid,
-    makeStyles,
-    Button,
-    CircularProgress,
-    TextField,
-} from "@material-ui/core";
+import { Grid, makeStyles, Button, CircularProgress, TextField } from "@material-ui/core";
 import { DatePicker, LocalizationProvider } from "@material-ui/pickers";
 import DateFnsUtils from "@material-ui/pickers/adapter/date-fns";
 import { addBusinessDays, format, isAfter } from "date-fns";
-import { BacktestResult } from "./backtestModel";
+import { BacktestResult, backtestBaseUrl } from "./backtestModel";
 import { AppContext } from "../appContext";
 import { BacktestDetail } from "../backtestHistory/backtestDetail";
 
@@ -30,15 +24,12 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-export const startBacktest = async (
-    startDate: Date,
-    endDate: Date
-): Promise<BacktestResult> => {
+export const startBacktest = async (startDate: Date, endDate: Date): Promise<BacktestResult> => {
     const response = await fetch(
-        `http://localhost:6971/backtest/${format(
-            startDate,
+        `${backtestBaseUrl}/backtest/${format(startDate, "yyyy-MM-dd")}/${format(
+            endDate,
             "yyyy-MM-dd"
-        )}/${format(endDate, "yyyy-MM-dd")}`
+        )}`
     );
 
     const json = await response.json();
@@ -81,9 +72,7 @@ export const BacktestStart = () => {
                         value={selectedDates.startDate}
                         disableHighlightToday={true}
                         maxDate={addBusinessDays(Date.now(), -1)}
-                        renderInput={(props) => (
-                            <TextField {...props} error={hasError} />
-                        )}
+                        renderInput={(props) => <TextField {...props} error={hasError} />}
                         onChange={(date: Date | null) => {
                             setSelectedDate({
                                 startDate: date || selectedDates.startDate,
@@ -106,9 +95,7 @@ export const BacktestStart = () => {
                                 });
                             }
                         }}
-                        renderInput={(props) => (
-                            <TextField {...props} error={hasError} />
-                        )}
+                        renderInput={(props) => <TextField {...props} error={hasError} />}
                     />
                 </Grid>
                 <Grid item>
@@ -124,15 +111,8 @@ export const BacktestStart = () => {
                                 const existingTest = history.find(
                                     (b) =>
                                         b.startDate ===
-                                            format(
-                                                selectedDates.startDate,
-                                                "yyyy-MM-dd"
-                                            ) &&
-                                        b.endDate ===
-                                            format(
-                                                selectedDates.endDate,
-                                                "yyyy-MM-dd"
-                                            )
+                                            format(selectedDates.startDate, "yyyy-MM-dd") &&
+                                        b.endDate === format(selectedDates.endDate, "yyyy-MM-dd")
                                 );
 
                                 if (existingTest) {
@@ -141,24 +121,17 @@ export const BacktestStart = () => {
                                     return;
                                 }
 
-                                startBacktest(
-                                    selectedDates.startDate,
-                                    selectedDates.endDate
-                                ).then((results) => {
-                                    setLoading(false);
-                                    setResults(results);
-                                    addToBacktestHistory(
-                                        format(
-                                            selectedDates.startDate,
-                                            "yyyy-MM-dd"
-                                        ),
-                                        format(
-                                            selectedDates.endDate,
-                                            "yyyy-MM-dd"
-                                        ),
-                                        results
-                                    );
-                                });
+                                startBacktest(selectedDates.startDate, selectedDates.endDate).then(
+                                    (results) => {
+                                        setLoading(false);
+                                        setResults(results);
+                                        addToBacktestHistory(
+                                            format(selectedDates.startDate, "yyyy-MM-dd"),
+                                            format(selectedDates.endDate, "yyyy-MM-dd"),
+                                            results
+                                        );
+                                    }
+                                );
                             }}
                         >
                             Run Test
@@ -176,23 +149,14 @@ export const BacktestStart = () => {
                         (
                         <Grid item>
                             (
-                            <CircularProgress
-                                size={240}
-                                className={classes.buttonProgress}
-                            />
-                            )
+                            <CircularProgress size={240} className={classes.buttonProgress} />)
                         </Grid>
                         )
                     </Grid>
                 )}
 
                 {!isLoading && (
-                    <Grid
-                        container
-                        item
-                        className={classes.resultsContainer}
-                        direction="column"
-                    >
+                    <Grid container item className={classes.resultsContainer} direction="column">
                         {(results && results.results.length && (
                             <BacktestDetail batch={results}></BacktestDetail>
                         )) ||

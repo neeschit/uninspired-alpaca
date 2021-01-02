@@ -2,7 +2,7 @@ import { Grid, TableCell, TableRow } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import React from "react";
 import { AppContext, BacktestHistory } from "../appContext";
-import { BacktestResult } from "../startBacktest/backtestModel";
+import { backtestBaseUrl, BacktestResult } from "../startBacktest/backtestModel";
 import CustomPaginationActionsTable from "../table/table";
 import { BacktestDetail } from "./backtestDetail";
 import clsx from "clsx";
@@ -18,7 +18,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export const getCachedBacktests = async (): Promise<BacktestResult[]> => {
-    const response = await fetch(`http://localhost:6971/cached`);
+    const response = await fetch(`${backtestBaseUrl}/cached`);
 
     const json = await response.json();
 
@@ -28,10 +28,7 @@ export const getCachedBacktests = async (): Promise<BacktestResult[]> => {
 export const BacktestsList = () => {
     const { history, addToBacktestHistory } = React.useContext(AppContext);
 
-    const [
-        currentBacktest,
-        setSelectedBacktest,
-    ] = React.useState<BacktestResult | null>(null);
+    const [currentBacktest, setSelectedBacktest] = React.useState<BacktestResult | null>(null);
 
     const [selectedIndex, setSelectedIndex] = React.useState(-1);
 
@@ -52,10 +49,7 @@ export const BacktestsList = () => {
         });
     }, [addToBacktestHistory]);
 
-    const getRowElementForCurrentRow = (
-        row: BacktestHistory,
-        index: number
-    ) => {
+    const getRowElementForCurrentRow = (row: BacktestHistory, index: number) => {
         return (
             <TableRow
                 key={row.startDate + "-" + row.endDate}

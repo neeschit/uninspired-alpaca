@@ -13,6 +13,7 @@ import {
 } from "lightweight-charts";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import {
+    backtestBaseUrl,
     BacktestPosition,
     Bar,
     PositionDirection,
@@ -43,7 +44,7 @@ const getDataForDate = async ({
         return [];
     }
 
-    const response = await fetch(`http://localhost:6971/fetchBars`, {
+    const response = await fetch(`${backtestBaseUrl}/fetchBars`, {
         method: "POST",
         mode: "cors",
         cache: "no-cache",
@@ -169,9 +170,7 @@ export function Candlestick({
     });
 
     React.useEffect(() => {
-        const fromEpoch = startOfDay(
-            parseISO(symbolToGraph.entryTime)
-        ).getTime();
+        const fromEpoch = startOfDay(parseISO(symbolToGraph.entryTime)).getTime();
 
         if (
             currentChartOptions.symbol === symbolToGraph.symbol &&
@@ -185,24 +184,18 @@ export function Candlestick({
             startEpoch: fromEpoch,
         });
 
-        getDataForDate({ symbol: symbolToGraph.symbol, fromEpoch }).then(
-            (bars) => {
-                const mappedVolume = bars.map((b) => {
-                    return {
-                        value: b.volume,
-                        time: b.time,
-                        color: b.open > b.close ? upColor : downColor,
-                    };
-                });
-                setCurrentBars(bars);
-                setCurrentVolume(mappedVolume);
-            }
-        );
-    }, [
-        currentChartOptions.startEpoch,
-        currentChartOptions.symbol,
-        symbolToGraph,
-    ]);
+        getDataForDate({ symbol: symbolToGraph.symbol, fromEpoch }).then((bars) => {
+            const mappedVolume = bars.map((b) => {
+                return {
+                    value: b.volume,
+                    time: b.time,
+                    color: b.open > b.close ? upColor : downColor,
+                };
+            });
+            setCurrentBars(bars);
+            setCurrentVolume(mappedVolume);
+        });
+    }, [currentChartOptions.startEpoch, currentChartOptions.symbol, symbolToGraph]);
     const [dimensions, setDimensions] = React.useState({
         height: window.innerHeight,
         width: window.innerWidth,
@@ -220,11 +213,7 @@ export function Candlestick({
 
     React.useEffect(() => {
         if (chartRef.current) {
-            chartObject.current?.resize(
-                chartRef.current.offsetWidth,
-                600,
-                true
-            );
+            chartObject.current?.resize(chartRef.current.offsetWidth, 600, true);
             chartObject.current?.timeScale().fitContent();
         }
     }, [dimensions]);
@@ -314,10 +303,7 @@ export function Candlestick({
 
         const markers: SeriesMarker<any>[] = [];
 
-        const [
-            entryMarkerPosition,
-            exitMarkerPosition,
-        ]: SeriesMarkerPosition[] =
+        const [entryMarkerPosition, exitMarkerPosition]: SeriesMarkerPosition[] =
             selectedPosition.side === PositionDirection.long
                 ? ["belowBar", "aboveBar"]
                 : ["aboveBar", "belowBar"];
@@ -336,9 +322,7 @@ export function Candlestick({
             time: entryBar.time,
             position: entryMarkerPosition,
             color: entryColor,
-            text: `${
-                selectedPosition.qty
-            } @ ${selectedPosition.averageEntryPrice.toFixed(2)}`,
+            text: `${selectedPosition.qty} @ ${selectedPosition.averageEntryPrice.toFixed(2)}`,
         });
 
         markers.push({
@@ -346,9 +330,7 @@ export function Candlestick({
             time: exitBar.time,
             position: exitMarkerPosition,
             color: exitColor,
-            text: `${
-                selectedPosition.qty
-            } @ ${selectedPosition.averageExitPrice.toFixed(2)}`,
+            text: `${selectedPosition.qty} @ ${selectedPosition.averageExitPrice.toFixed(2)}`,
         });
 
         seriesRef.current?.setMarkers(markers);
@@ -360,12 +342,7 @@ export function Candlestick({
                 }
             }
         };
-    }, [
-        addPlannedPricelinesForPosition,
-        currentBars,
-        selectedPosition,
-        symbolToGraph.symbol,
-    ]);
+    }, [addPlannedPricelinesForPosition, currentBars, selectedPosition, symbolToGraph.symbol]);
 
     React.useEffect(() => {
         chartObject.current?.subscribeCrosshairMove((param) => {
@@ -373,20 +350,16 @@ export function Candlestick({
                 return;
             }
 
-            const bar: Bar | undefined = currentBars.find(
-                (b) => b.time === param.time
-            );
+            const bar: Bar | undefined = currentBars.find((b) => b.time === param.time);
 
             if (!bar) {
                 return;
             }
 
             setLegendMessage(
-                `O${bar.open.toFixed(2)} H${bar.high.toFixed(
+                `O${bar.open.toFixed(2)} H${bar.high.toFixed(2)} L${bar.low.toFixed(
                     2
-                )} L${bar.low.toFixed(2)} C${bar.close.toFixed(
-                    2
-                )} V${bar.volume.toLocaleString()}`
+                )} C${bar.close.toFixed(2)} V${bar.volume.toLocaleString()}`
             );
         });
     }, [currentBars]);
