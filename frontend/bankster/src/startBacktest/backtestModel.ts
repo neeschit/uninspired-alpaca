@@ -37,6 +37,7 @@ export interface BacktestResult {
         endDate: string;
     }[];
     totalPnl: number;
+    maxLeverage: number;
 }
 
 export interface Bar {

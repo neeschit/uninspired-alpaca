@@ -295,6 +295,7 @@ test("mergeResults", () => {
         {
             startDate: "2020-12-23",
             endDate: "2020-12-23",
+            maxLeverage: 1,
             watchlist: {
                 "2020-12-23": [
                     "BMY",
@@ -333,6 +334,7 @@ test("mergeResults", () => {
                         },
                         totalPnl: 100,
                     },
+
                     {
                         symbol: "UNP",
                         averageEntryPrice: 201.62223869135804,
@@ -350,6 +352,7 @@ test("mergeResults", () => {
                         },
                         totalPnl: 100,
                     },
+
                     {
                         symbol: "VMW",
                         averageEntryPrice: 142.0060885580247,
@@ -367,6 +370,7 @@ test("mergeResults", () => {
                         },
                         totalPnl: 100,
                     },
+
                     {
                         symbol: "BMY",
                         averageEntryPrice: 61.204805789671546,
@@ -384,6 +388,7 @@ test("mergeResults", () => {
                         },
                         totalPnl: 100,
                     },
+
                     {
                         symbol: "SO",
                         averageEntryPrice: 60.19734108049383,
@@ -401,6 +406,7 @@ test("mergeResults", () => {
                         },
                         totalPnl: 100,
                     },
+
                     {
                         symbol: "DIS",
                         averageEntryPrice: 174.0400075026173,
@@ -418,6 +424,7 @@ test("mergeResults", () => {
                         },
                         totalPnl: 100,
                     },
+
                     {
                         symbol: "PLD",
                         averageEntryPrice: 97.98074485925926,
@@ -435,6 +442,7 @@ test("mergeResults", () => {
                         },
                         totalPnl: 100,
                     },
+
                     {
                         symbol: "SCHW",
                         averageEntryPrice: 52.44384816460906,
@@ -461,6 +469,7 @@ test("mergeResults", () => {
         startDate: "2020-12-23",
         endDate: "2020-12-23",
         watchlist: { "2020-12-23": ["XOM", "SPY"] },
+        maxLeverage: 1,
         positions: {
             "2020-12-23": [
                 {

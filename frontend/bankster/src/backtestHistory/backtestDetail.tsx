@@ -177,6 +177,18 @@ export const BacktestDetail = ({ batch }: { batch: BacktestResult }) => {
                     Overall profit: {Math.round(batch.totalPnl)}
                 </Typography>
             </Grid>
+            <Grid item>
+                <Typography
+                    component="p"
+                    style={{
+                        display: "inline-block",
+                        marginLeft: theme.spacing(1),
+                        marginRight: theme.spacing(1),
+                    }}
+                >
+                    Max equity needed: {Math.round(batch.maxLeverage)}
+                </Typography>
+            </Grid>
             <Grid
                 container
                 item

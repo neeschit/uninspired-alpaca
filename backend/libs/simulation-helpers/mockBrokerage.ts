@@ -59,6 +59,7 @@ export class MockBrokerage implements BrokerStrategy {
     private openPositions: MockAlpacaPosition[] = [];
     private static instance: MockBrokerage;
     private epoch = Date.now();
+    public maxLeverage: number = 0;
 
     private constructor() {}
 
@@ -233,6 +234,20 @@ export class MockBrokerage implements BrokerStrategy {
                             );
                         }
                     }
+                }
+
+                const currentLeverage = this.openPositions.reduce(
+                    (leverage, p) => {
+                        const marketValue =
+                            Number(p.qty) * Number(p.avg_entry_price);
+                        leverage += marketValue;
+                        return leverage;
+                    },
+                    0
+                );
+
+                if (currentLeverage > this.maxLeverage) {
+                    this.maxLeverage = currentLeverage;
                 }
             } catch (e) {
                 LOGGER.error(

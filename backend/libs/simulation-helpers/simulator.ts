@@ -49,6 +49,7 @@ export const mergeResults = (
 
 export interface SimulationResult {
     totalPnl: number;
+    maxLeverage: number;
     results: BacktestBatchResult[];
 }
 
@@ -75,9 +76,15 @@ export class Simulator {
 
         const totalPnl = getPerformance(filteredResults);
 
+        const maxLeverage = filteredResults.reduce((leverage, result) => {
+            leverage = Math.max(leverage, result.maxLeverage);
+            return leverage;
+        }, 0);
+
         return {
             totalPnl,
             results: filteredResults,
+            maxLeverage,
         };
     }
 
@@ -107,6 +114,8 @@ export class Simulator {
 
         const watchlist: BacktestWatchlist = {};
         const positions: BacktestPositions = {};
+
+        let maxLeverage = 0;
 
         let currentTime =
             Simulator.getMarketOpenTimeForDay(start, calendar) -
@@ -157,6 +166,7 @@ export class Simulator {
                 currentTime = startOfDay(
                     addBusinessDays(currentTime, 1)
                 ).getTime();
+                maxLeverage = mockBroker.maxLeverage;
                 mockBroker.reset();
                 this.strategies = {};
             } else {
@@ -169,6 +179,7 @@ export class Simulator {
             endDate: format(end, DATE_FORMAT),
             watchlist,
             positions,
+            maxLeverage,
         };
     }
 
@@ -286,6 +297,7 @@ export interface BacktestBatchResult {
     positions: BacktestPositions;
     startDate: string;
     endDate: string;
+    maxLeverage: number;
 }
 
 export const runStrategy = async (
