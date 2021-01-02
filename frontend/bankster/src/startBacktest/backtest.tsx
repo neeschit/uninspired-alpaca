@@ -26,7 +26,7 @@ const useStyles = makeStyles((theme) => ({
         color: theme.palette.primary.light,
     },
     resultsContainer: {
-        marginTop: theme.spacing(10),
+        marginTop: theme.spacing(3),
     },
 }));
 
@@ -127,7 +127,17 @@ export const BacktestStart = () => {
                                 ).then((results) => {
                                     setLoading(false);
                                     setResults(results);
-                                    addToBacktestHistory(results);
+                                    addToBacktestHistory(
+                                        format(
+                                            selectedDates.startDate,
+                                            "yyyy-MM-dd"
+                                        ),
+                                        format(
+                                            selectedDates.endDate,
+                                            "yyyy-MM-dd"
+                                        ),
+                                        results
+                                    );
                                 });
                             }}
                         >
@@ -156,16 +166,19 @@ export const BacktestStart = () => {
                     </Grid>
                 )}
 
-                <Grid
-                    container
-                    item
-                    className={classes.resultsContainer}
-                    direction="column"
-                >
-                    {!isLoading && results.length && (
-                        <BacktestDetail batch={results}></BacktestDetail>
-                    )}
-                </Grid>
+                {!isLoading && (
+                    <Grid
+                        container
+                        item
+                        className={classes.resultsContainer}
+                        direction="column"
+                    >
+                        {(results.length && (
+                            <BacktestDetail batch={results}></BacktestDetail>
+                        )) ||
+                            ""}
+                    </Grid>
+                )}
             </Grid>
         </LocalizationProvider>
     );

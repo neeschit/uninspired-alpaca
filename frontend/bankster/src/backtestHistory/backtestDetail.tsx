@@ -1,14 +1,21 @@
-import { TableCell, TableRow, Grid } from "@material-ui/core";
+import {
+    TableCell,
+    TableRow,
+    Grid,
+    Typography,
+    IconButton,
+} from "@material-ui/core";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import React from "react";
 import {
     BacktestPosition,
     BacktestResult,
-    PositionDirection,
 } from "../startBacktest/backtestModel";
 import CustomPaginationActionsTable from "../table/table";
 import CheckCircleIcon from "@material-ui/icons/CheckCircle";
 import CancelIcon from "@material-ui/icons/Cancel";
+import ChevronLeftIcon from "@material-ui/icons/ChevronLeftOutlined";
+import ChevronRightIcon from "@material-ui/icons/ChevronRightOutlined";
 import clsx from "clsx";
 import { Candlestick } from "../chart/candlestick";
 import { formatISO, parse } from "date-fns";
@@ -17,25 +24,17 @@ const useStyles = makeStyles((theme) => ({
     selectedWatchlistRow: {
         backgroundColor: theme.palette.grey[600],
     },
-    legend: {
-        position: "relative",
-        left: "12px",
-        top: "12px",
-        zIndex: 100,
-        fontSize: "12px",
-        lineHeight: "18px",
-        fontWeight: 300,
-        color: "#FFFFFF",
-    },
 }));
 
 export const BacktestDetail = ({ batch }: { batch: BacktestResult[] }) => {
-    const date = batch[0].startDate;
+    const [currentIndex, setCurrentIndex] = React.useState(0);
 
     const theme = useTheme();
 
-    const watchlist = batch[0].watchlist[date];
-    const positions = batch[0].positions[date];
+    const watchlist =
+        batch[currentIndex].watchlist[batch[currentIndex].startDate];
+    const positions =
+        batch[currentIndex].positions[batch[currentIndex].startDate];
 
     const [symbolToGraph, setSymbolToGraph] = React.useState({
         symbol: "",
@@ -63,7 +62,11 @@ export const BacktestDetail = ({ batch }: { batch: BacktestResult[] }) => {
                     setSymbolToGraph({
                         symbol: row.id,
                         entryTime: formatISO(
-                            parse(date, "yyyy-MM-dd", new Date(date))
+                            parse(
+                                batch[currentIndex].startDate,
+                                "yyyy-MM-dd",
+                                new Date(batch[currentIndex].startDate)
+                            )
                         ),
                         type: "watchlist",
                     });
@@ -84,20 +87,6 @@ export const BacktestDetail = ({ batch }: { batch: BacktestResult[] }) => {
         );
     };
 
-    const mappedPositions = positions.map((p) => {
-        const pnl =
-            p.side === PositionDirection.long
-                ? p.averageExitPrice - p.averageEntryPrice
-                : p.averageEntryPrice - p.averageExitPrice;
-
-        const totalPnl = pnl * p.qty;
-
-        return {
-            ...p,
-            totalPnl,
-        };
-    });
-
     const [
         selectedPosition,
         setPosition,
@@ -107,7 +96,7 @@ export const BacktestDetail = ({ batch }: { batch: BacktestResult[] }) => {
         chartRef.current?.scrollIntoView();
     }, [symbolToGraph]);
 
-    const getPositionRow = (row: typeof mappedPositions[0]) => {
+    const getPositionRow = (row: BacktestPosition) => {
         return (
             <TableRow
                 key={row.symbol + row.entryTime}
@@ -136,7 +125,41 @@ export const BacktestDetail = ({ batch }: { batch: BacktestResult[] }) => {
     };
 
     return (
-        <Grid container item>
+        <Grid container item justifyContent="center">
+            <Grid item style={{ marginBottom: theme.spacing(2) }}>
+                {batch.length > 1 ? (
+                    <>
+                        <IconButton
+                            onClick={() => {
+                                setCurrentIndex(currentIndex - 1);
+                            }}
+                            disabled={currentIndex === 0}
+                        >
+                            <ChevronLeftIcon />
+                        </IconButton>
+                        <Typography
+                            component="p"
+                            style={{
+                                display: "inline-block",
+                                marginLeft: theme.spacing(1),
+                                marginRight: theme.spacing(1),
+                            }}
+                        >
+                            Results date: {batch[currentIndex].startDate}
+                        </Typography>
+                        <IconButton
+                            onClick={() => {
+                                setCurrentIndex(currentIndex + 1);
+                            }}
+                            disabled={currentIndex === batch.length - 1}
+                        >
+                            <ChevronRightIcon />
+                        </IconButton>
+                    </>
+                ) : (
+                    ""
+                )}
+            </Grid>
             <Grid
                 container
                 item
@@ -155,7 +178,7 @@ export const BacktestDetail = ({ batch }: { batch: BacktestResult[] }) => {
                 <Grid item>
                     Trades Taken
                     <CustomPaginationActionsTable
-                        rows={mappedPositions}
+                        rows={positions}
                         getRowElementForCurrentRow={getPositionRow}
                         showPagination={true}
                     ></CustomPaginationActionsTable>

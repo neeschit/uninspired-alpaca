@@ -9,6 +9,7 @@ export interface BacktestPosition {
     plannedEntryPrice: number;
     plannedExitPrice: number;
     plannedTargetPrice: number;
+    totalPnl: number;
     qty: number;
     side: PositionDirection;
     symbol: string;

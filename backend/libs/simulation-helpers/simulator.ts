@@ -19,11 +19,7 @@ import {
     isMarketOpening,
 } from "./timing.util";
 import { LOGGER } from "../core-utils/instrumentation/log";
-import {
-    ClosedMockPosition,
-    MockAlpacaPosition,
-    MockBrokerage,
-} from "./mockBrokerage";
+import { ClosedMockPosition, MockBrokerage } from "./mockBrokerage";
 
 export type SimulationImpl = new (...args: any[]) => SimulationStrategy;
 

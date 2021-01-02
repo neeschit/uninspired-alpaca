@@ -21,6 +21,7 @@ export interface ClosedMockPosition {
     plannedEntryPrice: number;
     plannedExitPrice: number;
     plannedTargetPrice: number;
+    totalPnl: number;
     qty: number;
     side: PositionDirection;
     symbol: string;
@@ -374,10 +375,20 @@ export class MockBrokerage implements BrokerStrategy {
                         ? this.orders.splice(takeProfitOrderIndex, 1)[0]
                         : closingOrder;
 
+                const averageEntryPrice = originalOrder!.filled_avg_price;
+                const averageExitPrice = closingOrder!.filled_avg_price;
+
+                const pnl =
+                    position.side === PositionDirection.long
+                        ? averageExitPrice - averageEntryPrice
+                        : averageEntryPrice - averageExitPrice;
+
+                const totalPnl = pnl * Number(position.qty);
+
                 this.closedPositions.push({
                     symbol: order.symbol,
-                    averageEntryPrice: originalOrder!.filled_avg_price,
-                    averageExitPrice: closingOrder!.filled_avg_price,
+                    averageEntryPrice,
+                    averageExitPrice,
                     plannedEntryPrice:
                         originalOrder!.stop_price ||
                         originalOrder!.limit_price!,
@@ -397,6 +408,7 @@ export class MockBrokerage implements BrokerStrategy {
                         open: originalOrder!.id,
                         close: closingOrder!.id,
                     },
+                    totalPnl,
                 });
             }
         }
@@ -475,10 +487,20 @@ export class MockBrokerage implements BrokerStrategy {
                 throw new Error("expected_profit_order");
             }
 
+            const averageEntryPrice = originalOrder!.filled_avg_price;
+            const averageExitPrice = closingOrder!.filled_avg_price;
+            const pnl =
+                position.side === PositionDirection.long
+                    ? averageExitPrice - averageEntryPrice
+                    : averageEntryPrice - averageExitPrice;
+
+            const totalPnl = pnl * Number(position.qty);
+
             this.closedPositions.push({
                 symbol: originalOrder.symbol,
-                averageEntryPrice: originalOrder!.filled_avg_price,
-                averageExitPrice: closingOrder!.filled_avg_price,
+                averageEntryPrice,
+                averageExitPrice,
+                totalPnl,
                 plannedEntryPrice:
                     originalOrder!.stop_price || originalOrder!.limit_price!,
                 plannedExitPrice:
