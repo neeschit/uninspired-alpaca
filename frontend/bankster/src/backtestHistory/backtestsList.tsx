@@ -2,10 +2,7 @@ import { CircularProgress, Grid, TableCell, TableRow } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import React from "react";
 import { AppContext, BacktestHistory } from "../appContext";
-import {
-    backtestBaseUrl,
-    BacktestResult,
-} from "../startBacktest/backtestModel";
+import { backtestBaseUrl, BacktestResult } from "../startBacktest/backtestModel";
 import CustomPaginationActionsTable from "../table/table";
 import { BacktestDetail } from "./backtestDetail";
 import clsx from "clsx";
@@ -37,12 +34,9 @@ export const getCachedBacktests = async (): Promise<BacktestResult[]> => {
 export const BacktestsList = () => {
     const { history, addToBacktestHistory } = React.useContext(AppContext);
 
-    const [isLoading, setLoading] = React.useState(!!history.length || false);
+    const [isLoading, setLoading] = React.useState(!history.length || false);
 
-    const [
-        currentBacktest,
-        setSelectedBacktest,
-    ] = React.useState<BacktestResult | null>(null);
+    const [currentBacktest, setSelectedBacktest] = React.useState<BacktestResult | null>(null);
 
     const [selectedIndex, setSelectedIndex] = React.useState(-1);
 
@@ -71,10 +65,7 @@ export const BacktestsList = () => {
         });
     }, [addToBacktestHistory]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const getRowElementForCurrentRow = (
-        row: BacktestHistory,
-        index: number
-    ) => {
+    const getRowElementForCurrentRow = (row: BacktestHistory, index: number) => {
         return (
             <TableRow
                 key={row.startDate + "-" + row.endDate}
@@ -105,11 +96,7 @@ export const BacktestsList = () => {
                     (
                     <Grid item>
                         (
-                        <CircularProgress
-                            size={240}
-                            className={classes.buttonProgress}
-                        />
-                        )
+                        <CircularProgress size={240} className={classes.buttonProgress} />)
                     </Grid>
                     )
                 </Grid>
@@ -119,17 +106,13 @@ export const BacktestsList = () => {
                     <Grid item className={classes.backtestListContainer}>
                         <CustomPaginationActionsTable
                             rows={history}
-                            getRowElementForCurrentRow={
-                                getRowElementForCurrentRow
-                            }
+                            getRowElementForCurrentRow={getRowElementForCurrentRow}
                             showPagination={false}
                         ></CustomPaginationActionsTable>
                     </Grid>
                     {currentBacktest && (
                         <Grid item lg={12} md={12} sm={12} xs={12}>
-                            <BacktestDetail
-                                batch={currentBacktest}
-                            ></BacktestDetail>
+                            <BacktestDetail batch={currentBacktest}></BacktestDetail>
                         </Grid>
                     )}
                 </Grid>
