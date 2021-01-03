@@ -27,18 +27,17 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export const BacktestDetail = ({ batch }: { batch: BacktestResult }) => {
-    const [currentIndex, setCurrentIndex] = React.useState(0);
+    const firstIndexWithSomething = batch.results.findIndex((b) => {
+        return b.positions.length || b.watchlist.length;
+    });
+    const [currentIndex, setCurrentIndex] = React.useState(
+        firstIndexWithSomething
+    );
 
     const theme = useTheme();
 
-    const watchlist =
-        batch.results[currentIndex]?.watchlist[
-            batch.results[currentIndex].startDate
-        ] || [];
-    const positions =
-        batch.results[currentIndex]?.positions[
-            batch.results[currentIndex].startDate
-        ] || [];
+    const watchlist = batch.results[currentIndex]?.watchlist || [];
+    const positions = batch.results[currentIndex]?.positions || [];
 
     const [symbolToGraph, setSymbolToGraph] = React.useState({
         symbol: "",
@@ -125,10 +124,6 @@ export const BacktestDetail = ({ batch }: { batch: BacktestResult }) => {
             </TableRow>
         );
     };
-
-    if (!watchlist.length && !positions.length) {
-        return <Grid item>Nothing to see here</Grid>;
-    }
 
     return (
         <Grid container item justifyContent="center">
