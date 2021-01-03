@@ -1,10 +1,15 @@
-import { BacktestBatchResult } from "./simulator";
+import {
+    AggregatedBacktestBatchResult,
+    BacktestBatchResult,
+} from "./simulator";
 
-export const getPerformance = (results: BacktestBatchResult[]): number => {
+export const getPerformance = (
+    results: AggregatedBacktestBatchResult[]
+): number => {
     let total = 0;
 
     for (const r of results) {
-        const positions = r.positions[r.startDate];
+        const positions = r.positions;
         const batchPnl = positions.reduce((total, position) => {
             total += position.totalPnl;
 

@@ -3,6 +3,7 @@ import {
     addBusinessDays,
     differenceInDays,
     format,
+    formatISO,
     parseISO,
     startOfDay,
 } from "date-fns";
@@ -50,7 +51,7 @@ export const mergeResults = (
 export interface SimulationResult {
     totalPnl: number;
     maxLeverage: number;
-    results: BacktestBatchResult[];
+    results: AggregatedBacktestBatchResult[];
 }
 
 export class Simulator {
@@ -70,9 +71,19 @@ export class Simulator {
             mergeResults(results, batchResult);
         }
 
-        const filteredResults = results.filter((r) => {
-            return r.positions[r.startDate];
-        });
+        const filteredResults: AggregatedBacktestBatchResult[] = results
+            .filter((r) => {
+                return r.positions[r.startDate];
+            })
+            .map((r) => {
+                return {
+                    startDate: r.startDate,
+                    endDate: r.endDate,
+                    maxLeverage: r.maxLeverage,
+                    positions: r.positions[r.startDate],
+                    watchlist: r.watchlist[r.startDate],
+                };
+            });
 
         const totalPnl = getPerformance(filteredResults);
 
@@ -107,7 +118,7 @@ export class Simulator {
         calendar: Calendar[],
         Strategy: SimulationImpl
     ): Promise<BacktestBatchResult> {
-        const mockBroker = MockBrokerage.getInstance();
+        const mockBroker = new MockBrokerage();
 
         const start = parseISO(batch.startDate).getTime();
         const end = parseISO(batch.endDate).getTime();
@@ -295,6 +306,14 @@ export interface BacktestPositions {
 export interface BacktestBatchResult {
     watchlist: BacktestWatchlist;
     positions: BacktestPositions;
+    startDate: string;
+    endDate: string;
+    maxLeverage: number;
+}
+
+export interface AggregatedBacktestBatchResult {
+    watchlist: string[];
+    positions: ClosedMockPosition[];
     startDate: string;
     endDate: string;
     maxLeverage: number;

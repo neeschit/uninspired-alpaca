@@ -27,6 +27,6 @@ test("should be in 3 positions for 12-30", async () => {
         NarrowRangeBarSimulation
     );
 
-    expect(results[0].positions[results[0].startDate]).toBeTruthy();
-    expect(results[0].positions[results[0].startDate].length).toEqual(4);
+    expect(results[0].positions).toBeTruthy();
+    expect(results[0].positions.length).toEqual(4);
 });

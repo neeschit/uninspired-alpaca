@@ -57,11 +57,8 @@ export class MockBrokerage implements BrokerStrategy {
     public canceledOrders: AlpacaOrder[] = [];
     private orders: MockAlpacaOrder[] = [];
     private openPositions: MockAlpacaPosition[] = [];
-    private static instance: MockBrokerage;
     private epoch = Date.now();
     public maxLeverage: number = 0;
-
-    private constructor() {}
 
     public reset() {
         this.resetForSimulator();
@@ -537,14 +534,6 @@ export class MockBrokerage implements BrokerStrategy {
         } catch (e) {
             LOGGER.error(e);
         }
-    }
-
-    public static getInstance() {
-        if (!MockBrokerage.instance) {
-            MockBrokerage.instance = new MockBrokerage();
-        }
-
-        return MockBrokerage.instance;
     }
 }
 

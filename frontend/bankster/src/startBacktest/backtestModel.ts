@@ -23,18 +23,10 @@ export interface BacktestPosition {
     };
 }
 
-export interface BacktestWatchlist {
-    [index: string]: string[];
-}
-
-export interface BacktestPositions {
-    [index: string]: BacktestPosition[];
-}
-
 export interface BacktestResult {
     results: {
-        watchlist: BacktestWatchlist;
-        positions: BacktestPositions;
+        watchlist: string[];
+        positions: BacktestPosition[];
         startDate: string;
         endDate: string;
     }[];

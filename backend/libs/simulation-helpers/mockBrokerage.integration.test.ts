@@ -7,7 +7,7 @@ import {
     OrderStatus,
 } from "@neeschit/alpaca-trade-api";
 
-const instance = MockBrokerage.getInstance();
+const instance = new MockBrokerage();
 
 beforeEach(() => {
     instance.reset();
