@@ -1,24 +1,27 @@
 import { currentStreamingSymbols } from "../../libs/core-utils/data/filters";
 import { LOGGER } from "../../libs/core-utils/instrumentation/log";
 import { NarrowRangeBarSimulation } from "../../libs/strategy/narrowRangeBar.simulation";
-import { Simulator } from "../../libs/simulation-helpers/simulator";
+import {
+    SimulationImpl,
+    Simulator,
+} from "../../libs/simulation-helpers/simulator";
 import { getApiServer, Service } from "../../libs/core-utils/util/api";
-import { getData } from "../../libs/core-utils/resources/stockData";
+import {
+    getData,
+    getEarliestDate,
+} from "../../libs/core-utils/resources/stockData";
 import { endOfDay } from "date-fns";
 import { getCalendar } from "../../libs/brokerage-helpers/alpaca";
 import { isMarketOpen } from "../../libs/simulation-helpers/timing.util";
-import {
-    ensureDir,
-    readJson,
-    readdir,
-    readJSON,
-    writeJson,
-    ensureFile,
-} from "fs-extra";
+import { ensureDir, readdir, readJSON, writeJson, ensureFile } from "fs-extra";
+import { SpyGapCloseSimulation } from "../../libs/strategy/spyGap.simulation";
 
-const symbols = currentStreamingSymbols;
-
-async function run(startDate: string, endDate: string) {
+async function run(
+    startDate: string,
+    endDate: string,
+    Strategy: SimulationImpl,
+    symbols: string[]
+) {
     const simulator = new Simulator();
 
     const actualStartDate = startDate + "T14:00:00.000Z";
@@ -32,7 +35,7 @@ async function run(startDate: string, endDate: string) {
     );
 
     try {
-        return await simulator.run(batches, NarrowRangeBarSimulation);
+        return await simulator.run(batches, Strategy);
     } catch (e) {
         LOGGER.error(e);
         return {
@@ -61,13 +64,66 @@ backtestServer.get("/cached", async () => {
     }
 });
 
+backtestServer.get("/mindate", async () => {
+    const earliestDay = await getEarliestDate("SPY");
+
+    if (!earliestDay || !earliestDay.length) {
+        return Date.now();
+    }
+
+    return earliestDay[0].t;
+});
+
 backtestServer.get(
-    "/backtest/:startDate/:endDate",
+    "/nrb/:startDate/:endDate",
     async (request: { params: any }) => {
         const startDate = request.params.startDate;
         const endDate = request.params.endDate;
 
-        const results = await run(startDate, endDate);
+        const simulationResults = await run(
+            startDate,
+            endDate,
+            NarrowRangeBarSimulation,
+            currentStreamingSymbols
+        );
+
+        const results = {
+            ...simulationResults,
+            strategy: "Model 1",
+        };
+
+        try {
+            await ensureFile(`./backtests/${startDate}-${endDate}.json`);
+
+            await writeJson(
+                `./backtests/${startDate}-${endDate}.json`,
+                results
+            );
+        } catch (e) {
+            LOGGER.error(e);
+        }
+
+        return results;
+    }
+);
+
+backtestServer.get(
+    "/spyGap/:startDate/:endDate",
+    async (request: { params: any }) => {
+        const startDate = request.params.startDate;
+        const endDate = request.params.endDate;
+
+        const simulationResults = await run(
+            startDate,
+            endDate,
+            SpyGapCloseSimulation,
+            ["SPY"]
+        );
+
+        const results = {
+            ...simulationResults,
+            strategy: "Model 2",
+        };
 
         try {
             await ensureFile(`./backtests/${startDate}-${endDate}.json`);

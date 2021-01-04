@@ -465,10 +465,10 @@
     "@types/yargs" "^15.0.0"
     chalk "^4.0.0"
 
-"@neeschit/alpaca-trade-api@1.4.6":
-  version "1.4.6"
-  resolved "https://registry.yarnpkg.com/@neeschit/alpaca-trade-api/-/alpaca-trade-api-1.4.6.tgz#69964a6eaeadf1db776b27afebe47b0aa4f43659"
-  integrity sha512-8JQku6qYTmPiEcGqQIY/nNJAgmwr9J3eZmykM40xyWOgOfeN1CnkL1NMRwDT1bmLbEHpx2/FicYjs4Zbe2V9Qw==
+"@neeschit/alpaca-trade-api@1.5.0":
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/@neeschit/alpaca-trade-api/-/alpaca-trade-api-1.5.0.tgz#fff7266777780b79ab7772dd34906def06652ad4"
+  integrity sha512-SYVF8/ld50jGszF87h6zLfSL3Wj02K/mwpbjZmYzlfm8f99DtQidvsQcW58TEQcNtBBEGlDZ/NBgkkk/dL3mNw==
   dependencies:
     dotenv "^6.2.0"
     just-extend "^4.1.0"

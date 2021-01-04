@@ -32,13 +32,36 @@ export const getOpenPositions = () => {
     return alpaca.getPositions();
 };
 
-export const createBracketOrder = (
-    order: AlpacaTradeConfig
-): Promise<AlpacaOrder> => {
+const createOrder = (order: AlpacaTradeConfig): Promise<AlpacaOrder> => {
     if (!order.qty || order.qty < 0) {
         throw new Error("quantity_required");
     }
     return alpaca.createOrder(order);
+};
+export const createBracketOrder = (
+    order: AlpacaTradeConfig
+): Promise<AlpacaOrder> => {
+    if (
+        !order.stop_loss ||
+        !order.take_profit ||
+        order.order_class !== "bracket"
+    ) {
+        throw new Error("both take_profit and stop_loss is required");
+    }
+    return createOrder(order);
+};
+
+export const createOneTriggersAnotherOrder = (
+    order: AlpacaTradeConfig
+): Promise<AlpacaOrder> => {
+    if (
+        order.order_class !== "oto" ||
+        (!order.take_profit && !order.stop_loss)
+    ) {
+        throw new Error("need a stop_loss or take_profit for OTO orders");
+    }
+
+    return createOrder(order);
 };
 
 export const getConnectedDataWebsocket = (params: {
@@ -78,4 +101,5 @@ export const brokerImpl = {
     getOpenPositions,
     getOpenOrders,
     cancelAlpacaOrder,
+    createOneTriggersAnotherOrder,
 };

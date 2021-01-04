@@ -306,6 +306,49 @@ test("multiple open orders at the same time", async () => {
     expect(instance.closedOrders.length).toEqual(4);
 });
 
+test("create oto market order on open", async () => {
+    const order = await instance.createOneTriggersAnotherOrder({
+        client_order_id: "test_" + Date.now(),
+        symbol: "SPY",
+        qty: 10,
+        side: TradeDirection.sell,
+        type: TradeType.market,
+        extended_hours: false,
+        time_in_force: TimeInForce.opg,
+        order_class: "oto",
+        take_profit: {
+            limit_price: 372.14,
+        },
+    });
+
+    let openOrders = await instance.getOpenOrders();
+
+    expect(openOrders.length).toEqual(1);
+    expect(instance.stopLegs.length).toEqual(0);
+    expect(instance.profitLegs.length).toEqual(1);
+
+    const marketOpen12292020 = 1609252200000;
+    await instance.tick(marketOpen12292020);
+
+    openOrders = await instance.getOpenOrders();
+
+    expect(openOrders.length).toEqual(1);
+    expect(instance.stopLegs.length).toEqual(0);
+    expect(instance.profitLegs.length).toEqual(0);
+
+    const closedOrders = instance.closedOrders;
+
+    expect(closedOrders[0].filled_avg_price).toEqual(373.81);
+
+    await instance.tick(1609254720000); // 10:12 am 12/29
+
+    openOrders = await instance.getOpenOrders();
+    expect(openOrders.length).toEqual(0);
+    expect(instance.stopLegs.length).toEqual(0);
+    expect(instance.profitLegs.length).toEqual(0);
+    expect(closedOrders[1].filled_avg_price).toEqual(372.14);
+});
+
 test("order filling test", () => {
     const params = {
         isCurrentPosition: false,

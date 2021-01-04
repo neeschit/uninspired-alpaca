@@ -32,6 +32,7 @@ export interface BacktestResult {
     }[];
     totalPnl: number;
     maxLeverage: number;
+    strategy: string;
 }
 
 export interface Bar {
@@ -42,3 +43,8 @@ export interface Bar {
     time: any;
     volume: number;
 }
+
+export const pathMap: { [index: string]: string } = {
+    "Model 1": "nrb",
+    "Model 2": "spyGap",
+};

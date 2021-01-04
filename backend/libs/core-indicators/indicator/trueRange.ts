@@ -16,8 +16,10 @@ export const getTrueRange = (bars: Bar[], useSimpleDefinition = true) => {
         throw new Error("check_yo_shiz");
     }
 
-    const highDiff = Math.abs(bars[1].h - bars[0].c);
-    const lowDiff = Math.abs(bars[1].l - bars[0].c);
+    const highDiff = Math.abs(
+        bars[bars.length - 1].h - bars[bars.length - 2].c
+    );
+    const lowDiff = Math.abs(bars[bars.length - 1].l - bars[bars.length - 2].c);
 
     return Math.max(currentDiff, highDiff, lowDiff);
 };

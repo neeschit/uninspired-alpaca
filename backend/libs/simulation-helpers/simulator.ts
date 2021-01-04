@@ -13,15 +13,18 @@ import { getCalendar } from "../brokerage-helpers/alpaca";
 import { SimulationStrategy } from "./simulation.strategy";
 import {
     DATE_FORMAT,
+    FIFTEEN_MINUTES,
     isAfterMarketClose,
     isBeforeMarketOpening,
     isMarketClosing,
     isMarketOpen,
     isMarketOpening,
+    isPremarket,
 } from "./timing.util";
 import { LOGGER } from "../core-utils/instrumentation/log";
 import { ClosedMockPosition, MockBrokerage } from "./mockBrokerage";
 import { getPerformance } from "./perfomance";
+import { open } from "fs-extra";
 
 export type SimulationImpl = new (...args: any[]) => SimulationStrategy;
 
@@ -119,6 +122,7 @@ export class Simulator {
         Strategy: SimulationImpl
     ): Promise<BacktestBatchResult> {
         const mockBroker = new MockBrokerage();
+        this.strategies = {};
 
         const start = parseISO(batch.startDate).getTime();
         const end = parseISO(batch.endDate).getTime();
@@ -128,9 +132,7 @@ export class Simulator {
 
         let maxLeverage = 0;
 
-        let currentTime =
-            Simulator.getMarketOpenTimeForDay(start, calendar) -
-            15 * this.updateInterval;
+        let currentTime = Simulator.getPremarketTimeForDay(start, calendar);
 
         while (currentTime <= end) {
             for (const symbol of batch.symbols) {
@@ -151,12 +153,17 @@ export class Simulator {
             }
 
             // call hook for mock brokerage
-            await mockBroker.tick(currentTime + this.updateInterval);
-
             if (isMarketOpen(calendar, currentTime)) {
+                await mockBroker.tick(currentTime);
+            }
+
+            if (
+                isMarketOpen(calendar, currentTime) ||
+                isPremarket(calendar, currentTime)
+            ) {
                 currentTime += this.updateInterval;
             } else if (isBeforeMarketOpening(calendar, currentTime)) {
-                currentTime = Simulator.getMarketOpenTimeForDay(
+                currentTime = Simulator.getPremarketTimeForDay(
                     currentTime,
                     calendar
                 );
@@ -192,6 +199,20 @@ export class Simulator {
             positions,
             maxLeverage,
         };
+    }
+
+    static getPremarketTimeForDay(epoch: number, calendar: Calendar[]): number {
+        try {
+            const openTime = Simulator._getMarketOpenTimeForDay(
+                epoch,
+                calendar,
+                0
+            );
+
+            return openTime - 2 * FIFTEEN_MINUTES;
+        } catch (e) {
+            throw new Error(`no_calendar_found_${format(epoch, "yyyy-MM-dd")}`);
+        }
     }
 
     static getMarketOpenTimeForDay(
@@ -325,10 +346,7 @@ export const runStrategy = async (
     sim: SimulationStrategy,
     epoch: number
 ) => {
-    if (
-        isMarketOpening(calendar, epoch) ||
-        isBeforeMarketOpening(calendar, epoch)
-    ) {
+    if (isPremarket(calendar, epoch)) {
         await sim.beforeMarketStarts(epoch);
     } else if (isMarketClosing(calendar, epoch)) {
         await sim.beforeMarketCloses(epoch);
@@ -338,7 +356,7 @@ export const runStrategy = async (
         } else {
             await sim.rebalance(calendar, epoch);
         }
-    } else {
+    } else if (isAfterMarketClose(calendar, epoch)) {
         await sim.onMarketClose(epoch);
     }
 };

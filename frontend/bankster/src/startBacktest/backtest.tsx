@@ -6,11 +6,16 @@ import {
     Button,
     CircularProgress,
     TextField,
+    FormControl,
+    InputLabel,
+    MenuItem,
+    Select,
 } from "@material-ui/core";
+import clsx from "clsx";
 import { DatePicker, LocalizationProvider } from "@material-ui/pickers";
 import DateFnsUtils from "@material-ui/pickers/adapter/date-fns";
 import { addBusinessDays, format, isAfter } from "date-fns";
-import { BacktestResult, backtestBaseUrl } from "./backtestModel";
+import { BacktestResult, backtestBaseUrl, pathMap } from "./backtestModel";
 import { AppContext } from "../appContext";
 import { BacktestDetail } from "../backtestHistory/backtestDetail";
 
@@ -28,18 +33,31 @@ const useStyles = makeStyles((theme) => ({
     resultsContainer: {
         marginTop: theme.spacing(3),
     },
+    formControl: {
+        margin: theme.spacing(1),
+        minWidth: 160,
+    },
 }));
 
 export const startBacktest = async (
     startDate: Date,
-    endDate: Date
+    endDate: Date,
+    path: string
 ): Promise<BacktestResult> => {
     const response = await fetch(
-        `${backtestBaseUrl}/backtest/${format(
-            startDate,
+        `${backtestBaseUrl}/${path}/${format(startDate, "yyyy-MM-dd")}/${format(
+            endDate,
             "yyyy-MM-dd"
-        )}/${format(endDate, "yyyy-MM-dd")}`
+        )}`
     );
+
+    const json = await response.json();
+
+    return json;
+};
+
+export const getServerMinDateCached = async (): Promise<number> => {
+    const response = await fetch(`${backtestBaseUrl}/mindate`);
 
     const json = await response.json();
 
@@ -62,9 +80,19 @@ export const BacktestStart = () => {
 
     const [hasError, setHasError] = React.useState(false);
 
+    const [minDate, setMinDate] = React.useState(Date.now());
+
+    const [selectedStrategy, setSelectedStrategy] = React.useState("");
+
     React.useEffect(() => {
         setHasError(isAfter(selectedDates.startDate, selectedDates.endDate));
     }, [selectedDates.startDate, selectedDates.endDate]);
+
+    React.useEffect(() => {
+        getServerMinDateCached().then((mindate) => {
+            setMinDate(mindate);
+        });
+    }, [setMinDate]);
 
     return (
         <LocalizationProvider dateAdapter={DateFnsUtils}>
@@ -90,7 +118,7 @@ export const BacktestStart = () => {
                                 endDate: selectedDates.endDate,
                             });
                         }}
-                        minDate={new Date("01-01-2017")}
+                        minDate={minDate}
                     />
                 </Grid>
                 <Grid item>
@@ -110,8 +138,37 @@ export const BacktestStart = () => {
                         renderInput={(props) => (
                             <TextField {...props} error={hasError} />
                         )}
-                        minDate={new Date("01-01-2017")}
+                        minDate={minDate}
                     />
+                </Grid>
+                <Grid item>
+                    <FormControl
+                        className={clsx(classes.formControl)}
+                        error={!selectedStrategy}
+                    >
+                        <InputLabel> Select Strategy</InputLabel>
+                        <Select
+                            value={selectedStrategy}
+                            label="Select Strategy"
+                            onChange={(event) => {
+                                console.log(event.target.value);
+                                setSelectedStrategy(event.target.value);
+                            }}
+                        >
+                            {Object.keys(pathMap).map((model) => {
+                                console.log(pathMap[model]);
+                                return (
+                                    <MenuItem
+                                        key={pathMap[model]}
+                                        value={pathMap[model]}
+                                        style={{ color: "#ffffff" }}
+                                    >
+                                        {model}
+                                    </MenuItem>
+                                );
+                            })}
+                        </Select>
+                    </FormControl>
                 </Grid>
                 <Grid item>
                     <span className={classes.alignMiddle}>
@@ -145,7 +202,8 @@ export const BacktestStart = () => {
 
                                 startBacktest(
                                     selectedDates.startDate,
-                                    selectedDates.endDate
+                                    selectedDates.endDate,
+                                    selectedStrategy
                                 ).then((results) => {
                                     setLoading(false);
                                     setResults(results);
@@ -158,7 +216,8 @@ export const BacktestStart = () => {
                                             selectedDates.endDate,
                                             "yyyy-MM-dd"
                                         ),
-                                        results
+                                        results,
+                                        results.strategy
                                     );
                                 });
                             }}
