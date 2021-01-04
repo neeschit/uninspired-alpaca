@@ -516,6 +516,43 @@ export const getData = async (
     }
 };
 
+const getEarliestData = (tablename: string) => {
+    return `
+        select 
+            *
+        from ${tablename.toLowerCase()}  
+        order by t asc limit 1;
+    `;
+};
+
+export const getEarliestDate = async (symbol: string) => {
+    const pool = getConnection();
+
+    const client = await pool.connect();
+
+    const tableName = getDailyTableNameForSymbol(symbol);
+
+    const query = getEarliestData(tableName);
+
+    try {
+        const result = await client.query(query);
+
+        return result.rows.map((r) => ({
+            v: Number(r.v),
+            c: Number(r.c),
+            o: Number(r.o),
+            h: Number(r.h),
+            l: Number(r.l),
+            t: new Date(r.t).getTime(),
+        }));
+    } catch (e) {
+        LOGGER.error(e);
+        return [];
+    } finally {
+        client.release();
+    }
+};
+
 export const getSimpleData = async (
     symbol: string,
     fromTimestamp: number,

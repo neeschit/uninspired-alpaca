@@ -212,6 +212,16 @@ export const BacktestDetail = ({ batch }: { batch: BacktestResult }) => {
                         Profit ratio is 1:2
                     </Typography>
                 </Grid>
+                <Grid item>
+                    <Typography
+                        component="p"
+                        style={{
+                            display: "inline-block",
+                        }}
+                    >
+                        Strategy is {batch.strategy}
+                    </Typography>
+                </Grid>
             </Grid>
             <Grid
                 container

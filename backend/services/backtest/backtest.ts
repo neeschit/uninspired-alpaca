@@ -1,7 +1,4 @@
-import {
-    currentStreamingSymbols,
-    currentTradingSymbols,
-} from "../../libs/core-utils/data/filters";
+import { currentStreamingSymbols } from "../../libs/core-utils/data/filters";
 import { LOGGER } from "../../libs/core-utils/instrumentation/log";
 import { NarrowRangeBarSimulation } from "../../libs/strategy/narrowRangeBar.simulation";
 import {
@@ -9,19 +6,14 @@ import {
     Simulator,
 } from "../../libs/simulation-helpers/simulator";
 import { getApiServer, Service } from "../../libs/core-utils/util/api";
-import { getData } from "../../libs/core-utils/resources/stockData";
+import {
+    getData,
+    getEarliestDate,
+} from "../../libs/core-utils/resources/stockData";
 import { endOfDay } from "date-fns";
 import { getCalendar } from "../../libs/brokerage-helpers/alpaca";
 import { isMarketOpen } from "../../libs/simulation-helpers/timing.util";
-import {
-    ensureDir,
-    readJson,
-    readdir,
-    readJSON,
-    writeJson,
-    ensureFile,
-} from "fs-extra";
-import { SimulationStrategy } from "../../libs/simulation-helpers/simulation.strategy";
+import { ensureDir, readdir, readJSON, writeJson, ensureFile } from "fs-extra";
 import { SpyGapCloseSimulation } from "../../libs/strategy/spyGap.simulation";
 
 async function run(
@@ -72,18 +64,33 @@ backtestServer.get("/cached", async () => {
     }
 });
 
+backtestServer.get("/mindate", async () => {
+    const earliestDay = await getEarliestDate("SPY");
+
+    if (!earliestDay || !earliestDay.length) {
+        return Date.now();
+    }
+
+    return earliestDay[0].t;
+});
+
 backtestServer.get(
-    "/backtest/:startDate/:endDate",
+    "/nrb/:startDate/:endDate",
     async (request: { params: any }) => {
         const startDate = request.params.startDate;
         const endDate = request.params.endDate;
 
-        const results = await run(
+        const simulationResults = await run(
             startDate,
             endDate,
             NarrowRangeBarSimulation,
             currentStreamingSymbols
         );
+
+        const results = {
+            ...simulationResults,
+            strategy: "Model 1",
+        };
 
         try {
             await ensureFile(`./backtests/${startDate}-${endDate}.json`);
@@ -101,14 +108,22 @@ backtestServer.get(
 );
 
 backtestServer.get(
-    "/experiment/:startDate/:endDate",
+    "/spyGap/:startDate/:endDate",
     async (request: { params: any }) => {
         const startDate = request.params.startDate;
         const endDate = request.params.endDate;
 
-        const results = await run(startDate, endDate, SpyGapCloseSimulation, [
-            "SPY",
-        ]);
+        const simulationResults = await run(
+            startDate,
+            endDate,
+            SpyGapCloseSimulation,
+            ["SPY"]
+        );
+
+        const results = {
+            ...simulationResults,
+            strategy: "Model 2",
+        };
 
         try {
             await ensureFile(`./backtests/${startDate}-${endDate}.json`);
