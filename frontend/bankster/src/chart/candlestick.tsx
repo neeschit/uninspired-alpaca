@@ -170,7 +170,9 @@ export function Candlestick({
     });
 
     React.useEffect(() => {
-        const fromEpoch = startOfDay(parseISO(symbolToGraph.entryTime)).getTime();
+        const fromEpoch = startOfDay(
+            parseISO(symbolToGraph.entryTime)
+        ).getTime();
 
         if (
             currentChartOptions.symbol === symbolToGraph.symbol &&
@@ -184,18 +186,24 @@ export function Candlestick({
             startEpoch: fromEpoch,
         });
 
-        getDataForDate({ symbol: symbolToGraph.symbol, fromEpoch }).then((bars) => {
-            const mappedVolume = bars.map((b) => {
-                return {
-                    value: b.volume,
-                    time: b.time,
-                    color: b.open > b.close ? upColor : downColor,
-                };
-            });
-            setCurrentBars(bars);
-            setCurrentVolume(mappedVolume);
-        });
-    }, [currentChartOptions.startEpoch, currentChartOptions.symbol, symbolToGraph]);
+        getDataForDate({ symbol: symbolToGraph.symbol, fromEpoch }).then(
+            (bars) => {
+                const mappedVolume = bars.map((b) => {
+                    return {
+                        value: b.volume,
+                        time: b.time,
+                        color: b.open > b.close ? upColor : downColor,
+                    };
+                });
+                setCurrentBars(bars);
+                setCurrentVolume(mappedVolume);
+            }
+        );
+    }, [
+        currentChartOptions.startEpoch,
+        currentChartOptions.symbol,
+        symbolToGraph,
+    ]);
     const [dimensions, setDimensions] = React.useState({
         height: window.innerHeight,
         width: window.innerWidth,
@@ -213,7 +221,11 @@ export function Candlestick({
 
     React.useEffect(() => {
         if (chartRef.current) {
-            chartObject.current?.resize(chartRef.current.offsetWidth, 600, true);
+            chartObject.current?.resize(
+                chartRef.current.offsetWidth,
+                600,
+                true
+            );
             chartObject.current?.timeScale().fitContent();
         }
     }, [dimensions]);
@@ -241,10 +253,82 @@ export function Candlestick({
             return;
         }
 
+        const entryTime = parseISO(selectedPosition.entryTime).getTime() / 1000;
+
+        const entryBarIndex = currentBars.findIndex((b) => {
+            return entryTime < b.time;
+        });
+
+        if (entryBarIndex < 0) {
+            return;
+        }
+
+        const entryBar = currentBars[entryBarIndex - 1];
+
+        if (!entryBar) {
+            return;
+        }
+
+        const exitTime = parseISO(selectedPosition.exitTime).getTime() / 1000;
+        const exitBarIndex = currentBars.findIndex((b) => exitTime < b.time);
+
+        const exitBar = currentBars[exitBarIndex - 1];
+
+        if (!exitBar) {
+            return;
+        }
+
+        const markers: SeriesMarker<any>[] = [];
+
+        const [
+            entryMarkerPosition,
+            exitMarkerPosition,
+        ]: SeriesMarkerPosition[] =
+            selectedPosition.side === PositionDirection.long
+                ? ["belowBar", "aboveBar"]
+                : ["aboveBar", "belowBar"];
+        const [entryShape, exitShape]: SeriesMarkerShape[] =
+            selectedPosition.side === PositionDirection.long
+                ? ["arrowUp", "arrowDown"]
+                : ["arrowDown", "arrowUp"];
+
+        const [entryColor, exitColor] =
+            selectedPosition.side === PositionDirection.long
+                ? ["#2196F3", "#e91e63"]
+                : ["#e91e63", "#2196F3"];
+
+        markers.push({
+            shape: entryShape,
+            time: entryBar.time,
+            position: entryMarkerPosition,
+            color: entryColor,
+            text: `${
+                selectedPosition.qty
+            } @ ${selectedPosition.averageEntryPrice.toFixed(2)}`,
+        });
+
+        markers.push({
+            shape: exitShape,
+            time: exitBar.time,
+            position: exitMarkerPosition,
+            color: exitColor,
+            text: `${
+                selectedPosition.qty
+            } @ ${selectedPosition.averageExitPrice.toFixed(2)}`,
+        });
+
+        seriesRef.current?.setMarkers(markers);
+        return () => {
+            seriesRef.current?.setMarkers([]);
+        };
+    }, [currentBars, selectedPosition]);
+
+    React.useEffect(() => {
         const pricelines: Array<IPriceLine | undefined> = [];
 
-        if (addPlannedPricelinesForPosition) {
+        if (addPlannedPricelinesForPosition && selectedPosition) {
             const lineWidth = 2;
+            console.log("adding to priceline");
             const plannedEntry = seriesRef.current?.createPriceLine({
                 price: selectedPosition.plannedEntryPrice,
                 color: "#be1238",
@@ -276,73 +360,15 @@ export function Candlestick({
             pricelines.push(plannedStop);
             pricelines.push(plannedTarget);
         }
-
-        const entryTime = parseISO(selectedPosition.entryTime).getTime() / 1000;
-
-        const entryBarIndex = currentBars.findIndex((b) => {
-            return entryTime < b.time;
-        });
-
-        if (entryBarIndex < 0) {
-            return;
-        }
-
-        const entryBar = currentBars[entryBarIndex - 1];
-
-        if (!entryBar) {
-            return;
-        }
-        const exitTime = parseISO(selectedPosition.exitTime).getTime() / 1000;
-        const exitBarIndex = currentBars.findIndex((b) => exitTime < b.time);
-
-        const exitBar = currentBars[exitBarIndex - 1];
-
-        if (!exitBar) {
-            return;
-        }
-
-        const markers: SeriesMarker<any>[] = [];
-
-        const [entryMarkerPosition, exitMarkerPosition]: SeriesMarkerPosition[] =
-            selectedPosition.side === PositionDirection.long
-                ? ["belowBar", "aboveBar"]
-                : ["aboveBar", "belowBar"];
-        const [entryShape, exitShape]: SeriesMarkerShape[] =
-            selectedPosition.side === PositionDirection.long
-                ? ["arrowUp", "arrowDown"]
-                : ["arrowDown", "arrowUp"];
-
-        const [entryColor, exitColor] =
-            selectedPosition.side === PositionDirection.long
-                ? ["#2196F3", "#e91e63"]
-                : ["#e91e63", "#2196F3"];
-
-        markers.push({
-            shape: entryShape,
-            time: entryBar.time,
-            position: entryMarkerPosition,
-            color: entryColor,
-            text: `${selectedPosition.qty} @ ${selectedPosition.averageEntryPrice.toFixed(2)}`,
-        });
-
-        markers.push({
-            shape: exitShape,
-            time: exitBar.time,
-            position: exitMarkerPosition,
-            color: exitColor,
-            text: `${selectedPosition.qty} @ ${selectedPosition.averageExitPrice.toFixed(2)}`,
-        });
-
-        seriesRef.current?.setMarkers(markers);
         return () => {
-            seriesRef.current?.setMarkers([]);
             for (const line of pricelines) {
+                console.log("removing priceline");
                 if (line) {
                     seriesRef.current?.removePriceLine(line);
                 }
             }
         };
-    }, [addPlannedPricelinesForPosition, currentBars, selectedPosition, symbolToGraph.symbol]);
+    }, [addPlannedPricelinesForPosition, selectedPosition]);
 
     React.useEffect(() => {
         chartObject.current?.subscribeCrosshairMove((param) => {
@@ -350,16 +376,20 @@ export function Candlestick({
                 return;
             }
 
-            const bar: Bar | undefined = currentBars.find((b) => b.time === param.time);
+            const bar: Bar | undefined = currentBars.find(
+                (b) => b.time === param.time
+            );
 
             if (!bar) {
                 return;
             }
 
             setLegendMessage(
-                `O${bar.open.toFixed(2)} H${bar.high.toFixed(2)} L${bar.low.toFixed(
+                `O${bar.open.toFixed(2)} H${bar.high.toFixed(
                     2
-                )} C${bar.close.toFixed(2)} V${bar.volume.toLocaleString()}`
+                )} L${bar.low.toFixed(2)} C${bar.close.toFixed(
+                    2
+                )} V${bar.volume.toLocaleString()}`
             );
         });
     }, [currentBars]);
