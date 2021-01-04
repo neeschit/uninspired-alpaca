@@ -153,15 +153,13 @@ export class Simulator {
 
             // call hook for mock brokerage
             if (isMarketOpen(calendar, currentTime)) {
-                await mockBroker.tick(currentTime + this.updateInterval);
+                await mockBroker.tick(currentTime);
             }
 
             if (
                 isMarketOpen(calendar, currentTime) ||
                 isPremarket(calendar, currentTime)
             ) {
-                if (isPremarket(calendar, currentTime)) {
-                }
                 currentTime += this.updateInterval;
             } else if (isBeforeMarketOpening(calendar, currentTime)) {
                 currentTime = Simulator.getPremarketTimeForDay(

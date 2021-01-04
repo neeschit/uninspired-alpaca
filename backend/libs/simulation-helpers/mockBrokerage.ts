@@ -394,7 +394,7 @@ export class MockBrokerage implements BrokerStrategy {
                     this.openPositions.push({
                         ...getFilledPosition(
                             order,
-                            strikePrice,
+                            mockOrder.filled_avg_price,
                             isShort,
                             minuteBar
                         ),
@@ -546,7 +546,7 @@ export class MockBrokerage implements BrokerStrategy {
                         ? TradeDirection.buy
                         : TradeDirection.sell,
                 qty: originalOrder.filled_qty,
-                time_in_force: originalOrder.time_in_force,
+                time_in_force: TimeInForce.day,
             },
             epoch
         );
@@ -563,11 +563,14 @@ export class MockBrokerage implements BrokerStrategy {
                 (o) => o.id === position.orderIds.takeProfit
             );
 
-            if (!stopOrder) {
+            if (!stopOrder && originalOrder.associatedOrderIds.stopLoss) {
                 throw new Error("expected_stop_order");
             }
 
-            if (!takeProfitOrder) {
+            if (
+                !takeProfitOrder &&
+                originalOrder.associatedOrderIds.takeProfit
+            ) {
                 throw new Error("expected_profit_order");
             }
 
@@ -588,9 +591,11 @@ export class MockBrokerage implements BrokerStrategy {
                 plannedEntryPrice:
                     originalOrder!.stop_price || originalOrder!.limit_price!,
                 plannedExitPrice:
-                    stopOrder?.stop_price || closingOrder!.stop_price!,
+                    stopOrder?.stop_price || closingOrder?.stop_price || 0,
                 plannedTargetPrice:
-                    takeProfitOrder?.limit_price || closingOrder!.limit_price!,
+                    takeProfitOrder?.limit_price ||
+                    closingOrder!.limit_price ||
+                    0,
                 qty: originalOrder!.filled_qty,
                 side:
                     originalOrder!.side === TradeDirection.sell
