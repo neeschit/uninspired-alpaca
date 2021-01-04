@@ -122,6 +122,7 @@ export class Simulator {
         Strategy: SimulationImpl
     ): Promise<BacktestBatchResult> {
         const mockBroker = new MockBrokerage();
+        this.strategies = {};
 
         const start = parseISO(batch.startDate).getTime();
         const end = parseISO(batch.endDate).getTime();

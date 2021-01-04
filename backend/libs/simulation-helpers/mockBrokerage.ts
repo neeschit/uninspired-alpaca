@@ -475,7 +475,8 @@ export class MockBrokerage implements BrokerStrategy {
                     averageExitPrice,
                     plannedEntryPrice:
                         originalOrder!.stop_price ||
-                        originalOrder!.limit_price!,
+                        originalOrder!.limit_price! ||
+                        originalOrder!.filled_avg_price,
                     plannedExitPrice:
                         stopOrder?.stop_price || closingOrder!.stop_price!,
                     plannedTargetPrice:
@@ -589,7 +590,9 @@ export class MockBrokerage implements BrokerStrategy {
                 averageExitPrice,
                 totalPnl,
                 plannedEntryPrice:
-                    originalOrder!.stop_price || originalOrder!.limit_price!,
+                    originalOrder!.stop_price ||
+                    originalOrder!.limit_price! ||
+                    originalOrder!.filled_avg_price,
                 plannedExitPrice:
                     stopOrder?.stop_price || closingOrder?.stop_price || 0,
                 plannedTargetPrice:
