@@ -6,6 +6,7 @@ import {
     TradeDirection,
     TradeType,
     PositionDirection,
+    TimeInForce,
 } from "@neeschit/alpaca-trade-api";
 import { v4 } from "uuid";
 import { formatISO, fromUnixTime } from "date-fns";
@@ -176,6 +177,80 @@ export class MockBrokerage implements BrokerStrategy {
         return alpacaOrder;
     }
 
+    public async createOneTriggersAnotherOrder(
+        order: AlpacaTradeConfig
+    ): Promise<AlpacaOrder> {
+        if (
+            (!order.stop_loss && !order.take_profit) ||
+            order.order_class !== "oto"
+        ) {
+            throw new Error("stop_loss_take_profit_missing_for_bracket_order");
+        }
+
+        if (this.openPositions.some((p) => p.symbol === order.symbol)) {
+            throw new Error("position_exists");
+        }
+
+        if (this.orders.some((o) => o.symbol === order.symbol)) {
+            throw new Error("order_exists");
+        }
+
+        const inverseOrderType =
+            order.side === TradeDirection.sell
+                ? TradeDirection.buy
+                : TradeDirection.sell;
+
+        const alpacaOrder = getFakeNewOrder(order, this.epoch);
+
+        if (order.stop_loss) {
+            const stopOrder = getFakeNewOrder(
+                {
+                    side: inverseOrderType,
+                    time_in_force: TimeInForce.day,
+                    type: TradeType.stop,
+                    stop_price: order.stop_loss!.stop_price,
+                    symbol: order.symbol,
+                    qty: order.qty,
+                },
+                this.epoch
+            );
+            this.stopLegs.push(stopOrder);
+
+            this.orders.push({
+                ...alpacaOrder,
+                associatedOrderIds: {
+                    takeProfit: "",
+                    stopLoss: stopOrder.id,
+                },
+            });
+        }
+
+        if (order.take_profit) {
+            const takeProfitOrder = getFakeNewOrder(
+                {
+                    side: inverseOrderType,
+                    time_in_force: TimeInForce.day,
+                    type: TradeType.limit,
+                    limit_price: order.take_profit!.limit_price,
+                    symbol: order.symbol,
+                    qty: order.qty,
+                },
+                this.epoch
+            );
+            this.profitLegs.push(takeProfitOrder);
+
+            this.orders.push({
+                ...alpacaOrder,
+                associatedOrderIds: {
+                    takeProfit: takeProfitOrder.id,
+                    stopLoss: "",
+                },
+            });
+        }
+
+        return alpacaOrder;
+    }
+
     public async tick(epoch: number) {
         this.epoch = epoch;
 
@@ -218,18 +293,6 @@ export class MockBrokerage implements BrokerStrategy {
                             minuteBar[0],
                             isCurrentPosition
                         );
-                    } else {
-                        const hasClosed = this.openPositions.every(
-                            (p) => p.symbol !== order.symbol
-                        );
-
-                        if (!hasClosed) {
-                            throw new Error(
-                                `Couldn't find a stop order when it was expected for ${JSON.stringify(
-                                    order
-                                )}`
-                            );
-                        }
                     }
                 }
 
@@ -299,47 +362,56 @@ export class MockBrokerage implements BrokerStrategy {
 
                 mockOrder.filled_at = filledAtTime;
                 mockOrder.filled_qty = order.qty;
-                mockOrder.filled_avg_price = strikePrice;
+                mockOrder.filled_avg_price =
+                    order.type !== TradeType.market
+                        ? strikePrice
+                        : TimeInForce.opg === order.time_in_force
+                        ? minuteBar.o
+                        : minuteBar.c;
 
                 this.closedOrders.push(mockOrder);
+
                 const takeProfitOrderIndex = this.profitLegs.findIndex(
                     (o) =>
                         o.id === mockOrder.associatedOrderIds.takeProfit &&
                         o.symbol === order.symbol
                 );
 
-                if (takeProfitOrderIndex < 0) {
+                if (
+                    takeProfitOrderIndex < 0 &&
+                    mockOrder.associatedOrderIds.takeProfit
+                ) {
                     throw new Error(
                         `expected a take profit order for ${JSON.stringify(
                             order
                         )}`
                     );
+                } else {
+                    const takeProfitOrder = this.profitLegs.splice(
+                        takeProfitOrderIndex,
+                        1
+                    )[0];
+                    this.openPositions.push({
+                        ...getFilledPosition(
+                            order,
+                            strikePrice,
+                            isShort,
+                            minuteBar
+                        ),
+                        orderIds: {
+                            original: mockOrder.id,
+                            ...mockOrder.associatedOrderIds,
+                        },
+                    });
+
+                    this.orders.push({
+                        ...takeProfitOrder,
+                        associatedOrderIds: {
+                            takeProfit: takeProfitOrder.id,
+                            stopLoss: mockOrder.associatedOrderIds.stopLoss,
+                        },
+                    });
                 }
-
-                const takeProfitOrder = this.profitLegs.splice(
-                    takeProfitOrderIndex,
-                    1
-                )[0];
-                this.openPositions.push({
-                    ...getFilledPosition(
-                        order,
-                        strikePrice,
-                        isShort,
-                        minuteBar
-                    ),
-                    orderIds: {
-                        original: mockOrder.id,
-                        ...mockOrder.associatedOrderIds,
-                    },
-                });
-
-                this.orders.push({
-                    ...takeProfitOrder,
-                    associatedOrderIds: {
-                        takeProfit: takeProfitOrder.id,
-                        stopLoss: mockOrder.associatedOrderIds.stopLoss,
-                    },
-                });
             } else {
                 const positionIndex = this.openPositions.findIndex(
                     (p) => p.symbol === order.symbol
@@ -546,6 +618,10 @@ export const isOrderFillable = (
     strikePrice: number
 ) => {
     let filled = false;
+
+    if (order.type === TradeType.market) {
+        return true;
+    }
 
     if (!isCurrentPosition) {
         if (isShort && bar.o < strikePrice && bar.l < bar.o) {

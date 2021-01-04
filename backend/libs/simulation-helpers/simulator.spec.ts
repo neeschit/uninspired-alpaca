@@ -8,6 +8,8 @@ import {
     Simulator,
 } from "./simulator";
 
+jest.setTimeout(10000);
+
 test("Backtester - simulate batching with batches being limited to single days", () => {
     const zonedStartDate = "2021-01-04T16:00:00.000Z";
     const zonedEndDate = "2021-01-07T23:00:00.000Z";
@@ -128,7 +130,7 @@ test("Simulator should fake system time when executing batches", async () => {
     await simulator.run(batches, MockStrategy);
 
     expect(mockRebalance).toBeCalledTimes(750 * test.length);
-    expect(mockBeforeMarketStarts).toBeCalledTimes(2 * test.length);
+    expect(mockBeforeMarketStarts).toBeCalledTimes(60 * test.length);
     expect(mockOnMarketClose).toBeCalledTimes(2 * test.length);
     expect(mockHasEntryTimePassed).toBeCalledTimes(750 * test.length);
     expect(mockWhenMarketClosing).toBeCalledTimes(30 * test.length);
@@ -202,7 +204,7 @@ test("runStrategy - beforeMarketStarts", async () => {
         "TEST",
         calendar,
         (mockStrategy as unknown) as SimulationStrategy,
-        1608613881000
+        1608645600000
     );
 
     expect(mockBeforeMarketStarts).toHaveBeenCalledTimes(1);

@@ -24,6 +24,7 @@ jest.mock("../core-utils/connection/pg");
 const mockBrokerage = {
     closePosition: jest.fn(),
     createBracketOrder: jest.fn(),
+    createOneTriggersAnotherOrder: jest.fn(),
     getOpenPositions: jest.fn(),
     getOpenOrders: jest.fn(),
     cancelAlpacaOrder: jest.fn(),

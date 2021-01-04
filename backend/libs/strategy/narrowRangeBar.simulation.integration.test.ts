@@ -19,6 +19,7 @@ jest.mock("../trade-management-helpers/order");
 const mockBrokerage = {
     closePosition: jest.fn(),
     createBracketOrder: jest.fn(),
+    createOneTriggersAnotherOrder: jest.fn(),
     getOpenPositions: jest.fn(),
     getOpenOrders: jest.fn(),
     cancelAlpacaOrder: jest.fn(),

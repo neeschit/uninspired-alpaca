@@ -1,10 +1,12 @@
 import { getCalendar } from "../brokerage-helpers/alpaca";
 import {
+    FIFTEEN_MINUTES,
     isAfterMarketClose,
     isBeforeMarketOpening,
     isMarketClosing,
     isMarketOpen,
     isMarketOpening,
+    isPremarket,
 } from "./timing.util";
 
 test("isMarketOpening", async () => {
@@ -50,6 +52,21 @@ test("isMarketOpen", async () => {
     const dayAfterEpoch = 1606487400000;
 
     expect(isMarketOpen(calendar, dayAfterEpoch)).toEqual(true);
+});
+
+test("isPremarket", async () => {
+    const calendar = await getCalendar(
+        new Date("12-26-2020"),
+        new Date("12-30-2020")
+    );
+
+    const premarketEpoch1229 = 1609250400000;
+
+    expect(isPremarket(calendar, premarketEpoch1229)).toEqual(true);
+
+    const openEpoch = 1609252200000;
+
+    expect(isPremarket(calendar, openEpoch)).toEqual(false);
 });
 
 test("isMarketClosing", async () => {

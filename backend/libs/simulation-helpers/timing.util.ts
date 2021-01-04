@@ -4,7 +4,7 @@ import { zonedTimeToUtc } from "date-fns-tz";
 import { MarketTimezone } from "../core-utils/data/data.model";
 
 export const DATE_FORMAT = "yyyy-MM-dd";
-const fifteenMinutes = 1000 * 60 * 15;
+export const FIFTEEN_MINUTES = 1000 * 60 * 15;
 
 const getDateAndCurrentCalendarObject = (
     calendar: Calendar[],
@@ -39,7 +39,7 @@ export const isMarketOpening = (
         const marketOpenToday = zonedTimeToUtc(openTime, MarketTimezone);
 
         return (
-            marketOpenToday.getTime() - fifteenMinutes <= currentTimeEpoch &&
+            marketOpenToday.getTime() - FIFTEEN_MINUTES <= currentTimeEpoch &&
             currentTimeEpoch < marketOpenToday.getTime()
         );
     } catch (e) {
@@ -61,7 +61,7 @@ export const isMarketClosing = (
         const marketCloseToday = zonedTimeToUtc(closeTime, MarketTimezone);
 
         return (
-            marketCloseToday.getTime() - fifteenMinutes <= currentTimeEpoch &&
+            marketCloseToday.getTime() - FIFTEEN_MINUTES <= currentTimeEpoch &&
             currentTimeEpoch < marketCloseToday.getTime()
         );
     } catch (e) {
@@ -106,6 +106,28 @@ export const isBeforeMarketOpening = (
 
         return (
             marketOpenToday.getTime() > currentTimeEpoch &&
+            isSameDay(currentTimeEpoch, marketOpenToday)
+        );
+    } catch (e) {
+        return false;
+    }
+};
+
+export const isPremarket = (calendar: Calendar[], currentTimeEpoch: number) => {
+    try {
+        const {
+            currentCalendarObject,
+            currentDateString,
+        } = getDateAndCurrentCalendarObject(calendar, currentTimeEpoch);
+
+        const openTime = `${currentDateString}T${currentCalendarObject.open}:00.000`;
+        const marketOpenToday = zonedTimeToUtc(openTime, MarketTimezone);
+
+        const premarketToday = marketOpenToday.getTime() - 2 * FIFTEEN_MINUTES;
+
+        return (
+            marketOpenToday.getTime() > currentTimeEpoch &&
+            premarketToday <= currentTimeEpoch &&
             isSameDay(currentTimeEpoch, marketOpenToday)
         );
     } catch (e) {
