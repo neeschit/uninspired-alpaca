@@ -1,12 +1,11 @@
 import { Calendar } from "@neeschit/alpaca-trade-api";
-
-import { getData } from "../../libs/core-utils/resources/stockData";
-import { getMarketOpenMillis } from "../../libs/simulation-helpers/timing.util";
 import { runStrategy } from "../../libs/simulation-helpers/simulator";
 import { NarrowRangeBarSimulation } from "../../libs/strategy/narrowRangeBar.simulation";
 import { BrokerStrategy } from "../../libs/brokerage-helpers/brokerage.strategy";
+import { SpyGapCloseSimulation } from "../../libs/strategy/spyGap.simulation";
 
 const nrbStrategies: { [index: string]: NarrowRangeBarSimulation } = {};
+const spyGapStrategies: { [index: string]: SpyGapCloseSimulation } = {};
 
 export const rebalanceForSymbol = async (
     symbol: string,
@@ -14,13 +13,17 @@ export const rebalanceForSymbol = async (
     broker: BrokerStrategy,
     epoch = Date.now()
 ) => {
-    let sim = nrbStrategies[symbol];
+    if (symbol.toLowerCase() === "SPY") {
+        spyGapStrategies["SPY"] =
+            spyGapStrategies["SPY"] || new SpyGapCloseSimulation("SPY", broker);
 
-    if (!sim) {
-        sim = new NarrowRangeBarSimulation(symbol, broker);
+        await runStrategy(symbol, calendar, spyGapStrategies[symbol], epoch);
 
-        nrbStrategies[symbol] = sim;
+        return;
     }
 
-    return runStrategy(symbol, calendar, sim, epoch);
+    nrbStrategies[symbol] =
+        nrbStrategies[symbol] || new NarrowRangeBarSimulation(symbol, broker);
+
+    return runStrategy(symbol, calendar, nrbStrategies[symbol], epoch);
 };

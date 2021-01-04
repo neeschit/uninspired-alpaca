@@ -58,10 +58,27 @@ export class SpyGapCloseSimulation implements SimulationStrategy {
                     daysMinutes[this.symbol],
                     this.symbol
                 );
+            } catch (e) {
+                LOGGER.error(`Error inserting daily bar for ${this.symbol}`, e);
+            }
 
+            try {
+                const todaysMinutes = await getPolyonData(
+                    this.symbol,
+                    lastBusinessDay,
+                    addBusinessDays(epoch, 1),
+                    PeriodType.minute
+                );
+                await batchInsertDailyBars(
+                    todaysMinutes[this.symbol],
+                    this.symbol
+                );
                 this.hasCachedData = true;
             } catch (e) {
-                LOGGER.error(`Error inserting for ${this.symbol}`, e);
+                LOGGER.error(
+                    `Error inserting minute bars for ${this.symbol}`,
+                    e
+                );
             }
         }
 
