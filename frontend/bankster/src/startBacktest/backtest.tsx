@@ -191,7 +191,8 @@ export const BacktestStart = () => {
                                             format(
                                                 selectedDates.endDate,
                                                 "yyyy-MM-dd"
-                                            )
+                                            ) &&
+                                        b.strategy === selectedStrategy
                                 );
 
                                 if (existingTest) {
