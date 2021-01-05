@@ -1,9 +1,4 @@
-import {
-    Calendar,
-    TimeInForce,
-    TradeDirection,
-    TradeType,
-} from "@neeschit/alpaca-trade-api";
+import { Calendar, TimeInForce, TradeDirection, TradeType } from "@neeschit/alpaca-trade-api";
 import { addBusinessDays } from "date-fns";
 import { createOneTriggersAnotherOrder } from "../brokerage-helpers/alpaca";
 import { BrokerStrategy } from "../brokerage-helpers/brokerage.strategy";
@@ -12,6 +7,7 @@ import { DefaultDuration, PeriodType } from "../core-utils/data/data.model";
 import { LOGGER } from "../core-utils/instrumentation/log";
 import { getPolyonData } from "../core-utils/resources/polygon";
 import {
+    batchInsertBars,
     batchInsertDailyBars,
     getData,
     getSimpleData,
@@ -25,8 +21,7 @@ export const isTimeForGapCloseEntry = (nowMillis: number) => {
     const timeStart = convertToLocalTime(nowMillis, " 09:15:45.000");
     const timeEnd = convertToLocalTime(nowMillis, " 09:27:58.000");
 
-    const isWithinEntryRange =
-        timeStart.getTime() <= nowMillis && timeEnd.getTime() >= nowMillis;
+    const isWithinEntryRange = timeStart.getTime() <= nowMillis && timeEnd.getTime() >= nowMillis;
 
     return isWithinEntryRange;
 };
@@ -54,10 +49,7 @@ export class SpyGapCloseSimulation implements SimulationStrategy {
             );
 
             try {
-                await batchInsertDailyBars(
-                    daysMinutes[this.symbol],
-                    this.symbol
-                );
+                await batchInsertDailyBars(daysMinutes[this.symbol], this.symbol);
             } catch (e) {
                 LOGGER.error(`Error inserting daily bar for ${this.symbol}`, e);
             }
@@ -69,16 +61,10 @@ export class SpyGapCloseSimulation implements SimulationStrategy {
                     addBusinessDays(epoch, 1),
                     PeriodType.minute
                 );
-                await batchInsertDailyBars(
-                    todaysMinutes[this.symbol],
-                    this.symbol
-                );
+                await batchInsertBars(todaysMinutes[this.symbol], this.symbol);
                 this.hasCachedData = true;
             } catch (e) {
-                LOGGER.error(
-                    `Error inserting minute bars for ${this.symbol}`,
-                    e
-                );
+                LOGGER.error(`Error inserting minute bars for ${this.symbol}`, e);
             }
         }
 
@@ -109,7 +95,7 @@ export class SpyGapCloseSimulation implements SimulationStrategy {
 
         const previousDayRange = getTrueRange(data.slice(-2), false);
 
-        if (gap > previousDayRange * 0.85 || gap < previousDayRange * 0.15) {
+        if (gap > previousDayRange * 0.85) {
             this.isGapDay = false;
             return;
         }
@@ -120,10 +106,7 @@ export class SpyGapCloseSimulation implements SimulationStrategy {
             symbol: this.symbol,
             time_in_force: TimeInForce.opg,
             qty: 100,
-            side:
-                previousClose > price
-                    ? TradeDirection.buy
-                    : TradeDirection.sell,
+            side: previousClose > price ? TradeDirection.buy : TradeDirection.sell,
             type: TradeType.market,
             order_class: "oto",
             extended_hours: false,
