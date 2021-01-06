@@ -1,5 +1,4 @@
-export const backtestBaseUrl =
-    "http://localhost:6971" || "https://6841deaec3ec.ngrok.io";
+export const backtestBaseUrl = "https://6841deaec3ec.ngrok.io";
 
 export enum PositionDirection {
     long = "long",
