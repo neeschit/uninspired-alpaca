@@ -16,19 +16,11 @@ import {
 
 import { TradePlan, persistTradePlan, PersistedTradePlan } from "./position";
 import { getConnection } from "../core-utils/connection/pg";
+import { mockBrokerage } from "../simulation-helpers/brokerage.mock";
 
 jest.mock("./position");
 
 jest.mock("../core-utils/connection/pg");
-
-const mockBrokerage = {
-    closePosition: jest.fn(),
-    createBracketOrder: jest.fn(),
-    createOneTriggersAnotherOrder: jest.fn(),
-    getOpenPositions: jest.fn(),
-    getOpenOrders: jest.fn(),
-    cancelAlpacaOrder: jest.fn(),
-};
 
 const mockPersist = persistTradePlan as jest.Mock;
 const mockGetOpenOrders = mockBrokerage.getOpenOrders as jest.Mock;

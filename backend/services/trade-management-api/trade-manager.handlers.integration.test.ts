@@ -3,17 +3,9 @@ import { getWatchlistFromScreenerService } from "../screener-api/screener.interf
 import { createOrderSynchronized } from "../../libs/trade-management-helpers/order";
 import { endPooledConnection } from "../../libs/core-utils/connection/pg";
 import { CachedCalendar } from "../orchestrator-service/orchestrator";
+import { mockBrokerage } from "../../libs/simulation-helpers/brokerage.mock";
 
 jest.mock("../../libs/trade-management-helpers/order");
-
-const mockBrokerage = {
-    closePosition: jest.fn(),
-    createBracketOrder: jest.fn(),
-    createOneTriggersAnotherOrder: jest.fn(),
-    getOpenPositions: jest.fn(),
-    getOpenOrders: jest.fn(),
-    cancelAlpacaOrder: jest.fn(),
-};
 
 const mockGetOpenOrders = mockBrokerage.getOpenOrders as jest.Mock;
 

@@ -19,6 +19,7 @@ import {
 import { getCalendar } from "../brokerage-helpers/alpaca";
 import { getPersistedData } from "../core-utils/resources/stockData";
 import { getMarketOpenMillis } from "../simulation-helpers/timing.util";
+import { mockBrokerage } from "../simulation-helpers/brokerage.mock";
 
 /**
  * Bit of a flaky mechanism as I'm actually hitting the database.
@@ -29,14 +30,6 @@ import { getMarketOpenMillis } from "../simulation-helpers/timing.util";
 
 const symbolName = "OINT_";
 
-const mockBrokerage = {
-    closePosition: jest.fn(),
-    createBracketOrder: jest.fn(),
-    createOneTriggersAnotherOrder: jest.fn(),
-    getOpenPositions: jest.fn(),
-    getOpenOrders: jest.fn(),
-    cancelAlpacaOrder: jest.fn(),
-};
 const mockCancel = mockBrokerage.cancelAlpacaOrder as jest.Mock;
 
 const mockGetOpenOrders = mockBrokerage.getOpenOrders as jest.Mock;

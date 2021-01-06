@@ -13,7 +13,7 @@ export const rebalanceForSymbol = async (
     broker: BrokerStrategy,
     epoch = Date.now()
 ) => {
-    if (symbol.toLowerCase() === "SPY") {
+    if (symbol.toLowerCase() === "spy") {
         spyGapStrategies["SPY"] =
             spyGapStrategies["SPY"] || new SpyGapCloseSimulation("SPY", broker);
 
@@ -22,8 +22,7 @@ export const rebalanceForSymbol = async (
         return;
     }
 
-    nrbStrategies[symbol] =
-        nrbStrategies[symbol] || new NarrowRangeBarSimulation(symbol, broker);
+    nrbStrategies[symbol] = nrbStrategies[symbol] || new NarrowRangeBarSimulation(symbol, broker);
 
     return runStrategy(symbol, calendar, nrbStrategies[symbol], epoch);
 };

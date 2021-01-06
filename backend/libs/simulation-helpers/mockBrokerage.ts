@@ -14,7 +14,6 @@ import { getSimpleData } from "../core-utils/resources/stockData";
 import { Bar } from "../core-utils/data/data.model";
 import { LOGGER } from "../core-utils/instrumentation/log";
 import { BrokerStrategy } from "../brokerage-helpers/brokerage.strategy";
-import { formatInEasternTimeForDisplay } from "../core-utils/util/date";
 
 export interface ClosedMockPosition {
     averageExitPrice: number;
@@ -251,6 +250,42 @@ export class MockBrokerage implements BrokerStrategy {
         return alpacaOrder;
     }
 
+    public async createSimpleOrder(order: AlpacaTradeConfig) {
+        const position = this.openPositions.find(
+            (p) => p.symbol === order.symbol
+        );
+        const isClosingOrder =
+            (position?.side === PositionDirection.long &&
+                order.side === TradeDirection.sell) ||
+            (position?.side === PositionDirection.short &&
+                order.side === TradeDirection.buy) ||
+            false;
+
+        if (position && !isClosingOrder) {
+            throw new Error("position_exists");
+        }
+
+        const existingOrder = this.orders.find(
+            (o) => o.symbol === order.symbol
+        );
+
+        if (order.side === existingOrder?.side) {
+            throw new Error("order_exists");
+        }
+
+        const alpacaOrder = getFakeNewOrder(order, this.epoch);
+
+        this.orders.push({
+            ...alpacaOrder,
+            associatedOrderIds: {
+                takeProfit: "",
+                stopLoss: "",
+            },
+        });
+
+        return alpacaOrder;
+    }
+
     public async tick(epoch: number) {
         this.epoch = epoch;
 
@@ -386,23 +421,11 @@ export class MockBrokerage implements BrokerStrategy {
                             order
                         )}`
                     );
-                } else {
+                } else if (takeProfitOrderIndex > -1) {
                     const takeProfitOrder = this.profitLegs.splice(
                         takeProfitOrderIndex,
                         1
                     )[0];
-                    this.openPositions.push({
-                        ...getFilledPosition(
-                            order,
-                            mockOrder.filled_avg_price,
-                            isShort,
-                            minuteBar
-                        ),
-                        orderIds: {
-                            original: mockOrder.id,
-                            ...mockOrder.associatedOrderIds,
-                        },
-                    });
 
                     this.orders.push({
                         ...takeProfitOrder,
@@ -412,6 +435,19 @@ export class MockBrokerage implements BrokerStrategy {
                         },
                     });
                 }
+
+                this.openPositions.push({
+                    ...getFilledPosition(
+                        order,
+                        mockOrder.filled_avg_price,
+                        isShort,
+                        minuteBar
+                    ),
+                    orderIds: {
+                        original: mockOrder.id,
+                        ...mockOrder.associatedOrderIds,
+                    },
+                });
             } else {
                 const positionIndex = this.openPositions.findIndex(
                     (p) => p.symbol === order.symbol
@@ -495,6 +531,13 @@ export class MockBrokerage implements BrokerStrategy {
                     },
                     totalPnl,
                 });
+
+                const orderToRemoveIndex = this.orders.findIndex(
+                    (o) => o.id === order.id
+                );
+                if (orderToRemoveIndex > -1) {
+                    this.orders.splice(orderToRemoveIndex, 1);
+                }
             }
         }
 

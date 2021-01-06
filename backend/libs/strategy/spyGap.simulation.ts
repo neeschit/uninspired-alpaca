@@ -12,6 +12,7 @@ import { DefaultDuration, PeriodType } from "../core-utils/data/data.model";
 import { LOGGER } from "../core-utils/instrumentation/log";
 import { getPolyonData } from "../core-utils/resources/polygon";
 import {
+    batchInsertBars,
     batchInsertDailyBars,
     getData,
     getSimpleData,
@@ -34,6 +35,8 @@ export const isTimeForGapCloseEntry = (nowMillis: number) => {
 export class SpyGapCloseSimulation implements SimulationStrategy {
     private isGapDay = false;
     private hasCachedData = false;
+    private previousClose: number = -1;
+    private side: TradeDirection | null = null;
     constructor(private symbol: string, private broker: BrokerStrategy) {}
 
     async beforeMarketStarts(epoch: number) {
@@ -69,10 +72,7 @@ export class SpyGapCloseSimulation implements SimulationStrategy {
                     addBusinessDays(epoch, 1),
                     PeriodType.minute
                 );
-                await batchInsertDailyBars(
-                    todaysMinutes[this.symbol],
-                    this.symbol
-                );
+                await batchInsertBars(todaysMinutes[this.symbol], this.symbol);
                 this.hasCachedData = true;
             } catch (e) {
                 LOGGER.error(
@@ -109,27 +109,24 @@ export class SpyGapCloseSimulation implements SimulationStrategy {
 
         const previousDayRange = getTrueRange(data.slice(-2), false);
 
-        if (gap > previousDayRange * 0.85 || gap < previousDayRange * 0.15) {
+        if (gap > previousDayRange * 0.85) {
             this.isGapDay = false;
             return;
         }
 
         this.isGapDay = true;
+        this.previousClose = previousClose;
+        this.side =
+            previousClose > price ? TradeDirection.buy : TradeDirection.sell;
 
-        this.broker.createOneTriggersAnotherOrder({
+        this.broker.createSimpleOrder({
             symbol: this.symbol,
             time_in_force: TimeInForce.opg,
             qty: 100,
-            side:
-                previousClose > price
-                    ? TradeDirection.buy
-                    : TradeDirection.sell,
+            side: this.side,
             type: TradeType.market,
-            order_class: "oto",
+            order_class: "simple",
             extended_hours: false,
-            take_profit: {
-                limit_price: previousClose,
-            },
         });
     }
 
@@ -145,7 +142,41 @@ export class SpyGapCloseSimulation implements SimulationStrategy {
 
     async afterEntryTimePassed(epoch: number) {}
 
-    async rebalance(calendar: Calendar[], epoch: number) {}
+    async rebalance(calendar: Calendar[], epoch: number) {
+        if (!this.isInPlay()) {
+            return;
+        }
+
+        const openPositions = await this.broker.getOpenPositions();
+
+        const isInPosition = openPositions.some(
+            (p) => p.symbol === this.symbol
+        );
+
+        if (!isInPosition) {
+            return;
+        }
+
+        const openOrders = await this.broker.getOpenOrders();
+
+        if (openOrders.some((o) => o.symbol === this.symbol)) {
+            return;
+        }
+
+        this.broker.createSimpleOrder({
+            symbol: this.symbol,
+            time_in_force: TimeInForce.day,
+            qty: 100,
+            side:
+                this.side! === TradeDirection.sell
+                    ? TradeDirection.buy
+                    : TradeDirection.sell,
+            type: TradeType.limit,
+            order_class: "simple",
+            extended_hours: false,
+            limit_price: this.previousClose,
+        });
+    }
 
     hasEntryTimePassed(epoch: number) {
         return isTimeForGapCloseEntry(epoch);
