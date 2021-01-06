@@ -1,3 +1,4 @@
+import { mockBrokerage } from "../simulation-helpers/brokerage.mock";
 import { SpyGapCloseSimulation } from "./spyGap.simulation";
 
 jest.mock("../core-utils/resources/stockData", () => {
@@ -9,15 +10,6 @@ jest.mock("../core-utils/resources/stockData", () => {
 });
 jest.mock("../../services/trade-management-api/trade-manager.handlers");
 jest.mock("../trade-management-helpers/order");
-
-const mockBrokerage = {
-    closePosition: jest.fn(),
-    createBracketOrder: jest.fn(),
-    createOneTriggersAnotherOrder: jest.fn(),
-    getOpenPositions: jest.fn(),
-    getOpenOrders: jest.fn(),
-    cancelAlpacaOrder: jest.fn(),
-};
 
 test("spy gap simulation on 12/29", async () => {
     const spyGapSimulation = new SpyGapCloseSimulation("SPY", mockBrokerage);

@@ -5,6 +5,7 @@ import {
     cancelOpenOrdersForSymbol,
 } from "../trade-management-helpers/order";
 import { getCalendar } from "../brokerage-helpers/alpaca";
+import { mockBrokerage } from "../simulation-helpers/brokerage.mock";
 
 jest.mock("../core-utils/resources/stockData", () => {
     const module = jest.requireActual("../core-utils/resources/stockData");
@@ -15,15 +16,6 @@ jest.mock("../core-utils/resources/stockData", () => {
 });
 jest.mock("../../services/trade-management-api/trade-manager.handlers");
 jest.mock("../trade-management-helpers/order");
-
-const mockBrokerage = {
-    closePosition: jest.fn(),
-    createBracketOrder: jest.fn(),
-    createOneTriggersAnotherOrder: jest.fn(),
-    getOpenPositions: jest.fn(),
-    getOpenOrders: jest.fn(),
-    cancelAlpacaOrder: jest.fn(),
-};
 
 const mockBackInsertDailyBars = batchInsertDailyBars as jest.Mock;
 const mockCancelOpenOrders = cancelOpenOrdersForSymbol as jest.Mock;

@@ -102,4 +102,5 @@ export const brokerImpl = {
     getOpenOrders,
     cancelAlpacaOrder,
     createOneTriggersAnotherOrder,
+    createSimpleOrder: createOrder,
 };
