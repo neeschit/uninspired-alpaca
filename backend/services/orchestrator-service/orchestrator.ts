@@ -1,5 +1,5 @@
 import { Calendar } from "@neeschit/alpaca-trade-api";
-import { endOfDay, startOfDay } from "date-fns";
+import { addBusinessDays, endOfDay, startOfDay } from "date-fns";
 import { PolygonTradeUpdate } from "../../libs/core-utils/resources/polygon";
 import { getCalendar } from "../../libs/brokerage-helpers/alpaca";
 import { rebalance } from "../trade-management-api/trade-manager.interfaces";
@@ -10,7 +10,7 @@ export class CachedCalendar {
     public static async getCalendar(epoch = Date.now()) {
         if (!CachedCalendar.value || !CachedCalendar.value.length) {
             CachedCalendar.value = await getCalendar(
-                startOfDay(new Date(epoch)),
+                startOfDay(addBusinessDays(epoch, -4)),
                 endOfDay(new Date(epoch))
             );
         }

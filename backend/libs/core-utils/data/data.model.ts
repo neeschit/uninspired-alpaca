@@ -54,36 +54,6 @@ export interface SymbolContainingConfig {
     symbol: string;
 }
 
-export interface TradePlan extends SymbolContainingConfig {
-    plannedStopPrice: number;
-    plannedEntryPrice: number;
-    riskAtrRatio: number;
-    quantity: number;
-    side: PositionDirection;
-}
-
-export interface TradeConfig extends SymbolContainingConfig {
-    side: TradeDirection;
-    type: TradeType;
-    tif: TimeInForce;
-    price: number;
-    t: number;
-    estString?: string;
-    stopPrice?: number;
-    quantity: number;
-}
-
-export interface PlannedTradeConfig {
-    plan: TradePlan;
-    config: TradeConfig;
-}
-
-export interface FilledTradeConfig extends TradeConfig {
-    filledQuantity: number;
-    averagePrice: number;
-    status: OrderStatus;
-}
-
 export interface TradeUpdate {
     sym: string;
     i: number;

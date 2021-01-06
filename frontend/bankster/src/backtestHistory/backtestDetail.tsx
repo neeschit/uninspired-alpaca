@@ -34,6 +34,9 @@ export const BacktestDetail = ({ batch }: { batch: BacktestResult }) => {
         firstIndexWithSomething
     );
 
+    console.log(currentIndex);
+    console.log(firstIndexWithSomething);
+
     const theme = useTheme();
 
     const watchlist = batch.results[currentIndex]?.watchlist || [];

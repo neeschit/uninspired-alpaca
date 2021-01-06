@@ -1,4 +1,7 @@
-import { currentStreamingSymbols } from "../../libs/core-utils/data/filters";
+import {
+    currentStreamingSymbols,
+    currentTradingSymbols,
+} from "../../libs/core-utils/data/filters";
 import { LOGGER } from "../../libs/core-utils/instrumentation/log";
 import { NarrowRangeBarSimulation } from "../../libs/strategy/narrowRangeBar.simulation";
 import {
@@ -10,11 +13,12 @@ import {
     getData,
     getEarliestDate,
 } from "../../libs/core-utils/resources/stockData";
-import { endOfDay } from "date-fns";
+import { addBusinessDays, endOfDay } from "date-fns";
 import { getCalendar } from "../../libs/brokerage-helpers/alpaca";
 import { isMarketOpen } from "../../libs/simulation-helpers/timing.util";
 import { ensureDir, readdir, readJSON, writeJson, ensureFile } from "fs-extra";
 import { SpyGapCloseSimulation } from "../../libs/strategy/spyGap.simulation";
+import { BoomBarSimulation } from "../../libs/strategy/boomBar.simulation";
 
 async function run(
     startDate: string,
@@ -140,6 +144,39 @@ backtestServer.get(
     }
 );
 
+backtestServer.get(
+    "/boom/:startDate/:endDate",
+    async (request: { params: any }) => {
+        const startDate = request.params.startDate;
+        const endDate = request.params.endDate;
+
+        const simulationResults = await run(
+            startDate,
+            endDate,
+            BoomBarSimulation,
+            currentTradingSymbols
+        );
+
+        const results = {
+            ...simulationResults,
+            strategy: "Model 3",
+        };
+
+        try {
+            await ensureFile(`./backtests/${startDate}-${endDate}.json`);
+
+            await writeJson(
+                `./backtests/${startDate}-${endDate}.json`,
+                results
+            );
+        } catch (e) {
+            LOGGER.error(e);
+        }
+
+        return results;
+    }
+);
+
 export interface ChartingBar {
     time: any;
     open: number;
@@ -164,10 +201,15 @@ backtestServer.post(
 
         const endEpoch = endOfDay(fromEpoch).getTime();
 
-        const data = await getData(symbol, fromEpoch, duration, endEpoch);
+        const data = await getData(
+            symbol,
+            addBusinessDays(fromEpoch, -1).getTime(),
+            duration,
+            endEpoch
+        );
 
         const calendar = await getCalendar(
-            new Date(fromEpoch),
+            new Date(addBusinessDays(fromEpoch, -1)),
             new Date(endEpoch)
         );
 

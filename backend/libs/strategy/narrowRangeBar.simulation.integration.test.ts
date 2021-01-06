@@ -3,9 +3,11 @@ import { batchInsertDailyBars } from "../core-utils/resources/stockData";
 import {
     createOrderSynchronized,
     cancelOpenOrdersForSymbol,
+    getBracketOrderForPlan,
 } from "../trade-management-helpers/order";
 import { getCalendar } from "../brokerage-helpers/alpaca";
 import { mockBrokerage } from "../simulation-helpers/brokerage.mock";
+import { PositionDirection } from "@neeschit/alpaca-trade-api";
 
 jest.mock("../core-utils/resources/stockData", () => {
     const module = jest.requireActual("../core-utils/resources/stockData");
@@ -31,7 +33,7 @@ test("narrow range bar strategy simulation - if insertion fails", async () => {
         new Error("test_error_inserting")
     );
 
-    await nrb.beforeMarketStarts();
+    await nrb.beforeMarketStarts([]);
 });
 
 test("narrow range bar strategy simulation - after entry time has passed with open position", async () => {
@@ -73,16 +75,21 @@ test("nrb simulation - rebalance", async () => {
 
     await nrb.rebalance(calendar, 1608649200000);
 
+    const plan = {
+        entry: 145.913521981893,
+        limit_price: 145.913521981893,
+        quantity: -16,
+        side: PositionDirection.short,
+        stop: 146.57553087901235,
+        symbol: "QCOM",
+        target: 144.74227547160498,
+    };
+
+    const unfilledOrder = getBracketOrderForPlan(plan);
+
     expect(createOrderSynchronized).toHaveBeenCalledWith(
-        {
-            entry: 145.913521981893,
-            limit_price: 145.913521981893,
-            quantity: -16,
-            side: "short",
-            stop: 146.57553087901235,
-            symbol: "QCOM",
-            target: 144.74227547160498,
-        },
+        plan,
+        unfilledOrder,
         mockBrokerage
     );
 });

@@ -1,17 +1,20 @@
 import {
     PositionDirection,
+    TimeInForce,
     TradeDirection,
     TradeType,
 } from "@neeschit/alpaca-trade-api";
 import {
-    convertPlanToAlpacaBracketOrder,
+    convertPlanToAlpacaOrder,
     createOrderSynchronized,
-    getOpeningOrderForPlan,
+    getBracketOrderForPlan,
     getOrderById,
     insertOrderForTradePlan,
     PersistedUnfilledOrder,
     updateOrderWithAlpacaId,
-    persistPlanAndOrder,
+    persistPlan,
+    persistOrderForPlan,
+    UnfilledOrderAssociatedWithPlan,
 } from "./order";
 
 import { TradePlan, persistTradePlan, PersistedTradePlan } from "./position";
@@ -26,7 +29,7 @@ const mockPersist = persistTradePlan as jest.Mock;
 const mockGetOpenOrders = mockBrokerage.getOpenOrders as jest.Mock;
 const mockGetConnection = getConnection as jest.Mock;
 
-test("convert to bracket order", async () => {
+test("convert to alpaca order", async () => {
     const plan: TradePlan = {
         entry: 157.7324020804614,
         limit_price: 157.66973888123042,
@@ -37,10 +40,13 @@ test("convert to bracket order", async () => {
         target: 156.67480416092283,
     };
 
-    const bracketOrder = convertPlanToAlpacaBracketOrder(plan, {
+    const bracketOrder = convertPlanToAlpacaOrder(plan, {
         id: 1,
         stop_price: plan.entry,
+        order_class: "bracket",
+        tif: TimeInForce.day,
         type: TradeType.stop_limit,
+        limit_price: plan.limit_price,
     } as PersistedUnfilledOrder);
 
     expect(bracketOrder.order_class).toEqual("bracket");
@@ -54,7 +60,7 @@ test("convert to bracket order", async () => {
     expect(bracketOrder.type).toEqual(TradeType.stop_limit);
 });
 
-test("convert to bracket order - 2", async () => {
+test("convert to alpaca order - 2", async () => {
     const plan: TradePlan = {
         entry: 157.66973888123042,
         limit_price: 157.66973888123042,
@@ -65,9 +71,13 @@ test("convert to bracket order - 2", async () => {
         target: 158.77480416092283,
     };
 
-    const bracketOrder = convertPlanToAlpacaBracketOrder(plan, {
+    const bracketOrder = convertPlanToAlpacaOrder(plan, {
         id: 1,
+        order_class: "bracket",
+        tif: TimeInForce.day,
         type: TradeType.limit,
+        stop_price: -1,
+        limit_price: plan.limit_price,
     } as PersistedUnfilledOrder);
 
     expect(bracketOrder.order_class).toEqual("bracket");
@@ -79,6 +89,36 @@ test("convert to bracket order - 2", async () => {
     expect(bracketOrder.limit_price).toEqual(plan.limit_price);
     expect(bracketOrder.qty).toBeGreaterThan(0);
     expect(bracketOrder.type).toEqual(TradeType.limit);
+});
+
+test("convert to alpaca order - 3", async () => {
+    const plan: TradePlan = {
+        entry: -1,
+        limit_price: -1,
+        stop: -1,
+        symbol: "CCI",
+        side: PositionDirection.long,
+        quantity: 159,
+        target: 158.77480416092283,
+    };
+
+    const bracketOrder = convertPlanToAlpacaOrder(plan, {
+        id: 1,
+        order_class: "simple",
+        tif: TimeInForce.day,
+        type: TradeType.market,
+        stop_price: -1,
+        limit_price: plan.limit_price,
+    } as PersistedUnfilledOrder);
+
+    expect(bracketOrder.order_class).toEqual("simple");
+    expect(bracketOrder.take_profit).toBeTruthy();
+    expect(bracketOrder.take_profit!.limit_price).toEqual(plan.target);
+    expect(bracketOrder.stop_loss).toEqual(undefined);
+    expect(bracketOrder.stop_price).toBeFalsy();
+    expect(bracketOrder.limit_price).toEqual(undefined);
+    expect(bracketOrder.qty).toBeGreaterThan(0);
+    expect(bracketOrder.type).toEqual(TradeType.market);
 });
 
 test("convert persisted plan opening order", async () => {
@@ -95,11 +135,12 @@ test("convert persisted plan opening order", async () => {
         updated_at: "11",
     };
 
-    const order = getOpeningOrderForPlan(plan);
+    const order = getBracketOrderForPlan(plan);
 
-    expect(order.bracket).toBeTruthy();
-    expect(order.bracket.target).toEqual(plan.target);
-    expect(order.bracket.stop_loss).toEqual(plan.stop);
+    expect(order.take_profit).toBeTruthy();
+    expect(order.stop_loss).toBeTruthy();
+    expect(order.take_profit?.limit_price).toEqual(plan.target);
+    expect(order.stop_loss?.stop_price).toEqual(plan.stop);
     expect(order.stop_price).toBeFalsy();
     expect(order.limit_price).toEqual(plan.limit_price);
     expect(order.quantity).toBeGreaterThan(0);
@@ -119,11 +160,12 @@ test("convert persisted plan opening order", async () => {
         updated_at: "11",
     };
 
-    const order = getOpeningOrderForPlan(plan);
+    const order = getBracketOrderForPlan(plan);
 
-    expect(order.bracket).toBeTruthy();
-    expect(order.bracket.target).toEqual(plan.target);
-    expect(order.bracket.stop_loss).toEqual(plan.stop);
+    expect(order.take_profit).toBeTruthy();
+    expect(order.stop_loss).toBeTruthy();
+    expect(order.take_profit?.limit_price).toEqual(plan.target);
+    expect(order.stop_loss?.stop_price).toEqual(plan.stop);
     expect(order.stop_price).toEqual(plan.entry);
     expect(order.limit_price).toEqual(plan.limit_price);
     expect(order.quantity).toBeGreaterThan(0);
@@ -141,12 +183,14 @@ test("createOrderSynchronized - mocked", async () => {
         target: 158.77480416092283,
     };
 
+    const mockOrder = getBracketOrderForPlan(plan);
+
     mockGetOpenOrders.mockReturnValueOnce([
         { symbol: "TEST", side: TradeDirection.buy },
     ]);
 
     await expect(
-        createOrderSynchronized(plan, mockBrokerage)
+        createOrderSynchronized(plan, mockOrder, mockBrokerage)
     ).rejects.toThrowError(new Error("order_exists"));
 });
 
@@ -172,8 +216,10 @@ test("createOrderSynchronized - mocked with dupe order", async () => {
         )
     );
 
+    const unfilledOrder = getBracketOrderForPlan(plan);
+
     await expect(
-        createOrderSynchronized(plan, mockBrokerage)
+        createOrderSynchronized(plan, unfilledOrder, mockBrokerage)
     ).rejects.toThrow();
 });
 
@@ -248,8 +294,7 @@ test("insertOrderForTradePlan", async () => {
             },
         };
     });
-
-    const result = await insertOrderForTradePlan({
+    const plan = {
         id: 1,
         side: PositionDirection.long,
         stop: 100,
@@ -260,7 +305,10 @@ test("insertOrderForTradePlan", async () => {
         updated_at: "",
         limit_price: 101.1,
         quantity: 100,
-    });
+    };
+    const unfilledOrder = getBracketOrderForPlan(plan);
+
+    const result = await insertOrderForTradePlan(plan, unfilledOrder);
 
     expect(result).toBeFalsy();
 });
@@ -293,9 +341,23 @@ test("persistPlanAndOrder", async () => {
         id: 1,
     });
 
-    await expect(persistPlanAndOrder(plan)).rejects.toThrowError(
-        "order_insertion_failed"
-    );
+    const persistedPlan = await persistPlan(plan);
+
+    const unfilledOrder: UnfilledOrderAssociatedWithPlan = {
+        trade_plan_id: persistedPlan.id,
+        symbol: persistedPlan.symbol,
+        order_class: "simple",
+        side: TradeDirection.buy,
+        type: TradeType.stop,
+        tif: TimeInForce.day,
+        quantity: 100,
+        limit_price: persistedPlan.limit_price,
+        stop_price: persistedPlan.entry,
+    };
+
+    await expect(
+        persistOrderForPlan(persistedPlan, unfilledOrder)
+    ).rejects.toThrowError("order_insertion_failed");
 
     mockGetConnection.mockReset();
 });

@@ -6,6 +6,7 @@ import {
 import {
     cancelOpenOrdersForSymbol,
     createOrderSynchronized,
+    getBracketOrderForPlan,
     insertOrderForTradePlan,
     selectAllNewOrders,
     updateOrderWithAlpacaId,
@@ -54,7 +55,12 @@ test("crud plan and order in database", async () => {
     const plan = getPlan(0);
     const insertedPlan = await persistTradePlan(plan);
 
-    const insertedOrder = await insertOrderForTradePlan(insertedPlan);
+    const unfilledOrder = getBracketOrderForPlan(plan);
+
+    const insertedOrder = await insertOrderForTradePlan(
+        insertedPlan,
+        unfilledOrder
+    );
 
     const orders = await selectAllNewOrders(plan.symbol);
 
@@ -71,12 +77,19 @@ test("crud plan and order in database", async () => {
 test("crud plan and order in database with a dupe not concurrent", async () => {
     const plan = getPlan(1);
     const insertedPlan = await persistTradePlan(plan);
+    const unfilledOrder = getBracketOrderForPlan(plan);
 
-    const insertedOrder = await insertOrderForTradePlan(insertedPlan);
+    const insertedOrder = await insertOrderForTradePlan(
+        insertedPlan,
+        unfilledOrder
+    );
 
     expect(insertedOrder).toBeTruthy();
 
-    const insertedOrder1 = await insertOrderForTradePlan(insertedPlan);
+    const insertedOrder1 = await insertOrderForTradePlan(
+        insertedPlan,
+        unfilledOrder
+    );
 
     expect(insertedOrder1).toBeFalsy();
 
@@ -92,9 +105,11 @@ test("crud plan and order in database with a dupe - concurrent", async () => {
     const plan = getPlan(2);
     const insertedPlan = await persistTradePlan(plan);
 
+    const unfilledOrder = getBracketOrderForPlan(plan);
+
     const results = await Promise.all([
-        insertOrderForTradePlan(insertedPlan),
-        insertOrderForTradePlan(insertedPlan),
+        insertOrderForTradePlan(insertedPlan, unfilledOrder),
+        insertOrderForTradePlan(insertedPlan, unfilledOrder),
     ]);
 
     const order = results.filter((r) => r);
@@ -117,10 +132,16 @@ test("createOrderSynchronized", async () => {
 
     mockCreateBracketOrder.mockResolvedValueOnce(alpacaResult);
     mockGetOpenOrders.mockReturnValueOnce([]);
-    const order = await createOrderSynchronized(plan, mockBrokerage);
+    const unfilledOrder = getBracketOrderForPlan(plan);
+    const result = await createOrderSynchronized(
+        plan,
+        unfilledOrder,
+        mockBrokerage
+    );
 
-    expect(order).toBeTruthy();
-    expect(order?.qty).toEqual(Math.abs(plan.quantity).toString());
+    expect(result).toBeTruthy();
+    expect(result.alpacaOrder).toBeTruthy();
+    expect(result?.alpacaOrder.qty).toEqual(Math.abs(plan.quantity).toString());
 });
 
 test("createOrderSynchronized - concurrent", async () => {
@@ -135,6 +156,7 @@ test("createOrderSynchronized - concurrent", async () => {
     mockGetOpenOrders.mockReturnValueOnce([]);
     mockGetOpenPositions.mockReturnValue([]);
 
+    const unfilledOrder = getBracketOrderForPlan(plan);
     const promise = () =>
         new Promise((resolve, reject) => {
             setTimeout(async () => {
@@ -143,7 +165,11 @@ test("createOrderSynchronized - concurrent", async () => {
                     mockResult.id += 1;
                     mockGetOpenOrders.mockReturnValueOnce([]);
                     await expect(
-                        createOrderSynchronized(plan, mockBrokerage)
+                        createOrderSynchronized(
+                            plan,
+                            unfilledOrder,
+                            mockBrokerage
+                        )
                     ).rejects.toThrow();
 
                     resolve({});
@@ -154,11 +180,11 @@ test("createOrderSynchronized - concurrent", async () => {
         });
 
     const orders = await Promise.all([
-        createOrderSynchronized(plan, mockBrokerage),
+        createOrderSynchronized(plan, unfilledOrder, mockBrokerage),
         promise(),
     ]);
 
-    const order = orders[0];
+    const order = orders[0].alpacaOrder;
 
     expect(order).toBeTruthy();
     expect(order?.qty).toEqual(Math.abs(plan.quantity).toString());
@@ -196,7 +222,12 @@ test("createOrderSynchronized - mocked short that does cancel existing order", a
 
     mockGetOpenPositions.mockReturnValueOnce([]);
 
-    const order = await createOrderSynchronized(plan, mockBrokerage);
+    const unfilledOrder = getBracketOrderForPlan(plan);
+    const order = await createOrderSynchronized(
+        plan,
+        unfilledOrder,
+        mockBrokerage
+    );
 
     expect(mockCancelAlpacaOrder.mock.calls.length).toEqual(1);
 
@@ -210,8 +241,9 @@ test("createOrderSynchronized - with error creating bracket order", async () => 
     mockCreateBracketOrder.mockReset();
     mockCreateBracketOrder.mockRejectedValueOnce(new Error("test_error"));
     mockGetOpenOrders.mockReturnValueOnce([]);
+    const unfilledOrder = getBracketOrderForPlan(plan);
     await expect(
-        createOrderSynchronized(plan, mockBrokerage)
+        createOrderSynchronized(plan, unfilledOrder, mockBrokerage)
     ).rejects.toThrowError("test_error");
 
     const orders = await selectAllNewOrders(plan.symbol);
@@ -230,6 +262,8 @@ test("createOrderSynchronized - tiny delay", async () => {
     mockCreateBracketOrder.mockResolvedValueOnce(alpacaResult);
     mockGetOpenOrders.mockReturnValueOnce([]);
 
+    const unfilledOrder = getBracketOrderForPlan(plan);
+
     const promise = () =>
         new Promise((resolve, reject) => {
             setTimeout(async () => {
@@ -240,7 +274,11 @@ test("createOrderSynchronized - tiny delay", async () => {
                     mockGetOpenOrders.mockReturnValueOnce([]);
                     mockCreateBracketOrder.mockResolvedValueOnce(mockResult);
                     await expect(
-                        createOrderSynchronized(plan, mockBrokerage)
+                        createOrderSynchronized(
+                            plan,
+                            unfilledOrder,
+                            mockBrokerage
+                        )
                     ).rejects.toThrowError("order_placed_recently_for_symbol");
 
                     resolve({});
@@ -251,14 +289,15 @@ test("createOrderSynchronized - tiny delay", async () => {
         });
 
     const orders = await Promise.all([
-        createOrderSynchronized(plan, mockBrokerage),
+        createOrderSynchronized(plan, unfilledOrder, mockBrokerage),
         promise(),
     ]);
 
     const order = orders[0];
 
     expect(order).toBeTruthy();
-    expect(order?.qty).toEqual(Math.abs(plan.quantity).toString());
+    expect(order.alpacaOrder).toBeTruthy();
+    expect(order?.alpacaOrder.qty).toEqual(Math.abs(plan.quantity).toString());
 });
 
 test("createOrderSynchronized - mocked short that doesn't cancel existing order due to open position", async () => {
@@ -296,9 +335,10 @@ test("createOrderSynchronized - mocked short that doesn't cancel existing order 
             symbol,
         },
     ]);
+    const unfilledOrder = getBracketOrderForPlan(plan);
 
     await expect(
-        createOrderSynchronized(plan, mockBrokerage)
+        createOrderSynchronized(plan, unfilledOrder, mockBrokerage)
     ).rejects.toThrowError("position_exists");
 
     expect(mockCancelAlpacaOrder.mock.calls.length).toEqual(0);
