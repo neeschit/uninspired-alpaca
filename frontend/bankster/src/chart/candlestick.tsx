@@ -328,7 +328,6 @@ export function Candlestick({
 
         if (addPlannedPricelinesForPosition && selectedPosition) {
             const lineWidth = 2;
-            console.log("adding to priceline");
             const plannedEntry = seriesRef.current?.createPriceLine({
                 price: selectedPosition.plannedEntryPrice,
                 color: "#be1238",
