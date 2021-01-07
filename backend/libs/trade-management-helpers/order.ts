@@ -264,7 +264,7 @@ export const getBracketOrderForPlan = (plan: TradePlan): UnfilledOrder => {
                 : TradeDirection.buy,
         tif: TimeInForce.day,
         type,
-        quantity: Math.abs(plan.quantity),
+        quantity: Math.abs(Math.round(plan.quantity)),
         order_class: "bracket" as any,
     };
 };
@@ -309,7 +309,7 @@ export const convertPersistedOrderToAlpacaOrder = (
         time_in_force: order.tif,
         side: order.side,
         extended_hours: false,
-        qty: Math.abs(order.quantity),
+        qty: Math.abs(Math.round(order.quantity)),
     };
 };
 
