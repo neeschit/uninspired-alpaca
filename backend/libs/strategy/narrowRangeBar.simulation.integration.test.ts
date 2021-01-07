@@ -1,10 +1,6 @@
 import { NarrowRangeBarSimulation } from "./narrowRangeBar.simulation";
 import { batchInsertDailyBars } from "../core-utils/resources/stockData";
-import {
-    createOrderSynchronized,
-    cancelOpenOrdersForSymbol,
-    getBracketOrderForPlan,
-} from "../trade-management-helpers/order";
+import { getBracketOrderForPlan } from "../trade-management-helpers/order";
 import { getCalendar } from "../brokerage-helpers/alpaca";
 import { mockBrokerage } from "../simulation-helpers/brokerage.mock";
 import { PositionDirection } from "@neeschit/alpaca-trade-api";
@@ -17,12 +13,10 @@ jest.mock("../core-utils/resources/stockData", () => {
     };
 });
 jest.mock("../../services/trade-management-api/trade-manager.handlers");
-jest.mock("../trade-management-helpers/order");
 
 const mockBackInsertDailyBars = batchInsertDailyBars as jest.Mock;
-const mockCancelOpenOrders = cancelOpenOrdersForSymbol as jest.Mock;
 const mockGetOpenPositions = mockBrokerage.getOpenPositions as jest.Mock;
-const mockCreateOrder = createOrderSynchronized as jest.Mock;
+const mockGetOpenOrders = mockBrokerage.getOpenOrders as jest.Mock;
 
 test("narrow range bar strategy simulation - if insertion fails", async () => {
     const nrb = new NarrowRangeBarSimulation("AAPL", mockBrokerage);
@@ -40,12 +34,11 @@ test("narrow range bar strategy simulation - after entry time has passed with op
     const nrb = new NarrowRangeBarSimulation("AAPL", mockBrokerage);
 
     mockGetOpenPositions.mockReset();
-    mockCancelOpenOrders.mockReset();
     mockGetOpenPositions.mockReturnValueOnce([{ symbol: "AAPL" }]);
 
     await nrb.afterEntryTimePassed();
 
-    expect(mockCancelOpenOrders).not.toHaveBeenCalled();
+    expect(mockBrokerage.cancelAlpacaOrder).not.toHaveBeenCalled();
 });
 
 test("narrow range bar strategy simulation - after entry time has passed", async () => {
@@ -54,9 +47,15 @@ test("narrow range bar strategy simulation - after entry time has passed", async
     mockGetOpenPositions.mockReset();
     mockGetOpenPositions.mockReturnValueOnce([{ symbol: "VZ" }]);
 
+    mockGetOpenOrders.mockResolvedValueOnce([
+        {
+            symbol: "AAPL",
+        },
+    ]);
+
     await nrb.afterEntryTimePassed();
 
-    expect(mockCancelOpenOrders).toHaveBeenCalledWith("AAPL", mockBrokerage);
+    expect(mockBrokerage.cancelAlpacaOrder).toHaveBeenCalled();
 });
 
 test("nrb simulation - rebalance", async () => {
@@ -67,6 +66,12 @@ test("nrb simulation - rebalance", async () => {
     mockGetOpenPositions.mockReset();
 
     mockGetOpenPositions.mockReturnValue([]);
+    mockGetOpenOrders.mockResolvedValueOnce([]);
+    const mockCreateOrder = mockBrokerage.createBracketOrder as jest.Mock;
+
+    mockCreateOrder.mockReturnValueOnce({
+        id: "test_" + Date.now(),
+    });
 
     const calendar = await getCalendar(
         new Date(1608649200000),
@@ -87,10 +92,25 @@ test("nrb simulation - rebalance", async () => {
 
     const unfilledOrder = getBracketOrderForPlan(plan);
 
-    expect(createOrderSynchronized).toHaveBeenCalledWith(
-        plan,
-        unfilledOrder,
-        mockBrokerage
+    expect(mockBrokerage.createBracketOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+            client_order_id: expect.any(String),
+            extended_hours: false,
+            limit_price: "145.913521981893",
+            order_class: "bracket",
+            qty: 16,
+            side: "sell",
+            stop_loss: {
+                stop_price: plan.stop,
+            },
+            stop_price: null,
+            symbol: "QCOM",
+            take_profit: {
+                limit_price: plan.target,
+            },
+            time_in_force: "day",
+            type: "limit",
+        })
     );
 });
 
@@ -100,7 +120,6 @@ test("nrb simulation - rebalance when in open position", async () => {
     mockBackInsertDailyBars.mockResolvedValueOnce([]);
 
     mockGetOpenPositions.mockReset();
-    mockCreateOrder.mockReset();
 
     mockGetOpenPositions.mockReturnValue([{ symbol: "QCOM" }]);
 
@@ -109,8 +128,7 @@ test("nrb simulation - rebalance when in open position", async () => {
         new Date(1608649200000)
     );
     await nrb.rebalance(calendar, 1608649200000);
-
-    expect(mockCreateOrder).not.toHaveBeenCalled();
+    expect(mockBrokerage.createSimpleOrder).not.toHaveBeenCalled();
 });
 
 test("nrb simulation - rebalance when not an nrb", async () => {
@@ -119,7 +137,6 @@ test("nrb simulation - rebalance when not an nrb", async () => {
     mockBackInsertDailyBars.mockResolvedValueOnce([]);
 
     mockGetOpenPositions.mockReset();
-    mockCreateOrder.mockReset();
 
     mockGetOpenPositions.mockReturnValue([{ symbol: "QCOM" }]);
 
@@ -129,5 +146,5 @@ test("nrb simulation - rebalance when not an nrb", async () => {
     );
     await nrb.rebalance(calendar, 1608649200000);
 
-    expect(mockCreateOrder).not.toHaveBeenCalled();
+    expect(mockBrokerage.createSimpleOrder).not.toHaveBeenCalled();
 });

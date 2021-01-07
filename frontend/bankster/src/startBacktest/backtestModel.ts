@@ -48,4 +48,5 @@ export interface Bar {
 export const pathMap: { [index: string]: string } = {
     "Model 1": "nrb",
     "Model 2": "spyGap",
+    "Model 3": "boom",
 };

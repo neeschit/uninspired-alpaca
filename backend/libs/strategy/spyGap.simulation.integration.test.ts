@@ -1,4 +1,9 @@
-import { Calendar } from "@neeschit/alpaca-trade-api";
+import {
+    Calendar,
+    TimeInForce,
+    TradeDirection,
+    TradeType,
+} from "@neeschit/alpaca-trade-api";
 import { mockBrokerage } from "../simulation-helpers/brokerage.mock";
 import { SpyGapCloseSimulation } from "./spyGap.simulation";
 
@@ -9,6 +14,8 @@ jest.mock("../core-utils/resources/stockData", () => {
         batchInsertDailyBars: jest.fn(),
     };
 });
+
+jest.setTimeout(10000);
 
 test("spy gap simulation on 12/29", async () => {
     const spyGapSimulation = new SpyGapCloseSimulation("SPY", mockBrokerage);
@@ -38,4 +45,21 @@ test("spy gap simulation on 12/29", async () => {
     await spyGapSimulation.beforeMarketStarts(calendar, 1609250400000);
 
     expect(spyGapSimulation.isInPlay()).toEqual(true);
+
+    expect(mockCreateSimpleOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+            client_order_id: expect.any(String),
+            symbol: "SPY",
+            qty: expect.any(Number),
+            side: TradeDirection.sell,
+            type: TradeType.market,
+            time_in_force: TimeInForce.opg,
+            order_class: "simple",
+            extended_hours: false,
+            take_profit: undefined,
+            stop_loss: undefined,
+            stop_price: null,
+            limit_price: null,
+        })
+    );
 });

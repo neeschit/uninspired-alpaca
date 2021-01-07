@@ -5,7 +5,7 @@ import {
     TradeType,
 } from "@neeschit/alpaca-trade-api";
 import {
-    convertPlanToAlpacaOrder,
+    convertPersistedOrderToAlpacaOrder,
     createOrderSynchronized,
     getBracketOrderForPlan,
     getOrderById,
@@ -40,14 +40,7 @@ test("convert to alpaca order", async () => {
         target: 156.67480416092283,
     };
 
-    const bracketOrder = convertPlanToAlpacaOrder(plan, {
-        id: 1,
-        stop_price: plan.entry,
-        order_class: "bracket",
-        tif: TimeInForce.day,
-        type: TradeType.stop_limit,
-        limit_price: plan.limit_price,
-    } as PersistedUnfilledOrder);
+    const bracketOrder = getBracketOrderForPlan(plan);
 
     expect(bracketOrder.order_class).toEqual("bracket");
     expect(bracketOrder.take_profit).toBeTruthy();
@@ -56,7 +49,6 @@ test("convert to alpaca order", async () => {
     expect(bracketOrder.stop_loss!.stop_price).toEqual(plan.stop);
     expect(bracketOrder.stop_price).toEqual(plan.entry);
     expect(bracketOrder.limit_price).toEqual(plan.limit_price);
-    expect(bracketOrder.qty).toBeGreaterThan(0);
     expect(bracketOrder.type).toEqual(TradeType.stop_limit);
 });
 
@@ -71,14 +63,7 @@ test("convert to alpaca order - 2", async () => {
         target: 158.77480416092283,
     };
 
-    const bracketOrder = convertPlanToAlpacaOrder(plan, {
-        id: 1,
-        order_class: "bracket",
-        tif: TimeInForce.day,
-        type: TradeType.limit,
-        stop_price: -1,
-        limit_price: plan.limit_price,
-    } as PersistedUnfilledOrder);
+    const bracketOrder = getBracketOrderForPlan(plan);
 
     expect(bracketOrder.order_class).toEqual("bracket");
     expect(bracketOrder.take_profit).toBeTruthy();
@@ -87,7 +72,6 @@ test("convert to alpaca order - 2", async () => {
     expect(bracketOrder.stop_loss!.stop_price).toEqual(plan.stop);
     expect(bracketOrder.stop_price).toBeFalsy();
     expect(bracketOrder.limit_price).toEqual(plan.limit_price);
-    expect(bracketOrder.qty).toBeGreaterThan(0);
     expect(bracketOrder.type).toEqual(TradeType.limit);
 });
 
@@ -98,18 +82,25 @@ test("convert to alpaca order - 3", async () => {
         stop: -1,
         symbol: "CCI",
         side: PositionDirection.long,
-        quantity: 159,
+        quantity: -159,
         target: 158.77480416092283,
     };
 
-    const bracketOrder = convertPlanToAlpacaOrder(plan, {
-        id: 1,
+    const bracketOrder = convertPersistedOrderToAlpacaOrder({
+        quantity: plan.quantity,
+        symbol: plan.symbol,
         order_class: "simple",
-        tif: TimeInForce.day,
+        side: TradeDirection.buy,
+        take_profit: {
+            limit_price: plan.target,
+        },
+        trade_plan_id: 2,
         type: TradeType.market,
-        stop_price: -1,
-        limit_price: plan.limit_price,
-    } as PersistedUnfilledOrder);
+        created_at: "",
+        updated_at: "",
+        tif: TimeInForce.day,
+        id: 2,
+    });
 
     expect(bracketOrder.order_class).toEqual("simple");
     expect(bracketOrder.take_profit).toBeTruthy();

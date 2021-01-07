@@ -22,7 +22,7 @@ export interface OrderUpdate extends AlpacaOrder {
 export const getRecentOrders = async (
     symbol: string
 ): Promise<PersistedUnfilledOrder[]> => {
-    const getRecentOrders = `select * from new_order where symbol = '${symbol.toLocaleLowerCase()}' and created_at >= NOW() - INTERVAL '3 seconds';`;
+    const getRecentOrders = `select * from new_order where symbol = '${symbol}' and created_at >= NOW() - INTERVAL '3 seconds';`;
 
     const connection = getConnection();
 
@@ -125,6 +125,9 @@ export const persistOrderForPlan = async (
         throw new Error("order_insertion_failed");
     }
 
+    order.stop_loss = unfilledOrder.stop_loss;
+    order.take_profit = unfilledOrder.take_profit;
+
     return order;
 };
 
@@ -135,21 +138,17 @@ export const persistAndCreateAlpacaOrder = async (
 ): Promise<AlpacaOrder> => {
     const order = await persistOrderForPlan(persistedPlan, unfilledOrder);
 
-    return createAlpacaOrderFromPersistedPlanAndOrder(
-        persistedPlan,
-        order,
-        broker
-    );
+    return createAlpacaOrderFromPersistedPlanAndOrder(order, broker);
 };
 
 async function createAlpacaOrderFromPersistedPlanAndOrder(
-    persistedPlan: PersistedTradePlan,
     order: PersistedUnfilledOrder,
     broker: BrokerStrategy
 ) {
     let alpacaOrder: AlpacaOrder;
 
-    const alpacaTradeConfig = convertPlanToAlpacaOrder(persistedPlan, order);
+    const alpacaTradeConfig = convertPersistedOrderToAlpacaOrder(order);
+
     try {
         if (alpacaTradeConfig.order_class === "bracket") {
             alpacaOrder = await broker.createBracketOrder(alpacaTradeConfig);
@@ -176,7 +175,7 @@ async function createAlpacaOrderFromPersistedPlanAndOrder(
 const unplacedAlpacaOrderId = "new";
 
 export const selectAllNewOrders = async (symbol: string) => {
-    const selectAllNewOrdersQuery = `select * from new_order where alpaca_order_id = '${unplacedAlpacaOrderId}' and symbol = '${symbol.toLowerCase()}'`;
+    const selectAllNewOrdersQuery = `select * from new_order where alpaca_order_id = '${unplacedAlpacaOrderId}' and symbol = '${symbol}'`;
     const connection = getConnection();
 
     const result = await connection.query(selectAllNewOrdersQuery);
@@ -233,29 +232,6 @@ export const getOrderById = async (id: number) => {
     return result.rows[0];
 };
 
-const getInsertQuery = (order: UnfilledOrderAssociatedWithPlan) => {
-    return `insert into new_order values(
-        DEFAULT,
-        ${order.trade_plan_id},
-        '${order.symbol.toLowerCase()}',
-        '${order.side}',
-        '${order.type}',
-        '${order.tif}',
-        ${order.quantity},
-        ${order.limit_price || "DEFAULT"},
-        ${order.stop_price || "DEFAULT"},
-        '${order.order_class}',
-        ${order.take_profit?.limit_price || null},
-        (
-            ${order.stop_loss?.stop_price || null},
-            ${order.stop_loss?.limit_price || null}
-        ),
-        DEFAULT,
-        DEFAULT,
-        DEFAULT
-    ) ON CONFLICT DO NOTHING returning *;`;
-};
-
 export const getBracketOrderForPlan = (plan: TradePlan): UnfilledOrder => {
     if (!plan.stop || !plan.target) {
         throw new Error("stop_take_profit_required");
@@ -288,7 +264,7 @@ export const getBracketOrderForPlan = (plan: TradePlan): UnfilledOrder => {
                 : TradeDirection.buy,
         tif: TimeInForce.day,
         type,
-        quantity: plan.quantity,
+        quantity: Math.abs(plan.quantity),
         order_class: "bracket" as any,
     };
 };
@@ -318,30 +294,22 @@ export const insertOrderForTradePlan = async (
     return null;
 };
 
-export const convertPlanToAlpacaOrder = (
-    plan: TradePlan,
+export const convertPersistedOrderToAlpacaOrder = (
     order: PersistedUnfilledOrder
 ): AlpacaTradeConfig => {
     return {
         order_class: order.order_class,
         client_order_id: order.id.toString(),
-        symbol: plan.symbol,
-        stop_loss:
-            plan.stop !== -1
-                ? {
-                      stop_price: plan.stop,
-                  }
-                : undefined,
-        take_profit: {
-            limit_price: plan.target,
-        },
+        symbol: order.symbol,
+        stop_loss: order.stop_loss,
+        take_profit: order.take_profit,
         stop_price: order.stop_price === -1 ? undefined : order.stop_price,
-        limit_price: plan.limit_price === -1 ? undefined : order.limit_price,
+        limit_price: order.limit_price === -1 ? undefined : order.limit_price,
         type: order.type,
         time_in_force: order.tif,
         side: order.side,
         extended_hours: false,
-        qty: Math.abs(plan.quantity),
+        qty: Math.abs(order.quantity),
     };
 };
 
@@ -396,13 +364,29 @@ export const cancelOpenOrdersForSymbol = async (
     return null;
 };
 
+const getInsertQuery = (order: UnfilledOrderAssociatedWithPlan) => {
+    return `insert into new_order values(
+        DEFAULT,
+        ${order.trade_plan_id},
+        '${order.symbol}',
+        '${order.side}',
+        '${order.type}',
+        '${order.tif}',
+        ${order.quantity},
+        ${order.limit_price || "DEFAULT"},
+        ${order.stop_price || "DEFAULT"},
+        '${order.order_class}',
+        ${order.take_profit?.limit_price || null},
+        ${order.stop_loss?.stop_price || null},
+        DEFAULT,
+        DEFAULT,
+        DEFAULT,
+        DEFAULT
+    ) ON CONFLICT DO NOTHING returning *;`;
+};
+
 export const getCreateUnfilledOrdersTableSql = () => `
 ${ensureUpdateTriggerExists}
-
-create type stop_loss as ( 
-    stop_loss numeric, 
-    stop_limit numeric 
-);
 
 create table new_order (
     id serial primary key,
@@ -416,7 +400,7 @@ create table new_order (
     stop_price numeric,
     order_class VARCHAR(20),
     take_profit numeric,
-    stop_loss stop_loss,
+    stop_loss numeric,
     alpaca_order_id text default '${unplacedAlpacaOrderId}',
     leg_client_order_ids text[] DEFAULT array[]::varchar[],
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

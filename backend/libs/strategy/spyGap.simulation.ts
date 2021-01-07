@@ -131,7 +131,7 @@ export class SpyGapCloseSimulation implements SimulationStrategy {
             entry: -1,
             stop: -1,
             limit_price: -1,
-            target: previousClose,
+            target: -1,
             side:
                 this.side === TradeDirection.buy
                     ? PositionDirection.long
