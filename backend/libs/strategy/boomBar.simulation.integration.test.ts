@@ -45,4 +45,24 @@ test("boom bar for 01/05/2020", async () => {
     expect(boomSim.isInPlay()).toBeTruthy();
 
     expect(boomSim.broker.createBracketOrder).toHaveBeenCalledTimes(1);
+    expect(boomSim.broker.createBracketOrder).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+            client_order_id: expect.any(String),
+            extended_hours: false,
+            limit_price: null,
+            order_class: "bracket",
+            qty: 7,
+            side: "buy",
+            stop_loss: {
+                stop_price: 89.30015,
+            },
+            stop_price: null,
+            symbol: "JD",
+            take_profit: {
+                limit_price: 93.8397,
+            },
+            time_in_force: "day",
+            type: "market",
+        })
+    );
 });
