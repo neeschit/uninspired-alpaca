@@ -1,9 +1,13 @@
 import { rebalanceForSymbol } from "./trade-manager.handlers";
 import { getWatchlistFromScreenerService } from "../screener-api/screener.interfaces";
-import { createOrderSynchronized } from "../../libs/trade-management-helpers/order";
+import {
+    createOrderSynchronized,
+    getBracketOrderForPlan,
+} from "../../libs/trade-management-helpers/order";
 import { endPooledConnection } from "../../libs/core-utils/connection/pg";
 import { CachedCalendar } from "../orchestrator-service/orchestrator";
 import { mockBrokerage } from "../../libs/simulation-helpers/brokerage.mock";
+import { PositionDirection } from "@neeschit/alpaca-trade-api";
 
 jest.mock("../../libs/trade-management-helpers/order");
 
@@ -79,17 +83,20 @@ test("rebalanceForSymbol in CCI", async () => {
     const calendar = await CachedCalendar.getCalendar(epoch);
 
     await rebalanceForSymbol("CCI", calendar, mockBrokerage, epoch);
+    const plan = {
+        entry: 157.7356947082247,
+        limit_price: 157.67851922193256,
+        quantity: -10,
+        side: PositionDirection.short,
+        stop: 158.7356947082247,
+        symbol: "CCI",
+        target: 155.7356947082247,
+    };
 
+    const unfilledOrder = getBracketOrderForPlan(plan);
     expect(mockCreateOrder).toHaveBeenCalledWith(
-        {
-            entry: 157.7356947082247,
-            limit_price: 157.67851922193256,
-            quantity: -10,
-            side: "short",
-            stop: 158.7356947082247,
-            symbol: "CCI",
-            target: 155.7356947082247,
-        },
+        plan,
+        unfilledOrder,
         mockBrokerage
     );
 });

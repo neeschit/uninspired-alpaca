@@ -1,5 +1,4 @@
 import { AlpacaOrder } from "@neeschit/alpaca-trade-api";
-import { TradePlan } from "../data/data.model";
 import { postHttps } from "./post";
 
 const slackHookOptions = {
@@ -10,7 +9,7 @@ const slackHookOptions = {
 export const postEntry = async (
     symbol: string,
     timestamp: number,
-    plan: TradePlan
+    plan: any
 ) => {
     const text = `Looking like a good entry for ${symbol} at ${new Date(
         timestamp

@@ -18,8 +18,14 @@ const companies: string[] = getMegaCaps();
 
 companies.push(...currentIndices);
 
+const numberOfDaysBefore = (process.argv[2] && Number(process.argv[2])) || 0;
+
+console.log(numberOfDaysBefore);
+
 async function run(duration = DefaultDuration.one, period = PeriodType.minute) {
-    const startDate = startOfDay(addBusinessDays(Date.now(), -1));
+    const startDate = startOfDay(
+        addBusinessDays(Date.now(), -numberOfDaysBefore)
+    );
     for (const symbol of companies) {
         const endDate = startOfDay(addBusinessDays(Date.now(), 1));
 

@@ -9,6 +9,7 @@ import {
 import {
     createOrderSynchronized,
     cancelOpenOrdersForSymbol,
+    getBracketOrderForPlan,
 } from "../trade-management-helpers/order";
 import { PeriodType, DefaultDuration } from "../core-utils/data/data.model";
 import { IndicatorValue } from "../core-indicators/indicator/adx";
@@ -30,7 +31,10 @@ export class NarrowRangeBarSimulation implements SimulationStrategy {
     private isInPlayCurrently = false;
 
     constructor(private symbol: string, private broker: BrokerStrategy) {}
-    async beforeMarketStarts(epoch = Date.now()): Promise<void> {
+    async beforeMarketStarts(
+        calendar: Calendar[],
+        epoch = Date.now()
+    ): Promise<void> {
         const startBusinessDay = addBusinessDays(epoch, -10);
         const lastBusinessDay = addBusinessDays(epoch, -1);
 
@@ -89,7 +93,7 @@ export class NarrowRangeBarSimulation implements SimulationStrategy {
         epoch: number
     ): Promise<AlpacaOrder | void> {
         if (!this.strategy) {
-            await this.beforeMarketStarts(epoch);
+            await this.beforeMarketStarts(calendar, epoch);
         }
 
         if (!this.strategy!.screenForNarrowRangeBars()) {
@@ -128,7 +132,12 @@ export class NarrowRangeBarSimulation implements SimulationStrategy {
         });
 
         try {
-            const order = await createOrderSynchronized(plan, this.broker);
+            const unfilledOrder = getBracketOrderForPlan(plan);
+            const order = await createOrderSynchronized(
+                plan,
+                unfilledOrder,
+                this.broker
+            );
         } catch (e) {
             if (
                 e.message.indexOf("order_exists") === -1 &&

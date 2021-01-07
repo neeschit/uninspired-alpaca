@@ -103,10 +103,10 @@ export function Candlestick({
             },
             grid: {
                 vertLines: {
-                    color: "rgba(197, 203, 206, 0.5)",
+                    color: "rgba(197, 203, 206, 0.1)",
                 },
                 horzLines: {
-                    color: "rgba(197, 203, 206, 0.5)",
+                    color: "rgba(197, 203, 206, 0.1)",
                 },
             },
             crosshair: {
@@ -143,8 +143,8 @@ export function Candlestick({
         seriesRef.current = chartObject.current.addCandlestickSeries({
             upColor: upColor,
             downColor: downColor,
-            borderDownColor: "#6c262b",
-            borderUpColor: "#194d4b",
+            borderDownColor: downColor,
+            borderUpColor: upColor,
             wickDownColor: downColor,
             wickUpColor: upColor,
             priceLineVisible: false,

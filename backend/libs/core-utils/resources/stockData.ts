@@ -7,7 +7,7 @@ import {
     DefaultDuration,
 } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
-import { set, addBusinessDays } from "date-fns";
+import { set, addBusinessDays, startOfDay, endOfDay } from "date-fns";
 import { getPolyonData } from "./polygon";
 import { Client } from "pg";
 import { getCreateTradePlanTableSql } from "../../trade-management-helpers/position";
@@ -651,20 +651,11 @@ export const getTodaysDataSimple = (
 export const getYesterdaysEndingBars = async (
     symbol: string,
     currentEpoch = Date.now(),
-    timeBucket = "5 minutes"
+    timeBucket = "5 minutes",
+    limit = 0
 ) => {
-    const startEpoch = set(addBusinessDays(currentEpoch, -2), {
-        minutes: 30,
-        seconds: 0,
-        milliseconds: 0,
-        hours: 9,
-    });
-    const endEpoch = set(addBusinessDays(currentEpoch, -1), {
-        minutes: 0,
-        seconds: 0,
-        milliseconds: 0,
-        hours: 16,
-    });
+    const startEpoch = startOfDay(addBusinessDays(currentEpoch, -6));
+    const endEpoch = endOfDay(addBusinessDays(currentEpoch, -1));
 
     const tablename = getAggregatedMinuteTableNameForSymbol(symbol);
 
@@ -681,7 +672,7 @@ export const getYesterdaysEndingBars = async (
         where t >= ${getTimestampValue(startEpoch.getTime())}
         and t < ${getTimestampValue(endEpoch.getTime())}
         group by time_bucket 
-        order by time_bucket desc limit 10;
+        order by time_bucket desc limit ${limit || 100};
     `;
 
     LOGGER.debug(query);
@@ -690,16 +681,18 @@ export const getYesterdaysEndingBars = async (
 
     const result = await pool.query(query);
 
-    return result.rows.map((r) => {
-        return {
-            v: Number(r.v),
-            c: Number(r.c),
-            o: Number(r.o),
-            h: Number(r.h),
-            l: Number(r.l),
-            t: new Date(r.time_bucket).getTime(),
-        };
-    });
+    return result.rows
+        .map((r) => {
+            return {
+                v: Number(r.v),
+                c: Number(r.c),
+                o: Number(r.o),
+                h: Number(r.h),
+                l: Number(r.l),
+                t: new Date(r.time_bucket).getTime(),
+            };
+        })
+        .reverse();
 };
 
 export const cacheDailyBarsForSymbol = async (symbol: string) => {

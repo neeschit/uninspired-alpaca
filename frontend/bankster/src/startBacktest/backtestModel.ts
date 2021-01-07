@@ -1,4 +1,5 @@
-export const backtestBaseUrl = "https://6841deaec3ec.ngrok.io";
+export const backtestBaseUrl =
+    "http://localhost:6971" || "https://6841deaec3ec.ngrok.io";
 
 export enum PositionDirection {
     long = "long",
@@ -47,4 +48,5 @@ export interface Bar {
 export const pathMap: { [index: string]: string } = {
     "Model 1": "nrb",
     "Model 2": "spyGap",
+    "Model 3": "boom",
 };

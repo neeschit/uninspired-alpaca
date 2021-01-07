@@ -109,7 +109,7 @@ export class Simulator {
         for (const batch of batches) {
             const start = parseISO(batch.startDate);
             const end = parseISO(batch.endDate);
-            const calendar = await getCalendar(start, end);
+            const calendar = await getCalendar(addBusinessDays(start, -5), end);
             LOGGER.info(`running batch ${JSON.stringify(batch)}`);
             const result = await this.executeBatch(batch, calendar, strategy);
             yield result;
@@ -347,7 +347,7 @@ export const runStrategy = async (
     epoch: number
 ) => {
     if (isPremarket(calendar, epoch)) {
-        await sim.beforeMarketStarts(epoch);
+        await sim.beforeMarketStarts(calendar, epoch);
     } else if (isMarketClosing(calendar, epoch)) {
         await sim.beforeMarketCloses(epoch);
     } else if (isMarketOpen(calendar, epoch)) {
