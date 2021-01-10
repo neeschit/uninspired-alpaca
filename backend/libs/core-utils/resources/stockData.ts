@@ -12,6 +12,7 @@ import { getPolyonData } from "./polygon";
 import { Client } from "pg";
 import { getCreateTradePlanTableSql } from "../../trade-management-helpers/position";
 import { getCreateUnfilledOrdersTableSql } from "../../trade-management-helpers/order";
+import { Calendar } from "@neeschit/alpaca-trade-api";
 
 export const createDbIfNotExists = async () => {
     const checkQuery = `select datname FROM pg_catalog.pg_database where lower(datname) = lower('stock_data');`;
@@ -648,14 +649,13 @@ export const getTodaysDataSimple = (
     return getSimpleData(symbol, startEpoch, true);
 };
 
-export const getYesterdaysEndingBars = async (
+export const getBucketedBarsForDay = async (
     symbol: string,
-    currentEpoch = Date.now(),
+    startEpoch = Date.now(),
     timeBucket = "5 minutes",
     limit = 0
 ) => {
-    const startEpoch = startOfDay(addBusinessDays(currentEpoch, -6));
-    const endEpoch = endOfDay(addBusinessDays(currentEpoch, -1));
+    const endEpoch = endOfDay(startEpoch);
 
     const tablename = getAggregatedMinuteTableNameForSymbol(symbol);
 
@@ -669,7 +669,7 @@ export const getYesterdaysEndingBars = async (
             first(o, t) as o,
             count(*) as n 
         from ${tablename.toLowerCase()} 
-        where t >= ${getTimestampValue(startEpoch.getTime())}
+        where t >= ${getTimestampValue(startEpoch)}
         and t < ${getTimestampValue(endEpoch.getTime())}
         group by time_bucket 
         order by time_bucket desc limit ${limit || 100};

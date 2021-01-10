@@ -1,6 +1,13 @@
-import { AlpacaOrder, Calendar } from "@neeschit/alpaca-trade-api";
-import { addBusinessDays, formatISO } from "date-fns";
-import { SimulationStrategy } from "../simulation-helpers/simulation.strategy";
+import {
+    AlpacaOrder,
+    Calendar,
+    PositionDirection,
+} from "@neeschit/alpaca-trade-api";
+import { addBusinessDays, formatISO, parseISO, startOfDay } from "date-fns";
+import {
+    SimulationStrategy,
+    TelemetryModel,
+} from "../simulation-helpers/simulation.strategy";
 import {
     getSafeOrbEntryPlan,
     isTimeForOrbEntry,
@@ -23,12 +30,20 @@ import {
 } from "../core-utils/resources/stockData";
 import { BrokerStrategy } from "../brokerage-helpers/brokerage.strategy";
 import { getMarketOpenMillis } from "../simulation-helpers/timing.util";
+import { ClosedMockPosition } from "../simulation-helpers/mockBrokerage";
+import { Simulator } from "../simulation-helpers/simulator";
 
-export class NarrowRangeBarSimulation implements SimulationStrategy {
+export class NarrowRangeBarSimulation
+    implements SimulationStrategy<TelemetryModel> {
     private strategy?: NarrowRangeBarStrategy;
     private tr?: IndicatorValue<number>[];
     private atr?: IndicatorValue<number>[];
     private isInPlayCurrently = false;
+    private telemetryModel: TelemetryModel = {
+        gap: 0,
+        marketGap: 0,
+        maxPnl: 0,
+    };
 
     constructor(private symbol: string, private broker: BrokerStrategy) {}
     async beforeMarketStarts(
@@ -169,5 +184,107 @@ export class NarrowRangeBarSimulation implements SimulationStrategy {
 
     hasEntryTimePassed(epoch: number) {
         return !isTimeForOrbEntry(epoch);
+    }
+
+    async logTelemetryForProfitHacking(
+        p: ClosedMockPosition,
+        calendar: Calendar[],
+        epoch: number
+    ) {
+        const ydayOpen = Simulator.getMarketOpenTimeForYday(epoch, calendar);
+
+        const premarketOpenToday = Simulator.getPremarketTimeForDay(
+            epoch,
+            calendar
+        );
+        const marketOpenToday = Simulator.getMarketOpenTimeForDay(
+            epoch,
+            calendar
+        );
+
+        const marketGapBars = await getSimpleData(
+            "SPY",
+            startOfDay(ydayOpen).getTime(),
+            false,
+            epoch
+        );
+
+        if (marketGapBars.length > 1) {
+            this.telemetryModel.marketGap =
+                (marketGapBars[1].o - marketGapBars[0].c) / marketGapBars[1].o;
+        } else if (marketGapBars.length > 0) {
+            const todaysMarketOpenBars = await getSimpleData(
+                "SPY",
+                premarketOpenToday,
+                true,
+                marketOpenToday + 60000
+            );
+
+            const openBar =
+                todaysMarketOpenBars[todaysMarketOpenBars.length - 1];
+            this.telemetryModel.marketGap =
+                (openBar.o - marketGapBars[0].c) / openBar.o;
+        }
+
+        this.telemetryModel.marketGap *= 100;
+
+        const closeBarsYday = await getSimpleData(
+            this.symbol,
+            startOfDay(ydayOpen).getTime(),
+            false,
+            epoch
+        );
+
+        if (closeBarsYday.length > 1) {
+            this.telemetryModel.gap =
+                (closeBarsYday[1].o - closeBarsYday[0].c) / closeBarsYday[1].o;
+        } else if (closeBarsYday.length > 0) {
+            const todaysOpenBars = await getSimpleData(
+                this.symbol,
+                premarketOpenToday,
+                true,
+                marketOpenToday + 60000
+            );
+
+            const openBar = todaysOpenBars[todaysOpenBars.length - 1];
+            this.telemetryModel.gap =
+                (openBar.o - closeBarsYday[0].c) / openBar.o;
+        }
+
+        this.telemetryModel.gap *= 100;
+
+        const entryTime = parseISO(p.entryTime).getTime();
+        const exitTime = parseISO(p.exitTime).getTime();
+
+        const bars = await getSimpleData(
+            this.symbol,
+            entryTime,
+            true,
+            exitTime
+        );
+
+        const maxExit = bars.reduce(
+            (maxExit, b) => {
+                if (p.side === PositionDirection.long) {
+                    return b.h > maxExit ? b.h : maxExit;
+                } else {
+                    return b.l < maxExit ? b.l : maxExit;
+                }
+            },
+            p.side === PositionDirection.long
+                ? Number.MIN_SAFE_INTEGER
+                : Number.MAX_SAFE_INTEGER
+        );
+
+        const riskInCents = Math.abs(
+            p.plannedEntryPrice - (p.plannedExitPrice || p.plannedTargetPrice)
+        );
+
+        this.telemetryModel.maxPnl =
+            Math.abs(maxExit - p.averageEntryPrice) / riskInCents;
+
+        return {
+            ...this.telemetryModel,
+        };
     }
 }

@@ -361,7 +361,6 @@ export function Candlestick({
         }
         return () => {
             for (const line of pricelines) {
-                console.log("removing priceline");
                 if (line) {
                     seriesRef.current?.removePriceLine(line);
                 }

@@ -1,4 +1,5 @@
-export const backtestBaseUrl = "https://6841deaec3ec.ngrok.io";
+export const backtestBaseUrl =
+    "http://localhost:6971" || "https://6841deaec3ec.ngrok.io";
 
 export enum PositionDirection {
     long = "long",
@@ -23,16 +24,23 @@ export interface BacktestPosition {
     };
 }
 
+export interface BacktestBatchResult {
+    watchlist: string[];
+    positions: BacktestPosition[];
+    startDate: string;
+    endDate: string;
+    maxLeverage: string;
+    pnl: number;
+}
+
 export interface BacktestResult {
-    results: {
-        watchlist: string[];
-        positions: BacktestPosition[];
-        startDate: string;
-        endDate: string;
-    }[];
+    results: BacktestBatchResult[];
     totalPnl: number;
     maxLeverage: number;
+    maxDrawdown: number;
     strategy: string;
+    maxLeverageDate: string;
+    maxDrawdownDate: string;
 }
 
 export interface Bar {

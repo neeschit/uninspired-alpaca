@@ -10,7 +10,7 @@ export class CachedCalendar {
     public static async getCalendar(epoch = Date.now()) {
         if (!CachedCalendar.value || !CachedCalendar.value.length) {
             CachedCalendar.value = await getCalendar(
-                startOfDay(addBusinessDays(epoch, -4)),
+                startOfDay(addBusinessDays(epoch, -10)),
                 endOfDay(new Date(epoch))
             );
         }

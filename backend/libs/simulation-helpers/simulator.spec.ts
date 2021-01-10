@@ -1,6 +1,6 @@
 import { Calendar, PositionDirection } from "@neeschit/alpaca-trade-api";
 import { getCalendar } from "../brokerage-helpers/alpaca";
-import { SimulationStrategy } from "./simulation.strategy";
+import { SimulationStrategy, TelemetryModel } from "./simulation.strategy";
 import {
     BacktestBatchResult,
     mergeResults,
@@ -107,7 +107,7 @@ const mockWhenMarketClosing = jest.fn();
 const mockOnMarketClose = jest.fn();
 const mockHasEntryTimePassed = jest.fn();
 
-class MockStrategy implements SimulationStrategy {
+class MockStrategy implements SimulationStrategy<TelemetryModel> {
     beforeMarketStarts = mockBeforeMarketStarts;
     rebalance = mockRebalance;
     beforeMarketCloses = mockWhenMarketClosing;
@@ -115,6 +115,7 @@ class MockStrategy implements SimulationStrategy {
     afterEntryTimePassed = mockAfterEntryPassed;
     hasEntryTimePassed = mockHasEntryTimePassed;
     isInPlay = jest.fn();
+    logTelemetryForProfitHacking = jest.fn();
 }
 
 test("Simulator should fake system time when executing batches", async () => {
@@ -127,7 +128,7 @@ test("Simulator should fake system time when executing batches", async () => {
 
     const simulator = new Simulator();
 
-    await simulator.run(batches, MockStrategy);
+    await simulator.run(batches, MockStrategy, zonedStartDate, zonedEndDate);
 
     expect(mockRebalance).toBeCalledTimes(750 * test.length);
     expect(mockBeforeMarketStarts).toBeCalledTimes(60 * test.length);
@@ -147,13 +148,32 @@ test("get market open time for day", async () => {
 });
 
 test("get market open time for a weekend", async () => {
-    const calendar = await getCalendar(
-        new Date("12-05-2020"),
-        new Date("12-07-2020")
-    );
+    const calendar: Calendar[] = [
+        {
+            date: "2020-12-07",
+            open: "09:30",
+            close: "16:00",
+        },
+    ];
     const openTime = Simulator.getMarketOpenTimeForDay(1607178600000, calendar);
 
     expect(openTime).toEqual(1607351400000);
+});
+
+test("get market open time for yday", async () => {
+    const calendar: Calendar[] = [
+        {
+            date: "2020-12-31",
+            open: "09:30",
+            close: "16:00",
+        },
+    ];
+    const openTime = Simulator.getMarketOpenTimeForYday(
+        1609770900000,
+        calendar
+    );
+
+    expect(openTime).toEqual(1609425000000);
 });
 
 test("get market open time without calendar", async () => {
@@ -177,7 +197,7 @@ test("runStrategy - afterEntryPassed", async () => {
     await runStrategy(
         "TEST",
         calendar,
-        (mockStrategy as unknown) as SimulationStrategy,
+        (mockStrategy as unknown) as SimulationStrategy<TelemetryModel>,
         1608657977000
     );
 
@@ -203,7 +223,7 @@ test("runStrategy - beforeMarketStarts", async () => {
     await runStrategy(
         "TEST",
         calendar,
-        (mockStrategy as unknown) as SimulationStrategy,
+        (mockStrategy as unknown) as SimulationStrategy<TelemetryModel>,
         1608645600000
     );
 
@@ -229,7 +249,7 @@ test("runStrategy - rebalance", async () => {
     await runStrategy(
         "TEST",
         calendar,
-        (mockStrategy as unknown) as SimulationStrategy,
+        (mockStrategy as unknown) as SimulationStrategy<TelemetryModel>,
         1608657977000
     );
 
@@ -255,7 +275,7 @@ test("runStrategy - whenMarketClosing", async () => {
     await runStrategy(
         "TEST",
         calendar,
-        (mockStrategy as unknown) as SimulationStrategy,
+        (mockStrategy as unknown) as SimulationStrategy<TelemetryModel>,
         1608670500000
     );
 
@@ -281,7 +301,7 @@ test("runStrategy - afterMarketCloses", async () => {
     await runStrategy(
         "TEST",
         calendar,
-        (mockStrategy as unknown) as SimulationStrategy,
+        (mockStrategy as unknown) as SimulationStrategy<TelemetryModel>,
         1608675081000
     );
 
@@ -293,7 +313,7 @@ test("runStrategy - afterMarketCloses", async () => {
 });
 
 test("mergeResults", () => {
-    const results: BacktestBatchResult[] = [
+    const results: BacktestBatchResult<TelemetryModel>[] = [
         {
             startDate: "2020-12-23",
             endDate: "2020-12-23",
@@ -335,8 +355,12 @@ test("mergeResults", () => {
                             close: "9270dcdb-71b3-45c6-bc9a-10f2bd74ffdd",
                         },
                         totalPnl: 100,
+                        loggedStats: {
+                            marketGap: 0,
+                            maxPnl: 0,
+                            gap: 0,
+                        },
                     },
-
                     {
                         symbol: "UNP",
                         averageEntryPrice: 201.62223869135804,
@@ -353,8 +377,12 @@ test("mergeResults", () => {
                             close: "22e29ff1-6781-4154-a0ba-2927e057dbd6",
                         },
                         totalPnl: 100,
+                        loggedStats: {
+                            marketGap: 0,
+                            maxPnl: 0,
+                            gap: 0,
+                        },
                     },
-
                     {
                         symbol: "VMW",
                         averageEntryPrice: 142.0060885580247,
@@ -371,8 +399,12 @@ test("mergeResults", () => {
                             close: "c86c88ae-c88a-4279-b3e4-95ee8cd6398c",
                         },
                         totalPnl: 100,
+                        loggedStats: {
+                            marketGap: 0,
+                            maxPnl: 0,
+                            gap: 0,
+                        },
                     },
-
                     {
                         symbol: "BMY",
                         averageEntryPrice: 61.204805789671546,
@@ -389,8 +421,12 @@ test("mergeResults", () => {
                             close: "9328e5ca-2999-4c7a-a160-24a30e89edae",
                         },
                         totalPnl: 100,
+                        loggedStats: {
+                            marketGap: 0,
+                            maxPnl: 0,
+                            gap: 0,
+                        },
                     },
-
                     {
                         symbol: "SO",
                         averageEntryPrice: 60.19734108049383,
@@ -407,6 +443,11 @@ test("mergeResults", () => {
                             close: "a6a63044-2f90-4d5c-88c3-71a81ab5c46c",
                         },
                         totalPnl: 100,
+                        loggedStats: {
+                            marketGap: 0,
+                            maxPnl: 0,
+                            gap: 0,
+                        },
                     },
 
                     {
@@ -425,8 +466,12 @@ test("mergeResults", () => {
                             close: "6539e3e9-4ed7-42d8-a9b7-062e5e26abd4",
                         },
                         totalPnl: 100,
+                        loggedStats: {
+                            marketGap: 0,
+                            maxPnl: 0,
+                            gap: 0,
+                        },
                     },
-
                     {
                         symbol: "PLD",
                         averageEntryPrice: 97.98074485925926,
@@ -443,6 +488,11 @@ test("mergeResults", () => {
                             close: "25236b46-cdf7-4b6e-8b39-c0d721f9b1d1",
                         },
                         totalPnl: 100,
+                        loggedStats: {
+                            marketGap: 0,
+                            maxPnl: 0,
+                            gap: 0,
+                        },
                     },
 
                     {
@@ -461,13 +511,18 @@ test("mergeResults", () => {
                             close: "85be60e6-4c76-4d9c-a5ad-e1ab39255242",
                         },
                         totalPnl: 100,
+                        loggedStats: {
+                            marketGap: 0,
+                            maxPnl: 0,
+                            gap: 0,
+                        },
                     },
                 ],
             },
         },
     ];
 
-    const batchResult: BacktestBatchResult = {
+    const batchResult: BacktestBatchResult<TelemetryModel> = {
         startDate: "2020-12-23",
         endDate: "2020-12-23",
         watchlist: { "2020-12-23": ["XOM", "SPY"] },
@@ -490,6 +545,11 @@ test("mergeResults", () => {
                         close: "a102cb06-c07a-4ada-8ed4-f9cbcb20c2b7",
                     },
                     totalPnl: 100,
+                    loggedStats: {
+                        marketGap: 0,
+                        maxPnl: 0,
+                        gap: 0,
+                    },
                 },
             ],
         },

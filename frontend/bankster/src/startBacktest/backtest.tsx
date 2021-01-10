@@ -151,12 +151,10 @@ export const BacktestStart = () => {
                             value={selectedStrategy}
                             label="Select Strategy"
                             onChange={(event) => {
-                                console.log(event.target.value);
                                 setSelectedStrategy(event.target.value);
                             }}
                         >
                             {Object.keys(pathMap).map((model) => {
-                                console.log(pathMap[model]);
                                 return (
                                     <MenuItem
                                         key={pathMap[model]}

@@ -24,7 +24,9 @@ test("should be in 3 positions for 12-30", async () => {
 
     const { results, totalPnl } = await simulator.run(
         batches,
-        NarrowRangeBarSimulation
+        NarrowRangeBarSimulation,
+        actualStartDate,
+        actualEndDate
     );
 
     expect(results[0].positions).toBeTruthy();

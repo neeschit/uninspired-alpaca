@@ -3,14 +3,13 @@ import {
     addBusinessDays,
     differenceInDays,
     format,
-    formatISO,
     parseISO,
     startOfDay,
 } from "date-fns";
 import { zonedTimeToUtc } from "date-fns-tz";
 import { MarketTimezone } from "../core-utils/data/data.model";
 import { getCalendar } from "../brokerage-helpers/alpaca";
-import { SimulationStrategy } from "./simulation.strategy";
+import { SimulationStrategy, TelemetryModel } from "./simulation.strategy";
 import {
     DATE_FORMAT,
     FIFTEEN_MINUTES,
@@ -18,20 +17,19 @@ import {
     isBeforeMarketOpening,
     isMarketClosing,
     isMarketOpen,
-    isMarketOpening,
     isPremarket,
 } from "./timing.util";
 import { LOGGER } from "../core-utils/instrumentation/log";
 import { ClosedMockPosition, MockBrokerage } from "./mockBrokerage";
-import { getPerformance } from "./perfomance";
-import { open } from "fs-extra";
 
-export type SimulationImpl = new (...args: any[]) => SimulationStrategy;
+export type SimulationImpl<T extends TelemetryModel> = new (
+    ...args: any[]
+) => SimulationStrategy<T>;
 
-export const mergeResults = (
-    results: BacktestBatchResult[],
-    batchResult: BacktestBatchResult
-) => {
+export function mergeResults<T extends TelemetryModel>(
+    results: BacktestBatchResult<T>[],
+    batchResult: BacktestBatchResult<T>
+) {
     const resultToAddTo = results.find(
         (r) => r.startDate === batchResult.startDate
     );
@@ -49,27 +47,39 @@ export const mergeResults = (
     } else {
         results.push(batchResult);
     }
-};
+}
 
 export interface SimulationResult {
     totalPnl: number;
     maxLeverage: number;
+    maxLeverageDate: string;
+    maxDrawdown: number;
+    maxDrawdownDate: string;
     results: AggregatedBacktestBatchResult[];
 }
 
-export class Simulator {
+export class Simulator<T extends TelemetryModel> {
     private readonly updateInterval = 60000;
 
-    private strategies: { [index: string]: SimulationStrategy } = {};
+    private strategies: { [index: string]: SimulationStrategy<T> } = {};
 
     async run(
         batches: BacktestBatch[],
-        strategy: SimulationImpl
+        strategy: SimulationImpl<T>,
+        startDate: string,
+        endDate: string
     ): Promise<SimulationResult> {
-        const results: BacktestBatchResult[] = [];
+        const results: BacktestBatchResult<T>[] = [];
+
+        const calendar = await getCalendar(
+            addBusinessDays(parseISO(startDate), -5),
+            parseISO(endDate)
+        );
+
         for await (const batchResult of this.syncToAsyncIterable(
             batches,
-            strategy
+            strategy,
+            calendar
         )) {
             mergeResults(results, batchResult);
         }
@@ -79,37 +89,60 @@ export class Simulator {
                 return r.positions[r.startDate];
             })
             .map((r) => {
+                const pnl = r.positions[r.startDate].reduce((totalPnl, p) => {
+                    totalPnl += p.totalPnl;
+                    return totalPnl;
+                }, 0);
                 return {
                     startDate: r.startDate,
                     endDate: r.endDate,
                     maxLeverage: r.maxLeverage,
                     positions: r.positions[r.startDate],
                     watchlist: r.watchlist[r.startDate],
+                    pnl,
                 };
             });
 
-        const totalPnl = getPerformance(filteredResults);
+        const totalPnl = filteredResults.reduce((totalPnl, r) => {
+            totalPnl += r.pnl;
+            return totalPnl;
+        }, 0);
+
+        let maxDrawdownDate = "";
+        let maxLeverageDate = "";
 
         const maxLeverage = filteredResults.reduce((leverage, result) => {
+            maxLeverageDate =
+                leverage < result.maxLeverage
+                    ? result.startDate
+                    : maxLeverageDate;
             leverage = Math.max(leverage, result.maxLeverage);
             return leverage;
         }, 0);
+
+        const maxDrawdown = filteredResults.reduce((drawdown, result) => {
+            maxDrawdownDate =
+                result.pnl < drawdown ? result.startDate : maxDrawdownDate;
+            drawdown = Math.min(drawdown, result.pnl);
+            return drawdown;
+        }, Number.MAX_SAFE_INTEGER);
 
         return {
             totalPnl,
             results: filteredResults,
             maxLeverage,
+            maxDrawdown,
+            maxDrawdownDate,
+            maxLeverageDate,
         };
     }
 
     private async *syncToAsyncIterable(
         batches: BacktestBatch[],
-        strategy: SimulationImpl
+        strategy: SimulationImpl<T>,
+        calendar: Calendar[]
     ) {
         for (const batch of batches) {
-            const start = parseISO(batch.startDate);
-            const end = parseISO(batch.endDate);
-            const calendar = await getCalendar(addBusinessDays(start, -5), end);
             LOGGER.info(`running batch ${JSON.stringify(batch)}`);
             const result = await this.executeBatch(batch, calendar, strategy);
             yield result;
@@ -119,8 +152,8 @@ export class Simulator {
     private async executeBatch(
         batch: BacktestBatch,
         calendar: Calendar[],
-        Strategy: SimulationImpl
-    ): Promise<BacktestBatchResult> {
+        Strategy: SimulationImpl<T>
+    ): Promise<BacktestBatchResult<T>> {
         const mockBroker = new MockBrokerage();
         this.strategies = {};
 
@@ -128,7 +161,7 @@ export class Simulator {
         const end = parseISO(batch.endDate).getTime();
 
         const watchlist: BacktestWatchlist = {};
-        const positions: BacktestPositions = {};
+        const positions: BacktestPositions<T> = {};
 
         let maxLeverage = 0;
 
@@ -177,9 +210,40 @@ export class Simulator {
                 );
 
                 watchlist[date] = todaysWatchlist;
-                positions[date] = JSON.parse(
+                const rawPositions: ClosedMockPosition[] = JSON.parse(
                     JSON.stringify(mockBroker.closedPositions)
                 );
+
+                const loggedStatsPromises: Promise<{
+                    [index: string]: T;
+                }>[] = rawPositions.map(async (p) => {
+                    return {
+                        [p.symbol]: await this.strategies[
+                            p.symbol
+                        ].logTelemetryForProfitHacking(
+                            p,
+                            calendar,
+                            currentTime
+                        ),
+                    };
+                });
+
+                const results: { [index: string]: T }[] = await Promise.all(
+                    loggedStatsPromises
+                );
+
+                positions[date] = rawPositions.map((p) => {
+                    const loggedStats = results.find((r) => r[p.symbol]);
+
+                    if (!loggedStats) {
+                        throw new Error();
+                    }
+
+                    return {
+                        ...p,
+                        loggedStats: loggedStats[p.symbol],
+                    };
+                });
 
                 currentTime = startOfDay(
                     addBusinessDays(currentTime, 1)
@@ -206,7 +270,8 @@ export class Simulator {
             const openTime = Simulator._getMarketOpenTimeForDay(
                 epoch,
                 calendar,
-                0
+                0,
+                false
             );
 
             return openTime - 2 * FIFTEEN_MINUTES;
@@ -220,7 +285,28 @@ export class Simulator {
         calendar: Calendar[]
     ): number {
         try {
-            return Simulator._getMarketOpenTimeForDay(epoch, calendar, 0);
+            return Simulator._getMarketOpenTimeForDay(
+                epoch,
+                calendar,
+                0,
+                false
+            );
+        } catch (e) {
+            throw new Error(`no_calendar_found_${format(epoch, "yyyy-MM-dd")}`);
+        }
+    }
+
+    static getMarketOpenTimeForYday(
+        epoch: number,
+        calendar: Calendar[]
+    ): number {
+        try {
+            return Simulator._getMarketOpenTimeForDay(
+                addBusinessDays(epoch, -1).getTime(),
+                calendar,
+                0,
+                true
+            );
         } catch (e) {
             throw new Error(`no_calendar_found_${format(epoch, "yyyy-MM-dd")}`);
         }
@@ -229,7 +315,8 @@ export class Simulator {
     private static _getMarketOpenTimeForDay(
         epoch: number,
         calendar: Calendar[],
-        attempt: number
+        attempt: number,
+        goBackwards: boolean
     ): number {
         const todaysDate = format(epoch, DATE_FORMAT);
 
@@ -237,9 +324,10 @@ export class Simulator {
 
         if (!calendarEntry && attempt < 5) {
             return this._getMarketOpenTimeForDay(
-                addBusinessDays(epoch, 1).getTime(),
+                addBusinessDays(epoch, goBackwards ? -1 : 1).getTime(),
                 calendar,
-                ++attempt
+                ++attempt,
+                goBackwards
             );
         } else if (!calendarEntry) {
             throw new Error(`no_calendar_found`);
@@ -320,13 +408,18 @@ export interface BacktestWatchlist {
     [index: string]: string[];
 }
 
-export interface BacktestPositions {
-    [index: string]: ClosedMockPosition[];
+export interface InflatedBacktestPosition<T extends TelemetryModel>
+    extends ClosedMockPosition {
+    loggedStats: T;
 }
 
-export interface BacktestBatchResult {
+export interface BacktestPositions<T extends TelemetryModel> {
+    [index: string]: InflatedBacktestPosition<T>[];
+}
+
+export interface BacktestBatchResult<T extends TelemetryModel> {
     watchlist: BacktestWatchlist;
-    positions: BacktestPositions;
+    positions: BacktestPositions<T>;
     startDate: string;
     endDate: string;
     maxLeverage: number;
@@ -338,14 +431,15 @@ export interface AggregatedBacktestBatchResult {
     startDate: string;
     endDate: string;
     maxLeverage: number;
+    pnl: number;
 }
 
-export const runStrategy = async (
+export async function runStrategy<T extends TelemetryModel>(
     symbol: string,
     calendar: Calendar[],
-    sim: SimulationStrategy,
+    sim: SimulationStrategy<T>,
     epoch: number
-) => {
+) {
     if (isPremarket(calendar, epoch)) {
         await sim.beforeMarketStarts(calendar, epoch);
     } else if (isMarketClosing(calendar, epoch)) {
@@ -359,4 +453,4 @@ export const runStrategy = async (
     } else if (isAfterMarketClose(calendar, epoch)) {
         await sim.onMarketClose(epoch);
     }
-};
+}

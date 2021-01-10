@@ -18,7 +18,10 @@ import ChevronLeftIcon from "@material-ui/icons/ChevronLeftOutlined";
 import ChevronRightIcon from "@material-ui/icons/ChevronRightOutlined";
 import clsx from "clsx";
 import { Candlestick } from "../chart/candlestick";
-import { formatISO, parse } from "date-fns";
+import { addBusinessDays, format, formatISO, parse } from "date-fns";
+import { DatePicker, LocalizationProvider } from "@material-ui/pickers";
+import DateFnsUtils from "@material-ui/pickers/adapter/date-fns";
+import { TextField } from "@material-ui/core";
 
 const useStyles = makeStyles((theme) => ({
     selectedWatchlistRow: {
@@ -33,6 +36,12 @@ export const BacktestDetail = ({ batch }: { batch: BacktestResult }) => {
     const [currentIndex, setCurrentIndex] = React.useState(
         firstIndexWithSomething
     );
+
+    const dates = batch.results.map((r) => r.startDate);
+
+    React.useEffect(() => {
+        setCurrentIndex(0);
+    }, [batch]);
 
     const theme = useTheme();
 
@@ -56,6 +65,8 @@ export const BacktestDetail = ({ batch }: { batch: BacktestResult }) => {
             wasEntered: isInPositions,
         };
     });
+
+    React.useEffect(() => {}, []);
 
     const getWatchlistRow = (row: typeof mappedWatchlist[0]) => {
         return (
@@ -146,15 +157,50 @@ export const BacktestDetail = ({ batch }: { batch: BacktestResult }) => {
                             >
                                 <ChevronLeftIcon />
                             </IconButton>
-                            <Typography
-                                component="p"
-                                style={{
-                                    display: "inline-block",
-                                }}
-                            >
-                                Results date:{" "}
-                                {batch.results[currentIndex].startDate}
-                            </Typography>
+                            <LocalizationProvider dateAdapter={DateFnsUtils}>
+                                <DatePicker
+                                    label="Results Date"
+                                    value={parse(
+                                        batch.results[currentIndex]?.startDate,
+                                        "yyyy-MM-dd",
+                                        addBusinessDays(
+                                            new Date(
+                                                batch.results[
+                                                    currentIndex
+                                                ]?.startDate
+                                            ),
+                                            1
+                                        )
+                                    )}
+                                    renderInput={(props) => (
+                                        <TextField {...props} />
+                                    )}
+                                    shouldDisableDate={(day: any) => {
+                                        const date = format(day, "yyyy-MM-dd");
+
+                                        return dates.indexOf(date) === -1;
+                                    }}
+                                    minDate={dates[0]}
+                                    maxDate={
+                                        dates.length && dates[dates.length - 1]
+                                    }
+                                    onChange={(date: Date | null) => {
+                                        if (!date) {
+                                            return;
+                                        }
+                                        const formattedDate = format(
+                                            date,
+                                            "yyyy-MM-dd"
+                                        );
+
+                                        const index = dates.indexOf(
+                                            formattedDate
+                                        );
+
+                                        setCurrentIndex(index);
+                                    }}
+                                />
+                            </LocalizationProvider>
                             <IconButton
                                 onClick={() => {
                                     setCurrentIndex(currentIndex + 1);
@@ -189,7 +235,30 @@ export const BacktestDetail = ({ batch }: { batch: BacktestResult }) => {
                             marginRight: theme.spacing(1),
                         }}
                     >
-                        Max equity needed: {Math.round(batch.maxLeverage)}
+                        Max equity needed:{" "}
+                        {Math.max(25000, Math.round(batch.maxLeverage / 4))} on{" "}
+                        {parse(
+                            batch.maxLeverageDate,
+                            "yyyy-MM-dd",
+                            addBusinessDays(new Date(batch.maxLeverageDate), 1)
+                        ).toLocaleDateString()}
+                    </Typography>
+                </Grid>
+                <Grid item>
+                    <Typography
+                        component="p"
+                        style={{
+                            display: "inline-block",
+                            marginLeft: theme.spacing(1),
+                            marginRight: theme.spacing(1),
+                        }}
+                    >
+                        Max drawdown: {Math.round(batch.maxDrawdown)} on{" "}
+                        {parse(
+                            batch.maxDrawdownDate,
+                            "yyyy-MM-dd",
+                            addBusinessDays(new Date(batch.maxDrawdownDate), 1)
+                        ).toLocaleDateString()}
                     </Typography>
                 </Grid>
                 <Grid item>

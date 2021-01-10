@@ -19,7 +19,7 @@ export interface ClosedMockPosition {
     averageExitPrice: number;
     averageEntryPrice: number;
     plannedEntryPrice: number;
-    plannedExitPrice: number;
+    plannedExitPrice?: number;
     plannedTargetPrice: number;
     totalPnl: number;
     qty: number;
@@ -398,11 +398,8 @@ export class MockBrokerage implements BrokerStrategy {
                 mockOrder.filled_at = filledAtTime;
                 mockOrder.filled_qty = order.qty;
                 mockOrder.filled_avg_price =
-                    order.type !== TradeType.market
-                        ? strikePrice
-                        : TimeInForce.opg === order.time_in_force
-                        ? minuteBar.o
-                        : minuteBar.c;
+                    order.type !== TradeType.market ? strikePrice : minuteBar.o;
+                mockOrder.status = OrderStatus.filled;
 
                 this.closedOrders.push(mockOrder);
 

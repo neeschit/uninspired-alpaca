@@ -19,11 +19,12 @@ import { isMarketOpen } from "../../libs/simulation-helpers/timing.util";
 import { ensureDir, readdir, readJSON, writeJson, ensureFile } from "fs-extra";
 import { SpyGapCloseSimulation } from "../../libs/strategy/spyGap.simulation";
 import { BoomBarSimulation } from "../../libs/strategy/boomBar.simulation";
+import { TelemetryModel } from "../../libs/simulation-helpers/simulation.strategy";
 
-async function run(
+async function run<T extends TelemetryModel>(
     startDate: string,
     endDate: string,
-    Strategy: SimulationImpl,
+    Strategy: SimulationImpl<T>,
     symbols: string[]
 ) {
     const simulator = new Simulator();
@@ -39,7 +40,12 @@ async function run(
     );
 
     try {
-        return await simulator.run(batches, Strategy);
+        return await simulator.run(
+            batches,
+            Strategy,
+            actualStartDate,
+            actualEndDate
+        );
     } catch (e) {
         LOGGER.error(e);
         return {
@@ -203,13 +209,13 @@ backtestServer.post(
 
         const data = await getData(
             symbol,
-            addBusinessDays(fromEpoch, -1).getTime(),
+            addBusinessDays(fromEpoch, -3).getTime(),
             duration,
             endEpoch
         );
 
         const calendar = await getCalendar(
-            new Date(addBusinessDays(fromEpoch, -1)),
+            new Date(addBusinessDays(fromEpoch, -3)),
             new Date(endEpoch)
         );
 

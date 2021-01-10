@@ -5,7 +5,7 @@ import {
     TradeDirection,
     TradeType,
 } from "@neeschit/alpaca-trade-api";
-import { addBusinessDays } from "date-fns";
+import { addBusinessDays, parseISO, startOfDay } from "date-fns";
 import { BrokerStrategy } from "../brokerage-helpers/brokerage.strategy";
 import { getTrueRange } from "../core-indicators/indicator/trueRange";
 import { DefaultDuration, PeriodType } from "../core-utils/data/data.model";
@@ -16,7 +16,12 @@ import {
     batchInsertDailyBars,
     getSimpleData,
 } from "../core-utils/resources/stockData";
-import { SimulationStrategy } from "../simulation-helpers/simulation.strategy";
+import { ClosedMockPosition } from "../simulation-helpers/mockBrokerage";
+import {
+    SimulationStrategy,
+    TelemetryModel,
+} from "../simulation-helpers/simulation.strategy";
+import { Simulator } from "../simulation-helpers/simulator";
 import { FIFTEEN_MINUTES } from "../simulation-helpers/timing.util";
 import {
     cancelOpenOrdersForSymbol,
@@ -29,7 +34,8 @@ import {
     TradePlan,
 } from "../trade-management-helpers/position";
 
-export class SpyGapCloseSimulation implements SimulationStrategy {
+export class SpyGapCloseSimulation
+    implements SimulationStrategy<TelemetryModel> {
     private isGapDay = false;
     private hasCachedData = false;
     private previousClose: number = -1;
@@ -206,5 +212,82 @@ export class SpyGapCloseSimulation implements SimulationStrategy {
 
     isInPlay() {
         return this.isGapDay;
+    }
+
+    async logTelemetryForProfitHacking(
+        p: ClosedMockPosition,
+        calendar: Calendar[],
+        epoch: number
+    ) {
+        const telemetryModel: TelemetryModel = {
+            gap: 0,
+            marketGap: 0,
+            maxPnl: 0,
+        };
+        const ydayOpen = Simulator.getMarketOpenTimeForYday(epoch, calendar);
+
+        const premarketOpenToday = Simulator.getPremarketTimeForDay(
+            epoch,
+            calendar
+        );
+        const marketOpenToday = Simulator.getMarketOpenTimeForDay(
+            epoch,
+            calendar
+        );
+
+        const marketGapBars = await getSimpleData(
+            "SPY",
+            startOfDay(ydayOpen).getTime(),
+            false,
+            epoch
+        );
+
+        if (marketGapBars.length > 1) {
+            telemetryModel.marketGap =
+                (marketGapBars[1].o - marketGapBars[0].c) / marketGapBars[1].o;
+        } else if (marketGapBars.length > 0) {
+            const todaysMarketOpenBars = await getSimpleData(
+                "SPY",
+                premarketOpenToday,
+                true,
+                marketOpenToday + 60000
+            );
+
+            const openBar =
+                todaysMarketOpenBars[todaysMarketOpenBars.length - 1];
+            telemetryModel.marketGap =
+                (openBar.o - marketGapBars[0].c) / openBar.o;
+        }
+
+        telemetryModel.marketGap *= 100;
+        telemetryModel.gap = telemetryModel.marketGap;
+
+        const entryTime = parseISO(p.entryTime).getTime();
+
+        const bars = await getSimpleData(this.symbol, entryTime, true, epoch);
+
+        const maxExit = bars.reduce(
+            (maxExit, b) => {
+                if (p.side === PositionDirection.long) {
+                    return b.h > maxExit ? b.h : maxExit;
+                } else {
+                    return b.l < maxExit ? b.l : maxExit;
+                }
+            },
+            p.side === PositionDirection.long
+                ? Number.MIN_SAFE_INTEGER
+                : Number.MAX_SAFE_INTEGER
+        );
+
+        const riskInCents = Math.abs(
+            p.plannedEntryPrice - (p.plannedExitPrice || p.plannedTargetPrice)
+        );
+
+        telemetryModel.maxPnl =
+            Math.abs(maxExit - p.averageEntryPrice) / riskInCents;
+
+        return {
+            ...telemetryModel,
+        };
     }
 }

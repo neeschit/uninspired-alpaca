@@ -47,7 +47,6 @@ export const getCompaniesByMarketCap = async (marketcap: number) => {
 
                 if (isAllowedCountry) {
                     filteredAssets.push(companies[i].symbol);
-                    console.log(filteredAssets.length);
                 }
             }
         } catch (e) {}
