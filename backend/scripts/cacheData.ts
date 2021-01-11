@@ -1,4 +1,4 @@
-import { currentIndices, getMegaCaps } from "../libs/core-utils/data/filters";
+import { currentStreamingSymbols } from "../libs/core-utils/data/filters";
 import {
     DefaultDuration,
     PeriodType,
@@ -14,9 +14,7 @@ import {
 import { isAfterMarketClose } from "../libs/simulation-helpers/timing.util";
 import { getCalendar } from "../libs/brokerage-helpers/alpaca";
 
-const companies: string[] = getMegaCaps();
-
-companies.push(...currentIndices);
+const companies: string[] = currentStreamingSymbols;
 
 const numberOfDaysBefore = (process.argv[2] && Number(process.argv[2])) || 0;
 

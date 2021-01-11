@@ -8,6 +8,7 @@ import { BrokerStrategy } from "../brokerage-helpers/brokerage.strategy";
 import { getAverageTrueRange } from "../core-indicators/indicator/trueRange";
 import { PeriodType } from "../core-utils/data/data.model";
 import { LOGGER } from "../core-utils/instrumentation/log";
+import { selectAverageVolumeFirstBarForWindow } from "../core-utils/resources/firstFiveMinBar";
 import { getPolyonData } from "../core-utils/resources/polygon";
 import {
     batchInsertBars,
@@ -48,6 +49,7 @@ export const isTimeForBoomBarEntry = (nowMillis: number) => {
 export interface BoomBarInflationModel extends TelemetryModel {
     atrFromYday: number;
     maxRange: number;
+    relativeVol: number;
 }
 
 export class BoomBarSimulation
@@ -61,6 +63,8 @@ export class BoomBarSimulation
         maxPnl: 0,
         gap: 0,
     };
+
+    private firstBarVolume = 0;
 
     constructor(private symbol: string, public broker: BrokerStrategy) {}
 
@@ -136,9 +140,11 @@ export class BoomBarSimulation
 
         const lastBar = data[0];
 
+        this.firstBarVolume = lastBar.v;
+
         const range = Math.abs(lastBar.h - lastBar.l);
 
-        if (range > 3 * this.atrFromYdayClose && lastBar.v > 500000) {
+        if (range > 3 * this.atrFromYdayClose) {
             this.isScreened = true;
         } else {
             this.isScreened = false;
@@ -158,8 +164,8 @@ export class BoomBarSimulation
 
         const takeProfitLimit =
             side === TradeDirection.buy
-                ? lastBar.h + PROFIT_RATIO * risk
-                : lastBar.l - PROFIT_RATIO * risk;
+                ? lastBar.h + 1.3 * risk
+                : lastBar.l - 1.3 * risk;
 
         const plan: TradePlan = {
             symbol: this.symbol,
@@ -292,10 +298,20 @@ export class BoomBarSimulation
         this.telemetryModel.maxPnl =
             Math.abs(maxExit - p.averageEntryPrice) / riskInCents;
 
+        const averageVol = await selectAverageVolumeFirstBarForWindow(
+            p.symbol,
+            90
+        );
+
+        if (!averageVol) {
+            throw new Error("expected average vol");
+        }
+
         return {
             ...this.telemetryModel,
             atrFromYday: this.atrFromYdayClose,
             maxRange: this.maxRange,
+            relativeVol: this.firstBarVolume / averageVol,
         };
     }
 }

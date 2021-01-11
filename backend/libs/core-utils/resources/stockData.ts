@@ -101,7 +101,7 @@ SELECT create_hypertable('${tablename}', 't');
 SELECT set_chunk_time_interval('${tablename}', interval '1 day');
 `;
 
-const checkIfTableExists = async (tablename: string) => {
+export const checkIfTableExists = async (tablename: string) => {
     const pool = getConnection();
 
     try {
@@ -224,7 +224,7 @@ export const createNewMetadataTables = async () => {
     }
 };
 
-const getTimestampValue = (t: number) => {
+export const getTimestampValue = (t: number) => {
     return `to_timestamp(${t}::double precision / 1000)`;
 };
 
