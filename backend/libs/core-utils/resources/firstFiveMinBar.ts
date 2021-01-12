@@ -1,7 +1,8 @@
+import { startOfDay } from "date-fns";
 import { getConnection } from "../connection/pg";
 import { Bar } from "../data/data.model";
 import { LOGGER } from "../instrumentation/log";
-import { checkIfTableExists, getTimestampValue } from "./stockData";
+import { checkIfTableExists, getData, getTimestampValue } from "./stockData";
 
 const firstBarTablePrefix = `first_five_min_bar_`;
 
@@ -119,4 +120,87 @@ export const selectAverageVolumeFirstBarForWindow = async (
     } finally {
         client.release();
     }
+};
+
+export const selectAverageVolumeFirstBarForWindowLive = async (
+    symbol: string,
+    window: number,
+    endEpoch: number
+) => {
+    const pool = getConnection();
+
+    const client = await pool.connect();
+
+    const tablename = `${firstBarTablePrefix}${symbol.toLowerCase()}`;
+
+    const query = `select v from ${tablename} where t < ${getTimestampValue(
+        startOfDay(endEpoch).getTime()
+    )} order by t desc limit ${window}`;
+
+    /* console.log(query); */
+
+    try {
+        const result = await client.query(query);
+
+        const sum = result.rows.reduce((avg: number, vol: { v: string }) => {
+            avg += Number(vol.v);
+            return avg;
+        }, 0);
+
+        return sum / window;
+    } catch (e) {
+        LOGGER.error(e);
+    } finally {
+        client.release();
+    }
+};
+
+export const selectAverageRangeFirstBarForWindowLive = async (
+    symbol: string,
+    endEpoch: number
+) => {
+    const pool = getConnection();
+
+    const client = await pool.connect();
+
+    const tablename = `${firstBarTablePrefix}${symbol.toLowerCase()}`;
+
+    const query = `select avg(abs(h - l)) from ${tablename} where t < ${getTimestampValue(
+        startOfDay(endEpoch).getTime()
+    )}`;
+
+    /* console.log(query); */
+
+    try {
+        const result = await client.query(query);
+
+        return result.rows[0].avg;
+    } catch (e) {
+        LOGGER.error(e);
+    } finally {
+        client.release();
+    }
+};
+
+export const getMarketRelativeVolume = async (
+    marketStartEpochToday: number
+) => {
+    const averageVol = await selectAverageVolumeFirstBarForWindowLive(
+        "SPY",
+        90,
+        marketStartEpochToday
+    );
+
+    const data = await getData(
+        "SPY",
+        marketStartEpochToday,
+        "5 minutes",
+        marketStartEpochToday + 300000
+    );
+
+    if (!data.length || !averageVol) {
+        throw new Error("average_volume_required");
+    }
+
+    return data[0].v / averageVol;
 };

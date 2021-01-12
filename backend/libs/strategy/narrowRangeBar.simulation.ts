@@ -27,6 +27,7 @@ import {
     batchInsertDailyBars,
     getSimpleData,
     getPersistedData,
+    getGapForSymbol,
 } from "../core-utils/resources/stockData";
 import { BrokerStrategy } from "../brokerage-helpers/brokerage.strategy";
 import { getMarketOpenMillis } from "../simulation-helpers/timing.util";
@@ -202,56 +203,21 @@ export class NarrowRangeBarSimulation
             calendar
         );
 
-        const marketGapBars = await getSimpleData(
+        this.telemetryModel.marketGap = await getGapForSymbol(
             "SPY",
-            startOfDay(ydayOpen).getTime(),
-            false,
-            epoch
+            ydayOpen,
+            epoch,
+            premarketOpenToday,
+            marketOpenToday
         );
 
-        if (marketGapBars.length > 1) {
-            this.telemetryModel.marketGap =
-                (marketGapBars[1].o - marketGapBars[0].c) / marketGapBars[1].o;
-        } else if (marketGapBars.length > 0) {
-            const todaysMarketOpenBars = await getSimpleData(
-                "SPY",
-                premarketOpenToday,
-                true,
-                marketOpenToday + 60000
-            );
-
-            const openBar =
-                todaysMarketOpenBars[todaysMarketOpenBars.length - 1];
-            this.telemetryModel.marketGap =
-                (openBar.o - marketGapBars[0].c) / openBar.o;
-        }
-
-        this.telemetryModel.marketGap *= 100;
-
-        const closeBarsYday = await getSimpleData(
+        this.telemetryModel.gap = await getGapForSymbol(
             this.symbol,
-            startOfDay(ydayOpen).getTime(),
-            false,
-            epoch
+            ydayOpen,
+            epoch,
+            premarketOpenToday,
+            marketOpenToday
         );
-
-        if (closeBarsYday.length > 1) {
-            this.telemetryModel.gap =
-                (closeBarsYday[1].o - closeBarsYday[0].c) / closeBarsYday[1].o;
-        } else if (closeBarsYday.length > 0) {
-            const todaysOpenBars = await getSimpleData(
-                this.symbol,
-                premarketOpenToday,
-                true,
-                marketOpenToday + 60000
-            );
-
-            const openBar = todaysOpenBars[todaysOpenBars.length - 1];
-            this.telemetryModel.gap =
-                (openBar.o - closeBarsYday[0].c) / openBar.o;
-        }
-
-        this.telemetryModel.gap *= 100;
 
         const entryTime = parseISO(p.entryTime).getTime();
         const exitTime = parseISO(p.exitTime).getTime();

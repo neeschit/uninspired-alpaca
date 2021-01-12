@@ -781,3 +781,36 @@ export const deleteBatch = async (queries: string) => {
 
     await pool.query(queries);
 };
+
+export const getGapForSymbol = async (
+    symbol: string,
+    ydayOpen: number,
+    epoch: number,
+    premarketOpenToday: number,
+    marketOpenToday: number
+) => {
+    let gap = 0;
+
+    const closeBarsYday = await getSimpleData(
+        symbol,
+        startOfDay(ydayOpen).getTime(),
+        false,
+        epoch
+    );
+
+    if (closeBarsYday.length > 1) {
+        gap = (closeBarsYday[1].o - closeBarsYday[0].c) / closeBarsYday[1].o;
+    } else if (closeBarsYday.length > 0) {
+        const todaysOpenBars = await getSimpleData(
+            symbol,
+            premarketOpenToday,
+            true,
+            marketOpenToday + 60000
+        );
+
+        const openBar = todaysOpenBars[todaysOpenBars.length - 1];
+        gap = (openBar.o - closeBarsYday[0].c) / openBar.o;
+    }
+
+    return gap * 100;
+};

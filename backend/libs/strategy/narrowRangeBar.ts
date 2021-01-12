@@ -6,7 +6,7 @@ import { IndicatorValue } from "../core-indicators/indicator/adx";
 import { TradePlan } from "../trade-management-helpers/position";
 import { getActualStop } from "../core-indicators/services/riskManagement";
 
-export const RISK_PER_ORDER = 10;
+export const RISK_PER_ORDER = 100;
 export const PROFIT_RATIO = 2;
 
 export interface ORBParams {

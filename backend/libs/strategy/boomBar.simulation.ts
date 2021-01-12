@@ -8,13 +8,18 @@ import { BrokerStrategy } from "../brokerage-helpers/brokerage.strategy";
 import { getAverageTrueRange } from "../core-indicators/indicator/trueRange";
 import { PeriodType } from "../core-utils/data/data.model";
 import { LOGGER } from "../core-utils/instrumentation/log";
-import { selectAverageVolumeFirstBarForWindow } from "../core-utils/resources/firstFiveMinBar";
+import {
+    selectAverageRangeFirstBarForWindowLive,
+    selectAverageVolumeFirstBarForWindow,
+    selectAverageVolumeFirstBarForWindowLive,
+} from "../core-utils/resources/firstFiveMinBar";
 import { getPolyonData } from "../core-utils/resources/polygon";
 import {
     batchInsertBars,
     getData,
     getSimpleData,
     getBucketedBarsForDay,
+    getGapForSymbol,
 } from "../core-utils/resources/stockData";
 import { convertToLocalTime } from "../core-utils/util/date";
 import { isBacktestingEnv } from "../core-utils/util/env";
@@ -131,6 +136,20 @@ export class BoomBarSimulation
 
         const marketStartEpochToday = getMarketOpenMillis(calendar, epoch);
 
+        const premarketEpoch = Simulator.getPremarketTimeForDay(
+            epoch,
+            calendar
+        );
+        const ydayOpen = Simulator.getMarketOpenTimeForYday(epoch, calendar);
+
+        const gap = await getGapForSymbol(
+            this.symbol,
+            ydayOpen,
+            epoch,
+            premarketEpoch,
+            marketStartEpochToday
+        );
+
         const data = await getData(
             this.symbol,
             marketStartEpochToday,
@@ -144,8 +163,28 @@ export class BoomBarSimulation
 
         const range = Math.abs(lastBar.h - lastBar.l);
 
-        if (range > 3 * this.atrFromYdayClose) {
+        const averageVol = await selectAverageVolumeFirstBarForWindowLive(
+            this.symbol,
+            90,
+            epoch
+        );
+
+        const averageFirstBarRange = await selectAverageRangeFirstBarForWindowLive(
+            this.symbol,
+            epoch
+        );
+
+        if (range > 3 * averageFirstBarRange!) {
             this.isScreened = true;
+
+            if (
+                this.firstBarVolume / averageVol! < 1 ||
+                gap > 1 ||
+                gap < -1 ||
+                range < 3 * this.maxRange
+            ) {
+                return;
+            }
         } else {
             this.isScreened = false;
             return;
@@ -164,8 +203,8 @@ export class BoomBarSimulation
 
         const takeProfitLimit =
             side === TradeDirection.buy
-                ? lastBar.h + 1.3 * risk
-                : lastBar.l - 1.3 * risk;
+                ? lastBar.c + 3 * risk
+                : lastBar.c - 3 * risk;
 
         const plan: TradePlan = {
             symbol: this.symbol,
@@ -219,56 +258,21 @@ export class BoomBarSimulation
             calendar
         );
 
-        const marketGapBars = await getSimpleData(
+        this.telemetryModel.marketGap = await getGapForSymbol(
             "SPY",
-            startOfDay(ydayOpen).getTime(),
-            false,
-            epoch
+            ydayOpen,
+            epoch,
+            premarketOpenToday,
+            marketOpenToday
         );
 
-        if (marketGapBars.length > 1) {
-            this.telemetryModel.marketGap =
-                (marketGapBars[1].o - marketGapBars[0].c) / marketGapBars[1].o;
-        } else if (marketGapBars.length > 0) {
-            const todaysMarketOpenBars = await getSimpleData(
-                "SPY",
-                premarketOpenToday,
-                true,
-                marketOpenToday + 60000
-            );
-
-            const openBar =
-                todaysMarketOpenBars[todaysMarketOpenBars.length - 1];
-            this.telemetryModel.marketGap =
-                (openBar.o - marketGapBars[0].c) / openBar.o;
-        }
-
-        this.telemetryModel.marketGap *= 100;
-
-        const closeBarsYday = await getSimpleData(
+        this.telemetryModel.gap = await getGapForSymbol(
             this.symbol,
-            startOfDay(ydayOpen).getTime(),
-            false,
-            epoch
+            ydayOpen,
+            epoch,
+            premarketOpenToday,
+            marketOpenToday
         );
-
-        if (closeBarsYday.length > 1) {
-            this.telemetryModel.gap =
-                (closeBarsYday[1].o - closeBarsYday[0].c) / closeBarsYday[1].o;
-        } else if (closeBarsYday.length > 0) {
-            const todaysOpenBars = await getSimpleData(
-                this.symbol,
-                premarketOpenToday,
-                true,
-                marketOpenToday + 60000
-            );
-
-            const openBar = todaysOpenBars[todaysOpenBars.length - 1];
-            this.telemetryModel.gap =
-                (openBar.o - closeBarsYday[0].c) / openBar.o;
-        }
-
-        this.telemetryModel.gap *= 100;
 
         const entryTime = parseISO(p.entryTime).getTime();
         const exitTime = parseISO(p.exitTime).getTime();

@@ -11,7 +11,7 @@ import { BoomBarSimulation } from "./boomBar.simulation";
 const getOpenPositionsMock = mockBrokerage.getOpenPositions as jest.Mock;
 
 test("boom bar for 01/05/2020", async () => {
-    const boomSim = new BoomBarSimulation("JD", mockBrokerage);
+    const boomSim = new BoomBarSimulation("BABA", mockBrokerage);
 
     const calendar: Calendar[] = [
         {
@@ -65,7 +65,7 @@ test("boom bar for 01/05/2020", async () => {
                 stop_price: expect.any(Number),
             },
             stop_price: null,
-            symbol: "JD",
+            symbol: "BABA",
             take_profit: {
                 limit_price: expect.any(Number),
             },
@@ -116,8 +116,8 @@ test("boom bar for 01/06/2020", async () => {
     expect(boomSim.broker.createBracketOrder).not.toHaveBeenCalled();
 });
 
-test("boom bar for INTU on 01/04", async () => {
-    const boomSim = new BoomBarSimulation("INTU", mockBrokerage);
+test("boom bar for AAPL on 01/04", async () => {
+    const boomSim = new BoomBarSimulation("AAPL", mockBrokerage);
 
     const calendar: Calendar[] = [
         {
