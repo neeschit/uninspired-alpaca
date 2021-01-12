@@ -75,21 +75,12 @@ function App() {
                         results: BacktestResult,
                         strategy: string
                     ) => {
-                        const existingTest = appState.backtests.some(
-                            (b) =>
-                                b.startDate === startDate &&
-                                b.endDate === endDate &&
-                                b.strategy === strategy
-                        );
-
-                        if (!existingTest) {
-                            appState.backtests.push({
-                                startDate,
-                                endDate,
-                                results,
-                                strategy,
-                            });
-                        }
+                        appState.backtests.push({
+                            startDate,
+                            endDate,
+                            results,
+                            strategy,
+                        });
                     },
                 }}
             >

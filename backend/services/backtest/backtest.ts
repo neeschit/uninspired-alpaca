@@ -84,6 +84,10 @@ backtestServer.get("/mindate", async () => {
     return earliestDay[0].t;
 });
 
+const getFileName = (startDate: string, endDate: string) => {
+    return `./backtests/${startDate}-${endDate}-${Date.now()}.json`;
+};
+
 backtestServer.get(
     "/nrb/:startDate/:endDate",
     async (request: { params: any }) => {
@@ -103,12 +107,10 @@ backtestServer.get(
         };
 
         try {
-            await ensureFile(`./backtests/${startDate}-${endDate}.json`);
+            const filename = getFileName(startDate, endDate);
+            await ensureFile(filename);
 
-            await writeJson(
-                `./backtests/${startDate}-${endDate}.json`,
-                results
-            );
+            await writeJson(filename, results);
         } catch (e) {
             LOGGER.error(e);
         }
@@ -136,12 +138,10 @@ backtestServer.get(
         };
 
         try {
-            await ensureFile(`./backtests/${startDate}-${endDate}.json`);
+            const filename = getFileName(startDate, endDate);
+            await ensureFile(filename);
 
-            await writeJson(
-                `./backtests/${startDate}-${endDate}.json`,
-                results
-            );
+            await writeJson(filename, results);
         } catch (e) {
             LOGGER.error(e);
         }
@@ -160,7 +160,7 @@ backtestServer.get(
             startDate,
             endDate,
             BoomBarSimulation,
-            currentTradingSymbols
+            ["SPY"]
         );
 
         const results = {
@@ -168,13 +168,12 @@ backtestServer.get(
             strategy: "Model 3",
         };
 
-        try {
-            await ensureFile(`./backtests/${startDate}-${endDate}.json`);
+        const filename = getFileName(startDate, endDate);
 
-            await writeJson(
-                `./backtests/${startDate}-${endDate}.json`,
-                results
-            );
+        try {
+            await ensureFile(filename);
+
+            await writeJson(filename, results);
         } catch (e) {
             LOGGER.error(e);
         }

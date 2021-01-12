@@ -14,6 +14,7 @@ import { getPolyonData } from "../core-utils/resources/polygon";
 import {
     batchInsertBars,
     batchInsertDailyBars,
+    getGapForSymbol,
     getSimpleData,
 } from "../core-utils/resources/stockData";
 import { ClosedMockPosition } from "../simulation-helpers/mockBrokerage";
@@ -235,31 +236,13 @@ export class SpyGapCloseSimulation
             calendar
         );
 
-        const marketGapBars = await getSimpleData(
+        telemetryModel.marketGap = await getGapForSymbol(
             "SPY",
-            startOfDay(ydayOpen).getTime(),
-            false,
-            epoch
+            ydayOpen,
+            epoch,
+            premarketOpenToday,
+            marketOpenToday
         );
-
-        if (marketGapBars.length > 1) {
-            telemetryModel.marketGap =
-                (marketGapBars[1].o - marketGapBars[0].c) / marketGapBars[1].o;
-        } else if (marketGapBars.length > 0) {
-            const todaysMarketOpenBars = await getSimpleData(
-                "SPY",
-                premarketOpenToday,
-                true,
-                marketOpenToday + 60000
-            );
-
-            const openBar =
-                todaysMarketOpenBars[todaysMarketOpenBars.length - 1];
-            telemetryModel.marketGap =
-                (openBar.o - marketGapBars[0].c) / openBar.o;
-        }
-
-        telemetryModel.marketGap *= 100;
         telemetryModel.gap = telemetryModel.marketGap;
 
         const entryTime = parseISO(p.entryTime).getTime();

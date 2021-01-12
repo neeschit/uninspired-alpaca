@@ -101,7 +101,7 @@ SELECT create_hypertable('${tablename}', 't');
 SELECT set_chunk_time_interval('${tablename}', interval '1 day');
 `;
 
-const checkIfTableExists = async (tablename: string) => {
+export const checkIfTableExists = async (tablename: string) => {
     const pool = getConnection();
 
     try {
@@ -224,7 +224,7 @@ export const createNewMetadataTables = async () => {
     }
 };
 
-const getTimestampValue = (t: number) => {
+export const getTimestampValue = (t: number) => {
     return `to_timestamp(${t}::double precision / 1000)`;
 };
 
@@ -780,4 +780,37 @@ export const deleteBatch = async (queries: string) => {
     const pool = getConnection();
 
     await pool.query(queries);
+};
+
+export const getGapForSymbol = async (
+    symbol: string,
+    ydayOpen: number,
+    epoch: number,
+    premarketOpenToday: number,
+    marketOpenToday: number
+) => {
+    let gap = 0;
+
+    const closeBarsYday = await getSimpleData(
+        symbol,
+        startOfDay(ydayOpen).getTime(),
+        false,
+        epoch
+    );
+
+    if (closeBarsYday.length > 1) {
+        gap = (closeBarsYday[1].o - closeBarsYday[0].c) / closeBarsYday[1].o;
+    } else if (closeBarsYday.length > 0) {
+        const todaysOpenBars = await getSimpleData(
+            symbol,
+            premarketOpenToday,
+            true,
+            marketOpenToday + 60000
+        );
+
+        const openBar = todaysOpenBars[todaysOpenBars.length - 1];
+        gap = (openBar.o - closeBarsYday[0].c) / openBar.o;
+    }
+
+    return gap * 100;
 };

@@ -132,7 +132,7 @@ export default function CustomPaginationActionsTable({
     const classes = useStyles2();
     const [page, setPage] = React.useState(0);
 
-    const rowsPerPage = 25;
+    const rowsPerPage = 100;
 
     // Avoid a layout jump when reaching the last page with empty rows.
     const emptyRows =
