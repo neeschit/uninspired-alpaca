@@ -12,13 +12,16 @@ import { Simulator } from "../libs/simulation-helpers/simulator";
 
 const companies = currentStreamingSymbols;
 
+const numberOfDaysBefore = (process.argv[2] && Number(process.argv[2])) || 0;
+
 async function run() {
+    const startDateConfig = numberOfDaysBefore
+        ? addBusinessDays(Date.now(), -numberOfDaysBefore)
+        : new Date("01-01-2017");
     const calendar = await getCalendar(new Date("01-01-2016"), new Date());
 
     for await (const symbol of checkCreateFirstBarTables(companies)) {
-        const startDate = startOfDay(
-            addBusinessDays(new Date("01-01-2017"), -90)
-        );
+        const startDate = startOfDay(addBusinessDays(startDateConfig, -90));
         const endTime = Date.now();
 
         const bars: Bar[] = [];

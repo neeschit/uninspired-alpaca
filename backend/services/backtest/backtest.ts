@@ -160,7 +160,7 @@ backtestServer.get(
             startDate,
             endDate,
             BoomBarSimulation,
-            ["SPY"]
+            currentTradingSymbols
         );
 
         const results = {
