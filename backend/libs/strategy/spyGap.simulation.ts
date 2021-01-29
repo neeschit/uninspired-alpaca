@@ -77,7 +77,11 @@ export class SpyGapCloseSimulation
                     addBusinessDays(epoch, 1),
                     PeriodType.minute
                 );
-                await batchInsertBars(todaysMinutes[this.symbol], this.symbol);
+                await batchInsertBars(
+                    todaysMinutes[this.symbol],
+                    this.symbol,
+                    true
+                );
                 this.hasCachedData = true;
             } catch (e) {
                 LOGGER.error(

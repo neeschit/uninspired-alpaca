@@ -17,7 +17,12 @@ const API_KEY =
 const getPolygonApiUrl = (resourceUrl: string, version = "v1") =>
     `https://api.polygon.io/${version}/${resourceUrl}?apiKey=${API_KEY}`;
 
-export const getTickerDetails = (symbol: string) => {
+export const getTickerDetails = (
+    symbol: string
+): Promise<{
+    listdate: string;
+    country: string;
+}> => {
     const resourceUrl = `meta/symbols/${symbol.toUpperCase()}/company`;
     const url = getPolygonApiUrl(resourceUrl);
 

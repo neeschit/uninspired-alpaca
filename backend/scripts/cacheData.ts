@@ -1,66 +1,111 @@
-import { currentStreamingSymbols } from "../libs/core-utils/data/filters";
+import {
+    currentStreamingSymbols,
+    getLargeCaps,
+} from "../libs/core-utils/data/filters";
 import {
     DefaultDuration,
     PeriodType,
 } from "../libs/core-utils/data/data.model";
-import { addDays, startOfDay, addBusinessDays, endOfDay } from "date-fns";
+import {
+    addDays,
+    startOfDay,
+    addBusinessDays,
+    endOfDay,
+    parse,
+    isAfter,
+} from "date-fns";
 import { LOGGER } from "../libs/core-utils/instrumentation/log";
-import { getPolyonData } from "../libs/core-utils/resources/polygon";
+import {
+    getPolyonData,
+    getTickerDetails,
+} from "../libs/core-utils/resources/polygon";
 import {
     insertBar,
     batchInsertBars,
     batchInsertDailyBars,
+    getSimpleData,
 } from "../libs/core-utils/resources/stockData";
-import { isAfterMarketClose } from "../libs/simulation-helpers/timing.util";
+import {
+    DATE_FORMAT,
+    getMarketOpenMillis,
+    isAfterMarketClose,
+} from "../libs/simulation-helpers/timing.util";
 import { getCalendar } from "../libs/brokerage-helpers/alpaca";
+import { Simulator } from "../libs/simulation-helpers/simulator";
 
-const companies: string[] = currentStreamingSymbols;
+const companies: string[] = [...getLargeCaps(), "SPY"];
 
 const numberOfDaysBefore = (process.argv[2] && Number(process.argv[2])) || 0;
+const forceRetrieve = (process.argv[3] && Boolean(process.argv[3])) || false;
 
 async function run(duration = DefaultDuration.one, period = PeriodType.minute) {
     const startDate = startOfDay(
         addBusinessDays(Date.now(), -numberOfDaysBefore)
     );
+    const calendar = await getCalendar(
+        addBusinessDays(startDate, -3),
+        new Date()
+    );
+    const hasDayEnded = isAfterMarketClose(calendar, Date.now());
+    const endDate = endOfDay(addDays(Date.now(), hasDayEnded ? 0 : -1));
+
     for (const symbol of companies) {
-        const endDate = startOfDay(addBusinessDays(Date.now(), 1));
+        const details = await getTickerDetails(symbol);
+
+        const listDateStr = details?.listdate;
+
+        const listdate =
+            listDateStr &&
+            parse(listDateStr, DATE_FORMAT, new Date(listDateStr));
+
+        const startDateActual =
+            listdate && isAfter(listdate, startDate) ? listdate : startDate;
 
         for (
-            let date = startDate;
+            let date = startDateActual;
             date.getTime() < endDate.getTime();
-            date = addBusinessDays(date, 4)
+            date = addDays(date, 4)
         ) {
-            const daysMinutes = await getPolyonData(
+            const marketOpenTime = Simulator.getMarketOpenTimeForDay(
+                date.getTime(),
+                calendar
+            );
+            const firstBar = await getSimpleData(
                 symbol,
-                date,
-                addBusinessDays(date, 4),
-                period,
-                duration
+                marketOpenTime,
+                true,
+                marketOpenTime + 300000
             );
 
-            if (!daysMinutes[symbol] || !daysMinutes[symbol].length) {
-                continue;
-            }
+            if (!firstBar.length || forceRetrieve) {
+                const daysMinutes = await getPolyonData(
+                    symbol,
+                    date,
+                    addDays(date.getTime(), 3),
+                    period,
+                    duration
+                );
 
-            try {
-                await batchInsertBars(daysMinutes[symbol], symbol, true);
-            } catch (e) {
-                LOGGER.error(`Error inserting for ${symbol}`, e);
+                if (!daysMinutes[symbol] || !daysMinutes[symbol].length) {
+                    continue;
+                }
 
                 try {
-                    for (const tick of daysMinutes[symbol]) {
-                        await insertBar(tick, symbol, true);
-                    }
-                } catch (e) {}
+                    await batchInsertBars(daysMinutes[symbol], symbol, true);
+                } catch (e) {
+                    LOGGER.error(`Error inserting for ${symbol}`, e);
+
+                    try {
+                        for (const tick of daysMinutes[symbol]) {
+                            await insertBar(tick, symbol, true);
+                        }
+                    } catch (e) {}
+                }
             }
         }
     }
 
-    const calendar = await getCalendar(new Date(), new Date());
-    const hasDayEnded = isAfterMarketClose(calendar, Date.now());
-
     for (const symbol of companies) {
-        const endDate = endOfDay(addDays(Date.now(), hasDayEnded ? 0 : -1));
         for (
             let date = startDate;
             date.getTime() < endDate.getTime();

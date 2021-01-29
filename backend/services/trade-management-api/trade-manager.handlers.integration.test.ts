@@ -86,7 +86,7 @@ test("rebalanceForSymbol in CCI", async () => {
     const plan = {
         entry: 157.7356947082247,
         limit_price: 157.67851922193256,
-        quantity: -10,
+        quantity: expect.any(Number),
         side: PositionDirection.short,
         stop: 158.7356947082247,
         symbol: "CCI",
@@ -95,7 +95,7 @@ test("rebalanceForSymbol in CCI", async () => {
 
     const unfilledOrder = getBracketOrderForPlan(plan);
     expect(mockCreateOrder).toHaveBeenCalledWith(
-        plan,
+        expect.objectContaining(plan),
         unfilledOrder,
         mockBrokerage
     );

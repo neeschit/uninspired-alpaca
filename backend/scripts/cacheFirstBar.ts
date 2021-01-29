@@ -1,7 +1,10 @@
 import { addBusinessDays, startOfDay } from "date-fns";
 import { getCalendar } from "../libs/brokerage-helpers/alpaca";
 import { Bar } from "../libs/core-utils/data/data.model";
-import { currentStreamingSymbols } from "../libs/core-utils/data/filters";
+import {
+    currentStreamingSymbols,
+    getLargeCaps,
+} from "../libs/core-utils/data/filters";
 import { LOGGER } from "../libs/core-utils/instrumentation/log";
 import {
     batchInsertFirstBars,
@@ -10,7 +13,7 @@ import {
 import { getData } from "../libs/core-utils/resources/stockData";
 import { Simulator } from "../libs/simulation-helpers/simulator";
 
-const companies = currentStreamingSymbols;
+const companies = [...getLargeCaps(), "SPY"];
 
 const numberOfDaysBefore = (process.argv[2] && Number(process.argv[2])) || 0;
 
@@ -31,20 +34,24 @@ async function run() {
             date.getTime() < endTime;
             date = addBusinessDays(date, 1)
         ) {
-            const marketStartEpoch = Simulator.getMarketOpenTimeForDay(
-                date.getTime(),
-                calendar
-            );
+            try {
+                const marketStartEpoch = Simulator.getMarketOpenTimeForDay(
+                    date.getTime(),
+                    calendar
+                );
 
-            const bar = await getData(
-                symbol,
-                marketStartEpoch,
-                "5 minutes",
-                marketStartEpoch + 300000
-            );
+                const bar = await getData(
+                    symbol,
+                    marketStartEpoch,
+                    "5 minutes",
+                    marketStartEpoch + 300000
+                );
 
-            if (bar.length) {
-                bars.push(bar[0]);
+                if (bar.length) {
+                    bars.push(bar[0]);
+                }
+            } catch (e) {
+                LOGGER.error(e);
             }
         }
         console.log(bars.length + " for symbol " + symbol);

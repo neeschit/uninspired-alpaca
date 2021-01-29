@@ -56,8 +56,11 @@ export const startBacktest = async (
     return json;
 };
 
-export const getServerMinDateCached = async (): Promise<number> => {
-    const response = await fetch(`${backtestBaseUrl}/mindate`);
+export const getServerMinMaxDateCached = async (): Promise<{
+    earliestDay: number;
+    latestDay: number;
+}> => {
+    const response = await fetch(`${backtestBaseUrl}/minmaxdate`);
 
     const json = await response.json();
 
@@ -81,6 +84,7 @@ export const BacktestStart = () => {
     const [hasError, setHasError] = React.useState(false);
 
     const [minDate, setMinDate] = React.useState(Date.now());
+    const [maxDate, setMaxDate] = React.useState(Date.now());
 
     const [selectedStrategy, setSelectedStrategy] = React.useState("");
 
@@ -89,10 +93,11 @@ export const BacktestStart = () => {
     }, [selectedDates.startDate, selectedDates.endDate]);
 
     React.useEffect(() => {
-        getServerMinDateCached().then((mindate) => {
-            setMinDate(mindate);
+        getServerMinMaxDateCached().then(({ earliestDay, latestDay }) => {
+            setMinDate(earliestDay);
+            setMaxDate(latestDay);
         });
-    }, [setMinDate]);
+    }, [setMinDate, setMaxDate]);
 
     return (
         <LocalizationProvider dateAdapter={DateFnsUtils}>
@@ -108,7 +113,7 @@ export const BacktestStart = () => {
                         label="Start Date"
                         value={selectedDates.startDate}
                         disableHighlightToday={true}
-                        maxDate={addBusinessDays(Date.now(), -1)}
+                        maxDate={maxDate}
                         renderInput={(props) => (
                             <TextField {...props} error={hasError} />
                         )}
@@ -124,7 +129,7 @@ export const BacktestStart = () => {
                 <Grid item>
                     <DatePicker
                         label="End Date"
-                        maxDate={addBusinessDays(Date.now(), -1)}
+                        maxDate={maxDate}
                         disableHighlightToday={true}
                         value={selectedDates.endDate}
                         onChange={(date: Date | null) => {

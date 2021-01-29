@@ -22,7 +22,7 @@ async function run() {
 
     await createNewMetadataTables();
 
-    const symbols = getMegaCaps();
+    const symbols = getLargeCaps();
 
     symbols.push(...currentIndices);
 

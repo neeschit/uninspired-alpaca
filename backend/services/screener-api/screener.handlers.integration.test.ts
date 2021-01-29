@@ -11,6 +11,7 @@ test("getWatchListForDate", async () => {
     expect(watchList).toBeTruthy();
     expect(watchList).toStrictEqual([
         { symbol: "AMZN", atr: expect.any(Number) },
+        { symbol: "ICE", atr: expect.any(Number) },
         { symbol: "JNJ", atr: expect.any(Number) },
         { symbol: "LLY", atr: expect.any(Number) },
         { symbol: "NFLX", atr: expect.any(Number) },

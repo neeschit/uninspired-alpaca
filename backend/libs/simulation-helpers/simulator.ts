@@ -2,6 +2,7 @@ import { Calendar } from "@neeschit/alpaca-trade-api";
 import {
     addBusinessDays,
     differenceInDays,
+    endOfDay,
     format,
     parseISO,
     startOfDay,
@@ -158,7 +159,7 @@ export class Simulator<T extends TelemetryModel> {
         this.strategies = {};
 
         const start = parseISO(batch.startDate).getTime();
-        const end = parseISO(batch.endDate).getTime();
+        const end = endOfDay(parseISO(batch.endDate)).getTime();
 
         const watchlist: BacktestWatchlist = {};
         const positions: BacktestPositions<T> = {};
@@ -267,11 +268,12 @@ export class Simulator<T extends TelemetryModel> {
 
     static getPremarketTimeForDay(epoch: number, calendar: Calendar[]): number {
         try {
-            const openTime = Simulator._getMarketOpenTimeForDay(
+            const openTime = Simulator._getMarketTimeForDay(
                 epoch,
                 calendar,
                 0,
-                false
+                false,
+                true
             );
 
             return openTime - 2 * FIFTEEN_MINUTES;
@@ -285,10 +287,28 @@ export class Simulator<T extends TelemetryModel> {
         calendar: Calendar[]
     ): number {
         try {
-            return Simulator._getMarketOpenTimeForDay(
+            return Simulator._getMarketTimeForDay(
                 epoch,
                 calendar,
                 0,
+                false,
+                true
+            );
+        } catch (e) {
+            throw new Error(`no_calendar_found_${format(epoch, "yyyy-MM-dd")}`);
+        }
+    }
+
+    static getMarketCloseTimeForDay(
+        epoch: number,
+        calendar: Calendar[]
+    ): number {
+        try {
+            return Simulator._getMarketTimeForDay(
+                epoch,
+                calendar,
+                0,
+                false,
                 false
             );
         } catch (e) {
@@ -301,10 +321,11 @@ export class Simulator<T extends TelemetryModel> {
         calendar: Calendar[]
     ): number {
         try {
-            return Simulator._getMarketOpenTimeForDay(
+            return Simulator._getMarketTimeForDay(
                 addBusinessDays(epoch, -1).getTime(),
                 calendar,
                 0,
+                true,
                 true
             );
         } catch (e) {
@@ -312,28 +333,32 @@ export class Simulator<T extends TelemetryModel> {
         }
     }
 
-    private static _getMarketOpenTimeForDay(
+    private static _getMarketTimeForDay(
         epoch: number,
         calendar: Calendar[],
         attempt: number,
-        goBackwards: boolean
+        goBackwards: boolean,
+        isOpen: boolean
     ): number {
         const todaysDate = format(epoch, DATE_FORMAT);
 
         const calendarEntry = calendar.find((c) => c.date === todaysDate);
 
         if (!calendarEntry && attempt < 5) {
-            return this._getMarketOpenTimeForDay(
+            return this._getMarketTimeForDay(
                 addBusinessDays(epoch, goBackwards ? -1 : 1).getTime(),
                 calendar,
                 ++attempt,
-                goBackwards
+                goBackwards,
+                isOpen
             );
         } else if (!calendarEntry) {
             throw new Error(`no_calendar_found`);
         }
 
-        const dateString = todaysDate + `T${calendarEntry.open}:00.000`;
+        const dateString =
+            todaysDate +
+            `T${isOpen ? calendarEntry.open : calendarEntry.close}:00.000`;
 
         const marketOpenToday = zonedTimeToUtc(dateString, MarketTimezone);
 
@@ -440,17 +465,50 @@ export async function runStrategy<T extends TelemetryModel>(
     sim: SimulationStrategy<T>,
     epoch: number
 ) {
-    if (isPremarket(calendar, epoch)) {
-        await sim.beforeMarketStarts(calendar, epoch);
-    } else if (isMarketClosing(calendar, epoch)) {
-        await sim.beforeMarketCloses(epoch);
-    } else if (isMarketOpen(calendar, epoch)) {
-        if (sim.hasEntryTimePassed(epoch)) {
-            await sim.afterEntryTimePassed(epoch);
-        } else {
-            await sim.rebalance(calendar, epoch);
+    try {
+        if (isPremarket(calendar, epoch)) {
+            await sim.beforeMarketStarts(calendar, epoch);
+        } else if (isMarketClosing(calendar, epoch)) {
+            await sim.beforeMarketCloses(epoch);
+        } else if (isMarketOpen(calendar, epoch)) {
+            if (sim.hasEntryTimePassed(epoch)) {
+                await sim.afterEntryTimePassed(epoch);
+            } else {
+                await sim.rebalance(calendar, epoch);
+            }
+        } else if (isAfterMarketClose(calendar, epoch)) {
+            await sim.onMarketClose(epoch);
         }
-    } else if (isAfterMarketClose(calendar, epoch)) {
-        await sim.onMarketClose(epoch);
+    } catch (e) {
+        LOGGER.error(`uncaught exception for ${symbol} at ${epoch}`, e);
     }
 }
+
+export const getBatchesForRetry = (
+    result: SimulationResult
+): {
+    batches: BacktestBatch[];
+    startDate: string;
+    endDate: string;
+} => {
+    const days = result.results;
+
+    const daysWithWatchlistItems = days.filter((d) => d.watchlist.length > 0);
+
+    const batches = daysWithWatchlistItems.map<BacktestBatch>((d, index) => {
+        const symbols = d.watchlist;
+        return {
+            symbols,
+            startDate: d.startDate,
+            endDate: d.startDate,
+            batchId: index,
+        };
+    });
+
+    return {
+        batches,
+        startDate: daysWithWatchlistItems[0].startDate,
+        endDate:
+            daysWithWatchlistItems[daysWithWatchlistItems.length - 1].endDate,
+    };
+};

@@ -6,6 +6,7 @@ import {
 import { addBusinessDays, endOfDay, parseISO, startOfDay } from "date-fns";
 import { BrokerStrategy } from "../brokerage-helpers/brokerage.strategy";
 import { getAverageTrueRange } from "../core-indicators/indicator/trueRange";
+import { assessRisk } from "../core-indicators/services/riskManagement";
 import { PeriodType } from "../core-utils/data/data.model";
 import { LOGGER } from "../core-utils/instrumentation/log";
 import {
@@ -20,6 +21,7 @@ import {
     getSimpleData,
     getBucketedBarsForDay,
     getGapForSymbol,
+    getSortedBarsUntilEpoch,
 } from "../core-utils/resources/stockData";
 import { convertToLocalTime } from "../core-utils/util/date";
 import { isBacktestingEnv } from "../core-utils/util/env";
@@ -41,7 +43,101 @@ import {
 import { TradePlan } from "../trade-management-helpers/position";
 import { PROFIT_RATIO, RISK_PER_ORDER } from "./narrowRangeBar";
 
-export const isTimeForBoomBarEntry = (nowMillis: number) => {
+export const getBoomBarData = async (
+    calendar: Calendar[],
+    epoch: number,
+    symbol: string
+) => {
+    const marketStartEpochToday = Simulator.getMarketOpenTimeForDay(
+        epoch,
+        calendar
+    );
+
+    const minutesSinceMarketOpen =
+        epoch > marketStartEpochToday
+            ? Math.floor((epoch - marketStartEpochToday) / 300000)
+            : 0;
+
+    if (!minutesSinceMarketOpen) {
+        return [];
+    }
+
+    const data = await getData(
+        symbol,
+        marketStartEpochToday,
+        "5 minutes",
+        epoch
+    );
+
+    return data.slice(0, minutesSinceMarketOpen);
+};
+
+export const screenForBoomBar = async (
+    calendar: Calendar[],
+    epoch: number,
+    symbol: string
+) => {
+    const marketStartEpochToday = Simulator.getMarketOpenTimeForDay(
+        epoch,
+        calendar
+    );
+
+    const data = await getBoomBarData(calendar, epoch, symbol);
+
+    const premarketEpoch = Simulator.getPremarketTimeForDay(epoch, calendar);
+    const ydayOpen = Simulator.getMarketOpenTimeForYday(epoch, calendar);
+
+    const boomBar = data[0];
+
+    let isBoomBar = false;
+
+    const range = Math.abs(boomBar.h - boomBar.l);
+
+    const averageVol = await selectAverageVolumeFirstBarForWindowLive(
+        symbol,
+        90,
+        epoch
+    );
+
+    const averageFirstBarRange = await selectAverageRangeFirstBarForWindowLive(
+        symbol,
+        epoch
+    );
+
+    if (range > 3 * averageFirstBarRange!) {
+        isBoomBar = true;
+    } else {
+        isBoomBar = false;
+    }
+
+    const bodyRange = Math.abs(boomBar.o - boomBar.c);
+    const wicksRange =
+        boomBar.o > boomBar.c
+            ? Math.abs(boomBar.h - boomBar.o) + Math.abs(boomBar.l - boomBar.c)
+            : Math.abs(boomBar.h - boomBar.c) + Math.abs(boomBar.l - boomBar.o);
+
+    if (wicksRange / bodyRange > 0.15) {
+        isBoomBar = false;
+    }
+
+    const gap = await getGapForSymbol(
+        symbol,
+        ydayOpen,
+        epoch,
+        premarketEpoch,
+        marketStartEpochToday
+    );
+
+    return {
+        isBoomBar,
+        data,
+        averageVol,
+        gap,
+        boomBar,
+    };
+};
+
+const isTimeForBoomBarEntry = (nowMillis: number) => {
     const timeStart = convertToLocalTime(nowMillis, " 09:34:45.000");
     const timeEnd = convertToLocalTime(nowMillis, " 09:35:15.000");
 
@@ -63,6 +159,7 @@ export class BoomBarSimulation
     private atrFromYdayClose = 0;
     private maxRange = 0;
     private hasCachedData = false;
+    private dailyAtr = 0;
     private telemetryModel: TelemetryModel = {
         marketGap: 0,
         maxPnl: 0,
@@ -84,7 +181,11 @@ export class BoomBarSimulation
                     addBusinessDays(epoch, 1),
                     PeriodType.minute
                 );
-                await batchInsertBars(todaysMinutes[this.symbol], this.symbol);
+                await batchInsertBars(
+                    todaysMinutes[this.symbol],
+                    this.symbol,
+                    true
+                );
                 this.hasCachedData = true;
             } catch (e) {
                 LOGGER.error(
@@ -134,77 +235,68 @@ export class BoomBarSimulation
             return;
         }
 
-        const marketStartEpochToday = getMarketOpenMillis(calendar, epoch);
+        const {
+            data,
+            boomBar,
+            gap,
+            isBoomBar,
+            averageVol,
+        } = await screenForBoomBar(calendar, epoch, this.symbol);
 
-        const premarketEpoch = Simulator.getPremarketTimeForDay(
+        const range = Math.abs(boomBar.h - boomBar.l);
+        this.firstBarVolume = boomBar.v;
+        this.isScreened = isBoomBar;
+
+        const marketCloseYday = Simulator.getMarketCloseTimeForDay(
             epoch,
             calendar
         );
-        const ydayOpen = Simulator.getMarketOpenTimeForYday(epoch, calendar);
 
-        const gap = await getGapForSymbol(
-            this.symbol,
-            ydayOpen,
-            epoch,
-            premarketEpoch,
-            marketStartEpochToday
+        const ydayBars = await getSortedBarsUntilEpoch(this.symbol, epoch);
+
+        const atrBars = [...ydayBars, ...data];
+
+        const { atr: atrList } = getAverageTrueRange(atrBars);
+
+        const atrValue = atrList.length && atrList.pop()?.value;
+
+        const atr = atrValue || 3 * this.atrFromYdayClose;
+
+        const riskUnitsInitial =
+            assessRisk(this.dailyAtr, atr, boomBar.c) * 1.55;
+        const riskUnits = Math.min(
+            riskUnitsInitial,
+            Math.abs(boomBar.h - boomBar.l) * 0.75
         );
 
-        const data = await getData(
-            this.symbol,
-            marketStartEpochToday,
-            "5 minutes",
-            endOfDay(marketStartEpochToday).getTime()
-        );
-
-        const lastBar = data[0];
-
-        this.firstBarVolume = lastBar.v;
-
-        const range = Math.abs(lastBar.h - lastBar.l);
-
-        const averageVol = await selectAverageVolumeFirstBarForWindowLive(
-            this.symbol,
-            90,
-            epoch
-        );
-
-        const averageFirstBarRange = await selectAverageRangeFirstBarForWindowLive(
-            this.symbol,
-            epoch
-        );
-
-        if (range > 3 * averageFirstBarRange!) {
-            this.isScreened = true;
-
-            if (
-                this.firstBarVolume / averageVol! < 1 ||
-                gap > 1 ||
-                gap < -1 ||
-                range < 3 * this.maxRange
-            ) {
-                return;
-            }
-        } else {
-            this.isScreened = false;
+        if (
+            gap > 3 ||
+            gap < -3 ||
+            !isBoomBar /* ||
+            this.firstBarVolume / averageVol! < 1 ||
+            gap > 1 ||
+            gap < -1 ||
+            range < 3 * this.maxRange */
+        ) {
             return;
         }
 
         const side =
-            Math.abs(lastBar.c - lastBar.l) < Math.abs(lastBar.c - lastBar.h)
+            Math.abs(boomBar.c - boomBar.l) < Math.abs(boomBar.c - boomBar.h)
                 ? TradeDirection.sell
                 : TradeDirection.buy;
 
-        const stop = side === TradeDirection.sell ? lastBar.h : lastBar.l;
+        const stop =
+            side === TradeDirection.sell
+                ? boomBar.c + riskUnits
+                : boomBar.c - riskUnits;
 
-        const risk = Math.abs(lastBar.c - stop);
-
-        const qty = RISK_PER_ORDER / risk;
+        const qty = RISK_PER_ORDER / riskUnits;
 
         const takeProfitLimit =
             side === TradeDirection.buy
-                ? lastBar.c + 3 * risk
-                : lastBar.c - 3 * risk;
+                ? boomBar.c + PROFIT_RATIO * riskUnits
+                : boomBar.c - PROFIT_RATIO * riskUnits;
 
         const plan: TradePlan = {
             symbol: this.symbol,
@@ -281,7 +373,7 @@ export class BoomBarSimulation
             this.symbol,
             entryTime,
             true,
-            exitTime
+            p.totalPnl > 0 ? epoch : exitTime
         );
 
         const maxExit = bars.reduce(

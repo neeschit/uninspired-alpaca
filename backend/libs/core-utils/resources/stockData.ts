@@ -9,7 +9,7 @@ import {
 import { LOGGER } from "../instrumentation/log";
 import { set, addBusinessDays, startOfDay, endOfDay } from "date-fns";
 import { getPolyonData } from "./polygon";
-import { Client } from "pg";
+import { Client, PoolClient } from "pg";
 import { getCreateTradePlanTableSql } from "../../trade-management-helpers/position";
 import { getCreateUnfilledOrdersTableSql } from "../../trade-management-helpers/order";
 import { Calendar } from "@neeschit/alpaca-trade-api";
@@ -133,18 +133,6 @@ export const createStorageTables = async (symbols: string[]) => {
     for (const symbol of symbols) {
         try {
             results.push(
-                await createAggregatedSecondsDataTableForSymbol(symbol, pool)
-            );
-        } catch (e) {
-            LOGGER.error(e);
-        }
-        try {
-            results.push(await createTradeDataTableForSymbol(symbol, pool));
-        } catch (e) {
-            LOGGER.error(e);
-        }
-        try {
-            results.push(
                 await createAggregatedMinutesDataTableForSymbol(symbol, pool)
             );
         } catch (e) {
@@ -171,27 +159,9 @@ export const dropStorageTables = async (symbols: string[]) => {
         try {
             results.push(
                 await pool.query(
-                    `drop table ${getAggregatedTickTableNameForSymbol(symbol)};`
-                )
-            );
-        } catch (e) {
-            LOGGER.error(e);
-        }
-        try {
-            results.push(
-                await pool.query(
                     `drop table ${getAggregatedMinuteTableNameForSymbol(
                         symbol
                     )};`
-                )
-            );
-        } catch (e) {
-            LOGGER.error(e);
-        }
-        try {
-            results.push(
-                await pool.query(
-                    `drop table ${getTradeTableNameForSymbol(symbol)};`
                 )
             );
         } catch (e) {
@@ -517,13 +487,70 @@ export const getData = async (
     }
 };
 
-const getEarliestData = (tablename: string) => {
+const getSortedData = (tablename: string, isLatest: boolean, limit = 1) => {
     return `
         select 
             *
         from ${tablename.toLowerCase()}  
-        order by t asc limit 1;
+        order by t ${!isLatest ? "asc" : "desc"} limit ${limit};
     `;
+};
+
+const getSortedDataLimitedByTime = (
+    tablename: string,
+    epoch: number,
+    isLatest: boolean,
+    limit = 1
+) => {
+    return `
+        select 
+            *
+        from ${tablename.toLowerCase()}  
+        where t <= ${getTimestampValue(epoch)}
+        order by t ${!isLatest ? "asc" : "desc"} limit ${limit};
+    `;
+};
+
+const queryForBars = async (client: PoolClient, query: string) => {
+    try {
+        const result = await client.query(query);
+
+        return result.rows.map((r) => ({
+            v: Number(r.v),
+            c: Number(r.c),
+            o: Number(r.o),
+            h: Number(r.h),
+            l: Number(r.l),
+            t: new Date(r.t).getTime(),
+        }));
+    } catch (e) {
+        LOGGER.error(e);
+        return [];
+    } finally {
+        client.release();
+    }
+};
+
+export const getSortedBarsUntilEpoch = async (
+    symbol: string,
+    epoch: number,
+    sortReverse = true,
+    limit = 15
+) => {
+    const pool = getConnection();
+
+    const client = await pool.connect();
+
+    const tablename = getAggregatedMinuteTableNameForSymbol(symbol);
+
+    const query = getSortedDataLimitedByTime(
+        tablename,
+        epoch,
+        !sortReverse,
+        limit
+    );
+
+    return queryForBars(client, query);
 };
 
 export const getEarliestDate = async (symbol: string) => {
@@ -533,7 +560,19 @@ export const getEarliestDate = async (symbol: string) => {
 
     const tableName = getDailyTableNameForSymbol(symbol);
 
-    const query = getEarliestData(tableName);
+    const query = getSortedData(tableName, false);
+
+    return queryForBars(client, query);
+};
+
+export const getLatestDate = async (symbol: string) => {
+    const pool = getConnection();
+
+    const client = await pool.connect();
+
+    const tableName = getDailyTableNameForSymbol(symbol);
+
+    const query = getSortedData(tableName, true);
 
     try {
         const result = await client.query(query);
@@ -570,6 +609,8 @@ export const getSimpleData = async (
 
     const query = getSimpleDataQuery(tableName, fromTimestamp, endTimeStamp);
 
+    /*     console.log(query);
+     */
     try {
         const result = await client.query(query);
 

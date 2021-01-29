@@ -22,9 +22,9 @@ const logError = ({
     );
 };
 
-export const getHttps = (url: string) => {
+export const getHttps = <T>(url: string): Promise<T> => {
     LOGGER.warn(url);
-    return new Promise((resolve, reject) => {
+    return new Promise<any>((resolve, reject): void => {
         let count = 0;
         const retry = () => {
             https.get(url, (response: any) => {

@@ -1,17 +1,14 @@
-import {
-    Calendar,
-    OrderStatus,
-    TimeInForce,
-    TradeDirection,
-} from "@neeschit/alpaca-trade-api";
+import { Calendar } from "@neeschit/alpaca-trade-api";
 import { mockBrokerage } from "../simulation-helpers/brokerage.mock";
 import { MockBrokerage } from "../simulation-helpers/mockBrokerage";
-import { BoomBarSimulation } from "./boomBar.simulation";
+import { BoomBarSimulation, getBoomBarData } from "./boomBar.simulation";
 
 const getOpenPositionsMock = mockBrokerage.getOpenPositions as jest.Mock;
 
-test("boom bar for 01/05/2020", async () => {
-    const boomSim = new BoomBarSimulation("BABA", mockBrokerage);
+jest.setTimeout(10000);
+
+test("boom bar for 01/05/2021", async () => {
+    const boomSim = new BoomBarSimulation("JD", mockBrokerage);
 
     const calendar: Calendar[] = [
         {
@@ -65,7 +62,7 @@ test("boom bar for 01/05/2020", async () => {
                 stop_price: expect.any(Number),
             },
             stop_price: null,
-            symbol: "BABA",
+            symbol: "JD",
             take_profit: {
                 limit_price: expect.any(Number),
             },
@@ -116,15 +113,10 @@ test("boom bar for 01/06/2020", async () => {
     expect(boomSim.broker.createBracketOrder).not.toHaveBeenCalled();
 });
 
-test("boom bar for AAPL on 01/04", async () => {
-    const boomSim = new BoomBarSimulation("AAPL", mockBrokerage);
+test("boom bar for ROKU on 01/04", async () => {
+    const boomSim = new BoomBarSimulation("CHTR", mockBrokerage);
 
     const calendar: Calendar[] = [
-        {
-            date: "2020-12-31",
-            open: "09:30",
-            close: "16:00",
-        },
         {
             date: "2021-01-04",
             open: "09:30",
@@ -135,9 +127,14 @@ test("boom bar for AAPL on 01/04", async () => {
             open: "09:30",
             close: "16:00",
         },
+        {
+            date: "2021-01-06",
+            open: "09:30",
+            close: "16:00",
+        },
     ];
 
-    await boomSim.beforeMarketStarts(calendar, 1609770300000); // 01/05@9:25am
+    await boomSim.beforeMarketStarts(calendar, 1609943100000); // 01/05@9:25am
 
     const mockGetOpenPositions = mockBrokerage.getOpenPositions as jest.Mock;
 
@@ -147,9 +144,32 @@ test("boom bar for AAPL on 01/04", async () => {
 
     mockGetOpenOrders.mockReturnValueOnce([]);
 
-    await boomSim.rebalance(calendar, 1609770900000);
+    await boomSim.rebalance(calendar, 1609943700000);
 
-    expect(boomSim.isInPlay()).toBeFalsy();
+    expect(boomSim.isInPlay()).toBeTruthy();
 
     expect(mockBrokerage.createBracketOrder).not.toHaveBeenCalled();
+});
+
+test("getBoomBarData should only return bars according to minutes passed", async () => {
+    const calendar: Calendar[] = [
+        {
+            date: "2021-01-21",
+            open: "09:30",
+            close: "16:00",
+        },
+        {
+            date: "2021-01-22",
+            open: "09:30",
+            close: "16:00",
+        },
+    ];
+
+    const entryEpoch = 1611326160000; // 1/22 9:36:00
+
+    getOpenPositionsMock.mockReturnValueOnce([]);
+
+    const data = await getBoomBarData(calendar, entryEpoch, "INTC");
+
+    expect(data.length).toEqual(1);
 });
