@@ -18,7 +18,7 @@ test("selectRecentAverage", async () => {
         90
     );
 
-    expect(averageVolApple).toBeGreaterThan(6000000);
+    expect(averageVolApple).toBeGreaterThan(5000000);
 });
 
 test("selectAverageVolumeFirstBarForWindowLive", async () => {

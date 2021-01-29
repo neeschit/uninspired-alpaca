@@ -56,4 +56,6 @@ export const pathMap: { [index: string]: string } = {
     "Model 1": "nrb",
     "Model 2": "spyGap",
     "Model 3": "boom",
+    "Model 4": "gapAndGo",
+    "Model 5": "boomBreakout",
 };

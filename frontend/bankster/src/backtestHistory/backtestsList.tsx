@@ -1,4 +1,10 @@
-import { CircularProgress, Grid, TableCell, TableRow } from "@material-ui/core";
+import {
+    Button,
+    CircularProgress,
+    Grid,
+    TableCell,
+    TableRow,
+} from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import React from "react";
 import { AppContext, BacktestHistory } from "../appContext";
@@ -28,6 +34,24 @@ const useStyles = makeStyles((theme) => ({
 
 export const getCachedBacktests = async (): Promise<BacktestResult[]> => {
     const response = await fetch(`${backtestBaseUrl}/cached`);
+
+    const json = await response.json();
+
+    return json;
+};
+
+export const retryBacktest = async (test: BacktestResult): Promise<{}> => {
+    const response = await fetch(`${backtestBaseUrl}/retry`, {
+        method: "POST",
+        mode: "cors",
+        cache: "no-cache",
+        credentials: "same-origin",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        referrerPolicy: "no-referrer",
+        body: JSON.stringify(test),
+    });
 
     const json = await response.json();
 
@@ -89,6 +113,19 @@ export const BacktestsList = () => {
                 <TableCell>{index + 1}</TableCell>
                 <TableCell>{row.startDate}</TableCell>
                 <TableCell>{row.endDate}</TableCell>
+                <TableCell>
+                    <Button
+                        onClick={() => {
+                            if (currentBacktest) {
+                                retryBacktest(currentBacktest);
+                            }
+                        }}
+                        color="primary"
+                        variant="contained"
+                    >
+                        Retry
+                    </Button>
+                </TableCell>
             </TableRow>
         );
     };

@@ -9,6 +9,8 @@ afterAll(() => {
     process.env.NODE_ENV = "test";
 });
 
+jest.setTimeout(10000);
+
 test("should be in 3 positions for 12-30", async () => {
     const simulator = new Simulator();
 

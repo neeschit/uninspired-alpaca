@@ -98,7 +98,7 @@ test("nrb simulation - rebalance", async () => {
             extended_hours: false,
             limit_price: "145.913521981893",
             order_class: "bracket",
-            qty: 16,
+            qty: expect.any(Number),
             side: "sell",
             stop_loss: {
                 stop_price: plan.stop,

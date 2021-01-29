@@ -1,14 +1,56 @@
 import { Calendar, PositionDirection } from "@neeschit/alpaca-trade-api";
+import { readJsonSync } from "fs-extra";
 import { getCalendar } from "../brokerage-helpers/alpaca";
 import { SimulationStrategy, TelemetryModel } from "./simulation.strategy";
 import {
     BacktestBatchResult,
+    getBatchesForRetry,
     mergeResults,
     runStrategy,
+    SimulationResult,
     Simulator,
 } from "./simulator";
 
 jest.setTimeout(10000);
+
+test("Backtester - simulate batches for retries", () => {
+    const result = readJsonSync(
+        "./fixtures/example-backtest.json"
+    ) as SimulationResult;
+    const { batches, startDate, endDate } = getBatchesForRetry(result);
+
+    expect(batches[0]).toEqual(
+        expect.objectContaining({
+            startDate: "2020-01-02",
+            endDate: "2020-01-02",
+            symbols: ["NTES"],
+            batchId: expect.any(Number),
+        })
+    );
+
+    expect(batches[160]).toEqual(
+        expect.objectContaining({
+            startDate: "2021-01-27",
+            endDate: "2021-01-27",
+            symbols: [
+                "ADSK",
+                "AMD",
+                "AMZN",
+                "FIS",
+                "FISV",
+                "GPN",
+                "NOW",
+                "NVDA",
+                "SHOP",
+                "SNOW",
+                "TMUS",
+            ],
+            batchId: expect.any(Number),
+        })
+    );
+
+    expect(batches.length).toEqual(161);
+});
 
 test("Backtester - simulate batching with batches being limited to single days", () => {
     const zonedStartDate = "2021-01-04T16:00:00.000Z";
