@@ -201,10 +201,27 @@ export class BoomBarSimulation
 
         const ydayOpen = Simulator.getMarketOpenTimeForYday(epoch, calendar);
 
+        const premarketOpenToday = Simulator.getPremarketTimeForDay(
+            epoch,
+            calendar
+        );
+        const marketOpenToday = Simulator.getMarketOpenTimeForDay(
+            epoch,
+            calendar
+        );
+
         const ydaysBars = await getBucketedBarsForDay(this.symbol, ydayOpen);
 
         const filteredBars = ydaysBars.filter((b) =>
             isMarketOpen(calendar, b.t)
+        );
+
+        this.telemetryModel.marketGap = await getGapForSymbol(
+            "SPY",
+            ydayOpen,
+            epoch,
+            premarketOpenToday,
+            marketOpenToday
         );
 
         const { atr } = getAverageTrueRange(filteredBars);
@@ -243,14 +260,8 @@ export class BoomBarSimulation
             averageVol,
         } = await screenForBoomBar(calendar, epoch, this.symbol);
 
-        const range = Math.abs(boomBar.h - boomBar.l);
         this.firstBarVolume = boomBar.v;
         this.isScreened = isBoomBar;
-
-        const marketCloseYday = Simulator.getMarketCloseTimeForDay(
-            epoch,
-            calendar
-        );
 
         const ydayBars = await getSortedBarsUntilEpoch(this.symbol, epoch);
 
@@ -262,16 +273,18 @@ export class BoomBarSimulation
 
         const atr = atrValue || 3 * this.atrFromYdayClose;
 
-        const riskUnitsInitial =
-            assessRisk(this.dailyAtr, atr, boomBar.c) * 1.55;
+        const riskUnitsInitial = atr * 1.2;
         const riskUnits = Math.min(
             riskUnitsInitial,
             Math.abs(boomBar.h - boomBar.l) * 0.75
         );
 
         if (
-            gap > 3 ||
-            gap < -3 ||
+            gap > 1.8 ||
+            gap < -1.8 ||
+            boomBar.c < 10 ||
+            this.telemetryModel.marketGap > 1.8 ||
+            this.telemetryModel.marketGap < -1.8 ||
             !isBoomBar /* ||
             this.firstBarVolume / averageVol! < 1 ||
             gap > 1 ||
@@ -298,6 +311,12 @@ export class BoomBarSimulation
                 ? boomBar.c + PROFIT_RATIO * riskUnits
                 : boomBar.c - PROFIT_RATIO * riskUnits;
 
+        const entry = -1;
+        const limit_price =
+            side === TradeDirection.sell
+                ? boomBar.c - atr * 0.05
+                : boomBar.c + atr * 0.05;
+
         const plan: TradePlan = {
             symbol: this.symbol,
             side:
@@ -306,9 +325,9 @@ export class BoomBarSimulation
                     : PositionDirection.long,
             quantity: qty,
             stop,
-            limit_price: -1,
+            limit_price,
             target: takeProfitLimit,
-            entry: -1,
+            entry,
         };
         const unfilledOrder = getBracketOrderForPlan(plan);
 
@@ -350,13 +369,7 @@ export class BoomBarSimulation
             calendar
         );
 
-        this.telemetryModel.marketGap = await getGapForSymbol(
-            "SPY",
-            ydayOpen,
-            epoch,
-            premarketOpenToday,
-            marketOpenToday
-        );
+        this.telemetryModel.marketGap = this.telemetryModel.marketGap;
 
         this.telemetryModel.gap = await getGapForSymbol(
             this.symbol,

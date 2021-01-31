@@ -10,6 +10,7 @@ import {
 import { Link, useLocation } from "react-router-dom";
 import AddIcon from "@material-ui/icons/Add";
 import HistoryIcon from "@material-ui/icons/History";
+import AssessmentIcon from "@material-ui/icons/Assessment";
 import clsx from "clsx";
 import { AppContext } from "../appContext";
 
@@ -58,6 +59,11 @@ export const MenuList = () => {
                         text: "View Backtests",
                         path: "/history",
                         icon: <HistoryIcon />,
+                    },
+                    {
+                        text: "Analyze Performance",
+                        path: "/performance",
+                        icon: <AssessmentIcon />,
                     },
                 ].map((item) => {
                     const isActiveRoute =

@@ -1,4 +1,10 @@
-import { CircularProgress, Grid, TableCell, TableRow } from "@material-ui/core";
+import {
+    Button,
+    CircularProgress,
+    Grid,
+    TableCell,
+    TableRow,
+} from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import React from "react";
 import { AppContext, BacktestHistory } from "../appContext";
@@ -7,8 +13,26 @@ import {
     BacktestResult,
 } from "../startBacktest/backtestModel";
 import CustomPaginationActionsTable from "../table/table";
-import { BacktestDetail } from "./backtestDetail";
 import clsx from "clsx";
+import { ComplexPerformanceChart } from "../chart/perfChart";
+
+export const retryBacktest = async (test: BacktestResult): Promise<{}> => {
+    const response = await fetch(`${backtestBaseUrl}/retry`, {
+        method: "POST",
+        mode: "cors",
+        cache: "no-cache",
+        credentials: "same-origin",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        referrerPolicy: "no-referrer",
+        body: JSON.stringify(test),
+    });
+
+    const json = await response.json();
+
+    return json;
+};
 
 const useStyles = makeStyles((theme) => ({
     selectedRow: {
@@ -34,7 +58,7 @@ export const getCachedBacktests = async (): Promise<BacktestResult[]> => {
     return json;
 };
 
-export const BacktestsList = () => {
+export const PerformanceReport = () => {
     const { history, addToBacktestHistory } = React.useContext(AppContext);
 
     const [isLoading, setLoading] = React.useState(!history.length || false);
@@ -89,6 +113,19 @@ export const BacktestsList = () => {
                 <TableCell>{index + 1}</TableCell>
                 <TableCell>{row.startDate}</TableCell>
                 <TableCell>{row.endDate}</TableCell>
+                <TableCell>
+                    <Button
+                        onClick={() => {
+                            if (currentBacktest) {
+                                retryBacktest(currentBacktest);
+                            }
+                        }}
+                        color="primary"
+                        variant="contained"
+                    >
+                        Retry
+                    </Button>
+                </TableCell>
             </TableRow>
         );
     };
@@ -124,9 +161,9 @@ export const BacktestsList = () => {
                     </Grid>
                     {currentBacktest && (
                         <Grid item lg={12} md={12} sm={12} xs={12}>
-                            <BacktestDetail
-                                batch={currentBacktest}
-                            ></BacktestDetail>
+                            <ComplexPerformanceChart
+                                backtest={currentBacktest}
+                            ></ComplexPerformanceChart>
                         </Grid>
                     )}
                 </Grid>
