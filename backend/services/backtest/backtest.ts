@@ -174,7 +174,7 @@ backtestServer.get(
             startDate,
             endDate,
             BoomBarSimulation,
-            getLargeCaps()
+            currentTradingSymbols
         );
 
         const results = {

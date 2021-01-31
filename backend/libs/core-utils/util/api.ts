@@ -48,6 +48,7 @@ export const getApiServer = (service: Service) => {
     const server = fastify({
         logger: true,
         ignoreTrailingSlash: true,
+        bodyLimit: 1048576 * 100,
     });
 
     server.get("/healthcheck", async (request, reply) => {

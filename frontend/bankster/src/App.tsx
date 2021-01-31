@@ -21,6 +21,7 @@ import { MenuList } from "./menuList/menuList";
 import { BacktestStart } from "./startBacktest/backtest";
 import { BacktestResult } from "./startBacktest/backtestModel";
 import { BacktestsList } from "./backtestHistory/backtestsList";
+import { PerformanceReport } from "./performance/report";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -132,6 +133,10 @@ function App() {
                             <Route
                                 path="/history"
                                 component={BacktestsList}
+                            ></Route>
+                            <Route
+                                path="/performance"
+                                component={PerformanceReport}
                             ></Route>
                         </Switch>
                     </div>

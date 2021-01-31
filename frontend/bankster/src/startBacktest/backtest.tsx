@@ -238,16 +238,12 @@ export const BacktestStart = () => {
                         justifyContent="space-around"
                         className={classes.resultsContainer}
                     >
-                        (
                         <Grid item>
-                            (
                             <CircularProgress
                                 size={240}
                                 className={classes.buttonProgress}
                             />
-                            )
                         </Grid>
-                        )
                     </Grid>
                 )}
 

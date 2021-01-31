@@ -3,8 +3,6 @@ import {
     PositionDirection,
     TradeDirection,
 } from "@neeschit/alpaca-trade-api";
-import { isSameDay } from "date-fns";
-import { hi } from "date-fns/locale";
 import { BrokerStrategy } from "../brokerage-helpers/brokerage.strategy";
 import { Bar } from "../core-utils/data/data.model";
 import { convertToLocalTime } from "../core-utils/util/date";

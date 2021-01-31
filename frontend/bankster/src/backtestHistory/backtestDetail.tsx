@@ -268,17 +268,8 @@ export const BacktestDetail = ({ batch }: { batch: BacktestResult }) => {
                             display: "inline-block",
                         }}
                     >
-                        Risk per trade: $10
-                    </Typography>
-                </Grid>
-                <Grid item>
-                    <Typography
-                        component="p"
-                        style={{
-                            display: "inline-block",
-                        }}
-                    >
-                        Profit ratio is 1:2
+                        Leverage for today:{" "}
+                        {batch.results[currentIndex]?.maxLeverage}
                     </Typography>
                 </Grid>
                 <Grid item>
