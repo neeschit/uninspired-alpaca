@@ -13,6 +13,7 @@ import { TimestampedRecord } from "../schema-helpers/model";
 import { ensureUpdateTriggerExists } from "../schema-helpers/updated_at.trigger";
 import { persistTradePlan, TradePlan, PersistedTradePlan } from "./position";
 import { BrokerStrategy } from "../brokerage-helpers/brokerage.strategy";
+import { isBacktestingEnv } from "../core-utils/util/env";
 
 export interface OrderUpdate extends AlpacaOrder {
     position_id: number;
@@ -85,15 +86,6 @@ export const createOrderSynchronized = async (
 };
 
 export const persistPlan = async (plan: TradePlan) => {
-    if (process.env.NODE_ENV === "backtest") {
-        const persistedPlan = {
-            ...plan,
-            id: Date.now() + Math.random(),
-            created_at: "",
-            updated_at: "",
-        };
-        return persistedPlan;
-    }
     const persistedPlan = await persistTradePlan(plan);
     return persistedPlan;
 };
@@ -102,21 +94,14 @@ export const persistOrderForPlan = async (
     persistedPlan: PersistedTradePlan,
     unfilledOrder: UnfilledOrderAssociatedWithPlan
 ) => {
-    if (process.env.NODE_ENV === "backtest") {
-        const currentDate = new Date().toISOString();
-        return {
-            ...unfilledOrder,
-            id: Date.now() + Math.random(),
-            created_at: currentDate,
-            updated_at: currentDate,
-            status: OrderStatus.new,
-        };
-    }
+    if (!!isBacktestingEnv()) {
+        const recentOrdersForSymbol = await getRecentOrders(
+            persistedPlan.symbol
+        );
 
-    const recentOrdersForSymbol = await getRecentOrders(persistedPlan.symbol);
-
-    if (recentOrdersForSymbol.length) {
-        throw new Error("order_placed_recently_for_symbol");
+        if (recentOrdersForSymbol.length) {
+            throw new Error("order_placed_recently_for_symbol");
+        }
     }
 
     const order = await insertOrderForTradePlan(persistedPlan, unfilledOrder);

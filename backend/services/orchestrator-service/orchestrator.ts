@@ -1,9 +1,12 @@
 import { Calendar } from "@neeschit/alpaca-trade-api";
-import { addBusinessDays, endOfDay, startOfDay } from "date-fns";
+import { addBusinessDays, endOfDay, parseISO, startOfDay } from "date-fns";
 import { PolygonTradeUpdate } from "../../libs/core-utils/resources/polygon";
 import { getCalendar } from "../../libs/brokerage-helpers/alpaca";
 import { rebalance } from "../trade-management-api/trade-manager.interfaces";
-import { insertBarData } from "../../libs/trade-management-helpers/stream";
+import {
+    insertBarData,
+    insertBarDataV2,
+} from "../../libs/trade-management-helpers/stream";
 
 export class CachedCalendar {
     public static value: Calendar[];
@@ -36,5 +39,19 @@ export const onStockMinuteDataPosted = async (
         } catch (e) {
             console.error("couldnt enter symbol " + sym, e);
         }
+    }
+};
+
+export const onStockMinuteDataPostedV2 = async (bar: any) => {
+    const symbol = bar.S;
+    const epoch = parseISO(bar.t).getTime();
+    await insertBarDataV2(bar, symbol, epoch);
+
+    const calendar = await CachedCalendar.getCalendar();
+
+    try {
+        await rebalance(symbol, calendar, epoch);
+    } catch (e) {
+        /* console.error("couldnt enter symbol " + sym, e); */
     }
 };

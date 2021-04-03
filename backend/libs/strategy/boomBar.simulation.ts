@@ -1,23 +1,19 @@
 import {
     Calendar,
     PositionDirection,
+    TimeInForce,
     TradeDirection,
+    TradeType,
 } from "@neeschit/alpaca-trade-api";
-import { addBusinessDays, endOfDay, parseISO, startOfDay } from "date-fns";
+import { addBusinessDays, parseISO } from "date-fns";
 import { BrokerStrategy } from "../brokerage-helpers/brokerage.strategy";
 import { getAverageTrueRange } from "../core-indicators/indicator/trueRange";
-import { assessRisk } from "../core-indicators/services/riskManagement";
 import { PeriodType } from "../core-utils/data/data.model";
 import { LOGGER } from "../core-utils/instrumentation/log";
-import {
-    selectAverageRangeFirstBarForWindowLive,
-    selectAverageVolumeFirstBarForWindow,
-    selectAverageVolumeFirstBarForWindowLive,
-} from "../core-utils/resources/firstFiveMinBar";
+import { selectAverageVolumeFirstBarForWindow } from "../core-utils/resources/firstFiveMinBar";
 import { getPolyonData } from "../core-utils/resources/polygon";
 import {
     batchInsertBars,
-    getData,
     getSimpleData,
     getBucketedBarsForDay,
     getGapForSymbol,
@@ -31,111 +27,15 @@ import {
     TelemetryModel,
 } from "../simulation-helpers/simulation.strategy";
 import { Simulator } from "../simulation-helpers/simulator";
-import {
-    getMarketOpenMillis,
-    isMarketOpen,
-} from "../simulation-helpers/timing.util";
+import { isMarketOpen } from "../simulation-helpers/timing.util";
 import {
     cancelOpenOrdersForSymbol,
     createOrderSynchronized,
-    getBracketOrderForPlan,
+    UnfilledOrder,
 } from "../trade-management-helpers/order";
 import { TradePlan } from "../trade-management-helpers/position";
+import { screenForBoomBar } from "./boombar.utils";
 import { PROFIT_RATIO, RISK_PER_ORDER } from "./narrowRangeBar";
-
-export const getBoomBarData = async (
-    calendar: Calendar[],
-    epoch: number,
-    symbol: string
-) => {
-    const marketStartEpochToday = Simulator.getMarketOpenTimeForDay(
-        epoch,
-        calendar
-    );
-
-    const minutesSinceMarketOpen =
-        epoch > marketStartEpochToday
-            ? Math.floor((epoch - marketStartEpochToday) / 300000)
-            : 0;
-
-    if (!minutesSinceMarketOpen) {
-        return [];
-    }
-
-    const data = await getData(
-        symbol,
-        marketStartEpochToday,
-        "5 minutes",
-        epoch
-    );
-
-    return data.slice(0, minutesSinceMarketOpen);
-};
-
-export const screenForBoomBar = async (
-    calendar: Calendar[],
-    epoch: number,
-    symbol: string
-) => {
-    const marketStartEpochToday = Simulator.getMarketOpenTimeForDay(
-        epoch,
-        calendar
-    );
-
-    const data = await getBoomBarData(calendar, epoch, symbol);
-
-    const premarketEpoch = Simulator.getPremarketTimeForDay(epoch, calendar);
-    const ydayOpen = Simulator.getMarketOpenTimeForYday(epoch, calendar);
-
-    const boomBar = data[0];
-
-    let isBoomBar = false;
-
-    const range = Math.abs(boomBar.h - boomBar.l);
-
-    const averageVol = await selectAverageVolumeFirstBarForWindowLive(
-        symbol,
-        90,
-        epoch
-    );
-
-    const averageFirstBarRange = await selectAverageRangeFirstBarForWindowLive(
-        symbol,
-        epoch
-    );
-
-    if (range > 3 * averageFirstBarRange!) {
-        isBoomBar = true;
-    } else {
-        isBoomBar = false;
-    }
-
-    const bodyRange = Math.abs(boomBar.o - boomBar.c);
-    const wicksRange =
-        boomBar.o > boomBar.c
-            ? Math.abs(boomBar.h - boomBar.o) + Math.abs(boomBar.l - boomBar.c)
-            : Math.abs(boomBar.h - boomBar.c) + Math.abs(boomBar.l - boomBar.o);
-
-    if (wicksRange / bodyRange > 0.15) {
-        isBoomBar = false;
-    }
-
-    const gap = await getGapForSymbol(
-        symbol,
-        ydayOpen,
-        epoch,
-        premarketEpoch,
-        marketStartEpochToday
-    );
-
-    return {
-        isBoomBar,
-        data,
-        averageVol,
-        gap,
-        boomBar,
-    };
-};
 
 const isTimeForBoomBarEntry = (nowMillis: number) => {
     const timeStart = convertToLocalTime(nowMillis, " 09:34:45.000");
@@ -159,7 +59,6 @@ export class BoomBarSimulation
     private atrFromYdayClose = 0;
     private maxRange = 0;
     private hasCachedData = false;
-    private dailyAtr = 0;
     private telemetryModel: TelemetryModel = {
         marketGap: 0,
         maxPnl: 0,
@@ -237,6 +136,8 @@ export class BoomBarSimulation
         }, 0);
     }
 
+    async handleOpenPosition(epoch: number) {}
+
     async rebalance(calendar: Calendar[], epoch: number) {
         if (this.isScreened === false) {
             return;
@@ -248,17 +149,19 @@ export class BoomBarSimulation
             (p) => p.symbol === this.symbol
         );
 
-        if (!isTimeForBoomBarEntry(epoch) && !hasOpenPosition) {
+        if (hasOpenPosition) {
+            this.handleOpenPosition(epoch);
+        }
+
+        if (!isTimeForBoomBarEntry(epoch)) {
             return;
         }
 
-        const {
-            data,
-            boomBar,
-            gap,
-            isBoomBar,
-            averageVol,
-        } = await screenForBoomBar(calendar, epoch, this.symbol);
+        const { data, boomBar, gap, isBoomBar } = await screenForBoomBar(
+            calendar,
+            epoch,
+            this.symbol
+        );
 
         this.firstBarVolume = boomBar.v;
         this.isScreened = isBoomBar;
@@ -283,8 +186,8 @@ export class BoomBarSimulation
             gap > 1.8 ||
             gap < -1.8 ||
             boomBar.c < 10 ||
-            this.telemetryModel.marketGap > 1.8 ||
-            this.telemetryModel.marketGap < -1.8 ||
+            this.telemetryModel.marketGap > 3 ||
+            this.telemetryModel.marketGap < -3 ||
             !isBoomBar /* ||
             this.firstBarVolume / averageVol! < 1 ||
             gap > 1 ||
@@ -329,7 +232,14 @@ export class BoomBarSimulation
             target: takeProfitLimit,
             entry,
         };
-        const unfilledOrder = getBracketOrderForPlan(plan);
+        const unfilledOrder: UnfilledOrder = {
+            symbol: this.symbol,
+            side,
+            type: TradeType.limit,
+            tif: TimeInForce.day,
+            quantity: plan.quantity,
+            order_class: "simple",
+        };
 
         await createOrderSynchronized(plan, unfilledOrder, this.broker);
     }

@@ -1,7 +1,7 @@
 import { Calendar } from "@neeschit/alpaca-trade-api";
 import { mockBrokerage } from "../simulation-helpers/brokerage.mock";
-import { MockBrokerage } from "../simulation-helpers/mockBrokerage";
-import { BoomBarSimulation, getBoomBarData } from "./boomBar.simulation";
+import { BoomBarSimulation } from "./boomBar.simulation";
+import { getBoomBarData } from "./boombar.utils";
 
 const getOpenPositionsMock = mockBrokerage.getOpenPositions as jest.Mock;
 
