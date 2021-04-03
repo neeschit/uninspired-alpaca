@@ -1,11 +1,11 @@
 import { endPooledConnection } from "../../libs/core-utils/connection/pg";
-import { currentStreamingSymbols } from "../libs/core-utils/data/filters";
 import { getConnectedDataWebsocket } from "../../libs/brokerage-helpers/alpaca";
 import {
     onStockMinuteDataPosted,
     onStockMinuteDataPostedV2,
 } from "./orchestrator";
 import { AlpacaStream } from "@master-chief/alpaca";
+import { currentStreamingSymbols } from "../../libs/core-utils/data/filters";
 
 export const subscribeToTickLevelUpdates = (
     symbols: string[],
