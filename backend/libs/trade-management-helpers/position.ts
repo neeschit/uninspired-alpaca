@@ -1,5 +1,6 @@
 import { PositionDirection } from "@neeschit/alpaca-trade-api";
 import { getConnection } from "../core-utils/connection/pg";
+import { isBacktestingEnv, isTestingEnv } from "../core-utils/util/env";
 import { TimestampedRecord } from "../schema-helpers/model";
 import { ensureUpdateTriggerExists } from "../schema-helpers/updated_at.trigger";
 
@@ -27,6 +28,7 @@ create table trade_plan (
     quantity smallint not null,
     symbol varchar(8) not null,
     side varchar(8) not null,
+    is_test boolean default false,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -52,6 +54,7 @@ const getUnfilledPositionInsert = (plan: TradePlan) => {
             ${Math.abs(plan.quantity)},
             '${plan.symbol}',
             '${plan.side}',
+            ${isTestingEnv() ? "true" : "false"}
             DEFAULT,
             DEFAULT
         ) returning *;

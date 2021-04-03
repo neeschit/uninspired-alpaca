@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "dependencies": {
+    "@master-chief/alpaca": "6.1.1",
     "@neeschit/alpaca-trade-api": "1.5.0",
     "date-fns": "^2.9.0",
     "date-fns-tz": "^1.0.10",
@@ -22,6 +23,7 @@
     "@types/node": "^13.13.12",
     "@types/pg": "^7.14.3",
     "@types/uuid": "^7.0.4",
+    "@types/ws": "^7.4.0",
     "jest": "^26.6.3",
     "ts-jest": "^26.4.4",
     "ts-node": "^9.1.1",
@@ -43,12 +45,5 @@
     "o2": "SERVICE_NAME=streamer node --inspect=9696 --enable-source-maps build/services/orchestrator-service/index.js",
     "s2": "SERVICE_NAME=screener node --inspect=9698 --enable-source-maps build/services/screener-api/screener.js",
     "t2": "SERVICE_NAME=screener node --inspect=9697 --enable-source-maps build/services/trade-management-api/trade-manager.js"
-  },
-  "ava": {
-    "typescript": {
-      "rewritePaths": {
-        "src/": "build/src/"
-      }
-    }
   }
 }

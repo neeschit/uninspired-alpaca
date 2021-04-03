@@ -16,7 +16,7 @@ import {
     getBracketOrderForPlan,
 } from "../trade-management-helpers/order";
 import { TradePlan } from "../trade-management-helpers/position";
-import { screenForBoomBar } from "./boomBar.simulation";
+import { screenForBoomBar } from "./boombar.utils";
 import { PROFIT_RATIO, RISK_PER_ORDER } from "./narrowRangeBar";
 
 const isTimeForBoomBarEntry = (nowMillis: number) => {

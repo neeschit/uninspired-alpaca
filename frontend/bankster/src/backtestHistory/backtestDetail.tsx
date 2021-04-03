@@ -279,6 +279,16 @@ export const BacktestDetail = ({ batch }: { batch: BacktestResult }) => {
                             display: "inline-block",
                         }}
                     >
+                        PnL for today: {batch.results[currentIndex]?.pnl}
+                    </Typography>
+                </Grid>
+                <Grid item>
+                    <Typography
+                        component="p"
+                        style={{
+                            display: "inline-block",
+                        }}
+                    >
                         Strategy is {batch.strategy}
                     </Typography>
                 </Grid>

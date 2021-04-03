@@ -1,6 +1,6 @@
 import { Calendar, TradeDirection } from "@neeschit/alpaca-trade-api";
 import { mockBrokerage } from "../simulation-helpers/brokerage.mock";
-import { getBoomBarData } from "./boomBar.simulation";
+import { getBoomBarData } from "./boombar.utils";
 import {
     BoomBarBreakoutSimulation,
     getEntryForBoomBreakout,

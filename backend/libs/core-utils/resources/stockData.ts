@@ -222,7 +222,7 @@ export const insertDailyBar = async (bar: TickBar, symbol: string) => {
     return pool.query(query);
 };
 
-export const batchInsertDailyBars = async (bars: TickBar[], symbol: string) => {
+export const batchInsertDailyBars = async (bars: Bar[], symbol: string) => {
     const pool = getConnection();
 
     const client = await pool.connect();
@@ -294,15 +294,13 @@ export const insertBar = async (
 };
 
 export const batchInsertBars = async (
-    bars: TickBar[],
+    bars: Bar[],
     symbol: string,
     isMinute = false
 ) => {
     const pool = getConnection();
 
-    const tablename = isMinute
-        ? getAggregatedMinuteTableNameForSymbol(symbol)
-        : getAggregatedTickTableNameForSymbol(symbol);
+    const tablename = getAggregatedMinuteTableNameForSymbol(symbol);
 
     const queries: string[] = [];
 
@@ -313,14 +311,14 @@ export const batchInsertBars = async (
             ${bar.h}, 
             ${bar.l}, 
             ${bar.c}, 
-            ${bar.vw || 0}, 
+            0, 
             ${bar.v}
         ) ON CONFLICT (t) DO UPDATE set 
         l = ${bar.l}, 
         h = ${bar.h}, 
         c = ${bar.c}, 
         o = ${bar.o}, 
-        vw = ${bar.vw || 0}, 
+        vw = 0, 
         v = ${bar.v};`;
         LOGGER.debug(query);
         queries.push(query);

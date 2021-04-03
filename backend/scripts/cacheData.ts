@@ -1,37 +1,30 @@
-import {
-    currentStreamingSymbols,
-    getLargeCaps,
-} from "../libs/core-utils/data/filters";
+import { getLargeCaps } from "../libs/core-utils/data/filters";
 import {
     DefaultDuration,
     PeriodType,
 } from "../libs/core-utils/data/data.model";
-import {
-    addDays,
-    startOfDay,
-    addBusinessDays,
-    endOfDay,
-    parse,
-    isAfter,
-} from "date-fns";
+import { addDays, startOfDay, addBusinessDays, endOfDay } from "date-fns";
 import { LOGGER } from "../libs/core-utils/instrumentation/log";
-import {
-    getPolyonData,
-    getTickerDetails,
-} from "../libs/core-utils/resources/polygon";
 import {
     insertBar,
     batchInsertBars,
     batchInsertDailyBars,
     getSimpleData,
 } from "../libs/core-utils/resources/stockData";
-import {
-    DATE_FORMAT,
-    getMarketOpenMillis,
-    isAfterMarketClose,
-} from "../libs/simulation-helpers/timing.util";
+import { isAfterMarketClose } from "../libs/simulation-helpers/timing.util";
 import { getCalendar } from "../libs/brokerage-helpers/alpaca";
 import { Simulator } from "../libs/simulation-helpers/simulator";
+
+import { AlpacaClient } from "@master-chief/alpaca";
+
+const client = new AlpacaClient({
+    credentials: {
+        key: process.env.ALPACA_SECRET_KEY_ID!,
+        secret: process.env.ALPACA_SECRET_KEY!,
+        paper: true,
+    },
+    rate_limit: false,
+});
 
 const companies: string[] = [...getLargeCaps(), "SPY"];
 
@@ -50,58 +43,47 @@ async function run(duration = DefaultDuration.one, period = PeriodType.minute) {
     const endDate = endOfDay(addDays(Date.now(), hasDayEnded ? 0 : -1));
 
     for (const symbol of companies) {
-        const details = await getTickerDetails(symbol);
-
-        const listDateStr = details?.listdate;
-
-        const listdate =
-            listDateStr &&
-            parse(listDateStr, DATE_FORMAT, new Date(listDateStr));
-
-        const startDateActual =
-            listdate && isAfter(listdate, startDate) ? listdate : startDate;
-
         for (
-            let date = startDateActual;
+            let date = startDate;
             date.getTime() < endDate.getTime();
             date = addDays(date, 4)
         ) {
-            const marketOpenTime = Simulator.getMarketOpenTimeForDay(
-                date.getTime(),
-                calendar
-            );
-            const firstBar = await getSimpleData(
-                symbol,
-                marketOpenTime,
-                true,
-                marketOpenTime + 300000
-            );
-
-            if (!firstBar.length || forceRetrieve) {
-                const daysMinutes = await getPolyonData(
+            try {
+                const marketOpenTime = Simulator.getMarketOpenTimeForDay(
+                    date.getTime(),
+                    calendar
+                );
+                const firstBar = await getSimpleData(
                     symbol,
-                    date,
-                    addDays(date.getTime(), 3),
-                    period,
-                    duration
+                    marketOpenTime,
+                    true,
+                    marketOpenTime + 300000
                 );
 
-                if (!daysMinutes[symbol] || !daysMinutes[symbol].length) {
-                    continue;
-                }
+                if (!firstBar.length || forceRetrieve) {
+                    const daysMinutes = await client.getBars({
+                        symbol,
+                        timeframe: "1Min",
+                        start: date,
+                        end: addDays(date.getTime(), 3),
+                    });
 
-                try {
-                    await batchInsertBars(daysMinutes[symbol], symbol, true);
-                } catch (e) {
-                    LOGGER.error(`Error inserting for ${symbol}`, e);
+                    const bars = daysMinutes.bars.map((b) => ({
+                        ...b,
+                        t: b.t.getTime(),
+                    }));
+
+                    if (symbol === "AAPL") {
+                        console.log(JSON.stringify(daysMinutes.bars));
+                    }
 
                     try {
-                        for (const tick of daysMinutes[symbol]) {
-                            await insertBar(tick, symbol, true);
-                        }
-                    } catch (e) {}
+                        await batchInsertBars(bars, symbol, true);
+                    } catch (e) {
+                        LOGGER.error(`Error inserting for ${symbol}`, e);
+                    }
                 }
-            }
+            } catch (e) {}
         }
     }
 
@@ -112,20 +94,20 @@ async function run(duration = DefaultDuration.one, period = PeriodType.minute) {
             date = addBusinessDays(date, 90)
         ) {
             const end = addBusinessDays(date, 90);
-            const daysMinutes = await getPolyonData(
+            const daysMinutes = await client.getBars({
                 symbol,
-                date,
-                end.getTime() > endDate.getTime() ? endDate : end,
-                PeriodType.day,
-                DefaultDuration.one
-            );
+                timeframe: "1Min",
+                start: date,
+                end: addDays(date.getTime(), 3),
+            });
 
-            if (!daysMinutes[symbol] || !daysMinutes[symbol].length) {
-                continue;
-            }
+            const bars = daysMinutes.bars.map((b) => ({
+                ...b,
+                t: b.t.getTime(),
+            }));
 
             try {
-                await batchInsertDailyBars(daysMinutes[symbol], symbol);
+                await batchInsertDailyBars(bars, symbol);
             } catch (e) {
                 LOGGER.error(`Error inserting for ${symbol}`, e);
             }
