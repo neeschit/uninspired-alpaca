@@ -1,4 +1,4 @@
-import { getLargeCaps } from "../libs/core-utils/data/filters";
+import { getLargeCaps } from "@neeschit/core-data";
 import {
     DefaultDuration,
     PeriodType,

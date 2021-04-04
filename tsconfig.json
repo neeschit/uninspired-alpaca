@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {
+        "strict": true,
+        "moduleResolution": "node",
+        "declaration": true,
+        "baseUrl": ".",
+    },
+    "exclude": [
+        "node_modules"
+    ]
+}

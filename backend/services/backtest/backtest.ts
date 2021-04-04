@@ -2,7 +2,7 @@ import {
     currentStreamingSymbols,
     currentTradingSymbols,
     getLargeCaps,
-} from "../../libs/core-utils/data/filters";
+} from "@neeschit/core-data";
 import { LOGGER } from "../../libs/core-utils/instrumentation/log";
 import { NarrowRangeBarSimulation } from "../../libs/strategy/narrowRangeBar.simulation";
 import {

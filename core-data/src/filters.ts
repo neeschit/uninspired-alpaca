@@ -1,20 +1,26 @@
 import { readFileSync } from "fs";
 
 export const getLargeCaps = (): string[] => {
-    return JSON.parse(readFileSync("./largecaps.json").toString());
+    return JSON.parse(
+        readFileSync(__dirname + "/../largecaps.json").toString()
+    );
 };
 
 export const getMegaCaps = (): string[] => {
-    return JSON.parse(readFileSync("./megacaps-new.json").toString());
+    return JSON.parse(
+        readFileSync(__dirname + "/../megacaps-new.json").toString()
+    );
 };
 
 export const getUnfilteredMegaCaps = (): string[] => {
-    return JSON.parse(readFileSync("./megacaps.json").toString());
+    return JSON.parse(readFileSync(__dirname + "/../megacaps.json").toString());
 };
 
 export const getFilteredHighVolumeCompanies = (): string[] => {
     return JSON.parse(
-        readFileSync("./filteredLargeCapsHighVolume.json").toString()
+        readFileSync(
+            __dirname + "/../filteredLargeCapsHighVolume.json"
+        ).toString()
     );
 };
 

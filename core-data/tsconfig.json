@@ -2,17 +2,15 @@
     "extends": "../tsconfig.json",
     "compilerOptions": {
         "module": "CommonJS",
-        "lib": ["ES2020"],
+        "lib": [
+            "ES2020"
+        ],
         "target": "ES2020",
         "outDir": "./build",
-        "allowSyntheticDefaultImports": true,
-        "esModuleInterop": true,
         "allowJs": false,
         "sourceMap": true
     },
     "include": [
-        "libs/**/*.ts", 
-        "scripts/**/*.ts",
-        "services/**/*.ts"
+        "src/*.ts"
     ]
 }
