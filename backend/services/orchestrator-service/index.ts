@@ -5,7 +5,7 @@ import {
     onStockMinuteDataPostedV2,
 } from "./orchestrator";
 import { AlpacaStream } from "@master-chief/alpaca";
-import { currentStreamingSymbols } from "../../libs/core-utils/data/filters";
+import { currentStreamingSymbols } from "@neeschit/core-data";
 
 export const subscribeToTickLevelUpdates = (
     symbols: string[],

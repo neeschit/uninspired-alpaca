@@ -501,6 +501,11 @@
     urljoin "^0.1.5"
     ws "^7.3.1"
 
+"@neeschit/core-data@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@neeschit/core-data/-/core-data-1.0.1.tgz#e2c807eee6f3fa17cbd0cc278230abf042f0d7f5"
+  integrity sha512-+Gco+7Ya3TZQRTcBbg/FNWviuW0gVBWoOWDRDb4zXw9/BZ1JIb+nIfU7yTbTRP1DtVPoIAxt6gdQhP6Wzdy/rg==
+
 "@sinonjs/commons@^1.7.0":
   version "1.8.1"
   resolved "https://registry.yarnpkg.com/@sinonjs/commons/-/commons-1.8.1.tgz#e7df00f98a203324f6dc7cc606cad9d4a8ab2217"

@@ -1,10 +1,7 @@
 import { addBusinessDays, startOfDay } from "date-fns";
 import { getCalendar } from "../libs/brokerage-helpers/alpaca";
 import { Bar } from "../libs/core-utils/data/data.model";
-import {
-    currentStreamingSymbols,
-    getLargeCaps,
-} from "../libs/core-utils/data/filters";
+import { currentStreamingSymbols, getLargeCaps } from "@neeschit/core-data";
 import { LOGGER } from "../libs/core-utils/instrumentation/log";
 import {
     batchInsertFirstBars,

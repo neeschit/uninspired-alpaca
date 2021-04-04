@@ -10,7 +10,7 @@
  */
 
 import { HttpFunction } from "@google-cloud/functions-framework/build/src/functions";
-import { currentStreamingSymbols } from "../../backend/libs/core-utils/data/filters";
+import { currentStreamingSymbols } from "@neeschit/core-data";
 import { PubSub } from "@google-cloud/pubsub";
 
 const pubSubClient = new PubSub();
