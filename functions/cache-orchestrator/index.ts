@@ -1,14 +1,3 @@
-/**
- * HTTP Cloud Function.
- * This function is exported by index.js, and is executed when
- * you make an HTTP request to the deployed function's endpoint.
- *
- * @param {Object} req Cloud Function request context.
- *                     More info: https://expressjs.com/en/api.html#req
- * @param {Object} res Cloud Function response context.
- *                     More info: https://expressjs.com/en/api.html#res
- */
-
 import { HttpFunction } from "@google-cloud/functions-framework/build/src/functions";
 import { currentStreamingSymbols } from "@neeschit/core-data";
 import { PubSub } from "@google-cloud/pubsub";
@@ -28,7 +17,9 @@ export const cacheOrchestrator: HttpFunction = (req, res) => {
 async function publishMessageForSymbol(symbol: string) {
     const dataBuffer = Buffer.from(
         JSON.stringify({
-            symbol,
+            data: {
+                symbol,
+            },
         })
     );
 
@@ -40,7 +31,7 @@ async function publishMessage(dataBuffer: Buffer) {
         const messageId = await pubSubClient
             .topic("caching-request-channel")
             .publish(dataBuffer);
-        console.log(`Message ${messageId} published.`);
+        console.log(`Message ${messageId} published as ${dataBuffer}`);
     } catch (error) {
         console.error(`Received error while publishing: ${error.message}`);
         process.exitCode = 1;
