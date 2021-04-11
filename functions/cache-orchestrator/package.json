@@ -6,13 +6,14 @@
     "start": "functions-framework --target=cacheOrchestrator --source=./build"
   },
   "devDependencies": {
-    "@google-cloud/functions-framework": "^1.7.1",
     "@types/express": "^4.17.11",
     "@types/node": "^13.13.12",
     "typescript": "^4.2.3"
   },
   "dependencies": {
-    "@google-cloud/pubsub": "^2.10.0"
+    "@google-cloud/functions-framework": "^1.7.1",
+    "@google-cloud/pubsub": "^2.10.0",
+    "@neeschit/core-data": "^1.0.1"
   },
-  "main": "functions/cache-orchestrator/index.js"
+  "main": "index.js"
 }
