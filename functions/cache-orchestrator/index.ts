@@ -14,7 +14,7 @@ export const cacheOrchestrator: HttpFunction = (req, res) => {
     });
 };
 
-async function publishMessageForSymbol(symbol: string) {
+function publishMessageForSymbol(symbol: string): Promise<any> {
     const dataBuffer = Buffer.from(
         JSON.stringify({
             data: {
@@ -23,7 +23,7 @@ async function publishMessageForSymbol(symbol: string) {
         })
     );
 
-    publishMessage(dataBuffer);
+    return publishMessage(dataBuffer);
 }
 
 async function publishMessage(dataBuffer: Buffer) {
