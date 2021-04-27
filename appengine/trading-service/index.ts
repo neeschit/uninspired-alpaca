@@ -28,10 +28,12 @@ server.get("/", async (request, reply) => {
     return bars;
 });
 
-server.listen(process.env.port || 8080, (err) => {
+server.listen(process.env.PORT || 8080, "0.0.0.0", (err) => {
     const serverAddress = server.server && server.server.address();
     if (err || !serverAddress || typeof serverAddress === "string") {
         server.log.error("uncaught error trying to init server", err);
         process.exit(1);
     }
 });
+
+module.exports = server;
