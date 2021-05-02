@@ -34,7 +34,7 @@ jobs:
                   yarn build
               env:
                   CI: true
-            - name: Build bankster app
+            - name: Build meaty functions
               working-directory: ./functions/boombar-screener
               run: |
                   yarn install
