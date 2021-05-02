@@ -1,6 +1,7 @@
-import { AlpacaClient } from "@master-chief/alpaca";
+import { AlpacaClient, AlpacaStream, Bar } from "@master-chief/alpaca";
 import { addBusinessDays } from "date-fns";
 import fastify from "fastify";
+import { currentTradingSymbols } from "@neeschit/core-data";
 
 const client = new AlpacaClient({
     credentials: {
@@ -11,21 +12,33 @@ const client = new AlpacaClient({
     rate_limit: false,
 });
 
+const stream = new AlpacaStream({
+    credentials: {
+        key: process.env.ALPACA_SECRET_KEY_ID!,
+        secret: process.env.ALPACA_SECRET_KEY!,
+    },
+    type: "market_data",
+    source: "sip",
+});
+
 const server = fastify({
     logger: true,
     ignoreTrailingSlash: true,
     bodyLimit: 1048576 * 100,
 });
 
-server.get("/", async (request, reply) => {
-    const bars = client.getBars({
-        symbol: "SPY",
-        start: addBusinessDays(Date.now(), -2),
-        end: new Date(),
-        timeframe: "1Min",
-    });
+let count = 0;
 
-    return bars;
+stream.once("authenticated", () =>
+    stream.subscribe("bars", currentTradingSymbols)
+);
+
+stream.on("bar", (bar: Bar) => {
+    count++;
+});
+
+server.get("/", async (request, reply) => {
+    return count;
 });
 
 server.listen(process.env.PORT || 8080, "0.0.0.0", (err) => {
