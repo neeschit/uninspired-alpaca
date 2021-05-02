@@ -34,3 +34,13 @@ jobs:
                   yarn build
               env:
                   CI: true
+            - name: Build bankster app
+              working-directory: ./functions/boombar-screener
+              run: |
+                  yarn install
+                  yarn build
+                  yarn test
+              env:
+                  CI: true
+                  ALPACA_SECRET_KEY_ID: ${{ secrets.ALPACA_SECRET_KEY_ID }}
+                  ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
