@@ -7,7 +7,8 @@
     "build": "tsc",
     "deploy": "sh deploy.sh",
     "start": "env-cmd -r ./.env.json --verbose functions-framework --target=screenForBoombar --source=./build --signature-type=event --port=8082 --debug",
-    "test": "env-cmd -r ./.env.json jest"
+    "test": "env-cmd -r ./.env.json jest",
+    "test:ci": "jest"
   },
   "devDependencies": {
     "@google-cloud/functions-framework": "^1.7.1",
