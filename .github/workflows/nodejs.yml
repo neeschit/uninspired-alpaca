@@ -50,10 +50,13 @@ jobs:
                 node-version: [14.x]
         steps:
             - uses: actions/checkout@v1
-            - uses: actions-hub/gcloud@master
-              env:
-                  PROJECT_ID: fleet-tractor-309018
-                  APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+            - name: Setup GCP Service Account
+              uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+              with:
+                  version: "latest"
+                  service_account_email: ${{ secrets.GCP_SA_EMAIL }}
+                  service_account_key: ${{ secrets.GCP_SA_KEY }}
+                  export_default_credentials: true
             - name: Use Node.js ${{ matrix.node-version }}
               uses: actions/setup-node@v1
               with:
