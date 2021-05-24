@@ -5,11 +5,9 @@ on: [push]
 jobs:
     build:
         runs-on: ubuntu-latest
-
         strategy:
             matrix:
                 node-version: [14.x]
-
         steps:
             - uses: actions/checkout@v1
             - name: Use Node.js ${{ matrix.node-version }}
@@ -27,6 +25,17 @@ jobs:
                   CI: true
                   ALPACA_SECRET_KEY_ID: ${{ secrets.ALPACA_SECRET_KEY_ID }}
                   ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+    build-frontend:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                node-version: [14.x]
+        steps:
+            - uses: actions/checkout@v1
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v1
+              with:
+                  node-version: ${{ matrix.node-version }}
             - name: Build bankster app
               working-directory: ./frontend/bankster
               run: |
@@ -34,6 +43,17 @@ jobs:
                   yarn build
               env:
                   CI: true
+    build-functions:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                node-version: [14.x]
+        steps:
+            - uses: actions/checkout@v1
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v1
+              with:
+                  node-version: ${{ matrix.node-version }}
             - name: Build meaty functions
               working-directory: ./functions/boombar-screener
               run: |
@@ -44,3 +64,4 @@ jobs:
                   CI: true
                   ALPACA_SECRET_KEY_ID: ${{ secrets.ALPACA_SECRET_KEY_ID }}
                   ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+                  REDIS_KEY: ${{ secrets.REDIS_KEY }}
