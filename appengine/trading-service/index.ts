@@ -1,25 +1,18 @@
-import { AlpacaClient, AlpacaStream, Bar } from "@master-chief/alpaca";
-import { addBusinessDays } from "date-fns";
+import Alpaca from "@neeschit/alpaca-trade-api";
 import fastify from "fastify";
 import { currentTradingSymbols } from "@neeschit/core-data";
+import { PubSub } from "@google-cloud/pubsub";
 
-const client = new AlpacaClient({
-    credentials: {
-        key: process.env.ALPACA_SECRET_KEY_ID!,
-        secret: process.env.ALPACA_SECRET_KEY!,
-        paper: true,
-    },
-    rate_limit: false,
+const alpaca = Alpaca({
+    keyId: process.env.ALPACA_SECRET_KEY_ID!,
+    secretKey: process.env.ALPACA_SECRET_KEY!,
+    paper: true,
+    usePolygon: false,
 });
 
-const stream = new AlpacaStream({
-    credentials: {
-        key: process.env.ALPACA_SECRET_KEY_ID!,
-        secret: process.env.ALPACA_SECRET_KEY!,
-    },
-    type: "market_data",
-    source: "sip",
-});
+const pubSubClient = new PubSub();
+
+const stream = alpaca.data_stream_v2;
 
 const server = fastify({
     logger: true,
@@ -27,14 +20,15 @@ const server = fastify({
     bodyLimit: 1048576 * 100,
 });
 
+stream.connect();
+
+stream.onConnect(() => stream.subscribeForBars(currentTradingSymbols));
+
 let count = 0;
 
-stream.once("authenticated", () =>
-    stream.subscribe("bars", currentTradingSymbols)
-);
-
-stream.on("bar", (bar: Bar) => {
+stream.onStockBar((bar) => {
     count++;
+    publishMessageForSymbol(bar.S);
 });
 
 server.get("/", async (request, reply) => {
@@ -48,5 +42,29 @@ server.listen(process.env.PORT || 8080, "0.0.0.0", (err) => {
         process.exit(1);
     }
 });
+
+function publishMessageForSymbol(symbol: string): Promise<any> {
+    const dataBuffer = Buffer.from(
+        JSON.stringify({
+            data: {
+                symbol,
+                epoch: Date.now,
+            },
+        })
+    );
+
+    return publishMessage(dataBuffer);
+}
+
+async function publishMessage(dataBuffer: Buffer) {
+    try {
+        const messageId = await pubSubClient
+            .topic("screening-request-channel")
+            .publish(dataBuffer);
+    } catch (error) {
+        console.error(`Received error while publishing: ${error.message}`);
+        process.exitCode = 1;
+    }
+}
 
 module.exports = server;
