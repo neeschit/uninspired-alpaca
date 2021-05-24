@@ -51,6 +51,9 @@ jobs:
         steps:
             - uses: actions/checkout@v1
             - uses: actions-hub/gcloud@master
+              env:
+                  PROJECT_ID: fleet-tractor-309018
+                  APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
             - name: Use Node.js ${{ matrix.node-version }}
               uses: actions/setup-node@v1
               with:
@@ -66,5 +69,3 @@ jobs:
                   ALPACA_SECRET_KEY_ID: ${{ secrets.ALPACA_SECRET_KEY_ID }}
                   ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
                   REDIS_KEY: ${{ secrets.REDIS_KEY }}
-                  PROJECT_ID: fleet-tractor-309018
-                  APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
