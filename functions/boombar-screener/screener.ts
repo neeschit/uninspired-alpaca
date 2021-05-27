@@ -1,8 +1,12 @@
 import * as redis from "redis";
-import Alpaca, { AlpacaBarsV2 } from "@neeschit/alpaca-trade-api";
+import Alpaca, {
+    AlpacaBarsV2,
+    TradeDirection,
+} from "@neeschit/alpaca-trade-api";
 import { Storage } from "@google-cloud/storage";
 import { getCacheKey, getMarketOpenTimeForDay } from "@neeschit/core-data";
-import { addDays, endOfDay, formatISO } from "date-fns";
+import { addBusinessDays, endOfDay, formatISO } from "date-fns";
+import { promisify } from "util";
 
 const alpacaClient = Alpaca({
     keyId: process.env.ALPACA_SECRET_KEY_ID!,
@@ -22,6 +26,9 @@ export const client = redis.createClient({
     disable_resubscribing: true,
 });
 
+const promiseGet = promisify(client.get).bind(client);
+const promiseSet = promisify(client.set).bind(client);
+
 export const isBoomBar = async ({
     symbol,
     epoch,
@@ -31,7 +38,7 @@ export const isBoomBar = async ({
 }) => {
     const symbolCacheKey = getCacheKey(`${symbol}_cache_`, epoch);
 
-    const symbolCache = client.get(symbolCacheKey);
+    const symbolCache = await promiseGet(symbolCacheKey);
 
     const calendar = await alpacaClient.getCalendar({
         start: new Date(epoch),
@@ -44,7 +51,7 @@ export const isBoomBar = async ({
         const generator = alpacaClient.getBarsV2(
             symbol,
             {
-                start: formatISO(addDays(epoch, -2)),
+                start: formatISO(addBusinessDays(epoch, -4)),
                 end: formatISO(epoch),
                 timeframe: "1Day",
                 limit: 10,
@@ -62,6 +69,13 @@ export const isBoomBar = async ({
         const previousClose = bars[bars.length - 2].c;
 
         gap = ((openToday - previousClose) / previousClose) * 100;
+    } else {
+        try {
+            const cachedValue = JSON.parse(symbolCache);
+            gap = cachedValue.gap;
+        } catch (e) {
+            console.error(e);
+        }
     }
 
     if (!gap) {
@@ -69,7 +83,7 @@ export const isBoomBar = async ({
     }
 
     if (gap > 1.8 || gap < -1.8) {
-        return false;
+        return null;
     }
 
     const fileName = `${symbol.toLowerCase()}.json`;
@@ -117,14 +131,29 @@ export const isBoomBar = async ({
     const open = firstFiveBarsToday[0].o;
     const close = firstFiveBarsToday[firstFiveBarsToday.length - 1].c;
 
-    const isBoom = isElephantBar({
+    const boomBar = {
         o: open,
         c: close,
         h: high,
         l: low,
-    });
+    };
+    const isBoom = isElephantBar(boomBar);
 
-    return isBoom;
+    await promiseSet(
+        symbolCacheKey,
+        JSON.stringify({
+            gap,
+        })
+    );
+
+    const side =
+        Math.abs(boomBar.c - boomBar.l) < Math.abs(boomBar.c - boomBar.h)
+            ? TradeDirection.sell
+            : TradeDirection.buy;
+
+    return isBoom && Math.abs(high - low) > 2 * Math.abs(averageRange)
+        ? { side, limitPrice: boomBar.c }
+        : null;
 };
 
 export const readFileFromBucket = async (filename: string) => {
@@ -149,14 +178,13 @@ export const readFileFromBucket = async (filename: string) => {
 export const isElephantBar = (
     bar: Pick<AlpacaBarsV2, "o" | "h" | "l" | "c">
 ) => {
-    console.log(bar);
     const bodyRange = Math.abs(bar.o - bar.c);
     const wicksRange =
         bar.o > bar.c
             ? Math.abs(bar.h - bar.o) + Math.abs(bar.l - bar.c)
             : Math.abs(bar.h - bar.c) + Math.abs(bar.l - bar.o);
 
-    if (wicksRange / bodyRange > 0.15) {
+    if (wicksRange / (wicksRange + bodyRange) > 0.35) {
         return false;
     }
 

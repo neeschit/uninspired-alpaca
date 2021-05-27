@@ -5,25 +5,30 @@
   "main": "app.js",
   "scripts": {
     "build": "tsc",
-    "start": "env-cmd -r ./.env.json --verbose node build/index.js"
+    "start": "env-cmd -r ./.env.json --verbose node build/index.js",
+    "test": "env-cmd -r ./.env.json jest",
+    "test:ci": "jest"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@google-cloud/pubsub": "^2.11.0",
-    "@master-chief/alpaca": "^6.1.3",
-    "@neeschit/alpaca-trade-api": "^1.5.0",
-    "@neeschit/core-data": "^1.0.1",
+    "@neeschit/alpaca-trade-api": "^2.0.2",
+    "@neeschit/core-data": "^1.0.4",
     "date-fns": "^2.21.1",
-    "fastify": "^3.14.2"
+    "fastify": "^3.14.2",
+    "redis": "^3.1.2"
   },
   "engines": {
     "node": "14.x"
   },
   "devDependencies": {
     "@types/node": "^14.14.41",
+    "@types/redis": "^2.8.28",
     "@types/ws": "^7.4.1",
     "env-cmd": "^10.1.0",
+    "jest": "^26.6.3",
+    "ts-jest": "^26.5.6",
     "typescript": "4"
   }
 }

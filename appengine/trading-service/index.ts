@@ -1,70 +1,20 @@
-import Alpaca from "@neeschit/alpaca-trade-api";
-import fastify from "fastify";
-import { currentTradingSymbols } from "@neeschit/core-data";
-import { PubSub } from "@google-cloud/pubsub";
+import { setupServer } from "./setupApiServer";
+import * as redis from "redis";
+import { promisify } from "util";
+import { setupAlpacaStreams, alpaca } from "./alpaca";
 
-const alpaca = Alpaca({
-    keyId: process.env.ALPACA_SECRET_KEY_ID!,
-    secretKey: process.env.ALPACA_SECRET_KEY!,
-    paper: true,
-    usePolygon: false,
+export const redisClient = redis.createClient({
+    host: "redis-18495.c9.us-east-1-2.ec2.cloud.redislabs.com",
+    port: 18495,
+    password: process.env.REDIS_KEY!,
+    disable_resubscribing: true,
 });
 
-const pubSubClient = new PubSub();
+const promiseGet = promisify(redisClient.get).bind(redisClient);
+const promiseSet = promisify(redisClient.set).bind(redisClient);
 
-const stream = alpaca.data_stream_v2;
+setupAlpacaStreams(promiseSet);
 
-const server = fastify({
-    logger: true,
-    ignoreTrailingSlash: true,
-    bodyLimit: 1048576 * 100,
-});
-
-stream.connect();
-
-stream.onConnect(() => stream.subscribeForBars(currentTradingSymbols));
-
-let count = 0;
-
-stream.onStockBar((bar) => {
-    count++;
-    publishMessageForSymbol(bar.S);
-});
-
-server.get("/", async (request, reply) => {
-    return count;
-});
-
-server.listen(process.env.PORT || 8080, "0.0.0.0", (err) => {
-    const serverAddress = server.server && server.server.address();
-    if (err || !serverAddress || typeof serverAddress === "string") {
-        server.log.error("uncaught error trying to init server", err);
-        process.exit(1);
-    }
-});
-
-function publishMessageForSymbol(symbol: string): Promise<any> {
-    const dataBuffer = Buffer.from(
-        JSON.stringify({
-            data: {
-                symbol,
-                epoch: Date.now,
-            },
-        })
-    );
-
-    return publishMessage(dataBuffer);
-}
-
-async function publishMessage(dataBuffer: Buffer) {
-    try {
-        const messageId = await pubSubClient
-            .topic("screening-request-channel")
-            .publish(dataBuffer);
-    } catch (error) {
-        console.error(`Received error while publishing: ${error.message}`);
-        process.exitCode = 1;
-    }
-}
+const server = setupServer(promiseGet, promiseSet, alpaca);
 
 module.exports = server;

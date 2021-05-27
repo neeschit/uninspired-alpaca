@@ -1,5 +1,5 @@
 import { format, addBusinessDays } from "date-fns";
-import { zonedTimeToUtc } from "date-fns-tz";
+import { zonedTimeToUtc, utcToZonedTime } from "date-fns-tz";
 
 export const DATE_FORMAT = "yyyy-MM-dd";
 export const MarketTimezone = "America/New_York";
@@ -80,3 +80,16 @@ export function _getMarketTimeForDay(
 
     return marketOpenToday.getTime();
 }
+
+export const convertToLocalTime = (
+    date: Date | number,
+    timeString: string,
+    timeZone: string = MarketTimezone
+) => {
+    const dateString = format(date, "yyyy-MM-dd") + timeString;
+    if (new Date().getTimezoneOffset()) {
+        return utcToZonedTime(dateString, timeZone);
+    } else {
+        return zonedTimeToUtc(dateString, timeZone);
+    }
+};
