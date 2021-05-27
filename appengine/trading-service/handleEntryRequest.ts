@@ -70,6 +70,8 @@ export const getRiskAdjustedQuantity = async ({
 }) => {
     const snapshot = await alpaca.getSnapshot(symbol, alpaca.configuration);
 
+    console.log(snapshot);
+
     const lastPrice = snapshot.latestTrade.p;
 
     const spread = Math.abs(snapshot.latestQuote.ap - snapshot.latestQuote.bp);
