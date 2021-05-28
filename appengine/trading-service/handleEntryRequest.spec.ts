@@ -67,6 +67,6 @@ test("risk manager simple case", async () => {
         symbol: "TSLA",
     });
 
-    expect(qty).toBeGreaterThan(25);
+    expect(qty).toBeGreaterThan(20);
     expect(qty).toBeLessThan(100);
 });
