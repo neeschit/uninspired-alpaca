@@ -34,7 +34,8 @@ export async function handleEntryRequest({
 
     const isEntering = await redisGet(cacheKey);
 
-    if (Boolean(isEntering)) {
+    if (isEntering === "true") {
+        console.log("returning due to entered symbol " + symbol);
         return;
     }
 
@@ -69,8 +70,6 @@ export const getRiskAdjustedQuantity = async ({
     symbol: string;
 }) => {
     const snapshot = await alpaca.getSnapshot(symbol, alpaca.configuration);
-
-    console.log(snapshot);
 
     const lastPrice = snapshot.latestTrade.p;
 

@@ -1,5 +1,5 @@
 import { TradeDirection } from "@neeschit/alpaca-trade-api";
-import { client, isBoomBar } from "./screener";
+import { isBoomBar } from "./screener";
 
 test("isBoomBar for friday 4/30 AMGN", async () => {
     const fridayThirtiethApril = 1619789701000;
@@ -107,8 +107,4 @@ test("isBoomBar for 02/16/21 CVS", async () => {
         side: TradeDirection.sell,
         limitPrice: 73.9257,
     });
-});
-
-afterAll(() => {
-    client.quit();
 });

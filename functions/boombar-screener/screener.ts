@@ -1,12 +1,10 @@
-import * as redis from "redis";
 import Alpaca, {
     AlpacaBarsV2,
     TradeDirection,
 } from "@neeschit/alpaca-trade-api";
 import { Storage } from "@google-cloud/storage";
-import { getCacheKey, getMarketOpenTimeForDay } from "@neeschit/core-data";
+import { getMarketOpenTimeForDay } from "@neeschit/core-data";
 import { addBusinessDays, endOfDay, formatISO } from "date-fns";
-import { promisify } from "util";
 
 const alpacaClient = Alpaca({
     keyId: process.env.ALPACA_SECRET_KEY_ID!,
@@ -19,16 +17,6 @@ const storage = new Storage();
 
 const bucket = storage.bucket("first-five");
 
-export const client = redis.createClient({
-    host: "redis-18495.c9.us-east-1-2.ec2.cloud.redislabs.com",
-    port: 18495,
-    password: process.env.REDIS_KEY!,
-    disable_resubscribing: true,
-});
-
-const promiseGet = promisify(client.get).bind(client);
-const promiseSet = promisify(client.set).bind(client);
-
 export const isBoomBar = async ({
     symbol,
     epoch,
@@ -36,10 +24,6 @@ export const isBoomBar = async ({
     symbol: string;
     epoch: number;
 }) => {
-    const symbolCacheKey = getCacheKey(`${symbol}_cache_`, epoch);
-
-    const symbolCache = await promiseGet(symbolCacheKey);
-
     const calendar = await alpacaClient.getCalendar({
         start: new Date(epoch),
         end: new Date(epoch),
@@ -47,40 +31,27 @@ export const isBoomBar = async ({
 
     let gap: number | null = null;
 
-    if (!symbolCache) {
-        const generator = alpacaClient.getBarsV2(
-            symbol,
-            {
-                start: formatISO(addBusinessDays(epoch, -4)),
-                end: formatISO(epoch),
-                timeframe: "1Day",
-                limit: 10,
-            },
-            alpacaClient.configuration
-        );
+    const generator = alpacaClient.getBarsV2(
+        symbol,
+        {
+            start: formatISO(addBusinessDays(epoch, -4)),
+            end: formatISO(epoch),
+            timeframe: "1Day",
+            limit: 10,
+        },
+        alpacaClient.configuration
+    );
 
-        const bars = [];
+    const bars = [];
 
-        for await (let b of generator) {
-            bars.push(b);
-        }
-
-        const openToday = bars[bars.length - 1].o;
-        const previousClose = bars[bars.length - 2].c;
-
-        gap = ((openToday - previousClose) / previousClose) * 100;
-    } else {
-        try {
-            const cachedValue = JSON.parse(symbolCache);
-            gap = cachedValue.gap;
-        } catch (e) {
-            console.error(e);
-        }
+    for await (let b of generator) {
+        bars.push(b);
     }
 
-    if (!gap) {
-        throw new Error("couldnt find gap");
-    }
+    const openToday = bars[bars.length - 1].o;
+    const previousClose = bars[bars.length - 2].c;
+
+    gap = ((openToday - previousClose) / previousClose) * 100;
 
     if (gap > 1.8 || gap < -1.8) {
         return null;
@@ -137,14 +108,8 @@ export const isBoomBar = async ({
         h: high,
         l: low,
     };
-    const isBoom = isElephantBar(boomBar);
 
-    await promiseSet(
-        symbolCacheKey,
-        JSON.stringify({
-            gap,
-        })
-    );
+    const isBoom = isElephantBar(boomBar);
 
     const side =
         Math.abs(boomBar.c - boomBar.l) < Math.abs(boomBar.c - boomBar.h)

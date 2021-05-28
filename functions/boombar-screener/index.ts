@@ -16,18 +16,20 @@ export const screenForBoombar: EventFunction = async (
         data: { symbol: string; epoch: number; pubsubchannel: string };
     } = JSON.parse(Buffer.from(dataBuffer, "base64").toString());
 
-    if (!isTimeForBoomBarEntry(data.data.epoch)) {
+    if (!isTimeForBoomBarEntry(Date.now())) {
         return;
     }
 
-    const screenedSide = isBoomBar(data.data);
+    const screened = await isBoomBar(data.data);
 
-    if (screenedSide) {
+    if (screened) {
         const dataBuffer = Buffer.from(
             JSON.stringify({
                 data: {
                     symbol: data.data.symbol,
-                    side: screenedSide,
+                    side: screened.side,
+                    limitPrice: screened.limitPrice,
+                    strategy: "boom",
                 },
             })
         );

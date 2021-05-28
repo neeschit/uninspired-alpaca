@@ -1,4 +1,7 @@
-import Alpaca, { Alpaca as AlpacaClass } from "@neeschit/alpaca-trade-api";
+import Alpaca, {
+    Alpaca as AlpacaClass,
+    OrderStatus,
+} from "@neeschit/alpaca-trade-api";
 import { currentTradingSymbols, getCacheKey } from "@neeschit/core-data";
 import { requestScreen } from "./publishMessage";
 
@@ -37,8 +40,15 @@ export function setupAlpacaStreams(
     });
 
     trade_ws.onOrderUpdate(async (update) => {
+        console.log(update);
         const symbol = update.order.symbol;
-        await promiseSet(getEntryCacheKey(symbol, Date.now()), "false");
+        if (
+            update.order &&
+            (update.order.status === OrderStatus.filled ||
+                update.order.status === OrderStatus.canceled ||
+                update.order.status === OrderStatus.expired)
+        )
+            await promiseSet(getEntryCacheKey(symbol, Date.now()), "false");
     });
 }
 

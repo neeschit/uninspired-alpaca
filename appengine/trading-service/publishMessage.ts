@@ -8,6 +8,7 @@ export async function requestScreen(symbol: string): Promise<any> {
             data: {
                 symbol,
                 epoch: Date.now(),
+                pubsubchannel: "trade-entry-channel",
             },
         })
     );
