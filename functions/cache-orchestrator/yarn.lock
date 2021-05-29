@@ -73,10 +73,13 @@
     lodash.camelcase "^4.3.0"
     protobufjs "^6.8.6"
 
-"@neeschit/core-data@^1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@neeschit/core-data/-/core-data-1.0.1.tgz#e2c807eee6f3fa17cbd0cc278230abf042f0d7f5"
-  integrity sha512-+Gco+7Ya3TZQRTcBbg/FNWviuW0gVBWoOWDRDb4zXw9/BZ1JIb+nIfU7yTbTRP1DtVPoIAxt6gdQhP6Wzdy/rg==
+"@neeschit/core-data@^1.0.4":
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/@neeschit/core-data/-/core-data-1.0.4.tgz#04c7fec5eb8afbf737436a058fe720edf2e00fd8"
+  integrity sha512-9l4lQy0A+wcYqpgN2ivwy4lRMf+a1/yc3Fwa/vSto0oOLK0k6eom/gd+1h2ihhEu9LHQrPG4xdZ9TzMskr+5cQ==
+  dependencies:
+    date-fns "^2.21.3"
+    date-fns-tz "^1.1.4"
 
 "@opentelemetry/api@^0.12.0":
   version "0.12.0"
@@ -344,6 +347,16 @@ cookie@0.4.0:
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/cookie/-/cookie-0.4.0.tgz#beb437e7022b3b6d49019d088665303ebe9c14ba"
   integrity sha512-+Hp8fLp57wnUSt0tY0tHEXh4voZRDnoIrZPqlo3DPiI4y9lwg/jqx+1Om94/W6ZaPDOUbnjOt/99w66zk+l1Xg==
+
+date-fns-tz@^1.1.4:
+  version "1.1.4"
+  resolved "https://registry.yarnpkg.com/date-fns-tz/-/date-fns-tz-1.1.4.tgz#38282c2bfab08946a4e9bb89d733451e5525048b"
+  integrity sha512-lQ+FF7xUxxRuRqIY7H/lagnT3PhhSnnvtGHzjE5WZKwRyLU7glJfLys05SZ7zHlEr6RXWiqkmgWq4nCkcElR+g==
+
+date-fns@^2.21.3:
+  version "2.21.3"
+  resolved "https://registry.yarnpkg.com/date-fns/-/date-fns-2.21.3.tgz#8f5f6889d7a96bbcc1f0ea50239b397a83357f9b"
+  integrity sha512-HeYdzCaFflc1i4tGbj7JKMjM4cKGYoyxwcIIkHzNgCkX8xXDNJDZXgDDVchIWpN4eQc3lH37WarduXFZJOtxfw==
 
 debug@2.6.9:
   version "2.6.9"

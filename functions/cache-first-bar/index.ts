@@ -1,12 +1,7 @@
 import { EventFunction } from "@google-cloud/functions-framework/build/src/functions";
 import { AlpacaClient, Bar } from "@master-chief/alpaca";
-import { Logging } from "@google-cloud/logging";
 import { addBusinessDays, parseISO } from "date-fns";
 import { Storage } from "@google-cloud/storage";
-
-const logging = new Logging();
-
-const log = logging.log("cache-first-bar");
 
 const client = new AlpacaClient({
     credentials: {

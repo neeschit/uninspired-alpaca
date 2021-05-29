@@ -5,11 +5,9 @@ on: [push]
 jobs:
     build:
         runs-on: ubuntu-latest
-
         strategy:
             matrix:
                 node-version: [14.x]
-
         steps:
             - uses: actions/checkout@v1
             - name: Use Node.js ${{ matrix.node-version }}
@@ -27,6 +25,17 @@ jobs:
                   CI: true
                   ALPACA_SECRET_KEY_ID: ${{ secrets.ALPACA_SECRET_KEY_ID }}
                   ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+    build-frontend:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                node-version: [14.x]
+        steps:
+            - uses: actions/checkout@v1
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v1
+              with:
+                  node-version: ${{ matrix.node-version }}
             - name: Build bankster app
               working-directory: ./frontend/bankster
               run: |
@@ -34,3 +43,60 @@ jobs:
                   yarn build
               env:
                   CI: true
+    build-functions:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                node-version: [14.x]
+        steps:
+            - uses: actions/checkout@v1
+            - name: Setup GCP Service Account
+              uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+              with:
+                  version: "latest"
+                  service_account_email: ${{ secrets.GCP_SA_EMAIL }}
+                  service_account_key: ${{ secrets.GCP_SA_KEY }}
+                  export_default_credentials: true
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v1
+              with:
+                  node-version: ${{ matrix.node-version }}
+            - name: Build meaty functions
+              working-directory: ./functions/boombar-screener
+              run: |
+                  yarn install
+                  yarn build
+                  yarn test:ci
+              env:
+                  CI: true
+                  ALPACA_SECRET_KEY_ID: ${{ secrets.ALPACA_SECRET_KEY_ID }}
+                  ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+                  REDIS_KEY: ${{ secrets.REDIS_KEY }}
+    build-app-engine:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                node-version: [14.16.1]
+        steps:
+            - uses: actions/checkout@v1
+            - name: Setup GCP Service Account
+              uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+              with:
+                  version: "latest"
+                  service_account_email: ${{ secrets.GCP_SA_EMAIL }}
+                  service_account_key: ${{ secrets.GCP_SA_KEY }}
+                  export_default_credentials: true
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v1
+              with:
+                  node-version: ${{ matrix.node-version }}
+            - name: Build and test app engine code
+              working-directory: ./appengine/trading-service
+              run: |
+                  yarn install
+                  yarn build
+              env:
+                  CI: true
+                  ALPACA_SECRET_KEY_ID: ${{ secrets.ALPACA_SECRET_KEY_ID }}
+                  ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+                  REDIS_KEY: ${{ secrets.REDIS_KEY }}
