@@ -13,7 +13,9 @@ export const redisClient = redis.createClient({
 const promiseGet = promisify(redisClient.get).bind(redisClient);
 const promiseSet = promisify(redisClient.set).bind(redisClient);
 
-setupAlpacaStreams(promiseSet);
+setupAlpacaStreams(promiseSet).then(() => {
+    console.log("setup alpaca streams");
+});
 
 const server = setupServer(promiseGet, promiseSet, alpaca);
 

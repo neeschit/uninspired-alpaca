@@ -1,5 +1,6 @@
 import Alpaca, {
     AlpacaBarsV2,
+    Calendar,
     TradeDirection,
 } from "@neeschit/alpaca-trade-api";
 import { Storage } from "@google-cloud/storage";
@@ -20,15 +21,12 @@ const bucket = storage.bucket("first-five");
 export const isBoomBar = async ({
     symbol,
     epoch,
+    calendar,
 }: {
     symbol: string;
     epoch: number;
+    calendar: Calendar[];
 }) => {
-    const calendar = await alpacaClient.getCalendar({
-        start: new Date(epoch),
-        end: new Date(epoch),
-    });
-
     let gap: number | null = null;
 
     const generator = alpacaClient.getBarsV2(
