@@ -1,5 +1,6 @@
 import { EventFunction } from "@google-cloud/functions-framework/build/src/functions";
 import { PubSub } from "@google-cloud/pubsub";
+import { Calendar } from "@neeschit/alpaca-trade-api";
 
 import { convertToLocalTime } from "@neeschit/core-data";
 import { isBoomBar } from "./screener";
@@ -13,7 +14,12 @@ export const screenForBoombar: EventFunction = async (
     const dataBuffer = message?.data || context?.message?.data;
 
     const data: {
-        data: { symbol: string; epoch: number; pubsubchannel: string };
+        data: {
+            symbol: string;
+            epoch: number;
+            pubsubchannel: string;
+            calendar: Calendar[];
+        };
     } = JSON.parse(Buffer.from(dataBuffer, "base64").toString());
 
     if (!isTimeForBoomBarEntry(Date.now())) {

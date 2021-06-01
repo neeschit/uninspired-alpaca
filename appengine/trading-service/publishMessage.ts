@@ -1,14 +1,19 @@
 import { PubSub } from "@google-cloud/pubsub";
+import { Calendar } from "@neeschit/alpaca-trade-api";
 
 const pubSubClient = new PubSub();
 
-export async function requestScreen(symbol: string): Promise<any> {
+export async function requestScreen(
+    symbol: string,
+    calendar: Calendar[]
+): Promise<any> {
     const dataBuffer = Buffer.from(
         JSON.stringify({
             data: {
                 symbol,
                 epoch: Date.now(),
                 pubsubchannel: "trade-entry-channel",
+                calendar: JSON.stringify(calendar),
             },
         })
     );

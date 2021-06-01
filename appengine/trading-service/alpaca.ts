@@ -11,7 +11,7 @@ export const getEntryCacheKey = (symbol: string, epoch: number) => {
 
 export let alpaca: AlpacaClass;
 
-export function setupAlpacaStreams(
+export async function setupAlpacaStreams(
     promiseSet: (key: string, value: string) => Promise<any>
 ) {
     alpaca = Alpaca({
@@ -21,6 +21,11 @@ export function setupAlpacaStreams(
         usePolygon: false,
     });
 
+    const calendar = await alpaca.getCalendar({
+        start: new Date(Date.now()),
+        end: new Date(Date.now()),
+    });
+
     const stream = alpaca.data_stream_v2;
 
     stream.connect();
@@ -28,7 +33,7 @@ export function setupAlpacaStreams(
     stream.onConnect(() => stream.subscribeForBars(currentTradingSymbols));
 
     stream.onStockBar(async (bar) => {
-        await requestScreen(bar.S);
+        await requestScreen(bar.S, calendar);
     });
 
     const trade_ws = alpaca.trade_ws;
