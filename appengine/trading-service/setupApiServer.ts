@@ -2,12 +2,9 @@ import { Alpaca } from "@neeschit/alpaca-trade-api";
 import fastify from "fastify";
 
 import { handleEntryRequest } from "./handleEntryRequest";
+import { getRedisApi } from "./redis";
 
-export function setupServer(
-    redisGet: (key: string) => Promise<string | null>,
-    redisSet: (key: string, value: string) => Promise<any>,
-    alpaca: Alpaca
-) {
+export function setupServer(alpaca: Alpaca) {
     const server = fastify({
         logger: true,
         ignoreTrailingSlash: true,
@@ -29,8 +26,6 @@ export function setupServer(
             limitPrice: decodedData.data.limitPrice,
             epoch: Date.now(),
             client: alpaca,
-            redisGet,
-            redisSet,
         });
 
         return true;
