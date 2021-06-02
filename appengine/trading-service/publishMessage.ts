@@ -13,7 +13,7 @@ export async function requestScreen(
                 symbol,
                 epoch: Date.now(),
                 pubsubchannel: "trade-entry-channel",
-                calendar: JSON.stringify(calendar),
+                calendar,
             },
         })
     );

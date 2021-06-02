@@ -2,7 +2,6 @@ import { Alpaca } from "@neeschit/alpaca-trade-api";
 import fastify from "fastify";
 
 import { handleEntryRequest } from "./handleEntryRequest";
-import { getRedisApi } from "./redis";
 
 export function setupServer(alpaca: Alpaca) {
     const server = fastify({
