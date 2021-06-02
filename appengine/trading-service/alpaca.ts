@@ -26,8 +26,6 @@ export async function setupAlpacaStreams() {
 
     const { promiseSet } = getRedisApi();
 
-    console.log("here");
-
     const calendar = await alpaca.getCalendar({
         start: new Date(Date.now()),
         end: new Date(Date.now()),
