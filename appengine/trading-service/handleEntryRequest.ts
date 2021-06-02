@@ -5,6 +5,7 @@ import {
     TradeType,
 } from "@neeschit/alpaca-trade-api";
 import { getEntryCacheKey, alpaca } from "./alpaca";
+import { getRedisApi } from "./redis";
 
 const entryList: { [index: string]: boolean } = {};
 
@@ -14,17 +15,15 @@ export async function handleEntryRequest({
     side,
     limitPrice,
     client,
-    redisGet,
-    redisSet,
 }: {
     symbol: string;
     epoch: number;
     client: Alpaca;
     side: TradeDirection;
-    redisGet: (key: string) => Promise<string | null>;
-    redisSet: (key: string, value: string) => Promise<any>;
     limitPrice: number;
 }) {
+    const { promiseGet: redisGet, promiseSet: redisSet } = getRedisApi();
+
     if (entryList[symbol]) {
         return;
     }

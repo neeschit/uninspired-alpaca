@@ -4,6 +4,7 @@ import Alpaca, {
 } from "@neeschit/alpaca-trade-api";
 import { currentTradingSymbols, getCacheKey } from "@neeschit/core-data";
 import { requestScreen } from "./publishMessage";
+import { getRedisApi } from "./redis";
 
 export const getEntryCacheKey = (symbol: string, epoch: number) => {
     return getCacheKey(`${symbol}_entering_trade`, epoch);
@@ -11,15 +12,21 @@ export const getEntryCacheKey = (symbol: string, epoch: number) => {
 
 export let alpaca: AlpacaClass;
 
-export async function setupAlpacaStreams(
-    promiseSet: (key: string, value: string) => Promise<any>
-) {
+export const setupAlpaca = () => {
     alpaca = Alpaca({
         keyId: process.env.ALPACA_SECRET_KEY_ID!,
         secretKey: process.env.ALPACA_SECRET_KEY!,
         paper: true,
         usePolygon: false,
     });
+};
+
+export async function setupAlpacaStreams() {
+    setupAlpaca();
+
+    const { promiseSet } = getRedisApi();
+
+    console.log("here");
 
     const calendar = await alpaca.getCalendar({
         start: new Date(Date.now()),

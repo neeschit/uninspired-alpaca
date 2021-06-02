@@ -1,24 +1,21 @@
 import { TradeDirection } from "@neeschit/alpaca-trade-api";
-import { disconnectAlpacaStreams, setupAlpacaStreams } from "./alpaca";
+import { setupAlpaca } from "./alpaca";
 import {
     getRiskAdjustedQuantity,
     handleEntryRequest,
 } from "./handleEntryRequest";
 
-const redisGet = jest.fn();
-const redisSet = jest.fn();
-
 beforeAll(() => {
-    setupAlpacaStreams(redisSet);
+    setupAlpaca();
 });
 
-afterAll(() => {
-    disconnectAlpacaStreams();
-});
-
-beforeEach(() => {
-    redisGet.mockReset();
-    redisSet.mockReset();
+jest.mock("./redis", () => {
+    return {
+        getRedisApi: () => ({
+            promiseSet: jest.fn(),
+            promiseGet: jest.fn(),
+        }),
+    };
 });
 
 test("no duplicate orders if orders are pretty much concurrent", async () => {
@@ -34,8 +31,6 @@ test("no duplicate orders if orders are pretty much concurrent", async () => {
         side: TradeDirection.buy,
         limitPrice: 100,
         client: client as any,
-        redisGet,
-        redisSet,
     });
 
     setTimeout(async () => {
@@ -43,8 +38,6 @@ test("no duplicate orders if orders are pretty much concurrent", async () => {
             symbol: "AAPL",
             epoch: Date.now(),
             client: client as any,
-            redisGet,
-            redisSet,
             side: TradeDirection.buy,
             limitPrice: 100,
         });
@@ -68,5 +61,5 @@ test("risk manager simple case", async () => {
     });
 
     expect(qty).toBeGreaterThan(20);
-    expect(qty).toBeLessThan(100);
+    expect(qty).toBeLessThanOrEqual(100);
 });
