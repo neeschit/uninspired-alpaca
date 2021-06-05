@@ -2,10 +2,12 @@ import { EventFunction } from "@google-cloud/functions-framework/build/src/funct
 import { PubSub } from "@google-cloud/pubsub";
 import { Calendar } from "@neeschit/alpaca-trade-api";
 
-import { convertToLocalTime } from "@neeschit/core-data";
+import { convertToLocalTime, getSpyCompanies } from "@neeschit/core-data";
 import { isBoomBar } from "./screener";
 
 const pubSubClient = new PubSub();
+
+const spyCompanies = getSpyCompanies();
 
 export const screenForBoombar: EventFunction = async (
     message: any,
@@ -22,7 +24,10 @@ export const screenForBoombar: EventFunction = async (
         };
     } = JSON.parse(Buffer.from(dataBuffer, "base64").toString());
 
-    if (!isTimeForBoomBarEntry(Date.now())) {
+    if (
+        !isTimeForBoomBarEntry(Date.now()) ||
+        spyCompanies.indexOf(data.data.symbol) === -1
+    ) {
         return;
     }
 

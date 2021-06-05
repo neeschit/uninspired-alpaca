@@ -1,11 +1,15 @@
 import { HttpFunction } from "@google-cloud/functions-framework/build/src/functions";
-import { currentStreamingSymbols } from "@neeschit/core-data";
+import { getSpyCompanies } from "@neeschit/core-data";
 import { PubSub } from "@google-cloud/pubsub";
+
+const spyCompanies = getSpyCompanies();
+
+spyCompanies.push("SPY");
 
 const pubSubClient = new PubSub();
 
 export const cacheOrchestrator: HttpFunction = (req, res) => {
-    const promises = currentStreamingSymbols.map((symbol) =>
+    const promises = spyCompanies.map((symbol) =>
         publishMessageForSymbol(symbol)
     );
 
