@@ -24,7 +24,11 @@ export const getFilteredHighVolumeCompanies = (): string[] => {
     );
 };
 
-export const currentTradingSymbols = getMegaCaps();
+export const getSpyCompanies = (): string[] => {
+    return JSON.parse(readFileSync(__dirname + "/../boom.json").toString());
+};
+
+export const currentTradingSymbols = getLargeCaps();
 
 export const currentIndices = ["SPY"];
 
