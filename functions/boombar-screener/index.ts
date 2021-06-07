@@ -25,7 +25,7 @@ export const screenForBoombar: EventFunction = async (
     } = JSON.parse(Buffer.from(dataBuffer, "base64").toString());
 
     if (
-        !isTimeForBoomBarEntry(Date.now()) ||
+        !isTimeForBoomBarEntry(data.data.epoch) ||
         spyCompanies.indexOf(data.data.symbol) === -1
     ) {
         return;
