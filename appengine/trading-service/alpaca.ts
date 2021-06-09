@@ -2,7 +2,7 @@ import Alpaca, {
     Alpaca as AlpacaClass,
     OrderStatus,
 } from "@neeschit/alpaca-trade-api";
-import { currentTradingSymbols, getCacheKey } from "@neeschit/core-data";
+import { getLargeCaps, getCacheKey } from "@neeschit/core-data";
 import { requestScreen } from "./publishMessage";
 import { getRedisApi } from "./redis";
 
@@ -35,7 +35,7 @@ export async function setupAlpacaStreams() {
 
     stream.connect();
 
-    stream.onConnect(() => stream.subscribeForBars(currentTradingSymbols));
+    stream.onConnect(() => stream.subscribeForBars(getLargeCaps()));
 
     stream.onStockBar(async (bar) => {
         await requestScreen(bar.S, calendar);
