@@ -1,1 +1,4 @@
-runtime: nodejs
+runtime: nodejs14
+service: backtester
+includes:
+    - env.yaml

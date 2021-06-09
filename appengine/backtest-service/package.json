@@ -6,7 +6,8 @@
   "scripts": {
     "build": "tsc",
     "start": "node build/index.js",
-    "startLocal": "env-cmd -r ./.env.json --verbose node build/index.js"
+    "startLocal": "env-cmd -r ./.env.json --verbose node build/index.js",
+    "deploy": "gcloud app deploy --appyaml=./app.yaml"
   },
   "author": "",
   "license": "ISC",
