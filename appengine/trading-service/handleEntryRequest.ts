@@ -96,7 +96,7 @@ export const getRiskAdjustedQuantity = async ({
         }
     }
 
-    if (spread > 0.1) {
+    if (spread > 0.05) {
         if (lastPrice > 150) {
             return 100;
         } else if (lastPrice > 100) {
@@ -107,8 +107,19 @@ export const getRiskAdjustedQuantity = async ({
             return 300;
         }
     }
+    const quantity = Math.floor(20000 / lastPrice);
 
-    const quantity = 20000 / lastPrice;
+    if (spread < 0.03) {
+        if (lastPrice > 150) {
+            return 200;
+        } else if (lastPrice > 100) {
+            return 300;
+        } else if (lastPrice > 50) {
+            return 500;
+        } else {
+            return quantity;
+        }
+    }
 
-    return Math.floor(quantity);
+    return quantity;
 };
