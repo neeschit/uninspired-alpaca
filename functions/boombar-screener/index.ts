@@ -24,16 +24,24 @@ export const screenForBoombar: EventFunction = async (
         };
     } = JSON.parse(Buffer.from(dataBuffer, "base64").toString());
 
-    if (
-        !isTimeForBoomBarEntry(data.data.epoch) ||
-        spyCompanies.indexOf(data.data.symbol) === -1
-    ) {
+    if (!isTimeForBoomBarEntry(data.data.epoch)) {
+        console.log("not the time to enter " + data.data.epoch);
         return;
     }
+
+    if (spyCompanies.indexOf(data.data.symbol) === -1) {
+        console.log(
+            "not a company that is currently on the list " + data.data.symbol
+        );
+        return;
+    }
+
+    console.log(data.data);
 
     const screened = await isBoomBar(data.data);
 
     if (screened) {
+        console.log("screened true for " + data.data.symbol);
         const dataBuffer = Buffer.from(
             JSON.stringify({
                 data: {
@@ -41,6 +49,7 @@ export const screenForBoombar: EventFunction = async (
                     side: screened.side,
                     limitPrice: screened.limitPrice,
                     strategy: "boom",
+                    epoch: data.data.epoch,
                 },
             })
         );
