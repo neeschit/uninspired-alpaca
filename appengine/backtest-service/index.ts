@@ -8,7 +8,7 @@ import {
 import Alpaca from "@neeschit/alpaca-trade-api";
 import { getRedisApi } from "@neeschit/redis";
 import { requestScreen } from "./requestBacktestScreen";
-import { BoomBarReply } from "common-interfaces/build";
+import { BoomBarReply } from "@neeschit/common-interfaces";
 
 const server = fastify({
     logger: true,
