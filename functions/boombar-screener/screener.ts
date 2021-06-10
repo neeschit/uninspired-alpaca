@@ -61,7 +61,10 @@ export const isBoomBar = async ({
         fileName
     );
 
-    const averageRange = JSON.parse(firstFiveHistoricalAggregate).averageRange;
+    const averageRange =
+        Math.round(
+            JSON.parse(firstFiveHistoricalAggregate).averageRange * 100
+        ) / 100;
 
     const marketOpenTimeForDay = getMarketOpenTimeForDay(epoch, calendar);
 
@@ -114,7 +117,17 @@ export const isBoomBar = async ({
             ? TradeDirection.sell
             : TradeDirection.buy;
 
-    return isBoom && Math.abs(high - low) > 2 * Math.abs(averageRange)
+    const range = Math.abs(high - low);
+    const rangeRatio = range / averageRange;
+    const isSignifcantlyLargeBar = rangeRatio > 1.5;
+
+    if (isBoom && !isSignifcantlyLargeBar) {
+        console.log(
+            symbol + " is an elephant bar but has range ratio of " + rangeRatio
+        );
+    }
+
+    return isBoom && isSignifcantlyLargeBar
         ? { side, limitPrice: boomBar.c }
         : null;
 };
@@ -139,15 +152,13 @@ export const readFileFromBucket = async (filename: string) => {
 };
 
 export const isElephantBar = (
-    bar: Pick<AlpacaBarsV2, "o" | "h" | "l" | "c">
+    bar: Pick<AlpacaBarsV2, "o" | "h" | "l" | "c">,
+    requiredRatio = 0.13
 ) => {
-    const bodyRange = Math.abs(bar.o - bar.c);
     const wicksRange =
-        bar.o > bar.c
-            ? Math.abs(bar.h - bar.o) + Math.abs(bar.l - bar.c)
-            : Math.abs(bar.h - bar.c) + Math.abs(bar.l - bar.o);
+        bar.o > bar.c ? Math.abs(bar.l - bar.c) : Math.abs(bar.h - bar.c);
 
-    if (wicksRange / (wicksRange + bodyRange) > 0.35) {
+    if (wicksRange / Math.abs(bar.h - bar.l) > requiredRatio) {
         return false;
     }
 

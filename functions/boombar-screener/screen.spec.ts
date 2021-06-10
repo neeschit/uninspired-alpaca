@@ -58,28 +58,6 @@ test("isBoomBar for tuesday 05/25/21 SNAP", async () => {
     expect(screened).toEqual(null);
 });
 
-test("isBoomBar for tuesday 05/25/21 XOM", async () => {
-    const date = 1621949701000;
-    const calendar: Calendar[] = [
-        {
-            date: "2021-05-25",
-            open: "09:30",
-            close: "16:00",
-        },
-    ];
-    const symbol = "XOM";
-    const screened = await isBoomBar({
-        symbol,
-        epoch: date,
-        calendar,
-    });
-
-    expect(screened).toEqual({
-        side: TradeDirection.sell,
-        limitPrice: 59,
-    });
-});
-
 test("isBoomBar for tuesday 05/25/21 MU", async () => {
     const date = 1621949701000;
     const calendar: Calendar[] = [
