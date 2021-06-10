@@ -630,9 +630,9 @@
     date-fns-tz "^1.1.4"
 
 "@neeschit/core-interfaces@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@neeschit/core-interfaces/-/core-interfaces-1.0.0.tgz#3de86bfa647335964cc6c35c4586eb97ddc910b9"
-  integrity sha512-jbg0w0dR0TtcvVN+hUwTzCNeeKW3EvyG3+fsh4JrkKdw5OfB9dnz7q9esyZ2k3hPKNrU93XBKABBl5U0wa+aOg==
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@neeschit/core-interfaces/-/core-interfaces-1.1.0.tgz#cc5d3e4d825d2df58a8c49c92ed780057a24f72a"
+  integrity sha512-ejgAXY5TaBLSX7jTuoiidvXk/7HiMMHbnip/w+XsM9KVkKN4yQ0Zg0ClZ3IZPGK6RmgmJDkcpgkuLGHpJS15Cg==
 
 "@opentelemetry/api@^0.18.1":
   version "0.18.1"
