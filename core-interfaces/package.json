@@ -1,12 +1,13 @@
 {
   "name": "@neeschit/core-interfaces",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "build/index.js",
   "scripts": {
     "build": "tsc"
   },
   "author": "",
+  "private": false,
   "license": "ISC",
   "dependencies": {},
   "devDependencies": {
