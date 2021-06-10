@@ -14,8 +14,8 @@
   "dependencies": {
     "@google-cloud/pubsub": "^2.12.0",
     "@neeschit/alpaca-trade-api": "^2.0.2",
+    "@neeschit/common-interfaces": "^1.0.0",
     "@neeschit/core-data": "^1.1.1",
-    "@neeschit/core-interfaces": "^1.0.0",
     "@neeschit/redis": "^1.0.2",
     "date-fns": "^2.22.1",
     "fastify": "^3.17.0",

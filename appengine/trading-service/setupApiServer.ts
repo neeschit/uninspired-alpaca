@@ -4,7 +4,7 @@ import { getRedisApi } from "@neeschit/redis";
 import { getWatchlistCacheKey } from "@neeschit/core-data";
 
 import { handleEntryRequest } from "./handleEntryRequest";
-import { BoomBarReply } from "core-interfaces/build";
+import { BoomBarReply } from "common-interfaces/build";
 
 const redisApi = getRedisApi();
 

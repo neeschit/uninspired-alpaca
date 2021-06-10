@@ -3,7 +3,7 @@ import { PubSub } from "@google-cloud/pubsub";
 import { Calendar } from "@neeschit/alpaca-trade-api";
 
 import { isTimeForBoomBarEntry, getSpyCompanies } from "@neeschit/core-data";
-import { BoomBarReply, BoomBarRequest } from "@neeschit/core-interfaces";
+import { BoomBarReply, BoomBarRequest } from "common-interfaces/build";
 import { isBoomBar } from "./screener";
 
 const pubSubClient = new PubSub();

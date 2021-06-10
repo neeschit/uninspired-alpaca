@@ -101,6 +101,11 @@
     urljoin "^0.1.5"
     ws "^7.4.3"
 
+"@neeschit/common-interfaces@^1.0.0":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@neeschit/common-interfaces/-/common-interfaces-1.1.1.tgz#2f3fc67c926a953ec8c105d29ef95001ee096a9a"
+  integrity sha512-3BNKgPHr26ibO2l501wB3t3O1DfVwifK5q9sRdXpiof0m9YttOuBm5qFl8hwLGZzHMV5+U6/EqK2vSu5VN0rDw==
+
 "@neeschit/core-data@^1.1.1":
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/@neeschit/core-data/-/core-data-1.1.2.tgz#1de79ac67f06742f43eee97c528e13566c3320ff"
@@ -109,15 +114,10 @@
     date-fns "^2.21.3"
     date-fns-tz "^1.1.4"
 
-"@neeschit/core-interfaces@^1.0.0":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@neeschit/core-interfaces/-/core-interfaces-1.1.0.tgz#cc5d3e4d825d2df58a8c49c92ed780057a24f72a"
-  integrity sha512-ejgAXY5TaBLSX7jTuoiidvXk/7HiMMHbnip/w+XsM9KVkKN4yQ0Zg0ClZ3IZPGK6RmgmJDkcpgkuLGHpJS15Cg==
-
 "@neeschit/redis@^1.0.2":
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/@neeschit/redis/-/redis-1.0.2.tgz#396164367c86afba043b117e82f95d033d4d0717"
-  integrity sha512-nTVMqdJSKzMZeR8y1UaH5zs1JoCnkfmo4stO4h1H827k5dHfxItjwF4RrLYPtOAjODeufp0C8kujIsqAwBJXgg==
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@neeschit/redis/-/redis-1.0.3.tgz#ae5a2c0828fcc64e35686633dc16ba8d0fb8bb67"
+  integrity sha512-Sk9phWSjA+q1xrhg8MmHbxLg1Lj3K5KGM3bmDd0UCVSGTmwiiAY3GvP69LTHYAkCSLuPcbZ31As7ftqPiaYupg==
   dependencies:
     date-fns "^2.22.1"
     redis "^3.1.2"
