@@ -2,9 +2,14 @@ import Alpaca, {
     Alpaca as AlpacaClass,
     OrderStatus,
 } from "@neeschit/alpaca-trade-api";
-import { getLargeCaps, getCacheKey } from "@neeschit/core-data";
+import {
+    getLargeCaps,
+    getCacheKey,
+    getBoomRequestCacheKey,
+    isTimeForBoomBarEntry,
+} from "@neeschit/core-data";
+import { getRedisApi } from "@neeschit/redis";
 import { requestScreen } from "./publishMessage";
-import { getRedisApi } from "./redis";
 
 export const getEntryCacheKey = (symbol: string, epoch: number) => {
     return getCacheKey(`${symbol}_entering_trade`, epoch);
@@ -35,10 +40,28 @@ export async function setupAlpacaStreams() {
 
     stream.connect();
 
-    stream.onConnect(() => stream.subscribeForBars(getLargeCaps()));
+    let connected = false;
+
+    stream.onConnect(() => {
+        connected = true;
+        stream.subscribeForBars(["SPY"]);
+    });
 
     stream.onStockBar(async (bar) => {
-        await requestScreen(bar.S, calendar);
+        if (isTimeForBoomBarEntry(Date.now())) {
+            const promisesForScreen = getLargeCaps().map((symbol) =>
+                requestScreen(symbol, calendar)
+            );
+            await Promise.all(promisesForScreen);
+            await promiseSet(
+                getBoomRequestCacheKey(Date.now()),
+                promisesForScreen.length.toString()
+            );
+        }
+    });
+
+    stream.onDisconnect(() => {
+        connected = false;
     });
 
     const trade_ws = alpaca.trade_ws;
@@ -53,12 +76,12 @@ export async function setupAlpacaStreams() {
         console.log(update);
         const symbol = update.order.symbol;
         if (
-            update.order &&
-            (update.order.status === OrderStatus.filled ||
-                update.order.status === OrderStatus.canceled ||
-                update.order.status === OrderStatus.expired)
-        )
+            update.order?.status === OrderStatus.filled ||
+            update.order?.status === OrderStatus.canceled ||
+            update.order?.status === OrderStatus.expired
+        ) {
             await promiseSet(getEntryCacheKey(symbol, Date.now()), "false");
+        }
     });
 }
 

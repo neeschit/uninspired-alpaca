@@ -93,3 +93,13 @@ export const convertToLocalTime = (
         return zonedTimeToUtc(dateString, timeZone);
     }
 };
+
+export const isTimeForBoomBarEntry = (nowMillis: number) => {
+    const timeStart = convertToLocalTime(nowMillis, " 09:34:45.000");
+    const timeEnd = convertToLocalTime(nowMillis, " 09:35:25.000");
+
+    const isWithinEntryRange =
+        timeStart.getTime() <= nowMillis && timeEnd.getTime() >= nowMillis;
+
+    return isWithinEntryRange;
+};

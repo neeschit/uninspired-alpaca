@@ -2,11 +2,13 @@ import fastify from "fastify";
 import {
     getLargeCaps,
     getMarketOpenTimeForDay,
-    getCacheKey,
+    getWatchlistCacheKey,
+    getBoomRequestCacheKey,
 } from "@neeschit/core-data";
 import Alpaca from "@neeschit/alpaca-trade-api";
-import { getRedisApi } from "./redis";
+import { getRedisApi } from "@neeschit/redis";
 import { requestScreen } from "./requestBacktestScreen";
+import { BoomBarReply } from "@neeschit/common-interfaces";
 
 const server = fastify({
     logger: true,
@@ -25,10 +27,6 @@ const alpaca = Alpaca({
 
 const redisApi = getRedisApi();
 
-export const getWatchlistCacheKey = (epoch: number) => {
-    return getCacheKey("boom_watchlist", epoch);
-};
-
 server.get("/screen-boom-request/:date", async (request: { params: any }) => {
     const dateString = request.params.date;
     const date = new Date(dateString);
@@ -45,7 +43,16 @@ server.get("/screen-boom-request/:date", async (request: { params: any }) => {
         return requestScreen(symbol, marketStartTime + 300000, calendar);
     });
 
-    await Promise.all(promises);
+    try {
+        await redisApi.promiseSet(
+            getBoomRequestCacheKey(date.getTime()),
+            promises.length.toString()
+        );
+
+        await Promise.all(promises);
+    } catch (e) {
+        console.error(e);
+    }
 
     return true;
 });
@@ -72,19 +79,22 @@ server.get("/boom-screened/:date", async (request: { params: any }) => {
 server.post("/boom-screener-reply", async (request) => {
     const event: any = request.body;
 
-    const decodedData = JSON.parse(
+    const decodedData: BoomBarReply = JSON.parse(
         Buffer.from(event.message.data, "base64").toString()
     );
 
-    const { symbol, epoch } = decodedData.data;
+    const { symbol, epoch } = decodedData;
 
-    console.log(decodedData.data);
+    console.log(decodedData);
 
     try {
         const key = getWatchlistCacheKey(epoch);
-        console.log(key);
-        const size = await redisApi.promiseSadd(key, symbol);
-        console.log(size);
+        if (decodedData.isInPlay) {
+            const size = await redisApi.promiseSadd(key, symbol);
+            console.log(size);
+        }
+
+        await redisApi.promiseIncr(getBoomRequestCacheKey(epoch));
     } catch (e) {
         console.error(e);
     }

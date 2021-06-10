@@ -9,11 +9,12 @@ beforeAll(() => {
     setupAlpaca();
 });
 
-jest.mock("./redis", () => {
+jest.mock("@neeschit/redis", () => {
     return {
         getRedisApi: () => ({
             promiseSet: jest.fn(),
             promiseGet: jest.fn(),
+            promiseIncr: jest.fn(),
         }),
     };
 });

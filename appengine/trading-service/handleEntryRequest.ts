@@ -4,8 +4,8 @@ import {
     TradeDirection,
     TradeType,
 } from "@neeschit/alpaca-trade-api";
+import { getRedisApi } from "@neeschit/redis";
 import { getEntryCacheKey, alpaca } from "./alpaca";
-import { getRedisApi } from "./redis";
 
 const entryList: { [index: string]: boolean } = {};
 

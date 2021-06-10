@@ -23,9 +23,21 @@ export const getRedisApi = () => {
 
     const promiseGet = promisify(redisClient.get).bind(redisClient);
     const promiseSet = promisify(redisClient.set).bind(redisClient);
+    const promiseLrange = promisify(redisClient.lrange).bind(redisClient);
+    const promiseLpush: (key: string, value: string) => Promise<number> =
+        promisify(redisClient.lpush).bind(redisClient);
+    const promiseSadd: (key: string, value: string) => Promise<number> =
+        promisify(redisClient.sadd).bind(redisClient);
+    const promiseSmembers = promisify(redisClient.smembers).bind(redisClient);
+    const promiseIncr = promisify(redisClient.incr).bind(redisClient);
 
     return {
         promiseGet,
         promiseSet,
+        promiseLrange,
+        promiseLpush,
+        promiseSadd,
+        promiseSmembers,
+        promiseIncr,
     };
 };
