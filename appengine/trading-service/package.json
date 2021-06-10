@@ -19,6 +19,7 @@
     "@google-cloud/pubsub": "^2.11.0",
     "@neeschit/alpaca-trade-api": "^2.0.2",
     "@neeschit/core-data": "^1.0.4",
+    "@neeschit/redis": "^1.0.1",
     "date-fns": "^2.21.1",
     "fastify": "^3.16.2",
     "redis": "^3.1.2"

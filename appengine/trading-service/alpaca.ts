@@ -3,8 +3,8 @@ import Alpaca, {
     OrderStatus,
 } from "@neeschit/alpaca-trade-api";
 import { getLargeCaps, getCacheKey } from "@neeschit/core-data";
+import { getRedisApi } from "@neeschit/redis";
 import { requestScreen } from "./publishMessage";
-import { getRedisApi } from "./redis";
 
 export const getEntryCacheKey = (symbol: string, epoch: number) => {
     return getCacheKey(`${symbol}_entering_trade`, epoch);
@@ -24,7 +24,7 @@ export const setupAlpaca = () => {
 export async function setupAlpacaStreams() {
     setupAlpaca();
 
-    const { promiseSet } = getRedisApi();
+    const { promiseSet, promiseIncr } = getRedisApi();
 
     const calendar = await alpaca.getCalendar({
         start: new Date(Date.now()),
@@ -53,12 +53,12 @@ export async function setupAlpacaStreams() {
         console.log(update);
         const symbol = update.order.symbol;
         if (
-            update.order &&
-            (update.order.status === OrderStatus.filled ||
-                update.order.status === OrderStatus.canceled ||
-                update.order.status === OrderStatus.expired)
-        )
+            update.order?.status === OrderStatus.filled ||
+            update.order?.status === OrderStatus.canceled ||
+            update.order?.status === OrderStatus.expired
+        ) {
             await promiseSet(getEntryCacheKey(symbol, Date.now()), "false");
+        }
     });
 }
 

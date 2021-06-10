@@ -42,19 +42,21 @@ export const screenForBoombar: EventFunction = async (
 
     if (screened) {
         console.log("screened true for " + data.data.symbol);
-        const dataBuffer = Buffer.from(
-            JSON.stringify({
-                data: {
-                    symbol: data.data.symbol,
-                    side: screened.side,
-                    limitPrice: screened.limitPrice,
-                    strategy: "boom",
-                    epoch: data.data.epoch,
-                },
-            })
-        );
-        await publishMessage(dataBuffer, data.data.pubsubchannel);
     }
+
+    const messagedBuffer = Buffer.from(
+        JSON.stringify({
+            data: {
+                symbol: data.data.symbol,
+                side: screened?.side,
+                limitPrice: screened?.limitPrice,
+                screened: !!screened,
+                strategy: "boom",
+                epoch: data.data.epoch,
+            },
+        })
+    );
+    await publishMessage(messagedBuffer, data.data.pubsubchannel);
 };
 
 async function publishMessage(dataBuffer: Buffer, channel: string) {

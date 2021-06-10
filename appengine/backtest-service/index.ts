@@ -5,7 +5,7 @@ import {
     getCacheKey,
 } from "@neeschit/core-data";
 import Alpaca from "@neeschit/alpaca-trade-api";
-import { getRedisApi } from "./redis";
+import { getRedisApi } from "@neeschit/redis";
 import { requestScreen } from "./requestBacktestScreen";
 
 const server = fastify({
@@ -45,7 +45,16 @@ server.get("/screen-boom-request/:date", async (request: { params: any }) => {
         return requestScreen(symbol, marketStartTime + 300000, calendar);
     });
 
-    await Promise.all(promises);
+    try {
+        await redisApi.promiseSet(
+            getCacheKey("boom_requested_count", date.getTime()),
+            promises.length.toString()
+        );
+
+        await Promise.all(promises);
+    } catch (e) {
+        console.error(e);
+    }
 
     return true;
 });
@@ -82,9 +91,12 @@ server.post("/boom-screener-reply", async (request) => {
 
     try {
         const key = getWatchlistCacheKey(epoch);
-        console.log(key);
-        const size = await redisApi.promiseSadd(key, symbol);
-        console.log(size);
+        if (decodedData.data.screened) {
+            const size = await redisApi.promiseSadd(key, symbol);
+            console.log(size);
+        }
+
+        await redisApi.promiseIncr(getCacheKey("boom_requested_count", epoch));
     } catch (e) {
         console.error(e);
     }

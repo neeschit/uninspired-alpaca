@@ -19,13 +19,15 @@ export function setupServer(alpaca: Alpaca) {
 
         console.log(decodedData);
 
-        await handleEntryRequest({
-            symbol: decodedData.data.symbol,
-            side: decodedData.data.side,
-            limitPrice: decodedData.data.limitPrice,
-            epoch: Date.now(),
-            client: alpaca,
-        });
+        if (decodedData.data.screened) {
+            await handleEntryRequest({
+                symbol: decodedData.data.symbol,
+                side: decodedData.data.side,
+                limitPrice: decodedData.data.limitPrice,
+                epoch: Date.now(),
+                client: alpaca,
+            });
+        }
 
         return true;
     });

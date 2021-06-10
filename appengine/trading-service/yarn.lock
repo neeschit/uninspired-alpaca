@@ -589,6 +589,13 @@
     date-fns "^2.21.3"
     date-fns-tz "^1.1.4"
 
+"@neeschit/redis@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@neeschit/redis/-/redis-1.0.1.tgz#fda4a3447069058bd7c5c1dd1c2546daa8024057"
+  integrity sha512-NIPLChCsD1DoNVOx8R5EKu2STVQj2itwzGDz1LRkSSj+QQbSaduciZyBU/mmL0vOhsvn/C8zvTuiCCZ3pwREFw==
+  dependencies:
+    redis "^3.1.2"
+
 "@opentelemetry/api@^0.18.1":
   version "0.18.1"
   resolved "https://registry.yarnpkg.com/@opentelemetry/api/-/api-0.18.1.tgz#fb499e07afa1f55acffc47b2469eb218dcdee2a2"
