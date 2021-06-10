@@ -1,6 +1,6 @@
 import { PubSub } from "@google-cloud/pubsub";
 import { Calendar } from "@neeschit/alpaca-trade-api";
-import { BoomBarRequest } from "common-interfaces/build";
+import { BoomBarRequest } from "@neeschit/common-interfaces";
 
 const pubSubClient = new PubSub();
 

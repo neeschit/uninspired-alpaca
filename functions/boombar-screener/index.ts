@@ -1,9 +1,8 @@
 import { EventFunction } from "@google-cloud/functions-framework/build/src/functions";
 import { PubSub } from "@google-cloud/pubsub";
-import { Calendar } from "@neeschit/alpaca-trade-api";
 
 import { isTimeForBoomBarEntry, getSpyCompanies } from "@neeschit/core-data";
-import { BoomBarReply, BoomBarRequest } from "common-interfaces/build";
+import { BoomBarReply, BoomBarRequest } from "@neeschit/common-interfaces";
 import { isBoomBar } from "./screener";
 
 const pubSubClient = new PubSub();
