@@ -39,6 +39,5 @@ export const getRedisApi = () => {
         promiseSadd,
         promiseSmembers,
         promiseIncr,
-        redisClient,
     };
 };

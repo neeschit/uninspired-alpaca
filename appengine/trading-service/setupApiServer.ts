@@ -1,7 +1,12 @@
 import { Alpaca } from "@neeschit/alpaca-trade-api";
 import fastify from "fastify";
+import { getRedisApi } from "@neeschit/redis";
+import { getWatchlistCacheKey } from "@neeschit/core-data";
 
 import { handleEntryRequest } from "./handleEntryRequest";
+import { BoomBarReply } from "core-interfaces/build";
+
+const redisApi = getRedisApi();
 
 export function setupServer(alpaca: Alpaca) {
     const server = fastify({
@@ -13,17 +18,21 @@ export function setupServer(alpaca: Alpaca) {
     server.post("/entry-request", async (request, reply) => {
         const event: any = request.body;
 
-        const decodedData = JSON.parse(
+        const decodedData: BoomBarReply = JSON.parse(
             Buffer.from(event.message.data, "base64").toString()
         );
 
         console.log(decodedData);
 
-        if (decodedData.data.screened) {
+        if (decodedData.isInPlay) {
+            const key = getWatchlistCacheKey(Date.now());
+            const size = await redisApi.promiseSadd(key, decodedData.symbol);
+            console.log(size);
+
             await handleEntryRequest({
-                symbol: decodedData.data.symbol,
-                side: decodedData.data.side,
-                limitPrice: decodedData.data.limitPrice,
+                symbol: decodedData.symbol,
+                side: decodedData.side,
+                limitPrice: decodedData.limitPrice!,
                 epoch: Date.now(),
                 client: alpaca,
             });

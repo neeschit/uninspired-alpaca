@@ -7,3 +7,7 @@ export const getCacheKey = (key: string, epoch: number): string => {
 export const getBoomRequestCacheKey = (epoch: number): string => {
     return getCacheKey("boom_requested_count", epoch);
 };
+
+export const getWatchlistCacheKey = (epoch: number) => {
+    return getCacheKey("boom_watchlist", epoch);
+};

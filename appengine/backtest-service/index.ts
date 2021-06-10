@@ -2,11 +2,13 @@ import fastify from "fastify";
 import {
     getLargeCaps,
     getMarketOpenTimeForDay,
-    getCacheKey,
+    getWatchlistCacheKey,
+    getBoomRequestCacheKey,
 } from "@neeschit/core-data";
 import Alpaca from "@neeschit/alpaca-trade-api";
 import { getRedisApi } from "@neeschit/redis";
 import { requestScreen } from "./requestBacktestScreen";
+import { BoomBarReply } from "core-interfaces/build";
 
 const server = fastify({
     logger: true,
@@ -24,10 +26,6 @@ const alpaca = Alpaca({
 });
 
 const redisApi = getRedisApi();
-
-export const getWatchlistCacheKey = (epoch: number) => {
-    return getCacheKey("boom_watchlist", epoch);
-};
 
 server.get("/screen-boom-request/:date", async (request: { params: any }) => {
     const dateString = request.params.date;
@@ -47,7 +45,7 @@ server.get("/screen-boom-request/:date", async (request: { params: any }) => {
 
     try {
         await redisApi.promiseSet(
-            getCacheKey("boom_requested_count", date.getTime()),
+            getBoomRequestCacheKey(date.getTime()),
             promises.length.toString()
         );
 
@@ -81,22 +79,22 @@ server.get("/boom-screened/:date", async (request: { params: any }) => {
 server.post("/boom-screener-reply", async (request) => {
     const event: any = request.body;
 
-    const decodedData = JSON.parse(
+    const decodedData: BoomBarReply = JSON.parse(
         Buffer.from(event.message.data, "base64").toString()
     );
 
-    const { symbol, epoch } = decodedData.data;
+    const { symbol, epoch } = decodedData;
 
-    console.log(decodedData.data);
+    console.log(decodedData);
 
     try {
         const key = getWatchlistCacheKey(epoch);
-        if (decodedData.data.screened) {
+        if (decodedData.isInPlay) {
             const size = await redisApi.promiseSadd(key, symbol);
             console.log(size);
         }
 
-        await redisApi.promiseIncr(getCacheKey("boom_requested_count", epoch));
+        await redisApi.promiseIncr(getBoomRequestCacheKey(epoch));
     } catch (e) {
         console.error(e);
     }

@@ -26,6 +26,7 @@
     "@google-cloud/storage": "^5.8.3",
     "@neeschit/alpaca-trade-api": "^2.0.1",
     "@neeschit/core-data": "^1.0.4",
+    "@neeschit/core-interfaces": "^1.0.0",
     "date-fns": "^2.20.1",
     "date-fns-tz": "^1.1.4"
   },
