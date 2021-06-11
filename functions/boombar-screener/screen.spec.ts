@@ -158,3 +158,25 @@ test("isBoomBar for 02/16/21 CVS", async () => {
         limitPrice: 73.9257,
     });
 });
+
+test("isBoomBar for 06/04/21 NVDA", async () => {
+    const date = 1622813703000;
+    const calendar: Calendar[] = [
+        {
+            date: "2021-06-04",
+            open: "09:30",
+            close: "16:00",
+        },
+    ];
+    const symbol = "NVDA";
+    const screened = await isBoomBar({
+        symbol,
+        epoch: date,
+        calendar,
+    });
+
+    expect(screened).toEqual({
+        side: TradeDirection.buy,
+        limitPrice: 692.15,
+    });
+});

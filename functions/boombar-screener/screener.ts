@@ -153,7 +153,7 @@ export const readFileFromBucket = async (filename: string) => {
 
 export const isElephantBar = (
     bar: Pick<AlpacaBarsV2, "o" | "h" | "l" | "c">,
-    requiredRatio = 0.13
+    requiredRatio = 0.14
 ) => {
     const wicksRange =
         bar.o > bar.c ? Math.abs(bar.l - bar.c) : Math.abs(bar.h - bar.c);
