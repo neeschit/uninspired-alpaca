@@ -1,5 +1,6 @@
 import Alpaca, {
     Alpaca as AlpacaClass,
+    Calendar,
     OrderStatus,
 } from "@neeschit/alpaca-trade-api";
 import {
@@ -7,6 +8,7 @@ import {
     getCacheKey,
     getBoomRequestCacheKey,
     isTimeForBoomBarEntry,
+    getMarketOpenTimeForDay,
 } from "@neeschit/core-data";
 import { getRedisApi } from "@neeschit/redis";
 import { requestScreen } from "./publishMessage";
@@ -44,21 +46,13 @@ export async function setupAlpacaStreams() {
 
     stream.onConnect(() => {
         connected = true;
-        stream.subscribeForBars(["SPY"]);
     });
 
-    stream.onStockBar(async (bar) => {
-        if (isTimeForBoomBarEntry(Date.now())) {
-            const promisesForScreen = getLargeCaps().map((symbol) =>
-                requestScreen(symbol, calendar)
-            );
-            await Promise.all(promisesForScreen);
-            await promiseSet(
-                getBoomRequestCacheKey(Date.now()),
-                promisesForScreen.length.toString()
-            );
-        }
-    });
+    const marketOpenTimeForDay = getMarketOpenTimeForDay(Date.now(), calendar);
+
+    setTimeout(async () => {
+        screenForBooms(calendar, promiseSet);
+    }, marketOpenTimeForDay + 285000 - Date.now());
 
     stream.onDisconnect(() => {
         connected = false;
@@ -88,4 +82,15 @@ export async function setupAlpacaStreams() {
 export const disconnectAlpacaStreams = () => {
     alpaca.trade_ws.disconnect();
     alpaca.data_stream_v2.disconnect();
+};
+
+export const screenForBooms = async (calendar: Calendar[], promiseSet: any) => {
+    const promisesForScreen = getLargeCaps().map((symbol) =>
+        requestScreen(symbol, calendar)
+    );
+    await Promise.all(promisesForScreen);
+    await promiseSet(
+        getBoomRequestCacheKey(Date.now()),
+        promisesForScreen.length.toString()
+    );
 };
