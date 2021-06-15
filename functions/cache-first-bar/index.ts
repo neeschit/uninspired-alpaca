@@ -1,15 +1,20 @@
 import { EventFunction } from "@google-cloud/functions-framework/build/src/functions";
-import { AlpacaClient, Bar } from "@master-chief/alpaca";
-import { addBusinessDays, parseISO } from "date-fns";
+import Alpaca, { AlpacaBarsV2 } from "@neeschit/alpaca-trade-api";
+import {
+    addBusinessDays,
+    addHours,
+    endOfDay,
+    formatISO,
+    parseISO,
+} from "date-fns";
 import { Storage } from "@google-cloud/storage";
+import { getMarketOpenTimeForDay } from "@neeschit/core-data";
 
-const client = new AlpacaClient({
-    credentials: {
-        key: process.env.ALPACA_SECRET_KEY_ID!,
-        secret: process.env.ALPACA_SECRET_KEY!,
-        paper: true,
-    },
-    rate_limit: false,
+const client = Alpaca({
+    keyId: process.env.ALPACA_SECRET_KEY_ID!,
+    secretKey: process.env.ALPACA_SECRET_KEY!,
+    paper: true,
+    usePolygon: false,
 });
 
 const storage = new Storage();
@@ -37,7 +42,7 @@ export const cacheFirstBar: EventFunction = async (
 
     const params = calendars.map((calendar) => {
         const date = calendar.date;
-        const start = new Date(date);
+        const start = addHours(new Date(date), 12);
         const end = parseISO(`${date}T15:30:00.000Z`);
 
         return {
@@ -46,21 +51,40 @@ export const cacheFirstBar: EventFunction = async (
         };
     });
 
-    const barPromises = params.map((param) => {
-        console.log(`fetching for ${param.start} - ${symbol}`);
-        return client.getBars({
+    const barPromises = params.map(async (param) => {
+        const marketOpenTimeForDay = getMarketOpenTimeForDay(
+            param.start.getTime(),
+            calendars
+        );
+
+        const barsResponseGenerator = client.getBarsV2(
             symbol,
-            ...param,
-            timeframe: "1Min",
-        });
+            {
+                start: formatISO(marketOpenTimeForDay),
+                end: formatISO(endOfDay(marketOpenTimeForDay)),
+                limit: 4,
+                timeframe: "1Min",
+            },
+            client.configuration
+        );
+
+        const bars: AlpacaBarsV2[] = [];
+
+        for await (const b of barsResponseGenerator) {
+            bars.push(b);
+        }
+
+        return bars;
     });
 
     const barsResponse = await Promise.all(barPromises);
 
-    const barsFiltered = barsResponse.map((b) => b.bars.slice(0, 5));
+    const barsFiltered = barsResponse
+        .filter((b) => b.length)
+        .map((b) => b.slice(0, 5));
 
     const aggregatedBars: Pick<
-        Bar,
+        AlpacaBarsV2,
         "o" | "h" | "l" | "c" | "v" | "t"
     >[] = barsFiltered.map((bars) => {
         const { high, low, volume } = bars.reduce(

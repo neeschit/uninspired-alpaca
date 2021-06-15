@@ -44,6 +44,8 @@ export const screenForBoombar: EventFunction = async (
         side: screened?.side,
         limitPrice: screened?.limitPrice,
         isInPlay: !!screened,
+        relativeVolume: screened?.relativeVolume,
+        relativeRange: screened?.relativeRange,
         strategy: "boom",
         epoch: data.epoch,
     };

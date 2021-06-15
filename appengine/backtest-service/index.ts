@@ -4,6 +4,7 @@ import {
     getMarketOpenTimeForDay,
     getWatchlistCacheKey,
     getBoomRequestCacheKey,
+    getCachedBoomStats,
 } from "@neeschit/core-data";
 import Alpaca from "@neeschit/alpaca-trade-api";
 import { getRedisApi } from "@neeschit/redis";
@@ -70,7 +71,26 @@ server.get("/boom-screened/:date", async (request: { params: any }) => {
             return [];
         }
 
-        return list;
+        const inflatedListPromises = list.map(async (symbol) => {
+            const cachedStats = await redisApi.promiseGet(
+                getCachedBoomStats(date.getTime(), symbol)
+            );
+
+            if (!cachedStats) {
+                return {
+                    symbol,
+                };
+            }
+
+            return {
+                symbol,
+                ...JSON.parse(cachedStats),
+            };
+        });
+
+        const inflatedList = Promise.all(inflatedListPromises);
+
+        return inflatedList;
     } catch (e) {
         return [];
     }
@@ -91,7 +111,13 @@ server.post("/boom-screener-reply", async (request) => {
         const key = getWatchlistCacheKey(epoch);
         if (decodedData.isInPlay) {
             const size = await redisApi.promiseSadd(key, symbol);
-            console.log(size);
+            await redisApi.promiseSet(
+                getCachedBoomStats(epoch, symbol),
+                JSON.stringify({
+                    relativeRange: decodedData.relativeRange,
+                    relativeVolume: decodedData.relativeVolume,
+                })
+            );
         }
 
         await redisApi.promiseIncr(getBoomRequestCacheKey(epoch));

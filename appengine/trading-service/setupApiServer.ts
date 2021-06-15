@@ -22,9 +22,11 @@ export function setupServer(alpaca: Alpaca) {
             Buffer.from(event.message.data, "base64").toString()
         );
 
-        console.log(decodedData);
-
-        if (decodedData.isInPlay) {
+        if (
+            decodedData.isInPlay &&
+            decodedData.relativeRange &&
+            decodedData.relativeRange >= 1.45
+        ) {
             const key = getWatchlistCacheKey(Date.now());
             const size = await redisApi.promiseSadd(key, decodedData.symbol);
             console.log(size);

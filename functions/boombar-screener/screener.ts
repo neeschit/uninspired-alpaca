@@ -1,10 +1,14 @@
 import Alpaca, {
     AlpacaBarsV2,
+    AlpacaTradesV2,
     Calendar,
     TradeDirection,
 } from "@neeschit/alpaca-trade-api";
 import { Storage } from "@google-cloud/storage";
-import { getMarketOpenTimeForDay } from "@neeschit/core-data";
+import {
+    getMarketCloseTimeForDay,
+    getMarketOpenTimeForDay,
+} from "@neeschit/core-data";
 import { addBusinessDays, endOfDay, formatISO } from "date-fns";
 
 const alpacaClient = Alpaca({
@@ -46,8 +50,73 @@ export const isBoomBar = async ({
         bars.push(b);
     }
 
-    const openToday = bars[bars.length - 1].o;
-    const previousClose = bars[bars.length - 2].c;
+    const marketOpenTimeForDay = getMarketOpenTimeForDay(epoch, calendar);
+    const marketCloseTimeToday = getMarketCloseTimeForDay(epoch, calendar);
+
+    const ydayDailyBar =
+        Date.now() > marketCloseTimeToday
+            ? bars[bars.length - 2]
+            : bars[bars.length - 1];
+
+    const previousClose = ydayDailyBar.c;
+
+    const firstFiveMinTodayResponse = alpacaClient.getBarsV2(
+        symbol,
+        {
+            start: formatISO(marketOpenTimeForDay),
+            end: formatISO(endOfDay(epoch)),
+            limit: 4,
+            timeframe: "1Min",
+        },
+        alpacaClient.configuration
+    );
+
+    const lastMinuteTrades = alpacaClient.getTradesV2(
+        symbol,
+        {
+            start: formatISO(marketOpenTimeForDay + 239900),
+            end: formatISO(epoch),
+            limit: 0,
+        },
+        alpacaClient.configuration
+    );
+
+    const trades: AlpacaTradesV2[] = [];
+
+    for await (const trade of lastMinuteTrades) {
+        trades.push(trade);
+    }
+
+    const reducedBar = trades.reduce(
+        ({ h, l, v, c, o, t }, trade) => {
+            return {
+                h: trade.p > h ? trade.p : h,
+                l: trade.p < l ? trade.p : l,
+                v: v + trade.s,
+                c,
+                o,
+                t,
+            };
+        },
+        {
+            h: Number.MIN_SAFE_INTEGER,
+            l: Number.MAX_SAFE_INTEGER,
+            v: 0,
+            c: trades[trades.length - 1].p,
+            o: trades[0].p,
+            t: trades[trades.length - 1].t,
+        }
+    );
+
+    const firstFiveBarsToday: AlpacaBarsV2[] = [];
+
+    for await (const bar of firstFiveMinTodayResponse) {
+        firstFiveBarsToday.push(bar);
+    }
+
+    firstFiveBarsToday[4] = reducedBar;
+
+    const openToday = firstFiveBarsToday[0].o;
 
     gap = ((openToday - previousClose) / previousClose) * 100;
 
@@ -61,29 +130,14 @@ export const isBoomBar = async ({
         fileName
     );
 
-    const averageRange =
-        Math.round(
-            JSON.parse(firstFiveHistoricalAggregate).averageRange * 100
-        ) / 100;
+    const firstFive: {
+        averageRange: number;
+        averageVolume: number;
+    } = JSON.parse(firstFiveHistoricalAggregate);
 
-    const marketOpenTimeForDay = getMarketOpenTimeForDay(epoch, calendar);
+    const averageRange = Math.round(firstFive.averageRange * 100) / 100;
 
-    const firstFiveMinTodayResponse = alpacaClient.getBarsV2(
-        symbol,
-        {
-            start: formatISO(marketOpenTimeForDay),
-            end: formatISO(endOfDay(epoch)),
-            limit: 5,
-            timeframe: "1Min",
-        },
-        alpacaClient.configuration
-    );
-
-    const firstFiveBarsToday: AlpacaBarsV2[] = [];
-
-    for await (const bar of firstFiveMinTodayResponse) {
-        firstFiveBarsToday.push(bar);
-    }
+    const averageVolume = Math.round(firstFive.averageVolume);
 
     const { high, low, volume } = firstFiveBarsToday.reduce(
         ({ high, low, volume }, bar) => {
@@ -118,8 +172,8 @@ export const isBoomBar = async ({
             : TradeDirection.buy;
 
     const range = Math.abs(high - low);
-    const rangeRatio = range / averageRange;
-    const isSignifcantlyLargeBar = rangeRatio > 1.5;
+    const rangeRatio = Math.round((range / averageRange) * 100) / 100;
+    const isSignifcantlyLargeBar = rangeRatio >= 1;
 
     if (isBoom && !isSignifcantlyLargeBar) {
         console.log(
@@ -128,7 +182,12 @@ export const isBoomBar = async ({
     }
 
     return isBoom && isSignifcantlyLargeBar
-        ? { side, limitPrice: boomBar.c }
+        ? {
+              side,
+              limitPrice: boomBar.c,
+              relativeVolume: volume / averageVolume,
+              relativeRange: rangeRatio,
+          }
         : null;
 };
 
