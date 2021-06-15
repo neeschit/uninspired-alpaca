@@ -7,7 +7,6 @@ import {
     getLargeCaps,
     getCacheKey,
     getBoomRequestCacheKey,
-    isTimeForBoomBarEntry,
     getMarketOpenTimeForDay,
 } from "@neeschit/core-data";
 import { getRedisApi } from "@neeschit/redis";
@@ -51,7 +50,7 @@ export async function setupAlpacaStreams() {
     const marketOpenTimeForDay = getMarketOpenTimeForDay(Date.now(), calendar);
 
     setTimeout(async () => {
-        screenForBooms(calendar, promiseSet);
+        await screenForBooms(calendar, promiseSet);
     }, marketOpenTimeForDay + 285000 - Date.now());
 
     stream.onDisconnect(() => {
