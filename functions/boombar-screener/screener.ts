@@ -130,10 +130,14 @@ export const isBoomBar = async ({
         fileName
     );
 
-    const averageRange =
-        Math.round(
-            JSON.parse(firstFiveHistoricalAggregate).averageRange * 100
-        ) / 100;
+    const firstFive: {
+        averageRange: number;
+        averageVolume: number;
+    } = JSON.parse(firstFiveHistoricalAggregate);
+
+    const averageRange = Math.round(firstFive.averageRange * 100) / 100;
+
+    const averageVolume = Math.round(firstFive.averageVolume);
 
     const { high, low, volume } = firstFiveBarsToday.reduce(
         ({ high, low, volume }, bar) => {
@@ -168,8 +172,8 @@ export const isBoomBar = async ({
             : TradeDirection.buy;
 
     const range = Math.abs(high - low);
-    const rangeRatio = range / averageRange;
-    const isSignifcantlyLargeBar = rangeRatio > 1.5;
+    const rangeRatio = Math.round((range / averageRange) * 100) / 100;
+    const isSignifcantlyLargeBar = rangeRatio >= 1;
 
     if (isBoom && !isSignifcantlyLargeBar) {
         console.log(
@@ -178,7 +182,12 @@ export const isBoomBar = async ({
     }
 
     return isBoom && isSignifcantlyLargeBar
-        ? { side, limitPrice: boomBar.c }
+        ? {
+              side,
+              limitPrice: boomBar.c,
+              relativeVolume: volume / averageVolume,
+              relativeRange: rangeRatio,
+          }
         : null;
 };
 

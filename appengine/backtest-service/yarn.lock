@@ -36,9 +36,9 @@
   integrity sha512-+SDJ3ZvGkF7hzo6BGa8ZqeK3F6Z4+S+KviC9oOK+XCs3tfMyJCh/4j93XIWINgMMDIh9BgEvlw4306VxlXIlYA==
 
 "@google-cloud/projectify@^2.0.0":
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/@google-cloud/projectify/-/projectify-2.0.1.tgz#13350ee609346435c795bbfe133a08dfeab78d65"
-  integrity sha512-ZDG38U/Yy6Zr21LaR3BTiiLtpJl6RkPS/JwoRT453G+6Q1DhlV0waNf8Lfu+YVYGIIxgKnLayJRfYlFJfiI8iQ==
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@google-cloud/projectify/-/projectify-2.1.0.tgz#3df145c932e244cdeb87a30d93adce615bc69e6d"
+  integrity sha512-qbpidP/fOvQNz3nyabaVnZqcED1NNzf7qfeOlgtAZd9knTwY+KtsGRkYpiQzcATABy4gnGP2lousM3S0nuWVzA==
 
 "@google-cloud/promisify@^2.0.0":
   version "2.0.3"
@@ -46,9 +46,9 @@
   integrity sha512-d4VSA86eL/AFTe5xtyZX+ePUjE8dIFu2T8zmdeNBSa5/kNgXPCx/o/wbFNHAGLJdGnk1vddRuMESD9HbOC8irw==
 
 "@google-cloud/pubsub@^2.12.0":
-  version "2.12.0"
-  resolved "https://registry.yarnpkg.com/@google-cloud/pubsub/-/pubsub-2.12.0.tgz#3375a504ff7612b06301c0fcc35d4d62c533f51f"
-  integrity sha512-SF+y7sKX9Jo2ZoVqzwEuSReUyb6O4mwxzxP1B+dP3j0ArUk0XXSC/tFLQhYM7lC2ViLxGWoIbEZbRIw8SrIQnw==
+  version "2.13.0"
+  resolved "https://registry.yarnpkg.com/@google-cloud/pubsub/-/pubsub-2.13.0.tgz#b344ee0d0c2da698250f39b177b46caee433ca8c"
+  integrity sha512-DXR/mYbGDUxCoLOT9FhOUrnYcsEEL2am6GMc5GWQf6nqCEH25OxTZJccZ/7xg5UMkDhSWmDcbmtDyAjcPwEN1g==
   dependencies:
     "@google-cloud/paginator" "^3.0.0"
     "@google-cloud/precise-date" "^2.0.0"
@@ -101,15 +101,15 @@
     urljoin "^0.1.5"
     ws "^7.4.3"
 
-"@neeschit/common-interfaces@^1.0.0":
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/@neeschit/common-interfaces/-/common-interfaces-1.1.1.tgz#2f3fc67c926a953ec8c105d29ef95001ee096a9a"
-  integrity sha512-3BNKgPHr26ibO2l501wB3t3O1DfVwifK5q9sRdXpiof0m9YttOuBm5qFl8hwLGZzHMV5+U6/EqK2vSu5VN0rDw==
+"@neeschit/common-interfaces@^1.1.1":
+  version "1.1.3"
+  resolved "https://registry.yarnpkg.com/@neeschit/common-interfaces/-/common-interfaces-1.1.3.tgz#ee79882a253c26fcd7955228c2bd2b1da23bfba6"
+  integrity sha512-zzwvCZtk+tKlpWCnMfRfKUHboY9Y6o09yfniIdC60lnhPO+lOI8opQlH8jjdrhmp827hEYAL23XH51ufv4jk2g==
 
 "@neeschit/core-data@^1.1.1":
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/@neeschit/core-data/-/core-data-1.1.2.tgz#1de79ac67f06742f43eee97c528e13566c3320ff"
-  integrity sha512-CGJHaXUR5C4sUlfMbY+BPnYAVr99SWkF5OAYFEdDYH6XEo2pE9rEekMCHxXS3VIR9TYrgcArwE5tgn0rOZk9eQ==
+  version "1.1.4"
+  resolved "https://registry.yarnpkg.com/@neeschit/core-data/-/core-data-1.1.4.tgz#193827e5ac5fdf1643cca7870be8330119da7cdf"
+  integrity sha512-QwC6NUWEd8et/tW3s9KqD/iq6WM0cpDlO9CoCIwxWTUf3LlzCqZyPujHZLgEGZ1lYByF2DInjrD8FGNY3QGdDQ==
   dependencies:
     date-fns "^2.21.3"
     date-fns-tz "^1.1.4"
@@ -662,9 +662,9 @@ getpass@^0.1.1:
     assert-plus "^1.0.0"
 
 google-auth-library@^7.0.0, google-auth-library@^7.0.2:
-  version "7.1.1"
-  resolved "https://registry.yarnpkg.com/google-auth-library/-/google-auth-library-7.1.1.tgz#aa901f14e97a4ca458f426417216e01b360c2b55"
-  integrity sha512-+Q1linq/To3DYLyPz4UTEkQ0v5EOXadMM/S+taLV3W9611hq9zqg8kgGApqbTQnggtwdO9yU1y2YT7+83wdTRg==
+  version "7.1.2"
+  resolved "https://registry.yarnpkg.com/google-auth-library/-/google-auth-library-7.1.2.tgz#29fc0fe8b6d5a59b93b7cb561b1a28bcc93360b7"
+  integrity sha512-FMipHgfe2u1LzWsf2n9zEB9KsJ8M3n8OYTHbHtlkzPCyo7IknXQR5X99nfvwUHGuX+iEpihUZxDuPm7+qBYeXg==
   dependencies:
     arrify "^2.0.0"
     base64-js "^1.3.0"
@@ -677,9 +677,9 @@ google-auth-library@^7.0.0, google-auth-library@^7.0.2:
     lru-cache "^6.0.0"
 
 google-gax@^2.12.0:
-  version "2.14.1"
-  resolved "https://registry.yarnpkg.com/google-gax/-/google-gax-2.14.1.tgz#74885c5d9f01db412917fc49bbf20c4884828d36"
-  integrity sha512-I5RDEN7MEptrCxeHX3ht7nKFGfyjgYX4hQKI9eVMBohMzVbFSwWUndo0CcKXu8es7NhB4gt2XYLm1AHkXhtHpA==
+  version "2.15.0"
+  resolved "https://registry.yarnpkg.com/google-gax/-/google-gax-2.15.0.tgz#e753489a0ccbd7d4fd5c24979cbd5bf491ff2ec3"
+  integrity sha512-jfShUgX1DVu+DiOeAcsT5JbWlLdUnb2FsdWRb+Q/pNz6kNAUbmq8sFLB2uaWjlTxoSGHZLfrt3vJ9lpArzzQPA==
   dependencies:
     "@grpc/grpc-js" "~1.3.0"
     "@grpc/proto-loader" "^0.6.1"
@@ -695,9 +695,9 @@ google-gax@^2.12.0:
     retry-request "^4.0.0"
 
 google-p12-pem@^3.0.3:
-  version "3.0.3"
-  resolved "https://registry.yarnpkg.com/google-p12-pem/-/google-p12-pem-3.0.3.tgz#673ac3a75d3903a87f05878f3c75e06fc151669e"
-  integrity sha512-wS0ek4ZtFx/ACKYF3JhyGe5kzH7pgiQ7J5otlumqR9psmWMYc+U9cErKlCYVYHoUaidXHdZ2xbo34kB+S+24hA==
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/google-p12-pem/-/google-p12-pem-3.1.0.tgz#a1421b432fcc926812e3835289807170768a9885"
+  integrity sha512-JUtEHXL4DY/N+xhlm7TC3qL797RPAtk0ZGXNs3/gWyiDHYoA/8Rjes0pztkda+sZv4ej1EoO2KhWgW5V9KTrSQ==
   dependencies:
     node-forge "^0.10.0"
 

@@ -74,10 +74,12 @@ test("isBoomBar for tuesday 05/25/21 MU", async () => {
         calendar,
     });
 
-    expect(screened).toEqual({
-        side: TradeDirection.sell,
-        limitPrice: 82.83,
-    });
+    expect(screened).toEqual(
+        expect.objectContaining({
+            side: TradeDirection.sell,
+            limitPrice: 82.83,
+        })
+    );
 });
 
 test("isBoomBar for tuesday 05/25/21 PDD", async () => {
@@ -153,10 +155,12 @@ test("isBoomBar for 02/16/21 CVS", async () => {
         calendar,
     });
 
-    expect(screened).toEqual({
-        side: TradeDirection.sell,
-        limitPrice: 73.95,
-    });
+    expect(screened).toEqual(
+        expect.objectContaining({
+            side: TradeDirection.sell,
+            limitPrice: 73.95,
+        })
+    );
 });
 
 test("isBoomBar for 06/11/21 RCL", async () => {
