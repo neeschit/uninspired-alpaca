@@ -24,8 +24,9 @@ export function setupServer(alpaca: Alpaca) {
 
         if (
             decodedData.isInPlay &&
+            decodedData.strategy === "boom" &&
             decodedData.relativeRange &&
-            decodedData.relativeRange >= 1.45
+            decodedData.relativeRange >= 2
         ) {
             const key = getWatchlistCacheKey(Date.now());
             const size = await redisApi.promiseSadd(key, decodedData.symbol);

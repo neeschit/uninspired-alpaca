@@ -9,9 +9,9 @@
     "startLocal": "env-cmd -r ./.env.json --verbose node build/index.js",
     "test": "env-cmd -r ./.env.json jest",
     "test:ci": "jest",
-    "deploy": "gcloud app deploy --version latest-version",
-    "startRemote": "gcloud app versions start latest-version",
-    "stopRemote": "gcloud app versions stop latest-version"
+    "deploy": "gcloud app deploy --version latest-version <<< $'Y'",
+    "startRemote": "gcloud app versions start latest-version <<< $'Y'",
+    "stopRemote": "gcloud app versions stop latest-version <<< $'Y'"
   },
   "author": "",
   "license": "ISC",

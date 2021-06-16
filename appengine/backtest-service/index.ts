@@ -38,10 +38,8 @@ server.get("/screen-boom-request/:date", async (request: { params: any }) => {
 
     const marketStartTime = getMarketOpenTimeForDay(date.getTime(), calendar);
 
-    console.log(marketStartTime);
-
     const promises = symbols.map((symbol) => {
-        return requestScreen(symbol, marketStartTime + 300000, calendar);
+        return requestScreen(symbol, marketStartTime + 285000, calendar);
     });
 
     try {
