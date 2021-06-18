@@ -107,7 +107,7 @@ jobs:
                   ALPACA_SECRET_KEY_ID: ${{ secrets.ALPACA_SECRET_KEY_ID }}
                   ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
                   REDIS_KEY: ${{ secrets.REDIS_KEY }}
-    build-symbol-data
+    build-symbol-data:
         runs-on: ubuntu-latest
         strategy:
             matrix:
