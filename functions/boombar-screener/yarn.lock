@@ -636,9 +636,9 @@
   integrity sha512-Sq7c9t4MTZ7T8YqCob/KshZnoZssQmKVI2v7KNijJP2yBUGjlvADoecgz8vg5Rsd/JfGBxeysvfoL/9TC/5YLg==
 
 "@neeschit/core-data@^1.0.4", "@neeschit/core-data@^1.1.4":
-  version "1.1.4"
-  resolved "https://registry.yarnpkg.com/@neeschit/core-data/-/core-data-1.1.4.tgz#193827e5ac5fdf1643cca7870be8330119da7cdf"
-  integrity sha512-QwC6NUWEd8et/tW3s9KqD/iq6WM0cpDlO9CoCIwxWTUf3LlzCqZyPujHZLgEGZ1lYByF2DInjrD8FGNY3QGdDQ==
+  version "1.1.5"
+  resolved "https://registry.yarnpkg.com/@neeschit/core-data/-/core-data-1.1.5.tgz#bb9db25612ba7dacf81af24dbf7d4cc3e9998fcb"
+  integrity sha512-3Bt2+Ydq1Bb7lTWcDEVqhUPPrv8BfDahu0+7n2vLBx2e4NY5Quyi8kqTZWXepbkqbX+m0zMXpK0SLAynleo/yg==
   dependencies:
     date-fns "^2.21.3"
     date-fns-tz "^1.1.4"
