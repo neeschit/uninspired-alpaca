@@ -4,22 +4,20 @@ test("true range - gap down", () => {
     const range = getTrueRange(
         [
             {
-                t: new Date(1565668800),
+                t: new Date(1565668800).toISOString(),
                 o: 201.05,
                 h: 212.14,
                 l: 200.83,
                 c: 208.98,
                 v: 43076897,
-                n: 1,
             },
             {
-                t: new Date(1565755200),
+                t: new Date(1565755200).toISOString(),
                 o: 203.16,
                 h: 206.44,
                 l: 202.5869,
                 c: 202.75,
                 v: 30918861,
-                n: 1,
             },
         ],
         false
@@ -32,22 +30,20 @@ test("true range - gap up", () => {
     const range = getTrueRange(
         [
             {
-                t: new Date(1565841600),
+                t: new Date(1565841600).toISOString(),
                 o: 203.46,
                 h: 205.14,
                 l: 199.67,
                 c: 201.74,
                 v: 24575334,
-                n: 1,
             },
             {
-                t: new Date(1565928000),
+                t: new Date(1565928000).toISOString(),
                 o: 204.28,
                 h: 207.16,
                 l: 203.84,
                 c: 206.44,
                 v: 25086579,
-                n: 1,
             },
         ],
         false
@@ -60,22 +56,20 @@ test("true range - previos close in range", () => {
     const range = getTrueRange(
         [
             {
-                t: new Date(1565841600),
+                t: new Date(1565841600).toISOString(),
                 o: 203.46,
                 h: 205.14,
                 l: 199.67,
                 c: 204.74,
                 v: 24575334,
-                n: 1,
             },
             {
-                t: new Date(1565928000),
+                t: new Date(1565928000).toISOString(),
                 o: 204.28,
                 h: 207.16,
                 l: 203.84,
                 c: 206.44,
                 v: 25086579,
-                n: 1,
             },
         ],
         false
@@ -107,7 +101,7 @@ test("atr", () => {
 
 const fixtures = [
     {
-        t: new Date(1569988800),
+        t: new Date(1569988800).toISOString(),
         o: 223.06,
         h: 223.35,
         l: 217.93,
@@ -115,7 +109,7 @@ const fixtures = [
         v: 30918110,
     },
     {
-        t: new Date(1570075200),
+        t: new Date(1570075200).toISOString(),
         o: 218.43,
         h: 220.96,
         l: 215.132,
@@ -123,7 +117,7 @@ const fixtures = [
         v: 25785193,
     },
     {
-        t: new Date(1570161600),
+        t: new Date(1570161600).toISOString(),
         o: 225.64,
         h: 227.49,
         l: 223.89,
@@ -131,7 +125,7 @@ const fixtures = [
         v: 61420683,
     },
     {
-        t: new Date(1570420800),
+        t: new Date(1570420800).toISOString(),
         o: 226.27,
         h: 229.93,
         l: 225.84,
@@ -139,7 +133,7 @@ const fixtures = [
         v: 55939194,
     },
     {
-        t: new Date(1570507200),
+        t: new Date(1570507200).toISOString(),
         o: 225.82,
         h: 228.06,
         l: 224.33,
@@ -147,7 +141,7 @@ const fixtures = [
         v: 49356153,
     },
     {
-        t: new Date(1570593600),
+        t: new Date(1570593600).toISOString(),
         o: 227.03,
         h: 227.79,
         l: 225.64,
@@ -155,7 +149,7 @@ const fixtures = [
         v: 33424472,
     },
     {
-        t: new Date(1570680000),
+        t: new Date(1570680000).toISOString(),
         o: 227.93,
         h: 230.44,
         l: 227.3,
@@ -163,7 +157,7 @@ const fixtures = [
         v: 50995288,
     },
     {
-        t: new Date(1570766400),
+        t: new Date(1570766400).toISOString(),
         o: 232.95,
         h: 237.64,
         l: 232.3075,
@@ -171,7 +165,7 @@ const fixtures = [
         v: 75801862,
     },
     {
-        t: new Date(1571025600),
+        t: new Date(1571025600).toISOString(),
         o: 234.9,
         h: 238.1342,
         l: 234.6701,
@@ -179,7 +173,7 @@ const fixtures = [
         v: 43959865,
     },
     {
-        t: new Date(1571112000),
+        t: new Date(1571112000).toISOString(),
         o: 236.39,
         h: 237.65,
         l: 234.88,
@@ -187,7 +181,7 @@ const fixtures = [
         v: 37286507,
     },
     {
-        t: new Date(1571198400),
+        t: new Date(1571198400).toISOString(),
         o: 233.37,
         h: 235.24,
         l: 233.2,
@@ -195,7 +189,7 @@ const fixtures = [
         v: 32693993,
     },
     {
-        t: new Date(1571284800),
+        t: new Date(1571284800).toISOString(),
         o: 235.09,
         h: 236.15,
         l: 233.52,
@@ -203,7 +197,7 @@ const fixtures = [
         v: 30936663,
     },
     {
-        t: new Date(1571371200),
+        t: new Date(1571371200).toISOString(),
         o: 234.59,
         h: 237.58,
         l: 234.29,
@@ -211,7 +205,7 @@ const fixtures = [
         v: 45791251,
     },
     {
-        t: new Date(1571630400),
+        t: new Date(1571630400).toISOString(),
         o: 238.3659,
         h: 240.99,
         l: 238.32,
@@ -219,7 +213,7 @@ const fixtures = [
         v: 17427391,
     },
     {
-        t: new Date(1571716800),
+        t: new Date(1571716800).toISOString(),
         o: 241.16,
         h: 242.2,
         l: 239.6218,
@@ -227,7 +221,7 @@ const fixtures = [
         v: 19060536,
     },
     {
-        t: new Date(1571803200),
+        t: new Date(1571803200).toISOString(),
         o: 242.1,
         h: 243.24,
         l: 241.22,

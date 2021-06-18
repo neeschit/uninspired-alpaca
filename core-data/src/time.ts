@@ -103,3 +103,13 @@ export const isTimeForBoomBarEntry = (nowMillis: number) => {
 
     return isWithinEntryRange;
 };
+
+export const isTimeForBoomBreakoutEntry = (nowMillis: number) => {
+    const timeStart = convertToLocalTime(nowMillis, " 09:39:55.000");
+    const timeEnd = convertToLocalTime(nowMillis, " 10:00:10.000");
+
+    const isWithinEntryRange =
+        timeStart.getTime() <= nowMillis && timeEnd.getTime() >= nowMillis;
+
+    return isWithinEntryRange;
+};
