@@ -15,5 +15,5 @@
     },
     "include": [
         "*.ts"
-, "../boombreaker-screener/nrbScreener.spec.ts"    ]
+    ]
 }

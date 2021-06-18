@@ -3,28 +3,6 @@ name: Node CI
 on: [push]
 
 jobs:
-    build:
-        runs-on: ubuntu-latest
-        strategy:
-            matrix:
-                node-version: [14.x]
-        steps:
-            - uses: actions/checkout@v1
-            - name: Use Node.js ${{ matrix.node-version }}
-              uses: actions/setup-node@v1
-              with:
-                  node-version: ${{ matrix.node-version }}
-            - name: npm install, build, and test server code
-              working-directory: ./backend
-              run: |
-                  curl --compressed -o- -L https://yarnpkg.com/install.sh | bash
-                  yarn install
-                  yarn build
-                  yarn test:ci
-              env:
-                  CI: true
-                  ALPACA_SECRET_KEY_ID: ${{ secrets.ALPACA_SECRET_KEY_ID }}
-                  ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
     build-frontend:
         runs-on: ubuntu-latest
         strategy:
@@ -95,6 +73,28 @@ jobs:
               run: |
                   yarn install
                   yarn build
+              env:
+                  CI: true
+                  ALPACA_SECRET_KEY_ID: ${{ secrets.ALPACA_SECRET_KEY_ID }}
+                  ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+                  REDIS_KEY: ${{ secrets.REDIS_KEY }}
+    build-symbol-data
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                node-version: [14.x]
+        steps:
+            - uses: actions/checkout@v1
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v1
+              with:
+                  node-version: ${{ matrix.node-version }}
+            - name: Build and test app engine code
+              working-directory: ./symbol-data
+              run: |
+                  yarn install
+                  yarn build
+                  yarn test
               env:
                   CI: true
                   ALPACA_SECRET_KEY_ID: ${{ secrets.ALPACA_SECRET_KEY_ID }}

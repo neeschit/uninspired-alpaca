@@ -1,12 +1,12 @@
 {
-  "name": "boombar-screener",
+  "name": "boombreaker-screener",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "build": "tsc",
     "deploy": "sh deploy.sh",
-    "start": "env-cmd -r ./.env.json --verbose functions-framework --target=screenForBoombar --source=./build --signature-type=event --port=8082 --debug",
+    "start": "env-cmd -r ./.env.json --verbose functions-framework --target=boomBreaker --source=./build --signature-type=event --port=8082 --debug",
     "test": "env-cmd -r ./.env.json jest",
     "test:ci": "jest"
   },
@@ -23,7 +23,6 @@
   },
   "dependencies": {
     "@google-cloud/pubsub": "^2.12.0",
-    "@google-cloud/storage": "^5.8.3",
     "@neeschit/alpaca-trade-api": "^2.0.1",
     "@neeschit/boom-strategy": "^1.0.0",
     "@neeschit/common-interfaces": "^1.0.0",

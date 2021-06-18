@@ -1,3 +1,5 @@
+import { SimpleBar } from "./bar";
+
 export interface BoomBarReply {
     side?: any;
     limitPrice?: number;
@@ -14,4 +16,12 @@ export interface BoomBarRequest {
     symbol: string;
     pubsubchannel: string;
     calendar: any;
+}
+
+export interface BoomBreakerDataPoints {
+    nrbToBoomRatio: number;
+    distanceFromVwap: number;
+    distanceFromBoomBarRange: number;
+    boomBarRetracementSoFar: number;
+    nrb: SimpleBar;
 }
