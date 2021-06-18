@@ -123,7 +123,7 @@ jobs:
               run: |
                   yarn install
                   yarn build
-                  yarn test
+                  yarn test:ci
               env:
                   CI: true
                   ALPACA_SECRET_KEY_ID: ${{ secrets.ALPACA_SECRET_KEY_ID }}
