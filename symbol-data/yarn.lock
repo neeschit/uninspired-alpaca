@@ -516,9 +516,9 @@
     ws "^7.4.3"
 
 "@neeschit/common-interfaces@^1.1.3":
-  version "1.1.3"
-  resolved "https://registry.yarnpkg.com/@neeschit/common-interfaces/-/common-interfaces-1.1.3.tgz#ee79882a253c26fcd7955228c2bd2b1da23bfba6"
-  integrity sha512-zzwvCZtk+tKlpWCnMfRfKUHboY9Y6o09yfniIdC60lnhPO+lOI8opQlH8jjdrhmp827hEYAL23XH51ufv4jk2g==
+  version "1.1.4"
+  resolved "https://registry.yarnpkg.com/@neeschit/common-interfaces/-/common-interfaces-1.1.4.tgz#74fcd57d0301cf732b2291c00c656461a81d3631"
+  integrity sha512-Sq7c9t4MTZ7T8YqCob/KshZnoZssQmKVI2v7KNijJP2yBUGjlvADoecgz8vg5Rsd/JfGBxeysvfoL/9TC/5YLg==
 
 "@neeschit/core-data@^1.1.4":
   version "1.1.4"
@@ -614,15 +614,10 @@
     jest-diff "^26.0.0"
     pretty-format "^26.0.0"
 
-"@types/node@*":
+"@types/node@*", "@types/node@^15.12.2":
   version "15.12.3"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-15.12.3.tgz#2817bf5f25bc82f56579018c53f7d41b1830b1af"
   integrity sha512-SNt65CPCXvGNDZ3bvk1TQ0Qxoe3y1RKH88+wZ2Uf05dduBCqqFQ76ADP9pbT+Cpvj60SkRppMCh2Zo8tDixqjQ==
-
-"@types/node@^15.12.2":
-  version "15.12.2"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-15.12.2.tgz#1f2b42c4be7156ff4a6f914b2fb03d05fa84e38d"
-  integrity sha512-zjQ69G564OCIWIOHSXyQEEDpdpGl+G348RAKY0XXy9Z5kU9Vzv1GMNnkar/ZJ8dzXB3COzD9Mo9NtRZ4xfgUww==
 
 "@types/prettier@^2.1.5":
   version "2.3.0"
@@ -2835,9 +2830,9 @@ typedarray-to-buffer@^3.1.5:
     is-typedarray "^1.0.0"
 
 typescript@^4.3.2:
-  version "4.3.3"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.3.3.tgz#5401db69bd3203daf1851a1a74d199cb3112c11a"
-  integrity sha512-rUvLW0WtF7PF2b9yenwWUi9Da9euvDRhmH7BLyBG4DCFfOJ850LGNknmRpp8Z8kXNUPObdZQEfKOiHtXuQHHKA==
+  version "4.3.4"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.3.4.tgz#3f85b986945bcf31071decdd96cf8bfa65f9dcbc"
+  integrity sha512-uauPG7XZn9F/mo+7MrsRjyvbxFpzemRjKEZXS4AK83oP2KKOJPvb+9cO/gmnv8arWZvhnjVOXz7B49m1l0e9Ew==
 
 universalify@^0.1.2:
   version "0.1.2"
