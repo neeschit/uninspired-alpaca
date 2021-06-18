@@ -5,7 +5,7 @@
   "main": "build/index.js",
   "scripts": {
     "build": "tsc",
-    "test": "env-cmd -r ./.env.json  jest",
+    "test": "env-cmd -r ./.env.json jest",
     "test:ci": "jest"
   },
   "author": "",
