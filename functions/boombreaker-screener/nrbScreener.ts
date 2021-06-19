@@ -90,9 +90,6 @@ export const nrbScreener = async ({
         }
     );
 
-    console.log(max);
-    console.log(min);
-
     const boomBarRange = Math.abs(boomBar.h - boomBar.l);
 
     const isShort = isBoomConfirmed.side === TradeDirection.sell;
@@ -109,15 +106,28 @@ export const nrbScreener = async ({
         calendar,
     });
 
-    const distanceFromVwap = isShort
-        ? vwap - narrowestBar.l
-        : narrowestBar.h - vwap;
+    const distanceFromVwap =
+        Math.round(
+            (isShort ? vwap - narrowestBar.l : narrowestBar.h - vwap) * 100
+        ) / 100;
+
+    const distanceFromBoomBarRange =
+        Math.round(
+            (isShort
+                ? boomBar.l - narrowestBar.l < 0
+                    ? 0
+                    : Math.abs(boomBar.l - narrowestBar.l)
+                : boomBar.h - narrowestBar.h > 0
+                ? 0
+                : Math.abs(boomBar.h - narrowestBar.h)) * 100
+        ) / 100;
 
     return {
         nrbToBoomRatio,
         distanceFromVwap,
-        distanceFromBoomBarRange: 0,
+        distanceFromBoomBarRange,
         boomBarRetracementSoFar,
         nrb: narrowestBar,
+        boomBar,
     };
 };
