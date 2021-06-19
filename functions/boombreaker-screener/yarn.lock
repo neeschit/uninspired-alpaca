@@ -631,9 +631,9 @@
     date-fns "^2.22.1"
 
 "@neeschit/common-interfaces@^1.0.0", "@neeschit/common-interfaces@^1.1.3":
-  version "1.1.4"
-  resolved "https://registry.yarnpkg.com/@neeschit/common-interfaces/-/common-interfaces-1.1.4.tgz#74fcd57d0301cf732b2291c00c656461a81d3631"
-  integrity sha512-Sq7c9t4MTZ7T8YqCob/KshZnoZssQmKVI2v7KNijJP2yBUGjlvADoecgz8vg5Rsd/JfGBxeysvfoL/9TC/5YLg==
+  version "1.1.5"
+  resolved "https://registry.yarnpkg.com/@neeschit/common-interfaces/-/common-interfaces-1.1.5.tgz#ef8b9989abc282daa4163702569ca69d90e56522"
+  integrity sha512-W/R5aKqgVAvA9EA2Fws13BU6XLLAq/rAnIWGlWqDGdQuKU2pNP7FuS7k+OXJr9zmVGfAWV1owY34+8Qob7rdXA==
 
 "@neeschit/core-data@^1.0.4", "@neeschit/core-data@^1.1.4":
   version "1.1.5"
