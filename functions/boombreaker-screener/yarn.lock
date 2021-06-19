@@ -644,9 +644,9 @@
     date-fns-tz "^1.1.4"
 
 "@neeschit/symbol-data@^1.0.0":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@neeschit/symbol-data/-/symbol-data-1.0.1.tgz#678da5767b117eda328998125cf655f9265ec865"
-  integrity sha512-9Xj1XwbQRYDKXVz6NrBRdFXGFRE35YZDOBvvgKB8Tb7gp9q9okuH/D3p5Tqx1HYkmduJ6rNdHEq2JXraZNnHtw==
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@neeschit/symbol-data/-/symbol-data-1.0.2.tgz#14559105c3e9711132d3f6221c00408a65c8a4ff"
+  integrity sha512-Vi6Cy1a3vj2clr95+//zooMxcXeOszWxFV3qLPxghYhWLSQewaHI0NC1F5kNLkv9uprkm+YEIxa4KcClYxWKYg==
   dependencies:
     "@neeschit/alpaca-trade-api" "^2.0.2"
     "@neeschit/common-interfaces" "^1.1.3"
@@ -854,9 +854,9 @@
   integrity sha512-YATxVxgRqNH6nHEIsvg6k2Boc1JHI9ZbH5iWFFv/MTkchz3b1ieGDa5T0a9RznNdI0KhVbdbWSN+KWWrQZRxTw==
 
 "@types/node@*", "@types/node@>=12.12.47", "@types/node@>=13.7.0":
-  version "15.12.3"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-15.12.3.tgz#2817bf5f25bc82f56579018c53f7d41b1830b1af"
-  integrity sha512-SNt65CPCXvGNDZ3bvk1TQ0Qxoe3y1RKH88+wZ2Uf05dduBCqqFQ76ADP9pbT+Cpvj60SkRppMCh2Zo8tDixqjQ==
+  version "15.12.4"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-15.12.4.tgz#e1cf817d70a1e118e81922c4ff6683ce9d422e26"
+  integrity sha512-zrNj1+yqYF4WskCMOHwN+w9iuD12+dGm0rQ35HLl9/Ouuq52cEtd0CH9qMgrdNmi5ejC1/V7vKEXYubB+65DkA==
 
 "@types/node@^13.13.12":
   version "13.13.52"
@@ -1506,9 +1506,9 @@ content-type@~1.0.4:
   integrity sha512-hIP3EEPs8tB9AT1L+NUqtwOAps4mk2Zob89MWXMHjHWg9milF/j4osnnQLXBCBFBk/tvIG/tUc9mOUJiPBhPXA==
 
 convert-source-map@^1.4.0, convert-source-map@^1.6.0, convert-source-map@^1.7.0:
-  version "1.7.0"
-  resolved "https://registry.yarnpkg.com/convert-source-map/-/convert-source-map-1.7.0.tgz#17a2cb882d7f77d3490585e2ce6c524424a3a442"
-  integrity sha512-4FJkXzKXEDB1snCFZlLP4gpC3JILicCpGbzG9f9G7tGqGCzETQ2hWPrcinA9oU4wtf2biUaEH5065UnMeR33oA==
+  version "1.8.0"
+  resolved "https://registry.yarnpkg.com/convert-source-map/-/convert-source-map-1.8.0.tgz#f3373c32d21b4d780dd8004514684fb791ca4369"
+  integrity sha512-+OQdjP49zViI/6i7nIJpA8rAl4sV/JdPfU9nZs3VqOwGIgizICvuN2ru6fMd+4llL0tar18UYJXfZ/TWtmhUjA==
   dependencies:
     safe-buffer "~5.1.1"
 

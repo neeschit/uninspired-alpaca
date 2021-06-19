@@ -25,3 +25,28 @@ test("findNarrowestBar", () => {
     expect(bar).not.toEqual(-1);
     expect(bar).toEqual(bars[1]);
 });
+
+test("findNarrowestBar", () => {
+    const bars1 = [
+        {
+            o: 92.34,
+            c: 92.46,
+            h: 92.5893,
+            l: 92.28,
+            v: 29294,
+            t: "2021-06-17T13:35:00Z",
+        },
+        {
+            o: 92.455,
+            c: 91.98,
+            h: 92.49,
+            l: 91.8729,
+            v: 87614,
+            t: "2021-06-17T13:40:00Z",
+        },
+    ];
+    const bar = findNarrowestBar(bars1);
+
+    expect(bar).not.toEqual(-1);
+    expect(bar).toEqual(bars1[0]);
+});

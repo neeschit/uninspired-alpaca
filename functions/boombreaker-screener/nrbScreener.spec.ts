@@ -127,3 +127,31 @@ test("nrb screened for CL 06/16 at 09:45 am", async () => {
     expect(nrbResult?.boomBarRetracementSoFar).toEqual(0.3);
     expect(nrbResult?.distanceFromVwap).toEqual(0.01);
 });
+
+test("nrb screened for PGR 06/17 at 09:40 am", async () => {
+    const nrbResult = await nrbScreener({
+        symbol: "PGR",
+        epoch: 1623937200000,
+        calendar: [
+            {
+                date: "2021-06-17",
+                open: "09:30",
+                close: "16:00",
+            },
+        ],
+    });
+
+    expect(nrbResult).toBeTruthy();
+    expect(nrbResult?.nrb).toEqual({
+        o: 92.34,
+        c: 92.46,
+        h: 92.5893,
+        l: 92.28,
+        v: 29294,
+        t: "2021-06-17T13:35:00Z",
+    });
+    expect(nrbResult?.nrbToBoomRatio).toEqual(3.36);
+    expect(nrbResult?.distanceFromBoomBarRange).toEqual(0);
+    expect(nrbResult?.boomBarRetracementSoFar).toEqual(0.65);
+    expect(nrbResult?.distanceFromVwap).toEqual(0.45);
+});

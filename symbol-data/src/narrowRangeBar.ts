@@ -70,7 +70,7 @@ export const findNarrowestBar = (bars: SimpleBar[]) => {
         return;
     }
     try {
-        const { tr } = getAverageTrueRange(bars, false);
+        const { tr } = getAverageTrueRange(bars, true);
 
         const { min: narrowestRange } = findNarrowestRange({ tr });
 
