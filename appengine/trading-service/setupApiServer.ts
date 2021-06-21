@@ -1,7 +1,7 @@
 import { Alpaca } from "@neeschit/alpaca-trade-api";
 import fastify from "fastify";
 import { getRedisApi } from "@neeschit/redis";
-import { getWatchlistCacheKey } from "@neeschit/core-data";
+import { handleBoomBarReply } from "@neeschit/boom-strategy";
 
 import { handleEntryRequest } from "./handleEntryRequest";
 import { BoomBarReply } from "@neeschit/common-interfaces";
@@ -22,16 +22,17 @@ export function setupServer(alpaca: Alpaca) {
             Buffer.from(event.message.data, "base64").toString()
         );
 
+        const handleBoomBarReplyPromise = handleBoomBarReply(
+            decodedData,
+            redisApi
+        );
+
         if (
             decodedData.isInPlay &&
             decodedData.strategy === "boom" &&
             decodedData.relativeRange &&
             decodedData.relativeRange >= 2
         ) {
-            const key = getWatchlistCacheKey(Date.now());
-            const size = await redisApi.promiseSadd(key, decodedData.symbol);
-            console.log(size);
-
             await handleEntryRequest({
                 symbol: decodedData.symbol,
                 side: decodedData.side,
@@ -40,6 +41,8 @@ export function setupServer(alpaca: Alpaca) {
                 client: alpaca,
             });
         }
+
+        await handleBoomBarReplyPromise;
 
         return true;
     });

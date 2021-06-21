@@ -3,13 +3,16 @@ import {
     getLargeCaps,
     getMarketOpenTimeForDay,
     getWatchlistCacheKey,
-    getBoomRequestCacheKey,
     getCachedBoomStats,
 } from "@neeschit/core-data";
 import Alpaca from "@neeschit/alpaca-trade-api";
 import { getRedisApi } from "@neeschit/redis";
-import { requestScreen } from "./requestBacktestScreen";
 import { BoomBarReply } from "@neeschit/common-interfaces";
+import {
+    handleBoomBarReply,
+    handleBoombarRequest,
+} from "@neeschit/boom-strategy";
+import { requestScreen } from "./requestBacktestScreen";
 
 const server = fastify({
     logger: true,
@@ -42,16 +45,9 @@ server.get("/screen-boom-request/:date", async (request: { params: any }) => {
         return requestScreen(symbol, marketStartTime + 285000, calendar);
     });
 
-    try {
-        await redisApi.promiseSet(
-            getBoomRequestCacheKey(date.getTime()),
-            promises.length.toString()
-        );
+    await Promise.all(promises);
 
-        await Promise.all(promises);
-    } catch (e) {
-        console.error(e);
-    }
+    await handleBoombarRequest(redisApi, promises.length, date);
 
     return true;
 });
@@ -101,27 +97,7 @@ server.post("/boom-screener-reply", async (request) => {
         Buffer.from(event.message.data, "base64").toString()
     );
 
-    const { symbol, epoch } = decodedData;
-
-    console.log(decodedData);
-
-    try {
-        const key = getWatchlistCacheKey(epoch);
-        if (decodedData.isInPlay) {
-            const size = await redisApi.promiseSadd(key, symbol);
-            await redisApi.promiseSet(
-                getCachedBoomStats(epoch, symbol),
-                JSON.stringify({
-                    relativeRange: decodedData.relativeRange,
-                    relativeVolume: decodedData.relativeVolume,
-                })
-            );
-        }
-
-        await redisApi.promiseIncr(getBoomRequestCacheKey(epoch));
-    } catch (e) {
-        console.error(e);
-    }
+    await handleBoomBarReply(decodedData, redisApi);
 
     return true;
 });
