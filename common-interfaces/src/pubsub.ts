@@ -24,4 +24,5 @@ export interface BoomBreakerDataPoints {
     distanceFromBoomBarRange: number;
     boomBarRetracementSoFar: number;
     nrb: SimpleBar;
+    boomBar: SimpleBar;
 }

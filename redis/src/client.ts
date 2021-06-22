@@ -41,3 +41,5 @@ export const getRedisApi = () => {
         promiseIncr,
     };
 };
+
+export type RedisStrategy = ReturnType<typeof getRedisApi>;

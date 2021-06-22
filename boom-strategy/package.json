@@ -1,6 +1,6 @@
 {
   "name": "@neeschit/boom-strategy",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "build/index.js",
   "scripts": {
@@ -11,7 +11,9 @@
   "license": "ISC",
   "dependencies": {
     "@google-cloud/storage": "^5.8.5",
+    "@neeschit/common-interfaces": "^1.1.5",
     "@neeschit/core-data": "^1.1.4",
+    "@neeschit/redis": "^1.0.3",
     "date-fns": "^2.22.1"
   },
   "devDependencies": {
