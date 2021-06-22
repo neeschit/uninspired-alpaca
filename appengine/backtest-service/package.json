@@ -14,6 +14,7 @@
   "dependencies": {
     "@google-cloud/pubsub": "^2.12.0",
     "@neeschit/alpaca-trade-api": "^2.0.2",
+    "@neeschit/boom-strategy": "^1.0.1",
     "@neeschit/common-interfaces": "^1.1.1",
     "@neeschit/core-data": "^1.1.1",
     "@neeschit/redis": "^1.0.2",
