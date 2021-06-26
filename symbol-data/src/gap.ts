@@ -2,7 +2,13 @@ import {
     getMarketCloseTimeForDay,
     getMarketOpenTimeForDay,
 } from "@neeschit/core-data";
-import { addBusinessDays, endOfDay, formatISO } from "date-fns";
+import {
+    addBusinessDays,
+    endOfDay,
+    formatISO,
+    parseISO,
+    startOfDay,
+} from "date-fns";
 import { SimpleBar } from "@neeschit/common-interfaces";
 import { AlpacaClientSingleton } from "./client";
 import { GapDataRequest } from "./interfaces";
@@ -16,13 +22,12 @@ export const getGapPercentage = async ({
     limit,
 }: GapDataRequest) => {
     const marketOpenTimeForDay = getMarketOpenTimeForDay(epoch, calendar);
-    const marketCloseTimeToday = getMarketCloseTimeForDay(epoch, calendar);
 
     const generator = alpacaClient.getBarsV2(
         symbol,
         {
             start: formatISO(addBusinessDays(epoch, -4)),
-            end: formatISO(epoch),
+            end: formatISO(startOfDay(epoch)),
             timeframe: "1Day",
             limit: 10,
         },
@@ -31,14 +36,23 @@ export const getGapPercentage = async ({
 
     const bars = [];
 
+    const dayStart = startOfDay(epoch);
+
     for await (let b of generator) {
-        bars.push(b);
+        if (startOfDay(parseISO(b.t)).getTime() !== dayStart.getTime()) {
+            bars.push(b);
+        }
     }
 
-    const ydayDailyBar =
-        Date.now() > marketCloseTimeToday
-            ? bars[bars.length - 2]
-            : bars[bars.length - 1];
+    if (!bars.length) {
+        throw new Error(
+            "unexpected error getting gap for " +
+                symbol +
+                `on ${new Date(epoch).toISOString()}`
+        );
+    }
+
+    const ydayDailyBar = bars[bars.length - 1];
 
     const previousClose = ydayDailyBar.c;
 

@@ -314,3 +314,22 @@ test("isBoomBar for 02/28/20 AAPL", async () => {
 
     expect(screened).toBeFalsy();
 });
+
+test("isBoomBar for 06/25/21 NKE", async () => {
+    const date = 1624628085000;
+    const calendar: Calendar[] = [
+        {
+            date: "2021-06-25",
+            open: "09:30",
+            close: "16:00",
+        },
+    ];
+    const symbol = "NKE";
+    const screened = await isBoomBar({
+        symbol,
+        epoch: date,
+        calendar,
+    });
+
+    expect(screened).toBeFalsy();
+});
