@@ -32,9 +32,9 @@
   integrity sha512-W/R5aKqgVAvA9EA2Fws13BU6XLLAq/rAnIWGlWqDGdQuKU2pNP7FuS7k+OXJr9zmVGfAWV1owY34+8Qob7rdXA==
 
 "@neeschit/core-data@^1.1.1", "@neeschit/core-data@^1.1.4":
-  version "1.1.6"
-  resolved "https://registry.yarnpkg.com/@neeschit/core-data/-/core-data-1.1.6.tgz#10f7b6ef957ea981478e49718d45ee5b750b5363"
-  integrity sha512-WcYjQOaWRxiG+gFT7NS1mRL+SaPw+mbbqA7TumRmvxU/dAyAGtQOsZcZrwOA73kmqc8hqNX7XCv2xjk06Ol5BA==
+  version "1.1.7"
+  resolved "https://registry.yarnpkg.com/@neeschit/core-data/-/core-data-1.1.7.tgz#a1261cf5f1110519a4eb611f4e1254f96fbabba7"
+  integrity sha512-OiDQf8e4qh8KN7UbGKI3d4BRSKd/+FmjoW+6Ndo8cpDuAIUa0P3Q50ualT+70JFKEyytQw1FBUKF8T3GGIgyHQ==
   dependencies:
     date-fns "^2.21.3"
     date-fns-tz "^1.1.4"
@@ -48,9 +48,9 @@
     redis "^3.1.2"
 
 "@neeschit/symbol-data@^1.0.3":
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/@neeschit/symbol-data/-/symbol-data-1.0.3.tgz#feea4b5378357aa398f1e9a534fb53354c17ffe1"
-  integrity sha512-NSL+11MdPHJa0xou+KuWXasOUHjFVnzu22Fg1cqJOXUVug7VzaGAxvIR0DpWHcizO6JBdlQ8C+XtNe4KWwK3pw==
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/@neeschit/symbol-data/-/symbol-data-1.0.4.tgz#e48a15f78eab1c9865b56413d2cf7086ff7b09fe"
+  integrity sha512-j27zSk/tipe1huEVBP0X0Rl7jG4LOzwhVOxb2Ov2RqXRsHIQVhTHQtk421P059gG2O7jX1CHfcgwqZ6059fDFQ==
   dependencies:
     "@neeschit/alpaca-trade-api" "^2.0.2"
     "@neeschit/common-interfaces" "^1.1.3"

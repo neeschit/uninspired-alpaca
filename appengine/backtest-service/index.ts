@@ -12,6 +12,7 @@ import {
     handleBoomBarReply,
     handleBoombarRequest,
 } from "@neeschit/boom-strategy";
+import got from "got";
 import { requestScreen } from "./requestBacktestScreen";
 
 const server = fastify({
@@ -76,9 +77,15 @@ server.get("/boom-screened/:date", async (request: { params: any }) => {
                 };
             }
 
+            const url = `https://data-service-dot-fleet-tractor-309018.uk.r.appspot.com/dailyAtr?epoch=${date.getTime()}&symbol=${symbol}`;
+            console.log(url);
+
+            const atr = await got(url);
+
             return {
                 symbol,
                 ...JSON.parse(cachedStats),
+                atr: Number(atr.body),
             };
         });
 
