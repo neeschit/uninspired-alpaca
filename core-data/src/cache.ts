@@ -15,3 +15,7 @@ export const getWatchlistCacheKey = (epoch: number) => {
 export const getCachedBoomStats = (epoch: number, symbol: string) => {
     return getCacheKey("boom_stats_" + symbol, epoch);
 };
+
+export const getCachedAtrKey = (epoch: number, symbol: string) => {
+    return getCacheKey(`daily_atr_${symbol.toLowerCase()}`, epoch);
+};
