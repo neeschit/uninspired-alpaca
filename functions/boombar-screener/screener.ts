@@ -33,9 +33,18 @@ export const isBoomBar = async ({
 
     const boomBar = reduceToSingleBar(firstFiveBarsToday);
 
-    return isBoom({
+    const response = await isBoom({
         symbol,
         boomBar,
         gap,
     });
+
+    if (!response) {
+        return null;
+    }
+
+    return {
+        ...response,
+        boomBar,
+    };
 };

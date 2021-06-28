@@ -48,16 +48,16 @@
   integrity sha512-d4VSA86eL/AFTe5xtyZX+ePUjE8dIFu2T8zmdeNBSa5/kNgXPCx/o/wbFNHAGLJdGnk1vddRuMESD9HbOC8irw==
 
 "@google-cloud/pubsub@^2.12.0":
-  version "2.14.0"
-  resolved "https://registry.yarnpkg.com/@google-cloud/pubsub/-/pubsub-2.14.0.tgz#3d731ed0753e809b5ca6ef76febc21791fc4803f"
-  integrity sha512-pP8pwQ9d+p5KNmccEuwM4W9MM8Z9NP+Zzu3P9ewo/z+obK8mEvh5suC2at60MUWaDQOneTcUICpL6DXLRx957A==
+  version "2.15.1"
+  resolved "https://registry.yarnpkg.com/@google-cloud/pubsub/-/pubsub-2.15.1.tgz#46019f89f0b0a3c59f374e32362be7fba35284bd"
+  integrity sha512-avBYmN1n9BsY8RzntkEP3SG1gSfEm0iOoUwoWjtrmWAk+6QZw0C093HJCGClteo+EwIQDhgyn2cXc5QInegSeg==
   dependencies:
     "@google-cloud/paginator" "^3.0.0"
     "@google-cloud/precise-date" "^2.0.0"
     "@google-cloud/projectify" "^2.0.0"
     "@google-cloud/promisify" "^2.0.0"
-    "@opentelemetry/api" "^0.20.0"
-    "@opentelemetry/semantic-conventions" "^0.20.0"
+    "@opentelemetry/api" "^1.0.0"
+    "@opentelemetry/semantic-conventions" "^0.22.0"
     "@types/duplexify" "^3.6.0"
     "@types/long" "^4.0.0"
     arrify "^2.0.0"
@@ -96,16 +96,16 @@
     xdg-basedir "^4.0.0"
 
 "@grpc/grpc-js@~1.3.0":
-  version "1.3.2"
-  resolved "https://registry.yarnpkg.com/@grpc/grpc-js/-/grpc-js-1.3.2.tgz#eae97e6daf5abd49a7818aadeca0744dfb1ebca1"
-  integrity sha512-UXepkOKCATJrhHGsxt+CGfpZy9zUn1q9mop5kfcXq1fBkTePxVNPOdnISlCbJFlCtld+pSLGyZCzr9/zVprFKA==
+  version "1.3.4"
+  resolved "https://registry.yarnpkg.com/@grpc/grpc-js/-/grpc-js-1.3.4.tgz#5c4f5df717cd10cc5ebbc7523504008d1ff7b322"
+  integrity sha512-AxtZcm0mArQhY9z8T3TynCYVEaSKxNCa9mVhVwBCUnsuUEe8Zn94bPYYKVQSLt+hJJ1y0ukr3mUvtWfcATL/IQ==
   dependencies:
     "@types/node" ">=12.12.47"
 
 "@grpc/proto-loader@^0.6.1":
-  version "0.6.2"
-  resolved "https://registry.yarnpkg.com/@grpc/proto-loader/-/proto-loader-0.6.2.tgz#412575f3ff5ef0a9b79d4ea12c08cba5601041cb"
-  integrity sha512-q2Qle60Ht2OQBCp9S5hv1JbI4uBBq6/mqSevFNK3ZEgRDBCAkWqZPUhD/K9gXOHrHKluliHiVq2L9sw1mVyAIg==
+  version "0.6.3"
+  resolved "https://registry.yarnpkg.com/@grpc/proto-loader/-/proto-loader-0.6.3.tgz#9d3617e514295b2a6fe7e7ce28177af4783b6b12"
+  integrity sha512-AtMWwb7kY8DdtwIQh2hC4YFM1MzZ22lMA+gjbnCYDgICt14vX2tCa59bDrEjFyOI4LvORjpvT/UhHUdKvsX8og==
   dependencies:
     "@types/long" "^4.0.1"
     lodash.camelcase "^4.3.0"
@@ -131,9 +131,9 @@
     ws "^7.4.3"
 
 "@neeschit/boom-strategy@^1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@neeschit/boom-strategy/-/boom-strategy-1.0.1.tgz#a4f41d90d3cd584ec05e4e275acfefdff394fbd2"
-  integrity sha512-Clr9r0BYSUxpSDRmMiwgv0PYXYqtRaE1k5YMk4SNUTuYNij3wzfEpp7/o3hlyaZuMEBZGzXNBUTfn5ClcsXnYw==
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@neeschit/boom-strategy/-/boom-strategy-1.0.3.tgz#77a51d81ff940896ea4d9442e7904c9f2e6fefc1"
+  integrity sha512-rJqDHDB0Rlit5ZcmGYnCWijHMJ/osAvVGt7jHmJySIkJMiZ4n4K8+50NvYTKY7ODmT3e8WjfNXQ7ig95WoHD5g==
   dependencies:
     "@google-cloud/storage" "^5.8.5"
     "@neeschit/common-interfaces" "^1.1.5"
@@ -142,14 +142,14 @@
     date-fns "^2.22.1"
 
 "@neeschit/common-interfaces@^1.1.1", "@neeschit/common-interfaces@^1.1.5":
-  version "1.1.5"
-  resolved "https://registry.yarnpkg.com/@neeschit/common-interfaces/-/common-interfaces-1.1.5.tgz#ef8b9989abc282daa4163702569ca69d90e56522"
-  integrity sha512-W/R5aKqgVAvA9EA2Fws13BU6XLLAq/rAnIWGlWqDGdQuKU2pNP7FuS7k+OXJr9zmVGfAWV1owY34+8Qob7rdXA==
+  version "1.1.6"
+  resolved "https://registry.yarnpkg.com/@neeschit/common-interfaces/-/common-interfaces-1.1.6.tgz#a32128ce33bb93bd294de54d14dbf66849ec31d8"
+  integrity sha512-ZVmGA2TV/zrcG8i4NayZBxYJVl7D3R/z/WTP8dmido9ZTCkNe8hYrnEcTNIJBAFq3i8eHxSSolFFoxNbbt6glA==
 
 "@neeschit/core-data@^1.1.1", "@neeschit/core-data@^1.1.4":
-  version "1.1.6"
-  resolved "https://registry.yarnpkg.com/@neeschit/core-data/-/core-data-1.1.6.tgz#10f7b6ef957ea981478e49718d45ee5b750b5363"
-  integrity sha512-WcYjQOaWRxiG+gFT7NS1mRL+SaPw+mbbqA7TumRmvxU/dAyAGtQOsZcZrwOA73kmqc8hqNX7XCv2xjk06Ol5BA==
+  version "1.1.7"
+  resolved "https://registry.yarnpkg.com/@neeschit/core-data/-/core-data-1.1.7.tgz#a1261cf5f1110519a4eb611f4e1254f96fbabba7"
+  integrity sha512-OiDQf8e4qh8KN7UbGKI3d4BRSKd/+FmjoW+6Ndo8cpDuAIUa0P3Q50ualT+70JFKEyytQw1FBUKF8T3GGIgyHQ==
   dependencies:
     date-fns "^2.21.3"
     date-fns-tz "^1.1.4"
@@ -162,15 +162,15 @@
     date-fns "^2.22.1"
     redis "^3.1.2"
 
-"@opentelemetry/api@^0.20.0":
-  version "0.20.0"
-  resolved "https://registry.yarnpkg.com/@opentelemetry/api/-/api-0.20.0.tgz#d4e26d30dc0c5da697d1ff51434ad8f0cf30e565"
-  integrity sha512-n06MtDYEc2H07S/NTvGMlxF2Ijp0YbNrI/rBgLcxpEh3hxOkPZA12gxlUoZkBHWCZYau2j3b/uL+QFpiQKOjSw==
+"@opentelemetry/api@^1.0.0":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@opentelemetry/api/-/api-1.0.1.tgz#03c72f548431da5820a0c8864d1401e348e7e79f"
+  integrity sha512-H5Djcc2txGAINgf3TNaq4yFofYSIK3722PM89S/3R8FuI/eqi1UscajlXk7EBkG9s2pxss/q6SHlpturaavXaw==
 
-"@opentelemetry/semantic-conventions@^0.20.0":
-  version "0.20.0"
-  resolved "https://registry.yarnpkg.com/@opentelemetry/semantic-conventions/-/semantic-conventions-0.20.0.tgz#adc7e391bba6db9bbaba04ae263c3e92b1703d44"
-  integrity sha512-x40C3vQMttFlnNEfhFwO49jHrY6AoWnntL35TCem3LINr/aw1W0hGhdKY/zweC64CBJEyiHumaae480rqF8eOA==
+"@opentelemetry/semantic-conventions@^0.22.0":
+  version "0.22.0"
+  resolved "https://registry.yarnpkg.com/@opentelemetry/semantic-conventions/-/semantic-conventions-0.22.0.tgz#e91751bd2eb4f49344172bac62ba87c9390f93e9"
+  integrity sha512-t4fKikazahwNKmwD+CE/icHyuZldWvNMupJhjxdk9T/KxHFx3zCGjHT3MKavwYP6abzgAAm5WwzD1oHlmj7dyg==
 
 "@protobufjs/aspromise@^1.1.1", "@protobufjs/aspromise@^1.1.2":
   version "1.1.2"
@@ -277,14 +277,14 @@
   integrity sha512-5tXH6Bx/kNGd3MgffdmP4dy2Z+G4eaXw0SE81Tq3BNadtnMR5/ySMzX4SLEzHJzSmPNn4HIdpQsBvXMUykr58w==
 
 "@types/node@*", "@types/node@>=12.12.47", "@types/node@>=13.7.0":
-  version "15.12.4"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-15.12.4.tgz#e1cf817d70a1e118e81922c4ff6683ce9d422e26"
-  integrity sha512-zrNj1+yqYF4WskCMOHwN+w9iuD12+dGm0rQ35HLl9/Ouuq52cEtd0CH9qMgrdNmi5ejC1/V7vKEXYubB+65DkA==
+  version "15.12.5"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-15.12.5.tgz#9a78318a45d75c9523d2396131bd3cca54b2d185"
+  integrity sha512-se3yX7UHv5Bscf8f1ERKvQOD6sTyycH3hdaoozvaLxgUiY5lIGEeH37AD0G0Qi9kPqihPn0HOfd2yaIEN9VwEg==
 
 "@types/redis@^2.8.29":
-  version "2.8.29"
-  resolved "https://registry.yarnpkg.com/@types/redis/-/redis-2.8.29.tgz#f272dba985156e599e2523afb4f5f7e7586b56b5"
-  integrity sha512-/pjQ9lwnL/t1bEfRHQFEJB3kHCR65tpB19NEWmbqcgGgqrfeGo/9b4tUtHbClxQoy3+g6Esx2QRtV7fk7kBPYg==
+  version "2.8.30"
+  resolved "https://registry.yarnpkg.com/@types/redis/-/redis-2.8.30.tgz#2b63ce9ff93959355d8a1f6d7a45e483b5fe0299"
+  integrity sha512-4D3XwfIc671FSNXNruE/wmf6jWL7QYtyAhiWXJDkY41F4atMnOol4584oP4WqnW3uHe8d+Jn+wDLuQaxbfMgXQ==
   dependencies:
     "@types/node" "*"
 
@@ -704,9 +704,9 @@ fast-json-stable-stringify@^2.0.0:
   integrity sha512-lhd/wF+Lk98HZoTCtlVraHtfh5XYijIjalXck7saUtuanSDyLMxnHhSXEDJqHxD7msR8D0uCmqlkwjCV8xvwHw==
 
 fast-json-stringify@^2.5.2:
-  version "2.7.6"
-  resolved "https://registry.yarnpkg.com/fast-json-stringify/-/fast-json-stringify-2.7.6.tgz#c7c92f613f90427a809fe66b2d181ee23e0f0749"
-  integrity sha512-ezem8qpAgpad6tXeUhK0aSCS8Fi2vjxTorI9i5M+xrq6UUbTl7/bBTxL1SjRI2zy+qpPkdD4+UblUCQdxRpvIg==
+  version "2.7.7"
+  resolved "https://registry.yarnpkg.com/fast-json-stringify/-/fast-json-stringify-2.7.7.tgz#9e1c0f238f566559c3d4b99ae17a8e545381c16e"
+  integrity sha512-2kiwC/hBlK7QiGALsvj0QxtYwaReLOmAwOWJIxt5WHBB9EwXsqbsu8LCel47yh8NV8CEcFmnZYcXh4BionJcwQ==
   dependencies:
     ajv "^6.11.0"
     deepmerge "^4.2.2"
@@ -826,9 +826,9 @@ gcp-metadata@^4.2.0:
     json-bigint "^1.0.0"
 
 gcs-resumable-upload@^3.1.4:
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/gcs-resumable-upload/-/gcs-resumable-upload-3.2.0.tgz#9b96b835dcc552523900b60371f3d3bc1f204717"
-  integrity sha512-k6OAkrO0N1zgvwTRxgCC43K9BMvNUBhZkkFELsMSlgAVs7Sd9C1TA9pmDLBZmFBN8sdvrObsSbCfOOFnHULRvA==
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/gcs-resumable-upload/-/gcs-resumable-upload-3.2.1.tgz#99de8557f15a2946e54c294c58c743ec95b65907"
+  integrity sha512-T7YPQVPFibgt6DmJVPGIgY8jHF9ycGJVDRCutwMBp/7Y2++QYEW8drL9XUdzS6ZvEiwTKvgvGMG77yb63XwSXA==
   dependencies:
     abort-controller "^3.0.0"
     configstore "^5.0.0"
@@ -878,9 +878,9 @@ google-auth-library@^7.0.0, google-auth-library@^7.0.2:
     lru-cache "^6.0.0"
 
 google-gax@^2.12.0:
-  version "2.15.1"
-  resolved "https://registry.yarnpkg.com/google-gax/-/google-gax-2.15.1.tgz#2da29985cf36cda5aeb7a3de1a3cce904b4ee725"
-  integrity sha512-I5j4JRxx1HfZZBXnQs7gUvRHaTqT8XZ6U/QQWI/mDbf05dXP/vLni+ZkDzUh/XHDtIo/MPVkuEUhkwWwi+vwTg==
+  version "2.17.0"
+  resolved "https://registry.yarnpkg.com/google-gax/-/google-gax-2.17.0.tgz#363791efaca3bd242e34e92295937e9215666d17"
+  integrity sha512-Ze/Oq0atVNKyKvDzQFU8B82V9w36GELQruXGsiY1jnySbieZ9vS75v98V/Z10PktmSVqis4sQ+FwK2gkgwIiiw==
   dependencies:
     "@grpc/grpc-js" "~1.3.0"
     "@grpc/proto-loader" "^0.6.1"
@@ -1475,9 +1475,9 @@ ret@~0.2.0:
   integrity sha512-M0b3YWQs7R3Z917WRQy1HHA7Ba7D8hvZg6UE5mLykJxQVE2ju0IXbGlaHPPlkY+WN7wFP+wUMXmBFA0aV6vYGQ==
 
 retry-request@^4.0.0, retry-request@^4.1.1:
-  version "4.1.3"
-  resolved "https://registry.yarnpkg.com/retry-request/-/retry-request-4.1.3.tgz#d5f74daf261372cff58d08b0a1979b4d7cab0fde"
-  integrity sha512-QnRZUpuPNgX0+D1xVxul6DbJ9slvo4Rm6iV/dn63e048MvGbUZiKySVt6Tenp04JqmchxjiLltGerOJys7kJYQ==
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/retry-request/-/retry-request-4.2.0.tgz#b693d7fb8eaf02fcd90127c8f51360d96bf24981"
+  integrity sha512-rIwHm2pipUX7MFTpscNr9CNfOsW3gzcosqUOvS7MbuURgdDeIzNVjA/sNgs4BTt0g3L748hB7Q/Yt6StRFHD4w==
   dependencies:
     debug "^4.1.1"
 

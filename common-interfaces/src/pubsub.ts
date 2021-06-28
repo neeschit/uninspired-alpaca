@@ -5,6 +5,7 @@ export interface BoomBarReply {
     limitPrice?: number;
     relativeRange?: number;
     relativeVolume?: number;
+    boomBar?: SimpleBar;
     isInPlay: boolean;
     symbol: string;
     epoch: number;

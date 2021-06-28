@@ -18,20 +18,12 @@ server.get("/", async () => {
 server.get("/dailyAtr", async (request: { query: any }) => {
     const epoch = Number(request.query.epoch);
     const symbol = request.query.symbol;
-    console.log(symbol);
-    console.log(epoch);
     try {
         const cacheKey = getCachedAtrKey(epoch, symbol);
-        console.log(cacheKey);
         const atrCached = await redisApi.promiseGet(cacheKey);
-        console.log(atrCached);
         if (!atrCached) {
             const atr = await getDailyAtr({ epoch, symbol });
-
             await redisApi.promiseSet(cacheKey, atr.toString());
-
-            console.log(atr);
-
             return atr;
         } else {
             console.log("returning cached atr");
