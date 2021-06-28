@@ -63,22 +63,22 @@
     xdg-basedir "^4.0.0"
 
 "@neeschit/common-interfaces@^1.1.5":
-  version "1.1.5"
-  resolved "https://registry.yarnpkg.com/@neeschit/common-interfaces/-/common-interfaces-1.1.5.tgz#ef8b9989abc282daa4163702569ca69d90e56522"
-  integrity sha512-W/R5aKqgVAvA9EA2Fws13BU6XLLAq/rAnIWGlWqDGdQuKU2pNP7FuS7k+OXJr9zmVGfAWV1owY34+8Qob7rdXA==
+  version "1.1.6"
+  resolved "https://registry.yarnpkg.com/@neeschit/common-interfaces/-/common-interfaces-1.1.6.tgz#a32128ce33bb93bd294de54d14dbf66849ec31d8"
+  integrity sha512-ZVmGA2TV/zrcG8i4NayZBxYJVl7D3R/z/WTP8dmido9ZTCkNe8hYrnEcTNIJBAFq3i8eHxSSolFFoxNbbt6glA==
 
 "@neeschit/core-data@^1.1.4":
-  version "1.1.4"
-  resolved "https://registry.yarnpkg.com/@neeschit/core-data/-/core-data-1.1.4.tgz#193827e5ac5fdf1643cca7870be8330119da7cdf"
-  integrity sha512-QwC6NUWEd8et/tW3s9KqD/iq6WM0cpDlO9CoCIwxWTUf3LlzCqZyPujHZLgEGZ1lYByF2DInjrD8FGNY3QGdDQ==
+  version "1.1.7"
+  resolved "https://registry.yarnpkg.com/@neeschit/core-data/-/core-data-1.1.7.tgz#a1261cf5f1110519a4eb611f4e1254f96fbabba7"
+  integrity sha512-OiDQf8e4qh8KN7UbGKI3d4BRSKd/+FmjoW+6Ndo8cpDuAIUa0P3Q50ualT+70JFKEyytQw1FBUKF8T3GGIgyHQ==
   dependencies:
     date-fns "^2.21.3"
     date-fns-tz "^1.1.4"
 
 "@neeschit/redis@^1.0.3":
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/@neeschit/redis/-/redis-1.0.3.tgz#ae5a2c0828fcc64e35686633dc16ba8d0fb8bb67"
-  integrity sha512-Sk9phWSjA+q1xrhg8MmHbxLg1Lj3K5KGM3bmDd0UCVSGTmwiiAY3GvP69LTHYAkCSLuPcbZ31As7ftqPiaYupg==
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/@neeschit/redis/-/redis-1.0.4.tgz#ddf01923b7084a44dd3c5701a3e17263363e65f3"
+  integrity sha512-KRndz2WrGLfZiT3zLs6CdAPTMbcGtSMl2HDm9yOWZDNFJRijQLzZyj9w0uGwFfQf4kTGYqZs4HQqdcEjxD70TQ==
   dependencies:
     date-fns "^2.22.1"
     redis "^3.1.2"
@@ -89,9 +89,9 @@
   integrity sha512-RbzJvlNzmRq5c3O09UipeuXno4tA1FE6ikOjxZK0tuxVv3412l64l5t1W5pj4+rJq9vpkm/kwiR07aZXnsKPxw==
 
 "@types/node@^15.12.2":
-  version "15.12.2"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-15.12.2.tgz#1f2b42c4be7156ff4a6f914b2fb03d05fa84e38d"
-  integrity sha512-zjQ69G564OCIWIOHSXyQEEDpdpGl+G348RAKY0XXy9Z5kU9Vzv1GMNnkar/ZJ8dzXB3COzD9Mo9NtRZ4xfgUww==
+  version "15.12.5"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-15.12.5.tgz#9a78318a45d75c9523d2396131bd3cca54b2d185"
+  integrity sha512-se3yX7UHv5Bscf8f1ERKvQOD6sTyycH3hdaoozvaLxgUiY5lIGEeH37AD0G0Qi9kPqihPn0HOfd2yaIEN9VwEg==
 
 abort-controller@^3.0.0:
   version "3.0.0"
@@ -256,9 +256,9 @@ gcp-metadata@^4.2.0:
     json-bigint "^1.0.0"
 
 gcs-resumable-upload@^3.1.4:
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/gcs-resumable-upload/-/gcs-resumable-upload-3.2.0.tgz#9b96b835dcc552523900b60371f3d3bc1f204717"
-  integrity sha512-k6OAkrO0N1zgvwTRxgCC43K9BMvNUBhZkkFELsMSlgAVs7Sd9C1TA9pmDLBZmFBN8sdvrObsSbCfOOFnHULRvA==
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/gcs-resumable-upload/-/gcs-resumable-upload-3.2.1.tgz#99de8557f15a2946e54c294c58c743ec95b65907"
+  integrity sha512-T7YPQVPFibgt6DmJVPGIgY8jHF9ycGJVDRCutwMBp/7Y2++QYEW8drL9XUdzS6ZvEiwTKvgvGMG77yb63XwSXA==
   dependencies:
     abort-controller "^3.0.0"
     configstore "^5.0.0"
@@ -506,9 +506,9 @@ redis@^3.1.2:
     redis-parser "^3.0.0"
 
 retry-request@^4.1.1:
-  version "4.1.3"
-  resolved "https://registry.yarnpkg.com/retry-request/-/retry-request-4.1.3.tgz#d5f74daf261372cff58d08b0a1979b4d7cab0fde"
-  integrity sha512-QnRZUpuPNgX0+D1xVxul6DbJ9slvo4Rm6iV/dn63e048MvGbUZiKySVt6Tenp04JqmchxjiLltGerOJys7kJYQ==
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/retry-request/-/retry-request-4.2.0.tgz#b693d7fb8eaf02fcd90127c8f51360d96bf24981"
+  integrity sha512-rIwHm2pipUX7MFTpscNr9CNfOsW3gzcosqUOvS7MbuURgdDeIzNVjA/sNgs4BTt0g3L748hB7Q/Yt6StRFHD4w==
   dependencies:
     debug "^4.1.1"
 
@@ -580,9 +580,9 @@ typedarray-to-buffer@^3.1.5:
     is-typedarray "^1.0.0"
 
 typescript@^4.3.2:
-  version "4.3.3"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.3.3.tgz#5401db69bd3203daf1851a1a74d199cb3112c11a"
-  integrity sha512-rUvLW0WtF7PF2b9yenwWUi9Da9euvDRhmH7BLyBG4DCFfOJ850LGNknmRpp8Z8kXNUPObdZQEfKOiHtXuQHHKA==
+  version "4.3.4"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.3.4.tgz#3f85b986945bcf31071decdd96cf8bfa65f9dcbc"
+  integrity sha512-uauPG7XZn9F/mo+7MrsRjyvbxFpzemRjKEZXS4AK83oP2KKOJPvb+9cO/gmnv8arWZvhnjVOXz7B49m1l0e9Ew==
 
 unique-string@^2.0.0:
   version "2.0.0"

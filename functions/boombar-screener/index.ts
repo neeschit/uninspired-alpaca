@@ -1,6 +1,5 @@
 import { EventFunction } from "@google-cloud/functions-framework/build/src/functions";
 import { PubSub } from "@google-cloud/pubsub";
-
 import { isTimeForBoomBarEntry, getSpyCompanies } from "@neeschit/core-data";
 import { BoomBarReply, BoomBarRequest } from "@neeschit/common-interfaces";
 import { isBoomBar } from "./screener";
@@ -47,6 +46,7 @@ export const screenForBoombar: EventFunction = async (
         relativeVolume: screened?.relativeVolume,
         relativeRange: screened?.relativeRange,
         strategy: "boom",
+        boomBar: screened?.boomBar,
         epoch: data.epoch,
     };
 

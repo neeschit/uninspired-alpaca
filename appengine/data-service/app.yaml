@@ -1,0 +1,4 @@
+runtime: nodejs14
+service: data-service
+includes:
+    - env.yaml

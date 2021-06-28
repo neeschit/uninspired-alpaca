@@ -3,3 +3,4 @@ export * from "./gap";
 export * from "./timeframe";
 export * from "./narrowRangeBar";
 export * from "./vwap";
+export * from "./trueRange";

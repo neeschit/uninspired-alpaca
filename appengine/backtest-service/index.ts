@@ -12,6 +12,7 @@ import {
     handleBoomBarReply,
     handleBoombarRequest,
 } from "@neeschit/boom-strategy";
+import got from "got";
 import { requestScreen } from "./requestBacktestScreen";
 
 const server = fastify({
@@ -76,15 +77,33 @@ server.get("/boom-screened/:date", async (request: { params: any }) => {
                 };
             }
 
+            const boomStats = JSON.parse(cachedStats);
+
+            const url = `https://data-service-dot-fleet-tractor-309018.uk.r.appspot.com/dailyAtr?epoch=${date.getTime()}&symbol=${symbol}`;
+
+            const atrResponse = await got(url);
+            const dailyAtr = Number(atrResponse.body);
+            const atrToBoomRatio =
+                Math.abs(boomStats.boomBar.h - boomStats.boomBar.l) / dailyAtr;
+
             return {
                 symbol,
-                ...JSON.parse(cachedStats),
+                relativeVolume: boomStats.relativeVolume,
+                relativeRange: boomStats.relativeRange,
+                atrToBoomRatio,
             };
         });
 
         const inflatedList = Promise.all(inflatedListPromises);
 
-        return inflatedList;
+        const sortedInflatedList = (await inflatedList).sort((a, b) => {
+            if (a.relativeRange === b.relativeRange) {
+                return a.relativeVolume > b.relativeVolume ? -1 : 1;
+            }
+            return a.relativeRange > b.relativeRange ? -1 : 1;
+        });
+
+        return sortedInflatedList;
     } catch (e) {
         return [];
     }

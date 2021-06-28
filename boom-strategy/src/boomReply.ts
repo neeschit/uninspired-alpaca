@@ -10,7 +10,8 @@ export const handleBoomBarReply = async (
     data: BoomBarReply,
     redisApi: RedisStrategy
 ) => {
-    const { symbol, epoch, isInPlay, relativeRange, relativeVolume } = data;
+    const { symbol, epoch, isInPlay, relativeRange, relativeVolume, boomBar } =
+        data;
 
     try {
         const key = getWatchlistCacheKey(epoch);
@@ -19,8 +20,9 @@ export const handleBoomBarReply = async (
             await redisApi.promiseSet(
                 getCachedBoomStats(epoch, symbol),
                 JSON.stringify({
-                    relativeRange: relativeRange,
-                    relativeVolume: relativeVolume,
+                    relativeRange,
+                    relativeVolume,
+                    boomBar,
                 })
             );
         }
